@@ -44,18 +44,24 @@ final class TaxSeeder extends Seeder
 			];
 
 			foreach ($defs as $def) {
-				if (Tx::where('name', $def['name'])->exists()) continue;
+				try {
+					if (Tx::where('name', $def['name'])->exists()) continue;
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Imposto: {$def['name']}");
+					do $taxId = Str::uuid()->toString();
+					while (Tx::where('id', $taxId)->exists());
 
-				do $taxId = Str::uuid()->toString();
-				while (Tx::where('id', $taxId)->exists());
-
-				$t = new Tx();
-				$t->id                   = $taxId;
-				$t->name                 = $def['name'];
-				$t->rate                 = $def['rate'];
-				$t->{DC::COL_TABLE_CREATOR}  = $systemUserId;
-				$t->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$t->save();
+					$t = new Tx();
+					$t->id                   = $taxId;
+					$t->name                 = $def['name'];
+					$t->rate                 = $def['rate'];
+					$t->{DC::COL_TABLE_CREATOR}  = $systemUserId;
+					$t->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$t->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

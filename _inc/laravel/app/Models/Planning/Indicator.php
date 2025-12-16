@@ -2,51 +2,243 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
+};
+use App\Enums\IndicatorTechnicalLevel;
+use App\Models\{
+    Branch,
+    Department,
+    Designation,
+    Employee,
+    Project,
+    User
+};
+use App\Traits\{
+    HasAuditFields,
+    NormalizesArrays,
+    UsesUuids
+};
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class Indicator extends Model
 {
     use UsesUuids;
+    use HasAuditFields;
+    use NormalizesArrays;
+
+    protected $table = DC::TABLE_IND;
 
     private const FILLABLE_FIELDS = [
-        'attendance', 'administration', 'branch', 'created_by', 'created_user',
-        'customer_experience', 'designation', 'integrity', 'marketing',
-        'professionalism', 'rating'
+        // HasRatingColumns
+        'company',
+        'branch',
+        'employee',
+        'rating',
+        'attendance',
+        'administration',
+        PJC::COL_CST_EXP, // customer_experience
+        'integrity',
+        'marketing',
+        'professionalism',
+
+        // CreateIndicatorsTable
+        'department',
+        'designation',
+        'project',
+        DC::COL_CRT_USR, // created_user
+        'level',
+        'sources',
     ];
+
     protected $fillable = self::FILLABLE_FIELDS;
 
-    private const ORGANIZATIONAL_LEVELS = [
-        'None', 'Beginner', 'Intermediate', 'Advanced'
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
+
+    protected $casts = [
+        'id'                 => 'string',
+        'company'            => 'string',
+        'branch'             => 'string',
+        'employee'           => 'string',
+        'department'         => 'string',
+        'designation'        => 'string',
+        'project'            => 'string',
+
+        'rating'             => 'string',
+        'attendance'         => 'int',
+        'administration'     => 'int',
+        PJC::COL_CST_EXP     => 'int', // customer_experience
+        'integrity'          => 'int',
+        'marketing'          => 'int',
+        'professionalism'    => 'int',
+
+        DC::COL_CRT_USR      => 'string',
+        'level'              => IndicatorTechnicalLevel::class,
+
+        'sources'            => 'array',
+
+        DC::COL_C_AT         => 'datetime',
+        DC::COL_U_AT         => 'datetime',
+    ];
+
+    // * legacy, should match the default labels of the IndicatorTechnicalLevel enum
+    private const ORGANIZATIONAL_LEVELS = [
+        'None',
+        'Beginner',
+        'Intermediate',
+        'Advanced',
+    ];
+
     public static array $organizational = self::ORGANIZATIONAL_LEVELS;
 
+    // * legacy, should match the default labels of the IndicatorTechnicalLevel enum
     private const TECHNICAL_LEVELS = [
-        'None', 'Beginner', 'Intermediate', 'Advanced', 'Expert / Leader'
+        'None',
+        'Beginner',
+        'Intermediate',
+        'Advanced',
+        'Expert / Leader',
     ];
+
     public static array $technical = self::TECHNICAL_LEVELS;
 
-    public function branches(): HasOne
+    protected static function booted(): void
     {
-        return $this->hasOne(Branch::class, 'id', 'branch');
-        // * consider belongsTo(Branch::class,'branch','id')
+        static::saving(function (self $model): void {
+            // Clampa os ratings entre 0 e 10
+            foreach (
+                [
+                    'attendance',
+                    'administration',
+                    PJC::COL_CST_EXP,
+                    'integrity',
+                    'marketing',
+                    'professionalism',
+                ] as $field
+            ) {
+                $value = $model->getAttribute($field);
+
+                $int = (int) ($value ?? 0);
+
+                if ($int < 0) {
+                    $int = 0;
+                } elseif ($int > 10) {
+                    $int = 10;
+                }
+
+                $model->setAttribute($field, $int);
+            }
+
+            // Normaliza rating textual
+            $rating = $model->getAttribute('rating');
+            if ($rating !== null) {
+                $model->setAttribute('rating', trim((string) $rating));
+            }
+
+            // Normaliza sources: array<string> de UUIDs
+            $sources = $model->getAttribute('sources');
+
+            if (is_array($sources)) {
+                $normalized = [];
+
+                foreach ($sources as $value) {
+                    if (!is_string($value)) {
+                        continue;
+                    }
+
+                    $trimmed = trim($value);
+                    if ($trimmed === '') {
+                        continue;
+                    }
+
+                    if (!self::looksLikeUuid($trimmed)) {
+                        continue;
+                    }
+
+                    $normalized[] = $trimmed;
+                }
+
+                $normalized = array_values(array_unique($normalized));
+
+                $model->setAttribute('sources', $normalized);
+            } else {
+                $model->setAttribute('sources', []);
+            }
+
+            try {
+                $model->ensureJsonAttributesAreEncoded(['sources']);
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to encode JSON attributes', [
+                    'id'    => $model->getAttribute('id'),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        });
     }
 
-    public function departments(): HasOne
+    private static function looksLikeUuid(string $value): bool
     {
-        return $this->hasOne(Department::class, 'id', 'department');
-        // * consider belongsTo(Department::class,'department','id')
+        return (bool) preg_match(
+            '/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/',
+            $value
+        );
     }
 
-    public function designations(): HasOne
+
+    public function branches(): BelongsTo
     {
-        return $this->hasOne(Designation::class, 'id', 'designation');
-        // * consider belongsTo(Designation::class,'designation','id')
+        // coluna literal "branch" (BranchConnected com prefixed: false)
+        return $this->belongsTo(Branch::class, 'branch', 'id');
     }
 
-    public function user(): HasOne
+    public function departments(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', 'created_user');
-        // * consider belongsTo(User::class,'created_user','id')
+        return $this->belongsTo(Department::class, 'department', 'id');
+    }
+
+    public function designations(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class, 'designation', 'id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project', 'id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'employee', 'id');
+    }
+
+    public function company(): BelongsTo
+    {
+        // usuário do tipo company, FK "company"
+        return $this->belongsTo(User::class, 'company', 'id');
+    }
+
+    /**
+     * Usuário que criou o indicador (DC::COL_CRT_USR = 'created_user').
+     *
+     * Mantém nome legado "user" para compatibilidade.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, DC::COL_CRT_USR, 'id');
+    }
+
+    /**
+     * Alias mais explícito para o criador do indicador.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->user();
     }
 }

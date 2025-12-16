@@ -16,6 +16,7 @@ trait RegistersShipping
 		$table->string(BC::COL_SHIP_ST)->nullable();
 		$table->string(BC::COL_SHIP_CTY)->nullable();
 		$table->string(BC::COL_SHIP_TEL)->nullable()->index();
+		$table->string(BC::COL_SHIP_EMAIL)->nullable();
 		$table->text(BC::COL_SHIP_DTL)->nullable(); // ? apartment, block, etc.
 	}
 	protected function addBillingColumns(Blueprint $table): void

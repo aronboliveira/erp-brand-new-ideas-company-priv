@@ -102,8 +102,7 @@ final class UserLead extends Model
 
     public function getLogCountAttribute(): int
     {
-        $logs = $this->logs;
-
+        $logs = $this->getAttribute('logs');
         return is_array($logs) ? count($logs) : 0;
     }
 
@@ -120,9 +119,9 @@ final class UserLead extends Model
         if ($this->role instanceof LeadRole)
             return;
         $raw = $this->getAttribute('role');
-        $this->role = LeadRole::normalize(
+        $this->setAttribute('role', LeadRole::normalize(
             is_string($raw) ? $raw : null
-        );
+        ));
     }
 
     /**
@@ -132,48 +131,40 @@ final class UserLead extends Model
      */
     private function syncDecisionFlagFromRoleAndUser(): void
     {
-        $role = $this->role instanceof LeadRole
-            ? $this->role
+        $role = $this->getAttribute('role') instanceof LeadRole
+            ? $this->getAttribute('role')
             : LeadRole::normalize(
                 is_string($this->getAttribute('role'))
                     ? $this->getAttribute('role')
                     : null
             );
-
         $can = $role?->isManagement() ?? false;
-
         if (!$can && $this->getAttribute(self::FK_USER)) {
             $user = $this->relationLoaded('user')
-                ? $this->user
+                ? $this->getAttribute('user')
                 : $this->user()->first();
-
             if ($user) {
                 $normalizedUserType = UserType::normalize(
                     $user->{UC::COL_U_TP} ?? null
                 );
-
                 if ($normalizedUserType && in_array(
                     $normalizedUserType,
                     [UserType::SuperAdmin, UserType::Admin],
                     true
-                )) {
+                ))
                     $can = true;
-                }
             }
         }
-
-        $this->{AC::COL_CAN_MK_DCS} = $can;
+        $this->setAttribute(AC::COL_CAN_MK_DCS, $can);
     }
 
     private function filterLogsByExistingActivity(): void
     {
-        $current = self::normalizeArrayField($this->logs);
-
+        $current = self::normalizeArrayField($this->getAttribute('logs') ?? null);
         if ($current === []) {
-            $this->logs = [];
+            $this->setAttribute('logs', []);
             return;
         }
-
         $candidateIds = [];
         foreach ($current as $entry) {
             if (!is_array($entry))
@@ -183,26 +174,20 @@ final class UserLead extends Model
                 continue;
             $candidateIds[] = $id;
         }
-
         if ($candidateIds === []) {
-            $this->logs = [];
+            $this->setAttribute('logs', []);
             return;
         }
-
         $uniqueIds = array_values(array_unique($candidateIds));
-
         $existingIds = LeadActivityLog::query()
             ->whereIn('id', $uniqueIds)
             ->pluck('id')
             ->all();
-
         if ($existingIds === []) {
-            $this->logs = [];
+            $this->setAttribute('logs', []);
             return;
         }
-
         $allowed = array_flip($existingIds);
-
         $filtered = [];
         foreach ($current as $entry) {
             if (!is_array($entry))
@@ -211,7 +196,7 @@ final class UserLead extends Model
             if (is_string($id) && isset($allowed[$id]))
                 $filtered[] = $entry;
         }
-        $this->logs = $filtered;
+        $this->setAttribute('logs', $filtered);
     }
 
     /**
@@ -222,29 +207,24 @@ final class UserLead extends Model
      */
     private function getEffectiveDecisionCapability(): bool
     {
-        $role = $this->role instanceof LeadRole
-            ? $this->role
+        $role = $this->getAttribute('role') instanceof LeadRole
+            ? $this->getAttribute('role')
             : LeadRole::normalize(
                 is_string($this->getAttribute('role'))
                     ? $this->getAttribute('role')
                     : null
             );
-
         if ($role && $role->isManagement())
             return true;
-
         $user = $this->relationLoaded('user')
-            ? $this->user
+            ? $this->getAttribute('user')
             : null;
-
         if (!$user && $this->getAttribute(self::FK_USER))
             $user = $this->user()->first();
-
         if ($user) {
             $normalizedUserType = UserType::normalize(
-                $user->{UC::COL_U_TP} ?? null
+                $user->getAttribute(UC::COL_U_TP) ?? null
             );
-
             if ($normalizedUserType && in_array(
                 $normalizedUserType,
                 [UserType::SuperAdmin, UserType::Admin],
@@ -252,7 +232,6 @@ final class UserLead extends Model
             ))
                 return true;
         }
-
-        return (bool) ($this->getAttributes()[AC::COL_CAN_MK_DCS] ?? false);
+        return (bool) ($this->getAttribute(AC::COL_CAN_MK_DCS) ?? false);
     }
 }

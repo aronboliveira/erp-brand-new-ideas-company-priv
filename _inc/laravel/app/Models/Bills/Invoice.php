@@ -135,37 +135,37 @@ class Invoice extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         static::saving(function (self $m): void {
-            if (empty($m->{BC::COL_STT_LB}))
-                $m->{BC::COL_STT_LB} = BillStatus::Draft->value;
-            if (empty($m->{BC::COL_PAY_STT}))
-                $m->{BC::COL_PAY_STT} = PaymentStatus::Processing->value;
-            $amount   = (float) ($m->amount ?? 0.0);
-            $discount = (float) ($m->discount ?? 0.0);
+            if (empty($m->getAttribute(BC::COL_STT_LB)))
+                $m->setAttribute(BC::COL_STT_LB, BillStatus::Draft->value);
+            if (empty($m->getAttribute(BC::COL_PAY_STT)))
+                $m->setAttribute(BC::COL_PAY_STT, PaymentStatus::Processing->value);
+            $amount   = (float) ($m->getAttribute('amount') ?? 0.0);
+            $discount = (float) ($m->getAttribute('discount') ?? 0.0);
             if ($discount < 0.0)
                 $discount = 0.0;
             elseif ($discount > $amount)
                 $discount = $amount;
-            $m->amount   = $amount;
-            $m->discount = $discount;
+            $m->setAttribute('amount', $amount);
+            $m->setAttribute('discount', $discount);
             self::normalizeBillingCountry($m);
-            self::normalizeShippingCountry($m);
-            if (!empty($m->{BC::COL_BL_EMAIL}))
-                $m->{BC::COL_BL_EMAIL}    = self::normalizeEmail($m->{BC::COL_BL_EMAIL}, $m->{BC::COL_BL_NAME} ?? null, $m->id);
-            if (!empty($m->{BC::COL_SHIP_EMAIL}))
-                $m->{BC::COL_SHIP_EMAIL}  = self::normalizeEmail($m->{BC::COL_SHIP_EMAIL}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
-            if (!empty($m->{BC::COL_BL_TEL}))
-                $m->{BC::COL_BL_TEL} = self::normalizePhone($m->{BC::COL_BL_TEL}, $m->{BC::COL_BL_NAME} ?? null, $m->id);
-            if (!empty($m->{BC::COL_SHIP_TEL}))
-                $m->{BC::COL_SHIP_TEL}   = self::normalizePhone($m->{BC::COL_SHIP_TEL}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
-            if (!empty($m->{BC::COL_BL_ZIP}) && !empty($m->{BC::COL_BL_CTR}))
-                $m->{BC::COL_BL_ZIP}     = self::normalizeZip($m->{BC::COL_BL_ZIP}, $m->{BC::COL_BL_CTR}, $m->{BC::COL_BL_CTR} ?? null, $m->id);
-            if (!empty($m->{BC::COL_SHIP_ZIP}) && !empty($m->{BC::COL_SHIP_CTR}))
-                $m->{BC::COL_SHIP_ZIP}   = self::normalizeZip($m->{BC::COL_SHIP_ZIP}, $m->{BC::COL_SHIP_CTR}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
-            $m->attachments           = static::normalizeArrayField($m->attachments ?? null);
-            $m->taxes                 = static::normalizeArrayField($m->taxes ?? null);
-            $m->{BC::COL_TC}          = static::normalizeArrayField($m->{BC::COL_TC} ?? null);
-            $m->{BC::COL_RCC_RL}      = static::normalizeArrayField($m->{BC::COL_RCC_RL} ?? null);
+            if (!empty($m->getAttribute(BC::COL_BL_EMAIL)))
+                $m->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail($m->getAttribute(BC::COL_BL_EMAIL), $m->getAttribute(BC::COL_BL_NAME) ?? null, $m->getAttribute('id') ?? null));
+            if (!empty($m->getAttribute(BC::COL_SHIP_EMAIL)))
+                $m->setAttribute(BC::COL_SHIP_EMAIL, self::normalizeEmail($m->getAttribute(BC::COL_SHIP_EMAIL), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
+            if (!empty($m->getAttribute(BC::COL_BL_TEL)))
+                $m->setAttribute(BC::COL_BL_TEL, self::normalizePhone($m->getAttribute(BC::COL_BL_TEL), $m->getAttribute(BC::COL_BL_NAME) ?? null, $m->getAttribute('id') ?? null));
+            if (!empty($m->getAttribute(BC::COL_SHIP_TEL)))
+                $m->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone($m->getAttribute(BC::COL_SHIP_TEL), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
+            if (!empty($m->getAttribute(BC::COL_BL_ZIP)) && !empty($m->getAttribute(BC::COL_BL_CTR)))
+                $m->setAttribute(BC::COL_BL_ZIP, self::normalizeZip($m->getAttribute(BC::COL_BL_ZIP), $m->getAttribute(BC::COL_BL_CTR), $m->getAttribute(BC::COL_BL_CTR) ?? null, $m->getAttribute('id') ?? null));
+            if (!empty($m->getAttribute(BC::COL_SHIP_ZIP)) && !empty($m->getAttribute(BC::COL_SHIP_CTR)))
+                $m->setAttribute(BC::COL_SHIP_ZIP, self::normalizeZip($m->getAttribute(BC::COL_SHIP_ZIP), $m->getAttribute(BC::COL_SHIP_CTR), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
+            $m->setAttribute('attachments', static::normalizeArrayField($m->getAttribute('attachments') ?? null));
+            $m->setAttribute('taxes', static::normalizeArrayField($m->getAttribute('taxes') ?? null));
+            $m->setAttribute(BC::COL_TC, static::normalizeArrayField($m->getAttribute(BC::COL_TC) ?? null));
+            $m->setAttribute(BC::COL_RCC_RL, static::normalizeArrayField($m->getAttribute(BC::COL_RCC_RL) ?? null));
         });
     }
 
@@ -322,12 +322,9 @@ class Invoice extends Model
     public static function changeStatus(string|int $invoiceId, string|int $status): void
     {
         $invoice = static::find($invoiceId);
-
-        if (!$invoice) {
+        if (!$invoice)
             return;
-        }
-
-        $invoice->status = $status;
+        $invoice->setAttribute('status', $status);
         $invoice->save();
     }
 }

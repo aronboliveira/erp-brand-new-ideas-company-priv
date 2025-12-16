@@ -40,31 +40,39 @@ final class BugSeeder extends Seeder
 			$statuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
 
 			for ($i = 0; $i < $quantity; $i++) {
-				do $bugId = Str::uuid()->toString();
-				while (Bg::where('id', $bugId)->exists());
+				try {
+					$nm = $faker->sentence(6);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Relato de Bug: {$nm}");
+					do $bugId = Str::uuid()->toString();
+					while (Bg::where('id', $bugId)->exists());
 
-				$startAt = $faker->dateTimeBetween('-40 days', '+10 days');
-				$dueAt   = $faker->boolean(70) ? $faker->dateTimeBetween($startAt, '+40 days') : null;
+					$startAt = $faker->dateTimeBetween('-40 days', '+10 days');
+					$dueAt   = $faker->boolean(70) ? $faker->dateTimeBetween($startAt, '+40 days') : null;
 
-				$assigned = $faker->boolean(60)
-					? ($userIds ? $faker->randomElement($userIds) : null)
-					: null;
+					$assigned = $faker->boolean(60)
+						? ($userIds ? $faker->randomElement($userIds) : null)
+						: null;
 
-				$b = new Bg();
-				$b->id = $bugId;
-				$b->{PJC::COL_PJ_ID} = $faker->randomElement($projectIds);
-				$b->{AC::COL_TT}     = $faker->sentence(6);
-				$b->{PJC::COL_PRT}   = $faker->randomElement($priorities);
-				$b->{PJC::COL_S_DT}  = $startAt->format('Y-m-d');
-				$b->{PJC::COL_D_DATE} = $dueAt?->format('Y-m-d');
-				$b->{AC::COL_DESC}   = $faker->paragraph();
-				$b->{AC::COL_TSK_STT} = $faker->randomElement($statuses); // alinhar com sua estratégia (FK vs string)
-				$b->{PJC::COL_ASGN}  = $assigned;
-				$b->setAttribute('order', $i);
-				$b->{DC::COL_TABLE_CREATOR} = $systemUserId;
-				$b->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$b = new Bg();
+					$b->id = $bugId;
+					$b->{PJC::COL_PJ_ID} = $faker->randomElement($projectIds);
+					$b->{AC::COL_TT}     = $nm;
+					$b->{PJC::COL_PRT}   = $faker->randomElement($priorities);
+					$b->{PJC::COL_S_DT}  = $startAt->format('Y-m-d');
+					$b->{PJC::COL_D_DATE} = $dueAt?->format('Y-m-d');
+					$b->{AC::COL_DESC}   = $faker->paragraph();
+					$b->{AC::COL_TSK_STT} = $faker->randomElement($statuses); // alinhar com sua estratégia (FK vs string)
+					$b->{PJC::COL_ASGN}  = $assigned;
+					$b->setAttribute('order', $i);
+					$b->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$b->setAttribute(DC::COL_TABLE_UPDATER, null);
 
-				$b->save();
+					$b->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

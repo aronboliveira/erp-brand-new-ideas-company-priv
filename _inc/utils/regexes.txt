@@ -42,3 +42,5 @@ use Illuminate\Database\Migrations\Migration;"]
 
 '\{\{route\s*\(\s*['"][A-Za-z]*\.
 View::exists
+
+booted\(\)[^\{]*(?:\n|.)*[^\{]*\{(?:\n|.){1,10}\$m(?:odel)?->\{

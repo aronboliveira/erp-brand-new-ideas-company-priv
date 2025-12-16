@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\{Log, Schema};
 trait IsCardNote
 {
 	use CustomerConnected, HasCreditCardInfo, HasPaymentColumns, HasPaymentConclusionColumns;
-	protected function addCardNoteColumns(Blueprint $table, bool $nullableCustomer = false, $onDeleteCustomer = 'restrict', bool $nullableReconcile = true, bool $nullableInvoice = true, bool $nullableAcc = true, bool $nullableCat = true, $onDeleteAcc = 'set null', $onDeleteCat = 'set null'): void
+	protected function addCardNoteColumns(Blueprint $table, bool $nullableCustomer = false, $onDeleteCustomer = 'restrict', bool $nullableReconcile = true, bool $nullableInvoice = true, bool $nullableAcc = true, bool $nullableCat = true, $onDeleteAcc = 'set null', $onDeleteCat = 'set null', $billIdentifier = BC::COL_BL_ID): void
 	{
 		$onDeleteCustomer = strtolower((string) trim($onDeleteCustomer));
 		switch (true) {
@@ -29,8 +29,8 @@ trait IsCardNote
 		$this->addCustomerColumns($table, nullable: $nullableCustomer, onDelete: $onDeleteCustomer);
 		$this->addPaymentColumns($table, nullableReconcile: $nullableReconcile, nullableInvoice: $nullableInvoice);
 		$this->addPaymentConclusionColumns($table, nullableAcc: $nullableAcc, nullableCat: $nullableCat, onDeleteAcc: $onDeleteAcc, onDeleteCat: $onDeleteCat); // ? acc nullable for tests
-		$table->uuid(BC::COL_BL_ID)->index()->nullable(); // * booted/saving should ensure that this Debit note belongs to either a bill or an invoice, else rollback and an error is thrown
-		$table->foreign(BC::COL_BL_ID)
+		$table->uuid($billIdentifier)->nullable()->index(); // * booted/saving should ensure that this Debit note belongs to either a bill or an invoice, else rollback and an error is thrown
+		$table->foreign($billIdentifier)
 			->references('id')
 			->on(DC::TABLE_BILLS)
 			->nullOnDelete();

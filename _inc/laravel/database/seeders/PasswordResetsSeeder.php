@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User as Usr;
@@ -28,21 +28,26 @@ final class PasswordResetsSeeder extends Seeder
 				->all();
 
 			foreach ($emails as $email) {
-				$plain = Str::random(64);
-				$hash  = Hash::make($plain);
-
-				// * evita colisão na PK 'token'
-				while (DB::table('password_resets')->where('token', $hash)->exists()) {
+				try {
 					$plain = Str::random(64);
 					$hash  = Hash::make($plain);
-				}
 
-				DB::table('password_resets')->insert([
-					'token'        => $hash,
-					'email'        => $email,
-					'created_at'   => now(),
-					DC::COL_TABLE_CREATOR => $systemUserId,
-				]);
+					// * evita colisão na PK 'token'
+					while (DB::table('password_resets')->where('token', $hash)->exists()) {
+						$plain = Str::random(64);
+						$hash  = Hash::make($plain);
+					}
+
+					DB::table('password_resets')->insert([
+						'token'        => $hash,
+						'email'        => $email,
+						'created_at'   => now(),
+						DC::COL_TABLE_CREATOR => $systemUserId,
+					]);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

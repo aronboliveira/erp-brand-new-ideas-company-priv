@@ -47,10 +47,9 @@ class LeadEmail extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (LeadEmail $leadEmail): void {
-            self::normalizeEmail($leadEmail->from, 'LeadEmail from', $leadEmail->id ?? null);
-            self::normalizeEmail($leadEmail->to, 'LeadEmail to', $leadEmail->id ?? null);
+            $leadEmail->setAttribute('from', self::normalizeEmail($leadEmail->getAttribute('from'), 'LeadEmail from', $leadEmail->getAttribute('id') ?? null));
+            $leadEmail->setAttribute('to', self::normalizeEmail($leadEmail->getAttribute('to'), 'LeadEmail to', $leadEmail->getAttribute('id') ?? null));
         });
     }
 

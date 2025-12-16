@@ -16,8 +16,8 @@ class CreateLeaveTypesTable extends Migration
             $table->string('title')->index();
             $table->unsignedSmallInteger('days')->default(0);
             $table->unsignedSmallInteger(PJC::COL_EXT_DY)->default(0)->nullable(); // ? nullable for tests
-            $table->boolean('paid')->default(false)->index()->nullable(); // ? nullable for tests
-            $table->boolean(PJC::COL_HLT_RL)->default(true)->index()->nullable(); // ? nullable for tests
+            $table->boolean('paid')->default(false)->nullable()->index(); // ? nullable for tests
+            $table->boolean(PJC::COL_HLT_RL)->default(true)->nullable()->index(); // ? nullable for tests
             $table->unsignedInteger(PJC::COL_SL_MIN_DD_PCT)->default(0)->nullable(); // ? nullable for tests
             $table->unsignedInteger(PJC::COL_SL_MAX_DD_PCT)->default(0)->nullable(); // ? nullable for tests
             $table->text('description')->nullable();

@@ -5,6 +5,7 @@ namespace App\Models;
 use Throwable;
 use App\Config\Constants\{
     ActivitiesConstants as AC,
+    CompaniesConstants as CC,
     DatabaseConstants as DC,
     EmailsConstants,
     PermissionsConstants as PMC,
@@ -13,6 +14,7 @@ use App\Config\Constants\{
     SettingsConstants as SC,
     UsersConstants as UC
 };
+use App\Enums\BrazilState;
 use App\Traits\{
     ChecksLogin,
     NormalizesAddresses,
@@ -26,7 +28,7 @@ use Illuminate\{
 };
 use Illuminate\Database\{Eloquent\ModelNotFoundException, QueryException};
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
-use Illuminate\Support\Collection;
+use Illuminate\Support\{Collection, Str};
 use Illuminate\Support\Facades\{Auth, DB, Log, Storage};
 use Illuminate\Http\RedirectResponse;
 use Laravel\{Fortify\TwoFactorAuthenticatable, Jetstream\HasProfilePhoto, Sanctum\HasApiTokens};
@@ -81,10 +83,15 @@ class User extends Authenticatable implements MustVerifyEmail
     private const COL_PROJECT_ID  = PJC::COL_PJ_ID;
 
     private const DEFAULT_WAREHOUSE = [
-        UC::COL_NM     => 'North Warehouse',
-        'address'      => '723 N. Tillamook Street Portland, OR Portland, United States',
-        'city'         => 'Portland',
-        'zip'          => 97227,
+        'name'      => 'North Warehouse',
+        'country'   => 'BR',
+        'notes'     => 'Default mock warehouse',
+        'sections'  => ['Corredor-01', 'Corredor-02', 'Doca-A'],
+        'dimensions' => ['width_m' => 70, 'length_m' => 120, 'height_m' => 10],
+        'capacity'  => ['pallets' => 2200, 'max_kg' => 150000],
+        CC::COL_WK_DYS => ['mon', 'tue', 'wed', 'thu', 'fri'],
+        CC::COL_IS_SHP => true,
+        CC::COL_IA     => true,
     ];
 
     private const DEFAULT_BANK_ACCOUNT = [
@@ -105,24 +112,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         parent::booted();
         static::saving(function (User $user): void {
-            if ($user->phone)
-                $user->phone = self::normalizePhone(
-                    $user->phone,
+            if ($user->getAttribute('phone'))
+                $user->setAttribute('phone', self::normalizePhone(
+                    $user->getAttribute('phone'),
                     'user.phone',
                     $user->getAttribute('id') ?? null
-                );
-            if ($user->{UC::COL_EM}) $user->{UC::COL_EM} = self::normalizeEmail(
-                $user->{UC::COL_EM} ?? null,
+                ));
+            if ($user->getAttribute(UC::COL_EM)) $user->setAttribute(UC::COL_EM, self::normalizeEmail(
+                $user->getAttribute(UC::COL_EM) ?? null,
                 'user.email',
                 $user->getAttribute('id') ?? null
-            );
-            if (is_string($user->{UC::COL_EM}))
-                $user->{UC::COL_EM} = mb_strtolower($user->{UC::COL_EM});
+            ));
+            if (is_string($user->getAttribute(UC::COL_EM)))
+                $user->setAttribute(UC::COL_EM, mb_strtolower($user->getAttribute(UC::COL_EM)));
             $user->ensureJsonAttributesAreEncoded(['preferences']);
-            if (array_key_exists(UC::COL_A_ST, $user->attributes) && $user->{UC::COL_A_ST} === null)
-                $user->{UC::COL_A_ST} = 1;
-            if (array_key_exists(UC::COL_DM, $user->attributes) && $user->{UC::COL_DM} === null)
-                $user->{UC::COL_DM} = 0;
+            if (array_key_exists(UC::COL_A_ST, $user->attributes) && $user->getAttribute(UC::COL_A_ST) === null)
+                $user->setAttribute(UC::COL_A_ST, 1);
+            if (array_key_exists(UC::COL_DM, $user->attributes) && $user->getAttribute(UC::COL_DM) === null)
+                $user->setAttribute(UC::COL_DM, 0);
         });
     }
 
@@ -1005,27 +1012,122 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public const USR_DEF_WH = 'userDefaultWarehouse';
-    public static function userDefaultWarehouse(): void
+    public static function userDefaultWarehouse(): Warehouse
     {
-        Warehouse::create([
-            UC::COL_NM => 'North Warehouse',
-            'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
-            'city' => 'Portland',
-            'zip' => 97227,
-            DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
-        ]);
+        return self::createWarehouse(DC::DEFAULT_UUID);
     }
 
     public const USR_WA_REG = 'userDefaultWarehouse';
-    public function userWarehouseRegister(int|string $userId): void
+    public static function userWarehouseRegister(int|string $userId): Warehouse
     {
-        Warehouse::create([
-            UC::COL_NM => 'North Warehouse',
-            'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
-            'city' => 'Portland',
-            'zip' => 97227,
-            DC::COL_TABLE_CREATOR => $userId
-        ]);
+        return self::createWarehouse($userId);
+    }
+
+    private static function createWarehouse(int|string $userId): Warehouse
+    {
+        $addr = self::brAddress();
+        $payload = self::DEFAULT_WAREHOUSE + [
+            'code' => self::uniqueCode($userId),
+            'name' => self::seededName(self::DEFAULT_WAREHOUSE['name'], (string)$userId),
+            'zip'  => $addr['zip'],
+            'state' => $addr['state'],
+            'city' => $addr['city'],
+            'address' => $addr['address'],
+            'phone'   => $addr['phone'],
+            'email'   => 'wh-' . strtolower(Str::random(8)) . '@example.com',
+            DC::COL_TABLE_CREATOR => (string)$userId,
+        ];
+        $payload = self::avoidCompositeCollisions($payload);
+        for ($i = 0; $i < 4; $i++) {
+            try {
+                return Warehouse::create($payload);
+            } catch (\Throwable $e) {
+                // em condição de corrida de unicidade, variamos name+code e repetimos
+                $payload['name'] = self::bumpName($payload['name']);
+                $payload['code'] = self::uniqueCode($userId);
+            }
+        }
+        $payload['name'] .= ' #' . Str::upper(Str::random(4));
+        $payload['code']  = self::uniqueCode($userId);
+        return Warehouse::create($payload);
+    }
+
+    private static function uniqueCode(int|string $userId): string
+    {
+        $seed = strtoupper(substr(hash('crc32b', (string)$userId), 0, 4));
+        do $code = 'WH-' . $seed . '-' . strtoupper(Str::random(6));
+        while (DB::table(DC::TABLE_WRH)->where('code', $code)->exists());
+        return $code;
+    }
+
+    private static function seededName(string $name, string $userId): string
+    {
+        $tag = strtoupper(substr(hash('adler32', $userId), 0, 3));
+        $candidate = "{$name} {$tag}";
+        if (DB::table(DC::TABLE_WRH)->where('zip', 'like', '_____-%')->where('name', $candidate)->exists()) {
+            $candidate .= '-' . strtoupper(Str::random(2));
+        }
+        return $candidate;
+    }
+
+    private static function avoidCompositeCollisions(array $p): array
+    {
+        $a = DB::table(DC::TABLE_WRH)->where('zip', $p['zip'])->where('name', $p['name'])->exists();
+        $b = DB::table(DC::TABLE_WRH)->where('city', $p['city'])->where('address', $p['address'])->where('name', $p['name'])->exists();
+        if ($a || $b) $p['name'] = self::bumpName($p['name']);
+        return $p;
+    }
+
+    private static function bumpName(string $name): string
+    {
+        return rtrim($name) . ' #' . strtoupper(Str::random(3));
+    }
+
+    private static function brAddress(): array
+    {
+        $state = BrazilState::cases()[array_rand(BrazilState::cases())]->value;
+        $cities = [
+            'SP' => ['São Paulo', 'Campinas', 'Santos', 'Sorocaba', 'Ribeirão Preto'],
+            'RJ' => ['Rio de Janeiro', 'Niterói', 'Volta Redonda', 'Campos dos Goytacazes'],
+            'MG' => ['Belo Horizonte', 'Uberlândia', 'Juiz de Fora', 'Contagem'],
+            'PR' => ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa'],
+            'RS' => ['Porto Alegre', 'Caxias do Sul', 'Canoas', 'Pelotas'],
+            'SC' => ['Florianópolis', 'Joinville', 'Blumenau', 'Chapecó'],
+            'BA' => ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari'],
+            'PE' => ['Recife', 'Olinda', 'Jaboatão dos Guararapes', 'Caruaru'],
+            'CE' => ['Fortaleza', 'Caucaia', 'Maracanaú', 'Juazeiro do Norte'],
+            'GO' => ['Goiânia', 'Anápolis', 'Aparecida de Goiânia', 'Rio Verde'],
+            'DF' => ['Brasília'],
+            'ES' => ['Vitória', 'Vila Velha', 'Serra', 'Cachoeiro de Itapemirim'],
+            'PA' => ['Belém', 'Ananindeua', 'Santarém', 'Marabá'],
+            'AM' => ['Manaus', 'Itacoatiara', 'Parintins'],
+            'MT' => ['Cuiabá', 'Várzea Grande', 'Rondonópolis'],
+            'MS' => ['Campo Grande', 'Dourados', 'Três Lagoas'],
+            'RN' => ['Natal', 'Mossoró', 'Parnamirim'],
+            'PB' => ['João Pessoa', 'Campina Grande', 'Patos'],
+            'PI' => ['Teresina', 'Parnaíba', 'Picos'],
+            'AL' => ['Maceió', 'Arapiraca', 'Palmeira dos Índios'],
+            'SE' => ['Aracaju', 'Nossa Senhora do Socorro', 'Lagarto'],
+            'RO' => ['Porto Velho', 'Ji-Paraná', 'Ariquemes'],
+            'RR' => ['Boa Vista'],
+            'AP' => ['Macapá', 'Santana'],
+            'TO' => ['Palmas', 'Araguaína', 'Gurupi'],
+            'MA' => ['São Luís', 'Imperatriz', 'Caxias'],
+            'AC' => ['Rio Branco', 'Cruzeiro do Sul'],
+        ];
+        $city = ($cities[$state] ?? ['São Paulo'])[array_rand($cities[$state] ?? ['São Paulo'])];
+        $cep = str_pad((string)random_int(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $zip = substr($cep, 0, 5) . '-' . substr($cep, 5);
+        $ddd = BrazilState::DDD[array_rand(BrazilState::DDD)];
+        $phone = '+55 ' . $ddd . ' 9' . str_pad((string)random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $address = 'Rua ' . Str::title(str_replace('-', ' ', Str::slug(Str::random(10)))) . ', ' . random_int(10, 9999) . ' - Bairro ' . strtoupper(Str::random(3));
+        return [
+            'state'   => $state,
+            'city'    => $city,
+            'zip'     => $zip,
+            'address' => $address,
+            'phone'   => $phone,
+        ];
     }
 
     public const USR_DEF_BA = 'userDefaultBankAccount';
@@ -1145,11 +1247,7 @@ class User extends Authenticatable implements MustVerifyEmail
             });
     }
 
-    private static function createWarehouse(int|string $userId): void
-    {
-        Warehouse::create(self::DEFAULT_WAREHOUSE + [DC::COL_TABLE_CREATOR => $userId]);
-    }
-
+    //todo change this to respect new migration
     private static function createBankAccount(int|string $userId): void
     {
         BankAccount::create(self::DEFAULT_BANK_ACCOUNT + [DC::COL_TABLE_CREATOR => $userId]);

@@ -83,60 +83,48 @@ class Meeting extends Model
 
         static::saving(function (self $m): void {
             try {
-                if (empty($m->code))
-                    do $m->code = (string) Str::uuid();
-                    while (self::where('code', $m->code)->exists());
-
+                if (empty($m->getAttribute('code')))
+                    do $m->setAttribute('code', (string) Str::uuid());
+                    while (self::where('code', $m->getAttribute('code'))->exists());
                 foreach (['title', 'url', 'note'] as $field)
-                    if (isset($m->{$field}) && is_string($m->{$field}))
-                        $m->{$field} = trim($m->{$field});
-
-                // Data e hora
+                    if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                        $m->setAttribute($field, trim($m->getAttribute($field)));
                 $today = today();
-
-                if ($m->date) {
+                if ($m->getAttribute('date')) {
                     try {
-                        $date = Carbon::parse($m->date);
+                        $date = Carbon::parse($m->getAttribute('date'));
                     } catch (\Throwable) {
                         $date = $today->copy();
                     }
                 } else $date = $today->copy();
-
-                $m->date = $date->toDateString();
-
-                if ($m->time && is_string($m->time)) {
-                    $time = trim($m->time);
+                $m->setAttribute('date', $date->toDateString());
+                if ($m->getAttribute('time') && is_string($m->getAttribute('time'))) {
+                    $time = trim($m->getAttribute('time'));
                     if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $time))
                         $time = '09:00:00';
                     elseif (strlen($time) === 5)
                         $time .= ':00';
-                    $m->time = $time;
-                } else $m->time = '09:00:00';
-
-                $min = (int) ($m->{PJC::COL_MIN_DR} ?? 15);
-                $exp = (int) ($m->{PJC::COL_EXP_DR} ?? 30);
-                $max = (int) ($m->{PJC::COL_MAX_DR} ?? 60);
-
+                    $m->setAttribute('time', $time);
+                } else $m->setAttribute('time', '09:00:00');
+                $min = (int) ($m->getAttribute(PJC::COL_MIN_DR) ?? 15);
+                $exp = (int) ($m->getAttribute(PJC::COL_EXP_DR) ?? 30);
+                $max = (int) ($m->getAttribute(PJC::COL_MAX_DR) ?? 60);
                 if ($min <= 0)  $min = 1;
                 if ($exp <= 0)  $exp = $min;
                 if ($max <= 0)  $max = max($exp, $min);
-
                 if ($exp < $min) $exp = $min;
                 if ($max < $exp) $max = $exp;
-
                 $min = max(1, min($min, 8 * 60));
                 $exp = max($min, min($exp, 8 * 60));
                 $max = max($exp, min($max, 12 * 60));
-
-                $m->{PJC::COL_MIN_DR} = $min;
-                $m->{PJC::COL_EXP_DR} = $exp;
-                $m->{PJC::COL_MAX_DR} = $max;
-
-                $m->attachments = self::normalizeArrayField($m->attachments ?? null);
-                $m->invited     = self::normalizeArrayField($m->invited ?? null);
-                $m->conditions  = self::normalizeArrayField($m->conditions ?? null);
-                $m->reminders   = self::normalizeArrayField($m->reminders ?? null);
-                $m->tags        = self::normalizeArrayField($m->tags ?? null);
+                $m->setAttribute(PJC::COL_MIN_DR, $min);
+                $m->setAttribute(PJC::COL_EXP_DR, $exp);
+                $m->setAttribute(PJC::COL_MAX_DR, $max);
+                $m->setAttribute('attachments', self::normalizeArrayField($m->getAttribute('attachments') ?? null));
+                $m->setAttribute('invited', self::normalizeArrayField($m->getAttribute('invited') ?? null));
+                $m->setAttribute('conditions', self::normalizeArrayField($m->getAttribute('conditions') ?? null));
+                $m->setAttribute('reminders', self::normalizeArrayField($m->getAttribute('reminders') ?? null));
+                $m->setAttribute('tags', self::normalizeArrayField($m->getAttribute('tags') ?? null));
             } catch (\Throwable $e) {
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $m->id ?? null,

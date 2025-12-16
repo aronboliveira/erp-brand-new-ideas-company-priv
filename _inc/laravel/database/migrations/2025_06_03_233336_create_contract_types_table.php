@@ -19,7 +19,7 @@ class CreateContractTypesTable extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->index();
             $table->string('description')->nullable();
-            $table->string('category')->index()->nullable(); // nullable para testes; em produção provavelmente obrigatório
+            $table->string('category')->nullable()->index(); // nullable para testes; em produção provavelmente obrigatório
             $table->decimal(BC::COL_MIN_V, 10, 2)->default(0.00)->nullable(); // ? nullable para testes iniciais
             $table->decimal(BC::COL_MAX_V, 10, 2)->default(0.00)->nullable(); // ? nullable para testes iniciais
             $table->integer(BC::COL_MIN_M)->default(1)->nullable(); // ? nullable para testes iniciais

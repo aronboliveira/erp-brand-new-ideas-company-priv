@@ -27,9 +27,12 @@ class CreateCustomersTable extends Migration
 
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $this->addUserLikeColumns($table);
+            $table->string('phone', 64)->nullable()->index();
+            $table->string('website', 255)->nullable();
+            $table->json('social_media')->nullable();
             $this->addSalesRepresentantColumns($table, 'customer');
             $table->integer(BC::COL_OD_C)->default(0)->nullable();
-            $table->float(UC::COL_AVG_RT, 2, 2)->default(5.00)->index()->nullable(); // ? Nullable para testes; idealmente decimal(3,2) com range 0–5
+            $table->float(UC::COL_AVG_RT, 2, 2)->default(5.00)->nullable()->index(); // ? Nullable para testes; idealmente decimal(3,2) com range 0–5
             $this->addShippingColumns($table);
             $this->addBillingColumns($table);
             $table->decimal('balance', 15, 2)->default(0.00);

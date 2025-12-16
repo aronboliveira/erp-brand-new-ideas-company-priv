@@ -13,7 +13,7 @@ class CreateUserContactsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();            // ! CHANGED
-            $table->uuid('parent_id')->index()->nullable();        // ! CHANGED
+            $table->uuid('parent_id')->nullable()->index();        // ! CHANGED
             $table->uuid(self::COL_USER)->index();          // ! CHANGED
             $table->string('role')->nullable();        // * ADDED
             $table->timestamps();

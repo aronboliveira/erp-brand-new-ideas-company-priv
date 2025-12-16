@@ -7,7 +7,7 @@ use App\Enums\UserType;
 use App\Models\PayslipType as Pst;
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class PayslipTypeSeeder extends Seeder
@@ -39,22 +39,29 @@ class PayslipTypeSeeder extends Seeder
 			];
 
 			foreach ($base as $row) {
-				if (Pst::where('name', $row['name'])->exists()) {
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Folha de Pagamento: {$row['name']}");
+					if (Pst::where('name', $row['name'])->exists()) {
+						continue;
+					}
+					do $typeId = Str::uuid()->toString();
+					while (Pst::where('id', $typeId)->exists());
+
+					$m = new Pst();
+					$m->id          = $typeId;
+					$m->name        = $row['name'];
+					$m->description = $row['desc'];
+					$m->{$min}      = $row[$min];
+					$m->{$max}      = $row[$max];
+					$m->{$rla}      = $row[$rla]; // ? mutator normaliza array|string|null
+					$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$m->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$m->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
-				do $typeId = Str::uuid()->toString();
-				while (Pst::where('id', $typeId)->exists());
-
-				$m = new Pst();
-				$m->id          = $typeId;
-				$m->name        = $row['name'];
-				$m->description = $row['desc'];
-				$m->{$min}      = $row[$min];
-				$m->{$max}      = $row[$max];
-				$m->{$rla}      = $row[$rla]; // ? mutator normaliza array|string|null
-				$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
-				$m->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$m->save();
 			}
 
 			$hierarchy = [
@@ -68,26 +75,31 @@ class PayslipTypeSeeder extends Seeder
 			];
 
 			foreach ($hierarchy as $i => $role) {
-				$rolesUpToHere = array_slice($hierarchy, 0, $i + 1);
-				$name = "Tipo Remuneratório — " . ucfirst($role);
+				try {
+					$rolesUpToHere = array_slice($hierarchy, 0, $i + 1);
+					$name = "Tipo Remuneratório — " . ucfirst($role);
 
-				if (Pst::where('name', $name)->exists()) {
+					if (Pst::where('name', $name)->exists()) {
+						continue;
+					}
+
+					do $typeId = Str::uuid()->toString();
+					while (Pst::where('id', $typeId)->exists());
+
+					$m = new Pst();
+					$m->id          = $typeId;
+					$m->name        = $name;
+					$m->description = $faker->sentence();
+					$m->{$min}      = '0';
+					$m->{$max}      = '9999999.99';
+					$m->{$rla}      = $rolesUpToHere;
+					$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$m->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$m->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
-
-				do $typeId = Str::uuid()->toString();
-				while (Pst::where('id', $typeId)->exists());
-
-				$m = new Pst();
-				$m->id          = $typeId;
-				$m->name        = $name;
-				$m->description = $faker->sentence();
-				$m->{$min}      = '0';
-				$m->{$max}      = '9999999.99';
-				$m->{$rla}      = $rolesUpToHere;
-				$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
-				$m->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$m->save();
 			}
 		}, 3);
 	}

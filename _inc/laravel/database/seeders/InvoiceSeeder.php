@@ -2,296 +2,229 @@
 
 namespace Database\Seeders;
 
-use App\Config\Constants\{
-	BanksConstants as BKC,
-	BillsConstants as BC,
-	UsersConstants as UC
-};
-use App\Enums\{
-	PaymentMethod,
-	PaymentStatus,
-	TransferType
-};
-use App\Models\{
-	BankAccount,
-	ChartOfAccount,
-	Payment,
-	ProductServiceCategory,
-	Vendor
-};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Enums\{BillStatus, PaymentStatus};
+use App\Models\Invoice;
+use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class InvoiceSeeder extends Seeder
 {
-	private const RECORDS       = 120;
-	private const OPTIONAL_RATE = 0.65;
-
-	private int $records;
-	private float $optionalRate;
-	private \Faker\Generator $faker;
-
-	public function __construct()
-	{
-		$this->records      = self::RECORDS;
-		$this->optionalRate = self::OPTIONAL_RATE;
-		$this->faker        = \Faker\Factory::create('pt_BR');
-	}
+	private const CHUNK_SIZE     = 250; // commit a cada N inserts
+	private const PER_CUST_MIN   = 1;   // mínimo de faturas por cliente
+	private const PER_CUST_MAX   = 3;   // máximo de faturas por cliente
 
 	public function run(): void
 	{
-		$bankIds   = BankAccount::query()->pluck('id')->all();
-		$coaIds    = ChartOfAccount::query()->pluck('id')->all();
-		$vdIds     = Vendor::query()->pluck('id')->all();
-		$catIds    = ProductServiceCategory::query()->pluck('id')->all();
+		// Tabelas essenciais
+		foreach ([DC::TABLE_INVS, DC::TABLE_CUSTOMERS] as $tbl) {
+			if (!Schema::hasTable($tbl)) {
+				$this->command?->warn("Tabela ausente: {$tbl}. Seeder abortado.");
+				return;
+			}
+		}
 
-		$labelsPt  = PaymentStatus::labels('pt-br');
+		// Coleções base
+		$customers = DB::table(DC::TABLE_CUSTOMERS)->select('id')->get();
+		if ($customers->isEmpty()) {
+			$this->command?->warn('Nenhum customer encontrado. Seeder abortado.');
+			return;
+		}
 
-		$chunk = 40;
-		for ($done = 0; $done < $this->records; $done += $chunk) {
-			DB::transaction(function () use ($chunk, $bankIds, $coaIds, $vdIds, $catIds, $labelsPt) {
-				for ($i = 0; $i < $chunk; $i++) {
-					$date   = $this->faker->dateTimeBetween('-180 days', 'now');
-					$sched  = $this->maybe(0.35) ? $this->faker->dateTimeBetween($date, '+20 days') : null;
+		// FKs opcionais (existindo tabela + registros)
+		$bills          = Schema::hasTable(DC::TABLE_BILLS)        ? DB::table(DC::TABLE_BILLS)->select('id')->get() : collect();
+		$taxRows        = Schema::hasTable(DC::TABLE_TAXES)        ? DB::table(DC::TABLE_TAXES)->select('id', 'name', BC::COL_TAX_RT . ' as rate')->get() : collect();
+		$catRows        = Schema::hasTable(DC::TABLE_PROD_SERV_CATS) ? DB::table(DC::TABLE_PROD_SERV_CATS)->select('id')->get() : collect();
+		$unitRows       = Schema::hasTable(DC::TABLE_PROD_SERV_UNITS) ? DB::table(DC::TABLE_PROD_SERV_UNITS)->select('id')->get() : collect();
+		$contractRows   = Schema::hasTable(DC::TABLE_CONTRACTS)    ? DB::table(DC::TABLE_CONTRACTS)->select('id')->get() : collect();
+		$loanRows       = Schema::hasTable(DC::TABLE_LN)           ? DB::table(DC::TABLE_LN)->select('id')->get() : collect();
 
-					$method = $this->randomPaymentMethod();
-					$pstat  = $this->randomPaymentStatus();
-					$status = $this->alignRowStatus($pstat);
+		// Total a criar
+		$baseCount = max(1, $customers->count());
+		$target = 64 * $baseCount;
+		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
+			$opt = (int) $this->command->option('count');
+			if ($opt > 0) $target = $opt;
+		}
 
-					$principal = $this->money($this->faker->randomFloat(2, 50, 25000));
-					$interest  = $this->maybe(0.40) ? $this->money($principal * $this->randPct(0, 6)) : 0.00;
-					$svcFee    = $this->maybe(0.30) ? $this->money($principal * $this->randPct(0, 2)) : 0.00;
-					$taxFee    = $this->maybe(0.45) ? $this->money($principal * $this->randPct(0, 9)) : 0.00;
-					$discount  = $this->maybe(0.50) ? $this->money(min($principal * $this->randPct(0, 20), $principal)) : 0.00;
+		$created = 0;
+		$batch   = 0;
+		$now     = Carbon::now();
 
-					$accFrom  = $this->maybe(0.55) && $bankIds ? $this->faker->randomElement($bankIds) : null;
-					$accTo    = $this->maybe(0.55) && $bankIds ? $this->faker->randomElement($bankIds) : null;
-					$coa      = $this->maybe(0.60) && $coaIds   ? $this->faker->randomElement($coaIds)   : null;
-					$vendorId = $this->maybe(0.70) && $vdIds    ? $this->faker->randomElement($vdIds)    : null;
-					$catId    = $this->maybe(0.50) && $catIds   ? $this->faker->randomElement($catIds)   : null;
+		DB::beginTransaction();
+		try {
+			foreach ($customers as $cust) {
+				if ($created >= $target) break;
 
-					$trfType  = $this->randomTransferType();
-					$purpose  = $this->maybe(0.60) ? (string) $this->faker->numberBetween(100, 399) : '300';
+				$perCustomer = fake()->numberBetween(self::PER_CUST_MIN, self::PER_CUST_MAX);
+				if ($created + $perCustomer > $target) {
+					$perCustomer = max(0, $target - $created);
+				}
+				if ($perCustomer === 0) {
+					continue;
+				}
 
-					$receiptMeta = $this->maybe(0.30) ? [
-						'nsu'         => strtoupper($this->faker->bothify('NSU########')),
-						'auth_code'   => strtoupper($this->faker->bothify('AU####')),
-						'gateway'     => $this->faker->randomElement(['CIELO', 'REDE', 'PAGARME', 'MERCADOPAGO']),
-					] : null;
-
-					$bill = $this->maybe() ? $this->fakeBilling() : [];
-
-					$canChargeback = $this->maybe(0.15);
-					$isSecured     = $this->maybe(0.25);
-
-					$executedAt = null;
-					$completedAt = null;
-					$cancelledAt = null;
-					if ($status === PaymentStatus::Completed) {
-						$executedAt  = $date;
-						$completedAt = $this->faker->dateTimeBetween($date, '+3 days');
-					} elseif (in_array($status, [PaymentStatus::Cancelled, PaymentStatus::Failed, PaymentStatus::Declined, PaymentStatus::Expired], true)) {
-						$cancelledAt = $this->faker->dateTimeBetween($date, '+10 days');
-					}
-
-					$data = array_filter([
-						'date'                     => $date->format('Y-m-d'),
-						'discount'                 => $discount,
-						'recurring'                => $this->maybe(0.15) ? 'monthly' : null,
-
-						'status'                   => $status->value,
-						BC::COL_PAY_STT           => $pstat->value,
-						BC::COL_STT_LB            => $labelsPt[$status->value] ?? ucfirst($status->value),
-						BC::COL_PAY_MTD           => $method->value,
-
-						BC::COL_BACC_ID           => $coa ? null : ($accFrom ?? $accTo),
-						BC::COL_ACC_FROM          => $accFrom,
-						BC::COL_ACC_TO            => $accTo,
-						BKC::COL_COA              => $coa,
-						UC::COL_VD_ID             => $vendorId,
-						BC::COL_CAT_ID            => $catId,
-
-						BC::COL_PRC_AMT           => $principal,
-						BC::COL_INTR_AMT          => $interest,
-						BC::COL_SVC_FEE           => $svcFee,
-						BC::COL_TXS_FEE           => $taxFee,
-
-						BC::COL_TRF_TP            => $trfType->value,
-						BC::COL_PPS_CD            => $purpose,
-						BC::COL_IS_SCD            => $isSecured,
-						BC::COL_CAN_CHG_BK        => $canChargeback,
-
-						BC::COL_SCHD_TRF_TS       => $sched?->format('Y-m-d H:i:s'),
-						BC::COL_EXC_AT            => $executedAt?->format('Y-m-d H:i:s'),
-						BC::COL_CMP_AT            => $completedAt?->format('Y-m-d H:i:s'),
-						BC::COL_CNC_AT            => $cancelledAt?->format('Y-m-d H:i:s'),
-						BC::COL_CNC_RS            => $cancelledAt ? $this->faker->randomElement([
-							'Solicitado pelo cliente',
-							'Falha de saldo',
-							'Timeout do provedor',
-							'Dados inválidos'
-						]) : null,
-
-						BC::COL_RCP_MD            => $receiptMeta,
-
-						BC::COL_PPS_DS            => $this->maybe(0.40) ? $this->faker->sentence(6) : null,
-						BC::COL_TXS_LST           => $this->maybe(0.35) ? $this->fakeTaxesList($principal, $discount) : null,
-					], static fn($v) => $v !== null);
-
-					$data = array_merge($data, $bill);
-					$this->applyMethodSpecificEnrichment($data, $method);
-
+				for ($i = 0; $i < $perCustomer; $i++) {
 					try {
-						Payment::create($data);
-					} catch (\Throwable $e) {
-						Log::error(static::class . ': falha ao criar Payment', [
-							'error' => $e->getMessage(),
-							'data'  => $this->redactSensitive($data),
-						]);
+						if ($created >= $target) break 2;
+
+						// Datas coerentes
+						$issue = $now->subDays(fake()->numberBetween(0, 120));
+						$due   = $issue->addDays(fake()->numberBetween(7, 45));
+						$sent  = fake()->boolean(70) ? $issue->subDays(fake()->numberBetween(0, 3)) : null;
+
+						// Montantes: garante discount <= amount
+						$amount   = fake()->randomFloat(2, 50, 5000);
+						$discount = fake()->boolean(60) ? fake()->randomFloat(2, 0, $amount * 0.3) : 0.00;
+
+						// Status
+						$statusLabel   = Arr::random(method_exists(BillStatus::class, 'values') ? BillStatus::values() : array_map(fn($c) => $c->value, BillStatus::cases()));
+						$paymentStatus = Arr::random(method_exists(PaymentStatus::class, 'values') ? PaymentStatus::values() : array_map(fn($c) => $c->value, PaymentStatus::cases()));
+						$legacyStatus  = fake()->numberBetween(0, 4); // PJC::COL_STATUS numérico (rótulos em Invoice::$statuses)
+
+						// FKs opcionais (com probabilidade de nulidade)
+						$billId  = ($bills->isNotEmpty() && fake()->boolean(40)) ? Arr::random($bills->all())->id : null;
+						$taxId   = ($taxRows->isNotEmpty() && fake()->boolean(50)) ? Arr::random($taxRows->all())->id : null;
+						$catId   = ($catRows->isNotEmpty() && fake()->boolean(55)) ? Arr::random($catRows->all())->id : null;
+						$unitId  = ($unitRows->isNotEmpty() && fake()->boolean(35)) ? Arr::random($unitRows->all())->id : null;
+						$contractId = ($contractRows->isNotEmpty() && fake()->boolean(20)) ? Arr::random($contractRows->all())->id : null;
+						$loanId     = ($loanRows->isNotEmpty() && fake()->boolean(10)) ? Arr::random($loanRows->all())->id : null;
+
+						// Taxes (JSON): escolhe 0–3 taxas da tabela, quando houver
+						$taxes = [];
+						if ($taxRows->isNotEmpty()) {
+							$pick = fake()->randomElements($taxRows->all(), fake()->numberBetween(0, 3));
+							foreach ($pick as $t) {
+								$rate = isset($t->rate) ? (float) $t->rate : fake()->randomFloat(2, 1, 25);
+								$taxes[] = [
+									'id'   => $t->id,
+									'name' => $t->name ?? 'Tax',
+									'rate' => $rate,
+								];
+							}
+						}
+
+						// Attachments / T&C / Reconcile rules (JSON)
+						$attachments = fake()->boolean(30) ? [
+							[
+								'filename' => 'invoice-' . Str::uuid() . '.pdf',
+								'mime'     => 'application/pdf',
+								'size'     => fake()->numberBetween(10_000, 800_000),
+							],
+						] : [];
+
+						$terms = fake()->boolean(60) ? [
+							'late_fee_pct' => fake()->randomFloat(2, 0, 5),
+							'payment_terms' => Arr::random(['net 7', 'net 15', 'net 30']),
+							'notes'        => fake()->boolean(50) ? fake()->sentence(10) : null,
+						] : [];
+
+						$reconcileRules = fake()->boolean(40) ? [
+							'match_description_contains' => fake()->boolean(70) ? ['invoice', 'payment'] : ['invoice'],
+							'min_amount' => fake()->boolean(50) ? round($amount * 0.5, 2) : null,
+						] : [];
+
+						// Dados de cobrança/entrega (campos RegistersShipping / Billing)
+						$billEmail = fake()->boolean(70) ? fake()->safeEmail() : null;
+						$shipEmail = fake()->boolean(30) ? fake()->safeEmail() : null;
+
+						// Criação via Eloquent para aplicar casts (arrays -> JSON)
+						do $invId = (string) Str::uuid();
+						while (Invoice::where(BC::COL_INV_ID, $invId)->exists());
+						$data = [
+							// IDs
+							BC::COL_INV_ID  => $invId,
+							BC::COL_CST_ID  => $cust->id,
+							BC::COL_BL_ID   => $billId,
+							BC::COL_TAX_ID  => $taxId,
+
+							// Valores / emissão
+							BC::COL_CUR_ID  => Arr::random(['BRL', 'USD', 'EUR']),
+							'amount'        => $amount,
+							'discount'      => $discount,
+							BC::COL_SVC_FEE => fake()->randomFloat(2, 0, 50),
+							BC::COL_TXS_FEE => fake()->randomFloat(2, 0, 50),
+							'reference'     => strtoupper(fake()->bothify('REF-####-??')),
+							BC::COL_REF_N   => fake()->boolean(60) ? strtoupper(fake()->bothify('RN-########')) : null,
+							'description'   => fake()->sentence(12),
+							'notes'         => fake()->boolean(40) ? fake()->paragraph(2) : null,
+							'attachments'   => $attachments,
+							BC::COL_TC      => $terms,
+							BC::COL_AUTORCC => fake()->boolean(20),
+							BC::COL_RCC_RL  => $reconcileRules,
+
+							// Rel. adicionais (se existirem)
+							'contract'          => $contractId,
+							'loan'              => $loanId,
+							BC::COL_PRD_SV_UNT  => $unitId,
+
+							// Datas / categoria / status
+							BC::COL_SD_DT   => $sent?->toDateString(),
+							BC::COL_ISS_DT  => $issue->toDateString(),
+							PJC::COL_D_DATE => $due->toDateString(),
+							BC::COL_CAT_ID  => $catId,
+							PJC::COL_STATUS => $legacyStatus,
+							BC::COL_STT_LB  => $statusLabel,
+							BC::COL_PAY_STT => $paymentStatus,
+
+							// Frete / desconto / taxes (json)
+							BC::COL_SHIP_DSP => fake()->boolean(80) ? 1 : 0,
+							BC::COL_DSC_APL  => $discount > 0 ? 1 : 0,
+							'taxes'          => $taxes,
+
+							// Endereço de envio
+							BC::COL_SHIP_NAME => fake()->boolean(50) ? fake()->name() : null,
+							BC::COL_SHIP_EMAIL => $shipEmail,
+							BC::COL_SHIP_ADR  => fake()->boolean(50) ? fake()->streetAddress() : null,
+							BC::COL_SHIP_TEL  => fake()->boolean(50) ? fake()->numerify('+55###########') : null,
+							BC::COL_SHIP_ZIP  => fake()->boolean(50) ? fake()->numerify('########') : null,
+							BC::COL_SHIP_CTY  => fake()->boolean(50) ? fake()->city() : null,
+							BC::COL_SHIP_ST   => fake()->boolean(50) ? fake()->stateAbbr() : null,
+							BC::COL_SHIP_CTR  => fake()->boolean(50) ? Arr::random(['BR', 'US', 'PT', 'ES']) : null,
+							BC::COL_SHIP_DTL  => fake()->boolean(30) ? fake()->secondaryAddress() : null,
+
+							// Endereço de cobrança
+							BC::COL_BL_NAME => fake()->boolean(60) ? fake()->company() : null,
+							BC::COL_BL_EMAIL => $billEmail,
+							BC::COL_BL_TEL  => fake()->boolean(60) ? fake()->numerify('+55###########') : null,
+							BC::COL_BL_ZIP  => fake()->boolean(60) ? fake()->numerify('########') : null,
+							BC::COL_BL_ADR  => fake()->boolean(60) ? fake()->streetAddress() : null,
+							BC::COL_BL_ST   => fake()->boolean(60) ? fake()->stateAbbr() : null,
+							BC::COL_BL_CTY  => fake()->boolean(60) ? fake()->city() : null,
+							BC::COL_BL_CTR  => fake()->boolean(60) ? Arr::random(['BR', 'US', 'PT', 'ES']) : null,
+							BC::COL_BL_DTL  => fake()->boolean(30) ? fake()->secondaryAddress() : null,
+						];
+						$custRef = $cust->name ?? $cust->id;
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Fatura {$invId} para cliente {$custRef}");
+						// Salva (casts cuidam de JSON) — apenas com chaves realmente existentes/permitidas
+						Invoice::create($data);
+
+						$created++;
+						$batch++;
+
+						if ($batch >= self::CHUNK_SIZE) {
+							DB::commit();
+							DB::beginTransaction();
+							$batch = 0;
+						}
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
 				}
-			});
-		}
-	}
-
-	private function maybe(?float $p = null): bool
-	{
-		$p = $p ?? $this->optionalRate;
-		return $this->faker->boolean((int) round($p * 100));
-	}
-
-	private function money(float $v): float
-	{
-		return round(max($v, 0.0), 2);
-	}
-	private function randPct(float $min = 0, float $max = 20): float
-	{
-		return $this->faker->randomFloat(4, $min / 100, $max / 100);
-	}
-
-	private function randomPaymentMethod(): PaymentMethod
-	{
-		$pool = [
-			PaymentMethod::Pix,
-			PaymentMethod::Pix,
-			PaymentMethod::Pix,
-			PaymentMethod::CardDebit,
-			PaymentMethod::CardCredit,
-			PaymentMethod::BankTransfer,
-			PaymentMethod::Ted,
-			PaymentMethod::Doc,
-			PaymentMethod::WireTransfer,
-			PaymentMethod::Cash,
-			PaymentMethod::Other,
-		];
-		return $pool[array_rand($pool)];
-	}
-
-	private function randomPaymentStatus(): PaymentStatus
-	{
-		$pool = [
-			PaymentStatus::Completed,
-			PaymentStatus::Completed,
-			PaymentStatus::Completed,
-			PaymentStatus::Processing,
-			PaymentStatus::Processing,
-			PaymentStatus::Pending,
-			PaymentStatus::Pending,
-			PaymentStatus::Cancelled,
-			PaymentStatus::Failed,
-			PaymentStatus::Refunded,
-			PaymentStatus::Declined,
-			PaymentStatus::Disputed,
-			PaymentStatus::Expired,
-		];
-		return $pool[array_rand($pool)];
-	}
-
-	private function alignRowStatus(PaymentStatus $p): PaymentStatus
-	{
-		return match ($p) {
-			PaymentStatus::Undefined => PaymentStatus::Pending,
-			default => $p,
-		};
-	}
-
-	private function randomTransferType(): TransferType
-	{
-		$pool = [
-			TransferType::Service,
-			TransferType::Purchase,
-			TransferType::Internal,
-			TransferType::Refund,
-			TransferType::TaxPayment,
-			TransferType::LoanPayment,
-			TransferType::Salary,
-			TransferType::Other,
-		];
-		return $pool[array_rand($pool)];
-	}
-
-	private function applyMethodSpecificEnrichment(array &$data, PaymentMethod $method): void
-	{
-		if ($method->isCard()) {
-			$data[BC::COL_CD_DG]   = $this->faker->numerify('####');
-			$data[BC::COL_CD_FLG]  = $this->faker->randomElement(['VISA', 'MASTERCARD', 'ELO', 'AMEX']);
-			$data[BC::COL_CD_EX_M] = (string) $this->faker->numberBetween(1, 12);
-			$data[BC::COL_CD_EX_Y] = (string) $this->faker->numberBetween((int) date('Y'), (int) date('Y') + 6);
-			$data[BC::COL_CD_HNM]  = Str::upper($this->faker->name());
-		}
-
-		if ($method === PaymentMethod::Pix) {
-			$data[BC::COL_PIX_KEY] = $this->faker->randomElement([
-				$this->faker->email(),
-				$this->faker->cpf(false),
-				$this->faker->cellphoneNumber()
-			]);
-			if ($this->maybe(0.40)) {
-				$data[BC::COL_PIX_QR] = '00020126...';
 			}
-		}
-	}
 
-	private function fakeTaxesList(float $principal, float $discount): array
-	{
-		$net = max($principal - $discount, 0.0);
-		$n   = $this->faker->numberBetween(1, 3);
-		$out = [];
-		for ($i = 0; $i < $n; $i++) {
-			$rate = $this->faker->randomFloat(2, 1, 8);
-			$out[] = [
-				'name'   => $this->faker->randomElement(['ISS', 'PIS', 'COFINS', 'IOF']),
-				'rate'   => $rate,
-				'amount' => $this->money($net * ($rate / 100)),
-			];
+			DB::commit();
+			$this->command?->info("InvoiceSeeder: {$created} registros inseridos em " . DC::TABLE_INVS . ".");
+		} catch (\Throwable $e) {
+			DB::rollBack();
+			$this->command?->error('Falha ao semear invoices: ' . $e->getMessage());
+			throw $e;
 		}
-		return $out;
-	}
-
-	private function fakeBilling(): array
-	{
-		return [
-			BC::COL_BL_NAME => $this->faker->company(),
-			BC::COL_BL_EMAIL => Str::slug($this->faker->company()) . '@example.com',
-			BC::COL_BL_ADR  => $this->faker->streetAddress(),
-			BC::COL_BL_TEL  => $this->faker->phoneNumber(),
-			BC::COL_BL_ZIP  => preg_replace('/\D+/', '', $this->faker->postcode()),
-			BC::COL_BL_CTY  => $this->faker->city(),
-			BC::COL_BL_ST   => $this->faker->stateAbbr(),
-			BC::COL_BL_CTR  => 'BR',
-			BC::COL_BL_DTL  => $this->maybe(0.40) ? 'CNPJ ' . $this->faker->numerify('##.###.###/####-##') : null,
-		];
-	}
-
-	private function redactSensitive(array $data): array
-	{
-		foreach ([BC::COL_CD_DG, BC::COL_CD_HNM, BC::COL_PIX_KEY] as $s) {
-			if (isset($data[$s])) {
-				$data[$s] = '[redacted]';
-			}
-		}
-		return $data;
 	}
 }

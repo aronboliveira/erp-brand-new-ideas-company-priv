@@ -35,18 +35,25 @@ final class LabelSeeder extends Seeder
 
 			foreach ($pipelineIds as $pipelineId) {
 				foreach ($names as $nm) {
-					do $labelId = Str::uuid()->toString();
-					while (Lbl::where('id', $labelId)->exists());
+					try {
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Rótulo: {$nm}");
+						do $labelId = Str::uuid()->toString();
+						while (Lbl::where('id', $labelId)->exists());
 
-					$l = new Lbl();
-					$l->id = $labelId;
-					$l->{PJC::COL_LB_NM}  = $nm;
-					$l->{PJC::COL_CL}     = $faker->randomElement($colors);
-					$l->{PJC::COL_PPL_ID} = $pipelineId;
-					$l->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$l->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$l = new Lbl();
+						$l->id = $labelId;
+						$l->{PJC::COL_LB_NM}  = $nm;
+						$l->{PJC::COL_CL}     = $faker->randomElement($colors);
+						$l->{PJC::COL_PPL_ID} = $pipelineId;
+						$l->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$l->setAttribute(DC::COL_TABLE_UPDATER, null);
 
-					$l->save();
+						$l->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

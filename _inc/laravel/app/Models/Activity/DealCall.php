@@ -60,13 +60,12 @@ class DealCall extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (DealCall $model): void {
             $model->normalizeEndpoints();
             $model->normalizeCallType();
             $model->normalizeDurations();
-            if ($model->phone)
-                $model->phone = self::normalizePhone($model->phone, 'Deal Call Phone', $model->id ?? null);
+            if ($model->getAttribute('phone'))
+                $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'Deal Call Phone', $model->id ?? null));
         });
     }
 
@@ -128,11 +127,8 @@ class DealCall extends Model
     private function normalizeCallType(): void
     {
         $raw = $this->getAttribute(AC::COL_CL_TP);
-
-        if ($raw instanceof CallType) {
+        if ($raw instanceof CallType)
             return;
-        }
-
         $enum = CallType::normalize(is_string($raw) ? $raw : null);
         $this->setAttribute(AC::COL_CL_TP, $enum);
     }

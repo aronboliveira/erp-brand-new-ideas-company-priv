@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "Automazione basata su IA",
+    "discover_description": "<p>Sfrutta l'intelligenza artificiale all'avanguardia per automatizzare compiti ripetitivi, prevedere tendenze e ottimizzare i flussi di lavoro aziendali con approfondimenti intelligenti.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Dashboard di analisi in tempo reale",
+    "discover_description": "<p>Ottieni visibilità istantanea sulle prestazioni aziendali con dashboard interattive, report personalizzati e monitoraggio KPI in tempo reale in tutti i reparti.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Contabilità multi-valuta",
+    "discover_description": "<p>Gestisci transazioni internazionali senza interruzioni con conversione automatica della valuta, conformità fiscale e integrazione dei tassi di cambio in tempo reale.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Gestione intelligente dell'inventario",
+    "discover_description": "<p>Ottimizza i livelli di stock con analisi predittiva, riordino automatizzato e scansione di codici a barre per operazioni di magazzino efficienti.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "Gestione delle relazioni con i clienti 360°",
+    "discover_description": "<p>Traccia ogni interazione con il cliente, automatizza i follow-up e analizza il comportamento dei clienti per aumentare le vendite e migliorare i tassi di fidelizzazione.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Gestione progetti avanzata",
+    "discover_description": "<p>Pianifica, esegui e monitora progetti con diagrammi di Gantt, allocazione delle risorse, tracciamento del tempo e strumenti di gestione delle milestone.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "Automazione HR & Payroll",
+    "discover_description": "<p>Semplifica la gestione dei dipendenti con elaborazione automatica delle buste paga, tracciamento delle presenze, valutazioni delle prestazioni e amministrazione dei benefit.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "POS mobile & E-commerce",
+    "discover_description": "<p>Accetta pagamenti ovunque con il nostro sistema di punto vendita mobile, integrato con la gestione del negozio online e la sincronizzazione dell'inventario.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Business Intelligence e reportistica",
+    "discover_description": "<p>Trasforma i dati grezzi in approfondimenti azionabili con report personalizzabili, visualizzazione dei dati e dashboard esecutive per il processo decisionale strategico.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Costruttore di flussi di lavoro personalizzati",
+    "discover_description": "<p>Progetta e automatizza processi aziendali complessi con il nostro costruttore di flussi di lavoro drag-and-drop, riducendo gli errori manuali e aumentando l'efficienza.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Integrazione perfetta con terze parti",
+    "discover_description": "<p>Connettiti con 500+ app aziendali popolari, tra cui Salesforce, QuickBooks, Shopify e Zapier, per un ecosistema aziendale unificato.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Sicurezza di livello aziendale",
+    "discover_description": "<p>Proteggi i dati aziendali con crittografia di grado militare, controlli di accesso basati sui ruoli, tracce di audit e conformità agli standard di sicurezza globali.</p>"
+  }
+]

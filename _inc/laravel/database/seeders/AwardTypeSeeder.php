@@ -6,7 +6,7 @@ use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\AwardType;
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 
 final class AwardTypeSeeder extends Seeder
 {
@@ -36,10 +36,17 @@ final class AwardTypeSeeder extends Seeder
 			$creatorId = $this->ensureSystemUser();
 
 			foreach ($defaults as $name) {
-				AwardType::query()->firstOrCreate(
-					['name' => $name],
-					[DC::COL_TABLE_CREATOR => $creatorId]
-				);
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Prêmio: {$name}");
+					AwardType::query()->firstOrCreate(
+						['name' => $name],
+						[DC::COL_TABLE_CREATOR => $creatorId]
+					);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

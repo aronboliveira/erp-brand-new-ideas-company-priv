@@ -11,7 +11,7 @@ trait HasBasicUserLikeColumns
 	{
 		$defaultAvatar ??= config('chatify.user_avatar.default');
 		$table->uuid('id')->primary();
-		$nullableName ? $table->string(UC::COL_NM)->index()->nullable() : $table->string(UC::COL_NM)->index();
+		$nullableName ? $table->string(UC::COL_NM)->nullable()->index() : $table->string(UC::COL_NM)->index();
 		$table->string(UC::COL_EM)->unique()->nullable();
 		$table->timestamp(UC::COL_EM_V_AT)->nullable();
 		$table->string(UC::COL_AV)->default($defaultAvatar)->nullable();

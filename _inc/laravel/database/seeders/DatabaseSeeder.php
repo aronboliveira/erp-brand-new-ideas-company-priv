@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Indicator;
 use App\Models\Utility;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\{Artisan, Log, Route};
@@ -12,10 +13,11 @@ class DatabaseSeeder extends Seeder
     private const LP = 'LandingPage';
     public function run(): void
     {
+        $output = new ConsoleOutput();
+        $output->writeln('<info>Starting the database seeding process</info>');
         $this->call(NotificationSeeder::class);
         Artisan::call('module:migrate ' . self::LP);
         Artisan::call('module:seed ' . self::LP);
-        $output = new ConsoleOutput();
         $startTime = microtime(true);
         if ($this->shouldSeedStandardTables()) {
             $output->writeln('<info>Starting at ' . date('Y-m-d H:i:s') . '</info>');
@@ -39,19 +41,84 @@ class DatabaseSeeder extends Seeder
         $lastSeeder = null;
         $output = new ConsoleOutput();
         try {
+            try {
+                $output->writeln('<info>Seeding: UserSeeder (initial phase)</info>');
+                $startTime = microtime(true);
+                $this->call(UserSeeder::class, silent: false, parameters: ['phase' => 'initial']);
+                $lastSeeder = UserSeeder::class;
+                $output->writeln('<info>Seeding mocks for: ' . UserSeeder::class . '</info>');
+                $endTime = microtime(true);
+                $duration = $endTime - $startTime;
+                Log::warning('Seeder ' . UserSeeder::class . ' (initial) completed in ' . round($duration, 2) . ' segundos.');
+                Log::notice('Mock Seeder ' . UserSeeder::class . ' executed successfully.');
+                sleep(1);
+            } catch (\Exception $e) {
+                $output->writeln('<error>Seeding mocks for UserSeeder (initial phase) failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');
+                Log::warning('Seeding mocks for UserSeeder (initial phase) failed: ', ['message' => substr($e->getMessage(), 0, 1024)]);
+            }
             foreach (
                 [
-                    UserSeeder::class,
+                    BranchSeeder::class,
+                    DepartmentSeeder::class,
+                    DesignationSeeder::class,
+                ] as $mockSeeder
+            ) {
+                try {
+                    $output->writeln('<info>Seeding: ' . $mockSeeder . '</info>');
+                    $startTime = microtime(true);
+                    $this->call($mockSeeder);
+                    $lastSeeder = $mockSeeder;
+                    $output->writeln('<info>Seeding mocks for: ' . $mockSeeder . '</info>');
+                    Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
+                    $endTime = microtime(true);
+                    $duration = $endTime - $startTime;
+                    Log::warning('Seeder ' . $mockSeeder . ' completed in ' . round($duration, 2) . ' segundos.');
+                    sleep(1);
+                } catch (\Exception $e) {
+                    $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');
+                    Log::warning('Seeding mocks for ' . $mockSeeder . ' failed: ', ['message' => substr($e->getMessage(), 0, 1024)]);
+                }
+            }
+            try {
+                $output->writeln('<info>Seeding: ' . UserSeeder::class . ' (additional phase)</info>');
+                $startTime = microtime(true);
+                $this->call(UserSeeder::class, silent: false, parameters: ['phase' => 'additional']);
+                $lastSeeder = UserSeeder::class;
+                $output->writeln('<info>Seeding mocks for: ' . UserSeeder::class . '</info>');
+                Log::notice('Mock Seeder ' . UserSeeder::class . ' executed successfully.');
+                $endTime = microtime(true);
+                $duration = $endTime - $startTime;
+                Log::warning('Seeder ' . UserSeeder::class . ' (late) completed in ' . round($duration, 2) . ' segundos.');
+                sleep(1);
+            } catch (\Exception $e) {
+                $output->writeln('<error>Seeding mocks for UserSeeder (additional phase) failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');
+                Log::warning('Seeding mocks for UserSeeder (additional phase) failed: ', ['message' => substr($e->getMessage(), 0, 1024)]);
+            }
+            foreach (
+                [
                     ClientSeeder::class,
                     PasswordResetsSeeder::class,
                     DocumentSeeder::class,
                     PipelineSeeder::class,
                     PlanSeeder::class,
+                    NotificationTemplatesSeeder::class,
+                    NotificationTemplateLangsSeeder::class,
+                    NotificationsLateSeeder::class,
+                    EmailTemplatesSeeder::class,
+                    EmailTemplateLangsSeeder::class,
+                    UserEmailTemplatesSeeder::class,
+                    CustomFieldsSeeder::class,
+                    CustomFieldValuesSeeder::class,
                     ProjectSeeder::class,
                     ProjectStagesSeeder::class,
                     SourceSeeder::class,
                     StageSeeder::class,
                     LabelSeeder::class,
+                    AppraisalSeeder::class,
+                    IndicatorSeeder::class,
+                    GoalTypesSeeder::class,
+                    GoalsSeeder::class,
+                    GoalTrackingsSeeder::class,
                     DealSeeder::class,
                     DealFileSeeder::class,
                     DealTaskSeeder::class,
@@ -63,9 +130,6 @@ class DatabaseSeeder extends Seeder
                     BugFileSeeder::class,
                     BugCommentSeeder::class,
                     BugStatusSeeder::class,
-                    BranchSeeder::class,
-                    DepartmentSeeder::class,
-                    DesignationSeeder::class,
                     PayslipTypeSeeder::class,
                     EmployeeSeeder::class,
                     EmployeeDocumentSeeder::class,
@@ -105,6 +169,8 @@ class DatabaseSeeder extends Seeder
                     VendorSeeder::class,
                     AnnouncementSeeder::class,
                     OrderSeeder::class,
+                    CouponSeeder::class,
+                    UserCouponSeeder::class,
                     LeaveTypeSeeder::class,
                     LeaveSeeder::class,
                     MeetingSeeder::class,
@@ -123,6 +189,7 @@ class DatabaseSeeder extends Seeder
                     InvoiceProductSeeder::class,
                     BillPaymentSeeder::class,
                     TransactionSeeder::class,
+                    AssetsSeeder::class,
                     CreditNoteSeeder::class,
                     DebitNoteSeeder::class,
                     LeadStageSeeder::class,
@@ -135,15 +202,21 @@ class DatabaseSeeder extends Seeder
                     LeadCallSeeder::class,
                     DealEmailSeeder::class,
                     DealCallSeeder::class,
-                    BasicFavoritesSeeder::class
+                    EstimationSeeder::class,
+                    ProposalSeeder::class,
+                    BasicFavoritesSeeder::class,
                 ] as $mockSeeder
             ) {
                 try {
                     $output->writeln('<info>Seeding: ' . $mockSeeder . '</info>');
+                    $startTime = microtime(true);
                     $this->call($mockSeeder);
                     $lastSeeder = $mockSeeder;
                     $output->writeln('<info>Seeding mocks for: ' . $mockSeeder . '</info>');
                     Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
+                    $endTime = microtime(true);
+                    $duration = $endTime - $startTime;
+                    Log::warning('Seeder ' . $mockSeeder . ' completed in ' . round($duration, 2) . ' segundos.');
                     sleep(1);
                 } catch (\Exception $e) {
                     $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');

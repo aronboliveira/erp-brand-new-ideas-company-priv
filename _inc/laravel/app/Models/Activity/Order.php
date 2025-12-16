@@ -173,83 +173,71 @@ class Order extends Model
         parent::booted();
         static::saving(function (self $m): void {
             foreach (['name'] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-            if ($m->email)
-                $m->email        = self::normalizeEmail($m->email, 'Order email', $m->id ?? null) ?: null;
-            $price    = (float) ($m->price ?? 0.0);
-            $discount = (float) ($m->discount ?? 0.0);
-
+                if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                    $m->setAttribute($field, trim($m->getAttribute($field)));
+            if (!empty($m->getAttribute('email')))
+                $m->setAttribute('email', self::normalizeEmail($m->getAttribute('email'), 'Order email', $m->getAttribute('id') ?? null) ?: null);
+            $price    = (float) ($m->getAttribute('price') ?? 0.0);
+            $discount = (float) ($m->getAttribute('discount') ?? 0.0);
             if ($price < 0)
                 $price = 0.0;
-
             if ($discount < 0)
                 $discount = 0.0;
-
             if ($discount > $price)
                 $discount = $price;
-
-            $m->price    = $price;
-            $m->discount = $discount;
-
-            if ($m->{BC::COL_PRC_CUR})
-                $m->{BC::COL_PRC_CUR} = strtoupper(trim((string) $m->{BC::COL_PRC_CUR}));
-
-            $installments = $m->{BC::COL_N_INTR};
+            $m->setAttribute('price', $price);
+            $m->setAttribute('discount', $discount);
+            if ($m->getAttribute(BC::COL_PRC_CUR))
+                $m->setAttribute(BC::COL_PRC_CUR, strtoupper(trim((string) $m->getAttribute(BC::COL_PRC_CUR))));
+            $installments = $m->getAttribute(BC::COL_N_INTR);
             if (!is_numeric($installments) || (int) $installments < 1)
-                $m->{BC::COL_N_INTR} = 1;
+                $m->setAttribute(BC::COL_N_INTR, 1);
             else
-                $m->{BC::COL_N_INTR} = (int) $installments;
-            $m->{BC::COL_CD_NB} = self::sanitizeCardNumber($m->{BC::COL_CD_NB} ?? null);
-            $m->{BC::COL_CD_DG} = self::sanitizeCardDigits($m->{BC::COL_CD_DG} ?? null, $m->{BC::COL_CD_NB});
-            $m->{BC::COL_CD_HNM} = self::sanitizeCardHolder($m->{BC::COL_CD_HNM} ?? null);
+                $m->setAttribute(BC::COL_N_INTR, (int) $installments);
+            $m->setAttribute(BC::COL_CD_NB, self::sanitizeCardNumber($m->getAttribute(BC::COL_CD_NB) ?? null));
+            $m->setAttribute(BC::COL_CD_DG, self::sanitizeCardDigits($m->getAttribute(BC::COL_CD_DG) ?? null, $m->getAttribute(BC::COL_CD_NB)));
+            $m->setAttribute(BC::COL_CD_HNM, self::sanitizeCardHolder($m->getAttribute(BC::COL_CD_HNM) ?? null));
             self::normalizeCardExpiration($m);
             try {
-                $m->{BC::COL_OT_TX_ID} = self::normalizeOtherTaxes($m->{BC::COL_OT_TX_ID} ?? null);
+                $m->setAttribute(BC::COL_OT_TX_ID, self::normalizeOtherTaxes($m->getAttribute(BC::COL_OT_TX_ID) ?? null));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize other taxes', [
                     'order_id' => $m->id ?? null,
                     'error'    => $e->getMessage(),
                 ]);
-                $m->{BC::COL_OT_TX_ID} = [];
+                $m->setAttribute(BC::COL_OT_TX_ID, []);
             }
-
             try {
-                $m->{BC::COL_RCP_MD} = self::normalizeArrayField($m->{BC::COL_RCP_MD} ?? null);
+                $m->setAttribute(BC::COL_RCP_MD, self::normalizeArrayField($m->getAttribute(BC::COL_RCP_MD) ?? null));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize receipt metadata', [
                     'order_id' => $m->id ?? null,
                     'error'    => $e->getMessage(),
                 ]);
-                $m->{BC::COL_RCP_MD} = [];
+                $m->setAttribute(BC::COL_RCP_MD, []);
             }
 
-            if ($m->{BC::COL_PIX_KEY}) {
-                $pix = self::normalizePixKey($m->{BC::COL_PIX_KEY});
+            if ($m->getAttribute(BC::COL_PIX_KEY)) {
+                $pix = self::normalizePixKey($m->getAttribute(BC::COL_PIX_KEY));
                 if ($pix === null) {
                     Log::warning(self::class . ' invalid Pix key, clearing', [
                         'order_id' => $m->id ?? null,
                     ]);
                 }
-                $m->{BC::COL_PIX_KEY} = $pix;
+                $m->setAttribute(BC::COL_PIX_KEY, $pix);
             }
-
             $originalStatusRaw = $m->getOriginal(BC::COL_PAY_STT);
             $currentStatus     = $m->exists
                 ? PaymentStatus::normalize($originalStatusRaw)
                 : null;
 
-            $newStatus = PaymentStatus::normalize($m->{BC::COL_PAY_STT} ?? null);
-
+            $newStatus = PaymentStatus::normalize($m->getAttribute(BC::COL_PAY_STT) ?? null);
             // Para novos registros, Undefined vira Pending por padrão
             if (!$m->exists && $newStatus === PaymentStatus::Undefined)
                 $newStatus = PaymentStatus::Pending;
-
-            $m->{BC::COL_PAY_STT} = self::assertValidStatusTransition($currentStatus, $newStatus);
-
+            $m->setAttribute(BC::COL_PAY_STT, self::assertValidStatusTransition($currentStatus, $newStatus));
             // Método de pagamento
-            $m->{BC::COL_PAY_TP} = self::normalizePaymentMethod($m->{BC::COL_PAY_TP} ?? null);
-
+            $m->setAttribute(BC::COL_PAY_TP, self::normalizePaymentMethod($m->getAttribute(BC::COL_PAY_TP) ?? null));
             // Validação dos instrumentos de pagamento
             self::validatePaymentInstrument($m);
         });
@@ -318,11 +306,8 @@ class Order extends Model
         $digits = $digits !== null
             ? preg_replace('/\D+/', '', $digits) ?? ''
             : '';
-
-        if ($digits === '' && $cardNumber) {
+        if ($digits === '' && $cardNumber)
             $digits = substr($cardNumber, -4);
-        }
-
         return $digits !== '' ? $digits : null;
     }
 
@@ -330,7 +315,6 @@ class Order extends Model
     {
         if ($name === null)
             return null;
-
         $name = trim($name);
         return $name !== '' ? $name : null;
     }
@@ -341,30 +325,24 @@ class Order extends Model
      */
     protected static function normalizeCardExpiration(self $m): void
     {
-        $rawMonth = $m->{BC::COL_CD_EX_M} ?? null;
-        $rawYear  = $m->{BC::COL_CD_EX_Y} ?? null;
-
+        $rawMonth = $m->getAttribute(BC::COL_CD_EX_M) ?? null;
+        $rawYear  = $m->getAttribute(BC::COL_CD_EX_Y) ?? null;
         if ($rawMonth === null && $rawYear === null)
             return;
-
         $monthEnum = MonthName::normalize($rawMonth);
         $yearStr   = trim((string) $rawYear);
         $year      = ctype_digit($yearStr) ? (int) $yearStr : null;
-
         $now         = now();
         $currentYear = (int) $now->format('Y');
         $currentMon  = (int) $now->format('n');
-
         if ($year === null || $year < $currentYear)
             $year = $currentYear;
-
         if ($year === $currentYear && $monthEnum->isoIndex() < $currentMon) {
             // força para o mês atual se estiver no passado
             $monthEnum = MonthName::normalize((string) $currentMon);
         }
-
-        $m->{BC::COL_CD_EX_M} = $monthEnum;
-        $m->{BC::COL_CD_EX_Y} = (string) $year;
+        $m->setAttribute(BC::COL_CD_EX_M, $monthEnum);
+        $m->setAttribute(BC::COL_CD_EX_Y, (string) $year);
     }
 
     /**
@@ -375,22 +353,17 @@ class Order extends Model
         $items = self::normalizeArrayField($raw);
         if (!$items)
             return [];
-
         $ids = array_values(array_filter(
             $items,
             fn($v): bool => is_string($v) && trim($v) !== ''
         ));
-
         if (!$ids)
             return [];
-
         $exists = Tax::query()
             ->whereIn('id', $ids)
             ->pluck('id')
             ->all();
-
         $exists = array_map('strval', $exists);
-
         return array_values(array_intersect($ids, $exists));
     }
 
@@ -405,34 +378,26 @@ class Order extends Model
     {
         if ($key === null)
             return null;
-
         $key = trim($key);
         if ($key === '')
             return null;
-
         // E-mail
         if (str_contains($key, '@')) {
             $email = self::normalizeEmail($key, 'Pix key', null);
             return $email ?: null;
         }
-
         $digits = preg_replace('/\D+/', '', $key) ?? '';
-
         // CPF/CNPJ
         if ($digits !== '' && (strlen($digits) === 11 || strlen($digits) === 14))
             return $digits;
-
         // Telefone
         if ($digits !== '' && strlen($digits) >= 8 && strlen($digits) <= 15)
             return self::normalizePhone($digits, 'Pix key', null) ?? $digits;
-
         // Chave aleatória (máx. 36 caracteres)
         if (strlen($key) > 36)
             return null;
-
         if (!preg_match('/^[A-Za-z0-9\-]+$/', $key))
             return null;
-
         return $key;
     }
 
@@ -443,14 +408,13 @@ class Order extends Model
     protected static function validatePaymentInstrument(self $m): void
     {
         /** @var PaymentMethod $method */
-        $method = $m->{BC::COL_PAY_TP} instanceof PaymentMethod
-            ? $m->{BC::COL_PAY_TP}
-            : self::normalizePaymentMethod($m->{BC::COL_PAY_TP});
+        $method = $m->getAttribute(BC::COL_PAY_TP) instanceof PaymentMethod
+            ? $m->getAttribute(BC::COL_PAY_TP)
+            : self::normalizePaymentMethod($m->getAttribute(BC::COL_PAY_TP));
 
-        $hasCard    = !empty($m->{BC::COL_CD_NB}) || !empty($m->{BC::COL_CD_DG}) || !empty($m->{BC::COL_CD_HNM});
-        $hasPix     = !empty($m->{BC::COL_PIX_KEY});
-        $hasPayslip = !empty($m->{BC::COL_PSLP_ID});
-
+        $hasCard    = !empty($m->getAttribute(BC::COL_CD_NB)) || !empty($m->getAttribute(BC::COL_CD_DG)) || !empty($m->getAttribute(BC::COL_CD_HNM));
+        $hasPix     = !empty($m->getAttribute(BC::COL_PIX_KEY));
+        $hasPayslip = !empty($m->getAttribute(BC::COL_PSLP_ID));
         if (!$hasCard && !$hasPix && !$hasPayslip) {
             Log::error(self::class . ' missing payment instruments for order', [
                 'order_id' => $m->id ?? null,
@@ -458,7 +422,6 @@ class Order extends Model
             ]);
             throw new \InvalidArgumentException('At least one payment instrument (card, Pix or payslip) must be provided.');
         }
-
         switch ($method) {
             case PaymentMethod::CardCredit:
             case PaymentMethod::CardDebit:

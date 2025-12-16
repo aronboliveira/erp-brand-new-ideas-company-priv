@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "Funktionen",
+    "feature_description": "<p>Schalte leistungsstarke Möglichkeiten frei mit unserem umfassenden Funktionsumfang, der entwickelt wurde, um deinen Workflow zu optimieren und die Produktivität in all deinen Projekten zu steigern.</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "Support",
+    "feature_description": "<p>Erhalte dedizierten Kundensupport rund um die Uhr, mit Experten, die dir helfen, Probleme schnell zu lösen und einen reibungslosen Betrieb sicherzustellen.</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "Integration",
+    "feature_description": "<p>Verbinde dich nahtlos mit deinen bevorzugten Tools und Plattformen über unsere robuste API und vorkonfigurierte Integrationen, die Datensilos beseitigen.</p>"
+  }
+]

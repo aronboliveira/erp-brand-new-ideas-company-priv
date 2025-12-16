@@ -2,97 +2,293 @@
 
 namespace App\Models;
 
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Enums\{BillStatus, ProposalStatus};
 use App\Traits\UsesUuids;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class Proposal extends Model
 {
     use UsesUuids;
 
-    private const COL_PROPOSAL_ID           = 'proposal_id';
-    private const COL_CUSTOMER_ID           = 'customer_id';
-    private const COL_ISSUE_DATE            = 'issue_date';
-    private const COL_SEND_DATE             = 'send_date';
-    private const COL_CATEGORY_ID           = 'category_id';
-    private const COL_STATUS                = 'status';
-    private const COL_DISCOUNT_APPLY        = 'discount_apply';
-    private const COL_IS_CONVERT            = 'is_convert';
-    private const COL_CONVERTED_INVOICE_ID  = 'converted_invoice_id';
-    private const COL_CREATED_BY            = 'created_by';
-    private const COL_TAX_ID                = 'tax_id';
+    protected $table = DC::TABLE_PROPOSALS;
+
+    /** @var array<string,mixed> */
+    protected $casts = [
+        // JSON / array-like
+        'employees'    => 'array',
+        'customers'    => 'array',
+        'signers'      => 'array',
+        'payments'     => 'array',
+        'taxes'        => 'array',
+        'attachments'  => 'array',
+        BC::COL_TC     => 'array',
+        BC::COL_RCC_RL => 'array',
+
+        // Datas e datetimes
+        BC::COL_VLD_TO => 'datetime',
+        BC::COL_SIGN_AT => 'datetime',
+        BC::COL_VW_AT  => 'datetime',
+        BC::COL_REJ_AT => 'datetime',
+        BC::COL_ISS_DT => 'date',
+        BC::COL_SD_DT  => 'date',
+        PJC::COL_D_DATE => 'date',
+        DC::COL_C_AT   => 'datetime',
+        DC::COL_U_AT   => 'datetime',
+
+        // Numéricos
+        'amount'        => 'float',
+        'discount'      => 'float',
+        BC::COL_SVC_FEE => 'float',
+        BC::COL_TXS_FEE => 'float',
+        'status'        => 'integer',
+        'version'       => 'integer',
+        BC::COL_DSC_APL => 'integer',
+
+        // Booleanos
+        BC::COL_AUTORCC => 'boolean',
+        BC::COL_RQ_SIGN => 'boolean',
+        BC::COL_IS_SIGN => 'boolean',
+        BC::COL_IS_CNV  => 'boolean',
+
+        // Status auxiliares
+        BC::COL_BILL_STATUS => 'string',
+    ];
 
     protected $fillable = [
-        self::COL_PROPOSAL_ID,
-        self::COL_CUSTOMER_ID,
-        self::COL_ISSUE_DATE,
-        self::COL_SEND_DATE,
-        self::COL_STATUS,
-        self::COL_CATEGORY_ID,
-        self::COL_DISCOUNT_APPLY,
-        self::COL_IS_CONVERT,
-        self::COL_CONVERTED_INVOICE_ID,
-        self::COL_CREATED_BY,
-        self::COL_TAX_ID,
+        'title',
+        BC::COL_PPS_ID,
+        BC::COL_CST_ID,
+        BC::COL_CUR_ID,
+        'amount',
+        'discount',
+        BC::COL_SVC_FEE,
+        BC::COL_TXS_FEE,
+        'reference',
+        'description',
+        'notes',
+        'attachments',
+        BC::COL_TC,
+        BC::COL_AUTORCC,
+        BC::COL_RCC_RL,
+        BC::COL_SD_DT,
+        BC::COL_ISS_DT,
+        PJC::COL_D_DATE,
+        BC::COL_DSC_APL,
+        BC::COL_CAT_ID,
+        'taxes',
+        BC::COL_VLD_TO,
+        BC::COL_RQ_SIGN,
+        BC::COL_IS_SIGN,
+        BC::COL_SIGN_AT,
+        BC::COL_SIGN_BY,
+        BC::COL_SIGN_BY_NAME,
+        BC::COL_VW_AT,
+        'payments',
+        'status',
+        BC::COL_STT_LB,
+        BC::COL_BILL_STATUS,
+        BC::COL_IS_CNV,
+        'version',
+        BC::COL_REJ_AT,
+        BC::COL_REJ_RS,
+        PJC::COL_LD_ID,
+        BC::COL_CNV_INV_ID,
+        BC::COL_TAX_ID,
+        'employees',
+        'customers',
+        'signers',
+        'contract',
+        'loan',
+        BC::COL_PRD_SV_UNT,
     ];
 
-    public static $statuses = [
-        'Draft',
-        'Open',
-        'Accepted',
-        'Declined',
-        'Close',
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
     ];
 
-    public function tax(): HasOne
+    protected $with = [
+        'customer',
+        'tax',
+        'lead',
+        'productServiceCategory',
+        'productServiceUnit',
+        'invoice',
+    ];
+
+    protected $appends = [
+        'rejection',
+        'full_identifier',
+        'full_status',
+    ];
+
+    /** @var array<string,string> */
+    public static array $statuses = [
+        'draft'    => 'Draft',
+        'open'     => 'Open',
+        'accepted' => 'Accepted',
+        'declined' => 'Declined',
+        'close'    => 'Close',
+    ];
+
+    public static function booted(): void
     {
-        return $this
-            ->hasOne(Tax::class, 'id', self::COL_TAX_ID);
-        // * consider belongsTo(Tax::class, self::COL_TAX_ID)
+        static::saving(function (self $m): void {
+            if (empty($m->{BC::COL_PPS_ID}) || is_numeric($m->{BC::COL_PPS_ID})) {
+                do $candidateCode = Str::uuid()->toString();
+                while (self::query()->where(BC::COL_PPS_ID, $candidateCode)->exists());
+                $m->{BC::COL_PPS_ID} = $candidateCode;
+            }
+
+            $statusEnum = ProposalStatus::normalize($m->{BC::COL_STT_LB} ?? null);
+            $m->{BC::COL_STT_LB} = $statusEnum->value;
+            $m->status = self::mapStatusEnumToInt($statusEnum);
+
+            if (!empty($m->{BC::COL_BILL_STATUS}))
+                $m->{BC::COL_BILL_STATUS} = BillStatus::normalize($m->{BC::COL_BILL_STATUS})->value;
+
+            $m->amount = (float) ($m->amount ?? 0.0);
+            $m->discount = (float) ($m->discount ?? 0.0);
+            if ($m->discount < 0.0) $m->discount = 0.0;
+            if ($m->discount > $m->amount) $m->discount = $m->amount;
+
+            $m->{BC::COL_DSC_APL} = (int) ($m->{BC::COL_DSC_APL} ?? 0) > 0 ? 1 : 0;
+            $m->{BC::COL_IS_CNV} = (int) ($m->{BC::COL_IS_CNV} ?? 0) > 0 ? 1 : 0;
+            if (empty($m->version) || $m->version < 1) $m->version = 1;
+
+            $m->attachments = static::normalizeArrayField($m->attachments ?? null);
+            $m->taxes = static::normalizeArrayField($m->taxes ?? null);
+            $m->employees = static::normalizeArrayField($m->employees ?? null);
+            $m->customers = static::normalizeArrayField($m->customers ?? null);
+            $m->signers = static::normalizeArrayField($m->signers ?? null);
+            $m->payments = static::normalizeUuidPointerField($m->payments ?? null, \App\Models\Payment::class);
+            $m->{BC::COL_TC} = static::normalizeArrayField($m->{BC::COL_TC} ?? null);
+            $m->{BC::COL_RCC_RL} = static::normalizeArrayField($m->{BC::COL_RCC_RL} ?? null);
+
+            if (!empty($m->{BC::COL_CST_ID})) {
+                $customerId = (string) $m->{BC::COL_CST_ID};
+                $customers = array_map('strval', $m->customers ?? []);
+                if (!in_array($customerId, $customers, true)) $customers[] = $customerId;
+                $m->customers = array_values(array_unique($customers));
+            }
+
+            if (empty($m->title)) {
+                $customerName = null;
+                if ($m->relationLoaded('customer') && $m->customer)
+                    $customerName = $m->customer->name ?? null;
+                elseif (!empty($m->{BC::COL_CST_ID}) && class_exists(\App\Models\Customer::class))
+                    $customerName = \App\Models\Customer::query()
+                        ->whereKey($m->{BC::COL_CST_ID})
+                        ->value('name');
+
+                $stamp = Carbon::now()->format('Ymd_His');
+                $safeName = $customerName ? Str::upper(Str::slug($customerName, '_')) : 'ANONYMOUS_CUSTOMER';
+                $m->title = "PROPOSAL_{$stamp}_{$safeName}";
+            }
+        });
     }
 
-    public function taxes(): HasOne // * KEPT FOR COMPATIBILITY
+    public function tax(): BelongsTo
     {
-        return $this
-            ->hasOne(Tax::class, 'id', self::COL_TAX_ID);
-        // * consider belongsTo(Tax::class, self::COL_TAX_ID)
+        return $this->belongsTo(Tax::class, BC::COL_TAX_ID, 'id');
+    }
+
+    public function taxes(): BelongsTo
+    {
+        return $this->tax();
     }
 
     public function items(): HasMany
     {
-        return $this
-            ->hasMany(ProposalProduct::class, 'proposal_id', 'id');
+        return $this->hasMany(ProposalProduct::class, BC::COL_PPS_ID, 'id');
     }
 
-    public function customer(): HasOne
+    public function customer(): BelongsTo
     {
-        return $this
-            ->hasOne(\App\Models\Customer::class, 'id', self::COL_CUSTOMER_ID);
-        // * consider belongsTo(Customer::class, self::COL_CUSTOMER_ID)
+        return $this->belongsTo(Customer::class, BC::COL_CST_ID, 'id');
     }
 
-    public function category(): HasOne
+    public function category(): BelongsTo
     {
-        return $this
-            ->hasOne(ProductServiceCategory::class, 'id', self::COL_CATEGORY_ID);
-        // * consider belongsTo(ProductServiceCategory::class, self::COL_CATEGORY_ID)
+        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function productServiceCategory(): BelongsTo
+    {
+        return $this->category();
+    }
+
+    public function productServiceUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProductServiceUnit::class, BC::COL_PRD_SV_UNT, 'id');
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, PJC::COL_LD_ID, 'id');
+    }
+
+    public function convertedInvoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, BC::COL_CNV_INV_ID, 'id');
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->convertedInvoice();
+    }
+
+    public function statusEnum(): ProposalStatus
+    {
+        return ProposalStatus::normalize($this->{BC::COL_STT_LB} ?? null);
+    }
+
+    public function getFullStatusAttribute(): string
+    {
+        return $this->{BC::COL_STT_LB} . ' (' . $this->status . ')';
+    }
+
+    public function getFullIdentifierAttribute(): string
+    {
+        return 'PPS-' . $this->{BC::COL_PPS_ID}
+            . ' — ' . ($this->title ?: 'UNTITLED')
+            . ' — ' . ($this->version ? 'v' . $this->version : 'v#UNDEFINED');
+    }
+
+    public function getRejectionAttribute(): ?array
+    {
+        if (empty($this->{BC::COL_REJ_AT})) return null;
+        return [
+            'at'     => $this->{BC::COL_REJ_AT},
+            'reason' => $this->{BC::COL_REJ_RS},
+        ];
     }
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn($p) => $p->price * $p->quantity);
+        return $this->items->sum(
+            fn($p): float => (float) $p->price * (float) $p->quantity
+        );
     }
 
     public function getTotalDiscount(): float
     {
-        return $this->items->sum(fn($p) => $p->discount);
+        return $this->items->sum(
+            fn($p): float => (float) $p->discount
+        );
     }
 
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn($p) => (Utility::totalTaxRate($p->tax) / 100)
-                * ($p->price * $p->quantity - $p->discount)
+            fn($p): float => (float) \Utility::totalTaxRate($p->tax) / 100.0
+                * ((float) $p->price * (float) $p->quantity - (float) $p->discount)
         );
     }
 
@@ -104,17 +300,161 @@ class Proposal extends Model
 
     public function getDue(): float
     {
-        $due = 0;
-        foreach ($this->payments as $payment) // * payments() relation needed
-            $due += $payment->amount;
-        return ($this->getTotal() - $due)
-            - $this->invoiceTotalCreditNote(); // * invoiceTotalCreditNote() needed
+        $paid = 0.0;
+        $paymentIds = is_array($this->payments) ? $this->payments : [];
+        if (class_exists(\App\Models\Payment::class) && $paymentIds) {
+            $sum = \App\Models\Payment::query()
+                ->whereIn('id', $paymentIds)
+                ->sum('amount');
+            $paid = (float) $sum;
+        }
+        $due = $this->getTotal() - $paid - $this->invoiceTotalCreditNote();
+        return $due > 0.0 ? $due : 0.0;
     }
 
-    public static function changeStatus(int $proposalId, string $status): void
+    public function invoiceTotalCreditNote(): float
     {
-        $proposal      = self::find($proposalId);
-        $proposal->status = $status;
-        $proposal->update();
+        if (empty($this->{BC::COL_CNV_INV_ID})) return 0.0;
+        if (!class_exists(\App\Models\CreditNote::class)) return 0.0;
+
+        try {
+            $total = \App\Models\CreditNote::query()
+                ->where(BC::COL_INV_ID, $this->{BC::COL_CNV_INV_ID})
+                ->sum('amount');
+            return (float) $total;
+        } catch (\Throwable $e) {
+            Log::warning(self::class . ' failed to compute invoiceTotalCreditNote', [
+                'error'      => $e->getMessage(),
+                'invoice_id' => $this->{BC::COL_CNV_INV_ID},
+            ]);
+            return 0.0;
+        }
+    }
+
+    public function scopeIssuedBetween(Builder $query, ?\DateTimeInterface $from, ?\DateTimeInterface $to): Builder
+    {
+        if ($from) $query->whereDate(BC::COL_ISS_DT, '>=', $from->format('Y-m-d'));
+        if ($to) $query->whereDate(BC::COL_ISS_DT, '<=', $to->format('Y-m-d'));
+        return $query;
+    }
+
+    public function scopeForCustomer(Builder $query, string $customerId): Builder
+    {
+        return $query->where(BC::COL_CST_ID, $customerId);
+    }
+
+    public static function aggregateByStatus(
+        ?\DateTimeInterface $from = null,
+        ?\DateTimeInterface $to = null,
+        ?string $customerId = null
+    ): array {
+        $query = static::query();
+        if ($from || $to) $query->issuedBetween($from, $to);
+        if ($customerId) $query->forCustomer($customerId);
+
+        $rows = $query
+            ->selectRaw(BC::COL_STT_LB . ' as status_label, COUNT(*) as aggregate_count, SUM(amount) as aggregate_amount')
+            ->groupBy(BC::COL_STT_LB)
+            ->get();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[$row->status_label] = [
+                'count'  => (int) $row->aggregate_count,
+                'amount' => (float) $row->aggregate_amount,
+            ];
+        }
+
+        return $result;
+    }
+
+    public static function totalAmountBetween(
+        ?\DateTimeInterface $from = null,
+        ?\DateTimeInterface $to = null,
+        ?string $customerId = null
+    ): float {
+        $query = static::query();
+        if ($from || $to) $query->issuedBetween($from, $to);
+        if ($customerId) $query->forCustomer($customerId);
+        return (float) $query->sum('amount');
+    }
+
+    public static function changeStatus($proposalId, string|ProposalStatus|null $status): void
+    {
+        $proposal = static::query()->find($proposalId);
+        if (!$proposal) return;
+
+        $enum = ProposalStatus::normalize($status);
+        $proposal->{BC::COL_STT_LB} = $enum->value;
+        $proposal->status = self::mapStatusEnumToInt($enum);
+        $proposal->save();
+    }
+
+    protected static function mapStatusEnumToInt(ProposalStatus $status): int
+    {
+        return match ($status) {
+            ProposalStatus::Draft    => 0,
+            ProposalStatus::Open     => 1,
+            ProposalStatus::Accepted => 2,
+            ProposalStatus::Declined => 3,
+            ProposalStatus::Close    => 4,
+        };
+    }
+
+    protected static function normalizeArrayField(mixed $value): array
+    {
+        if ($value === null) return [];
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            if ($trimmed === '') return [];
+            $decoded = json_decode($trimmed, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) $value = $decoded;
+            else $value = preg_split('/\s*,\s*/', $trimmed) ?: [];
+        }
+        if (!is_array($value)) return [];
+
+        $normalized = [];
+        foreach ($value as $item) {
+            if ($item === null) continue;
+            if (is_string($item)) {
+                $t = trim($item);
+                if ($t === '') continue;
+                $normalized[] = $t;
+                continue;
+            }
+            $normalized[] = $item;
+        }
+
+        return array_values($normalized);
+    }
+
+    protected static function normalizeUuidPointerField(mixed $value, string $modelClass): array
+    {
+        $items = static::normalizeArrayField($value);
+        if (!$items) return [];
+
+        $ids = [];
+        foreach ($items as $item) {
+            if (is_string($item) && \Utility::looksLikeUuid($item)) $ids[] = $item;
+            elseif (is_array($item) && isset($item['id']) && \Utility::looksLikeUuid((string) $item['id']))
+                $ids[] = (string) $item['id'];
+        }
+
+        $ids = array_values(array_unique($ids));
+        if (!$ids || !class_exists($modelClass) || !method_exists($modelClass, 'query')) return $ids;
+
+        try {
+            $valid = $modelClass::query()
+                ->whereIn('id', $ids)
+                ->pluck('id')
+                ->all();
+            return array_values(array_map('strval', $valid));
+        } catch (\Throwable $e) {
+            Log::warning(self::class . ' failed to normalize uuid pointer field', [
+                'model' => $modelClass,
+                'error' => $e->getMessage(),
+            ]);
+            return $ids;
+        }
     }
 }

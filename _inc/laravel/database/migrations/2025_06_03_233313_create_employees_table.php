@@ -9,7 +9,6 @@ class CreateEmployeesTable extends Migration
 {
     use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_EMPLOYEES;
-    private const SALARY = 'salary';
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
@@ -35,7 +34,7 @@ class CreateEmployeesTable extends Migration
             $table->string(UC::COL_BANK_NM)->nullable();
             $table->string(UC::COL_BANK_IC)->nullable();
             $table->uuid(UC::COL_TAX_ID)->nullable();
-            $table->decimal(self::SALARY, 10, 2)->nullable()->default(0.00);
+            $table->decimal('salary', 10, 2)->nullable()->default(0.00);
             $table->uuid(UC::COL_SLR_TP)->nullable();
             $table->integer(UC::COL_IA)->default(1);
             $this->addAuditColumns($table);

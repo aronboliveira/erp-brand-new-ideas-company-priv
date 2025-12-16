@@ -66,56 +66,47 @@ class LeaveType extends Model
         parent::booted();
 
         static::saving(function (self $m): void {
-            if (isset($m->title) && is_string($m->title))
-                $m->title = trim($m->title);
+            if (!empty($m->getAttribute('title')) && is_string($m->getAttribute('title')))
+                $m->setAttribute('title', trim($m->getAttribute('title')));
 
-            if (isset($m->description) && is_string($m->description))
-                $m->description = trim($m->description);
-
-            $m->days = (int) ($m->days ?? 0);
-            if ($m->days < 0)
-                $m->days = 0;
-
-            $ext = (int) ($m->{PJC::COL_EXT_DY} ?? 0);
+            if (!empty($m->getAttribute('description')) && is_string($m->getAttribute('description')))
+                $m->setAttribute('description', trim($m->getAttribute('description')));
+            $m->setAttribute('days', (int) ($m->getAttribute('days') ?? 0));
+            if ($m->getAttribute('days') < 0)
+                $m->setAttribute('days', 0);
+            $ext = (int) ($m->getAttribute(PJC::COL_EXT_DY) ?? 0);
             if ($ext < 0)
                 $ext = 0;
-            $m->{PJC::COL_EXT_DY} = $ext;
-
-            $minPct = (int) ($m->{PJC::COL_SL_MIN_DD_PCT} ?? 0);
-            $maxPct = (int) ($m->{PJC::COL_SL_MAX_DD_PCT} ?? 0);
-
+            $m->setAttribute(PJC::COL_EXT_DY, $ext);
+            $minPct = (int) ($m->getAttribute(PJC::COL_SL_MIN_DD_PCT) ?? 0);
+            $maxPct = (int) ($m->getAttribute(PJC::COL_SL_MAX_DD_PCT) ?? 0);
             foreach (['minPct', 'maxPct'] as $var) {
                 if (${$var} < 0)
                     ${$var} = 0;
                 if (${$var} > 100)
                     ${$var} = 100;
             }
-
             if ($minPct > $maxPct)
                 $minPct = $maxPct;
-
-            $m->{PJC::COL_SL_MIN_DD_PCT} = $minPct;
-            $m->{PJC::COL_SL_MAX_DD_PCT} = $maxPct;
-
+            $m->setAttribute(PJC::COL_SL_MIN_DD_PCT, $minPct);
+            $m->setAttribute(PJC::COL_SL_MAX_DD_PCT, $maxPct);
             try {
-                $m->categories  = self::normalizeArrayField($m->categories ?? null);
-                $m->conditions  = self::normalizeArrayField($m->conditions ?? null);
-                $m->attachments = self::normalizeArrayField($m->attachments ?? null);
+                $m->setAttribute('categories', self::normalizeArrayField($m->getAttribute('categories') ?? null));
+                $m->setAttribute('conditions', self::normalizeArrayField($m->getAttribute('conditions') ?? null));
+                $m->setAttribute('attachments', self::normalizeArrayField($m->getAttribute('attachments') ?? null));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize JSON fields for LeaveType', [
                     'id'    => $m->id ?? null,
                     'error' => $e->getMessage(),
                 ]);
-                $m->categories  = [];
-                $m->conditions  = [];
-                $m->attachments = [];
+                $m->setAttribute('categories', []);
+                $m->setAttribute('conditions', []);
+                $m->setAttribute('attachments', []);
             }
-
-            if ($m->{PJC::COL_HLT_RL} === null)
-                $m->{PJC::COL_HLT_RL} = true;
-
-            if ($m->paid === null)
-                $m->paid = false;
+            if ($m->getAttribute(PJC::COL_HLT_RL) === null)
+                $m->setAttribute(PJC::COL_HLT_RL, true);
+            if ($m->getAttribute('paid') === null)
+                $m->setAttribute('paid', false);
         });
     }
 

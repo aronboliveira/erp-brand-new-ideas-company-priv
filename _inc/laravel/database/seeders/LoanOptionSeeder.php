@@ -128,28 +128,35 @@ final class LoanOptionSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $data) {
-				// saneamento complementar no seeder
-				if (
-					isset($data[BC::COL_MIN_ITM], $data[BC::COL_MAX_ITM])
-					&& $data[BC::COL_MIN_ITM] > $data[BC::COL_MAX_ITM]
-				) {
-					[$data[BC::COL_MIN_ITM], $data[BC::COL_MAX_ITM]] =
-						[$data[BC::COL_MAX_ITM], $data[BC::COL_MIN_ITM]];
-				}
-				if (isset($data[BC::COL_FGTS_PCT])) {
-					$data[BC::COL_FGTS_PCT] = max(0, min(50, (int) $data[BC::COL_FGTS_PCT]));
-				}
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Empréstimo: {$data['name']}");
+					// saneamento complementar no seeder
+					if (
+						isset($data[BC::COL_MIN_ITM], $data[BC::COL_MAX_ITM])
+						&& $data[BC::COL_MIN_ITM] > $data[BC::COL_MAX_ITM]
+					) {
+						[$data[BC::COL_MIN_ITM], $data[BC::COL_MAX_ITM]] =
+							[$data[BC::COL_MAX_ITM], $data[BC::COL_MIN_ITM]];
+					}
+					if (isset($data[BC::COL_FGTS_PCT])) {
+						$data[BC::COL_FGTS_PCT] = max(0, min(50, (int) $data[BC::COL_FGTS_PCT]));
+					}
 
-				$model = LoanOption::firstOrNew(['name' => $data['name']]);
-				$model->fill($data);
+					$model = LoanOption::firstOrNew(['name' => $data['name']]);
+					$model->fill($data);
 
-				if (!$model->exists && empty($model->{DC::COL_TABLE_CREATOR})) {
-					// atribuição direta (guardado contra mass-assignment)
-					$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					if (!$model->exists && empty($model->{DC::COL_TABLE_CREATOR})) {
+						// atribuição direta (guardado contra mass-assignment)
+						$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					}
+
+					$model->save();
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				$model->save();
-				$model->wasRecentlyCreated ? $created++ : $updated++;
 			}
 
 			Log::info('LoanOptionSeeder concluído', compact('created', 'updated'));

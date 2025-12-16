@@ -1,0 +1,98 @@
+[
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_anabs.webp",
+    "testimonials_title": "Ana Beatriz da Silva",
+    "testimonials_description": "Jestem pod ogromnym wrażeniem skuteczności działu wsparcia. W mniej niż dziesięć minut mój problem został całkowicie rozwiązany. Usługa na najwyższym poziomie!",
+    "testimonials_user": "anabeatriz.silva",
+    "testimonials_designation": "BlueWave Technologies",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_lucasps.webp",
+    "testimonials_title": "Lucas Pereira Santos",
+    "testimonials_description": "Aplikacja jest bardzo intuicyjna i idealnie odpowiada moim potrzebom. Gratulacje dla zespołu za świetnie wykonaną pracę!",
+    "testimonials_user": "lucas.p.santos",
+    "testimonials_designation": "GreenPulse Inc.",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_marianaoc.webp",
+    "testimonials_title": "Mariana Oliveira Costa",
+    "testimonials_description": "Na początku miałam kilka wątpliwości, ale dział wsparcia był bardzo pomocny i szybko wszystko wyjaśnił. Zdecydowanie polecam!",
+    "testimonials_user": "mariana_olivera",
+    "testimonials_designation": "Skyward Solutions",
+    "testimonials_star": "4"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_rafaelsa.webp",
+    "testimonials_title": "Rafael dos Santos Almeida",
+    "testimonials_description": "Narzędzie działa znakomicie, a interfejs jest bardzo przyjazny dla użytkownika. Warte każdej wydanej złotówki!",
+    "testimonials_user": "rafael.almeida",
+    "testimonials_designation": "QuantumSoft",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_camilafs.webp",
+    "testimonials_title": "Camila Fernandes Souza",
+    "testimonials_description": "Jestem bardzo zadowolona z szybkości reakcji wsparcia oraz z dostępnych funkcji. Świetne doświadczenie użytkownika!",
+    "testimonials_user": "camilafsouza",
+    "testimonials_designation": "NovaCore Systems",
+    "testimonials_star": "4"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_tiagorl.webp",
+    "testimonials_title": "Tiago Rodrigues Lima",
+    "testimonials_description": "Platforma zdecydowanie przewyższa moje oczekiwania dzięki zaawansowanym funkcjom i dedykowanemu wsparciu. Jestem bardzo zadowolony z wyboru!",
+    "testimonials_user": "tiago_rod",
+    "testimonials_designation": "AlphaEdge Labs",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_julianacr.webp",
+    "testimonials_title": "Juliana Carvalho Rocha",
+    "testimonials_description": "Konfiguracja wszystkiego była wyjątkowo prosta i szybka. Zespół wsparcia odegrał kluczową rolę w sukcesie projektu!",
+    "testimonials_user": "juliana.rocha",
+    "testimonials_designation": "NextGen Innovations",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_brunomf.webp",
+    "testimonials_title": "Bruno Mendes Ferreira",
+    "testimonials_description": "Solidne, łatwe w obsłudze narzędzie, idealne do codziennej pracy. Wsparcie jest zawsze dostępne i działa bardzo sprawnie!",
+    "testimonials_user": "bruno.mendes",
+    "testimonials_designation": "Pioneer Tech",
+    "testimonials_star": "4"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_beatrizmg.webp",
+    "testimonials_title": "Beatriz Marques Gonçalves",
+    "testimonials_description": "Doskonale wyważony stosunek ceny do jakości oraz świetna wydajność. Wsparcie okazało się bardzo pomocne i szybko rozwiązało moje problemy!",
+    "testimonials_user": "beatriz.goncalves",
+    "testimonials_designation": "Vertex Dynamics",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_gabrielrc.webp",
+    "testimonials_title": "Gabriel Ribeiro Castro",
+    "testimonials_description": "Bardzo podoba mi się stabilność platformy i częste aktualizacje. Obsługa jest profesjonalna i szybka.",
+    "testimonials_user": "gabriel.ribeiro",
+    "testimonials_designation": "Orion Digital",
+    "testimonials_star": "4"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_pedroha.webp",
+    "testimonials_title": "Pedro Henrique Almeida",
+    "testimonials_description": "Rozwiązanie spełniło wszystkie moje oczekiwania, a wsparcie było wyjątkowo szybkie i skuteczne. Szczerze polecam!",
+    "testimonials_user": "pedro.almeida",
+    "testimonials_designation": "Phoenix Healthcare",
+    "testimonials_star": "5"
+  },
+  {
+    "testimonials_user_avatar": "testimonials/fictional_user_avatar_yarapg.webp",
+    "testimonials_title": "Yara Pereira Gomes",
+    "testimonials_description": "Obsługa była bardzo pomocna i szybko rozwiała moje wątpliwości. Sama platforma jest bardzo solidna i stabilna.",
+    "testimonials_user": "yara.gomes",
+    "testimonials_designation": "Starlight Creations",
+    "testimonials_star": "5"
+  }
+]

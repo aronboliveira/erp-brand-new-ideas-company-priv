@@ -22,7 +22,7 @@ class CreateChartOfAccountTypesTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary(); // ! CHANGED
             $table->string(CHTC::COL_CD)->unique()->nullable(); // ? nullable para testes
-            $table->string('category')->index()->nullable();
+            $table->string('category')->nullable()->index();
             $table->text('description')->nullable();
             $table->json('rules')->nullable();
             $table->json('units')->nullable();

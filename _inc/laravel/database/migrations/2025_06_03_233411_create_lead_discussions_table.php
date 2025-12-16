@@ -14,7 +14,7 @@ class CreateLeadDiscussionsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(UC::COL_USER_ID)->index()->nullable(); // ? nullable for tests // ? the user who made the comment
+            $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? nullable for tests // ? the user who made the comment
             $table->enum(UC::COL_U_TP, UserType::values())->default(UserType::Client)->nullable(); // ? nullable for tests
             $this->addLeadColumns($table, unique: false, nullable: false, cascade: true);
             $table->text('comment');

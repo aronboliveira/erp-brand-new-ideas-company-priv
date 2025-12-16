@@ -29,7 +29,7 @@ class CreateSetSalariesTable extends Migration
             ])->default('monthly')
                 ->index()
                 ->nullable(); // ? Nullable para testes iniciais
-            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->min(1)->max(31)->default(5)
+            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->default(5)
                 ->nullable(); // ? Nullable para testes iniciais
             $this->addAuditColumns($table, false);
         });

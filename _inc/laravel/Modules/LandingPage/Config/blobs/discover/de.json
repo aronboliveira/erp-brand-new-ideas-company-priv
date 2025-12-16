@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "KI-gestützte Automatisierung",
+    "discover_description": "<p>Nutzen Sie modernste künstliche Intelligenz, um repetitive Aufgaben zu automatisieren, Trends vorherzusagen und Ihre Geschäftsabläufe mit intelligenten Erkenntnissen zu optimieren.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Echtzeit-Analyse-Dashboard",
+    "discover_description": "<p>Erhalten Sie sofortige Einblicke in Ihre Geschäftsleistung mit interaktiven Dashboards, benutzerdefinierten Berichten und Echtzeit-KPI-Verfolgung in allen Abteilungen.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Multi-Währungsbuchhaltung",
+    "discover_description": "<p>Verwalten Sie internationale Transaktionen nahtlos mit automatischer Währungsumrechnung, Steuerkonformität und Echtzeit-Wechselkursintegration.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Intelligente Bestandsverwaltung",
+    "discover_description": "<p>Optimieren Sie Lagerbestände mit prädiktiver Analyse, automatischer Nachbestellung und Barcode-Scannen für effiziente Lageroperationen.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° Kundenbeziehungsmanagement",
+    "discover_description": "<p>Verfolgen Sie jede Kundeninteraktion, automatisieren Sie Follow-ups und analysieren Sie Kundenverhalten, um den Umsatz zu steigern und die Bindungsraten zu verbessern.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Erweitertes Projektmanagement",
+    "discover_description": "<p>Planen, ausführen und überwachen Sie Projekte mit Gantt-Diagrammen, Ressourcenzuteilung, Zeitverfolgung und Meilenstein-Management-Tools.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "HR & Gehaltsabrechnungsautomatisierung",
+    "discover_description": "<p>Optimieren Sie das Mitarbeitermanagement mit automatischer Gehaltsabrechnung, Anwesenheitsverfolgung, Leistungsbewertungen und Verwaltung von Mitarbeiterleistungen.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobiles Kassensystem & E-Commerce",
+    "discover_description": "<p>Akzeptieren Sie Zahlungen überall mit unserem mobilen Point-of-Sale-System, integriert mit Online-Shop-Management und Bestandssynchronisierung.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Business Intelligence Berichterstattung",
+    "discover_description": "<p>Verwandeln Sie Rohdaten in umsetzbare Erkenntnisse mit anpassbaren Berichten, Datenvisualisierung und Executive-Dashboards für strategische Entscheidungsfindung.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Benutzerdefinierter Workflow-Builder",
+    "discover_description": "<p>Entwerfen und automatisieren Sie komplexe Geschäftsprozesse mit unserem Drag-and-Drop-Workflow-Builder, reduzieren Sie manuelle Fehler und steigern Sie die Effizienz.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Nahtlose Drittanbieter-Integration",
+    "discover_description": "<p>Verbinden Sie sich mit 500+ beliebten Geschäfts-Apps, einschließlich Salesforce, QuickBooks, Shopify und Zapier, für ein einheitliches Geschäftsökosystem.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Unternehmensklasse Sicherheit",
+    "discover_description": "<p>Schützen Sie Ihre Geschäftsdaten mit militärischer Verschlüsselung, rollenbasierten Zugriffskontrollen, Audit-Trails und Compliance mit globalen Sicherheitsstandards.</p>"
+  }
+]

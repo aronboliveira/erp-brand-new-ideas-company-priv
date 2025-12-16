@@ -37,7 +37,13 @@ class AiTemplateSeeder extends Seeder
                 'updated_at' => $now
             ]);
         }, $templates);
-        foreach ($templates as $t) Template::create($t);
+        foreach ($templates as $t)
+            try {
+                Template::create($t);
+            } catch (\Exception $e) {
+                Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+                continue;
+            }
         $output->writeln('<info>                                Done creating AI templates!</info>');
         $output->writeln('<question>----------- Ending of Ai Templates Seeding --------</question>');
         $output->writeln('');

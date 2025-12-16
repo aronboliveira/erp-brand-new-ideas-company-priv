@@ -1,0 +1,32 @@
+[
+  {
+    "menubar_page_name": "Chi siamo",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "Benvenuto nel sito web di Nova Prestech. Siamo un’azienda di assistenza e supporto tecnologico con decenni di esperienza in infrastrutture, cybersicurezza, servizi cloud e software. I nostri team uniscono eccellenza tecnica e attenzione alle persone per mantenere stabili, sicuri e produttivi i sistemi personali e aziendali. In questa pagina puoi scoprire chi siamo, cosa facciamo e come ti aiutiamo a progettare, implementare e mantenere ambienti IT affidabili.",
+    "page_slug": "about_us",
+    "header": "on",
+    "footer": "on",
+    "login": "on"
+  },
+  {
+    "menubar_page_name": "Termini e condizioni",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "Benvenuto nel sito web di Nova Prestech. Accedendo o utilizzando questo sito accetti di essere vincolato dai presenti termini e condizioni; se non sei d’accordo con una parte di essi, ti preghiamo di non utilizzare il sito. I contenuti sono forniti come informazioni generali sui servizi di Nova Prestech e possono essere modificati o rimossi in qualsiasi momento senza preavviso. Possiamo utilizzare cookie e tecnologie simili per migliorare la tua esperienza e per analisi; se li autorizzi, alcuni dati tecnici o personali potranno essere memorizzati e trattati in conformità con la nostra Informativa sulla privacy. Sebbene ci impegniamo ragionevolmente a mantenere le informazioni accurate e aggiornate, non garantiamo completezza, affidabilità o idoneità per uno scopo specifico e utilizzi il sito a tuo rischio. È tua responsabilità verificare che i servizi, le soluzioni o le raccomandazioni qui descritte soddisfino le tue esigenze prima di farvi affidamento. Salvo diversa indicazione, design, testi, grafica, loghi e altri materiali presenti nel sito sono di proprietà o in licenza a Nova Prestech e qualsiasi riproduzione non autorizzata è vietata. L’uso non autorizzato di questo sito può dare origine a richieste di risarcimento e o costituire reato ai sensi della legge applicabile. Di tanto in tanto il sito può contenere link a siti di terze parti forniti solo per comodità; Nova Prestech non approva né è responsabile del contenuto o delle pratiche di tali siti esterni.",
+    "page_slug": "terms_and_conditions",
+    "header": "off",
+    "footer": "on",
+    "login": "on"
+  },
+  {
+    "menubar_page_name": "Informativa sulla privacy",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "La presente Informativa sulla privacy descrive come Nova Prestech raccoglie, utilizza e protegge i dati personali quando visiti il nostro sito web o utilizzi i nostri servizi di supporto e tecnologia. Possiamo raccogliere dati che fornisci direttamente, come nome, recapiti, informazioni aziendali e contenuto delle richieste di assistenza, nonché dati tecnici relativi al dispositivo, ai log e alle modalità di utilizzo. Utilizziamo questi dati per fornire e migliorare i servizi, gestire i ticket, personalizzare le comunicazioni, mantenere la sicurezza, produrre statistiche e adempiere agli obblighi di legge. Possiamo condividere dati con fornitori di servizi e partner di fiducia che ci assistono in hosting, analisi, sicurezza, fatturazione o supporto clienti, nel rispetto di adeguate misure di riservatezza e protezione dei dati. Applichiamo misure tecniche e organizzative come cifratura, controlli di accesso e monitoraggio per proteggere i tuoi dati da accessi non autorizzati, perdita o uso improprio. Se previsto dalla legge, puoi aggiornare i tuoi dati, gestire le preferenze di comunicazione e richiedere accesso, rettifica o cancellazione dei tuoi dati personali. Il nostro sito può utilizzare cookie e tecnologie simili per funzionalità, analisi e sicurezza; puoi gestirli tramite le impostazioni del browser e, ove disponibili, attraverso strumenti di consenso sul sito. I nostri servizi possono contenere link a siti esterni con proprie informative sulla privacy che non controlliamo. Conserviamo i dati personali solo per il tempo necessario alle finalità descritte o richiesto dalla legge. A seconda della giurisdizione potresti avere diritti aggiuntivi in base a normative come il GDPR o altre leggi simili; trattiamo i dati sulla base del consenso, della necessità contrattuale, del legittimo interesse o di obblighi legali, secondo i casi. Possiamo aggiornare periodicamente la presente Informativa sulla privacy e le modifiche rilevanti saranno evidenziate in questa pagina o comunicate tramite canali appropriati. Per domande sulla privacy o per esercitare i tuoi diritti puoi contattare Nova Prestech tramite i recapiti indicati sul sito.",
+    "page_slug": "privacy_policy",
+    "header": "off",
+    "footer": "on",
+    "login": "on"
+  }
+]

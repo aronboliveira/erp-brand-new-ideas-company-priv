@@ -90,8 +90,8 @@ class Deal extends Model
         );
 
         static::saving(function (Deal $model): void {
-            if (!empty($model->phone)) $model->phone = self::normalizePhone($model->phone, 'deal.phone', $model->id);
-            if (!empty($model->email)) $model->email = self::normalizeEmail($model->email, 'deal.email', $model->id);
+            if (!empty($model->getAttribute('phone'))) $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'deal.phone', $model->id));
+            if (!empty($model->getAttribute('email'))) $model->setAttribute('email', self::normalizeEmail($model->getAttribute('email'), 'deal.email', $model->id));
             foreach (['sources', 'products', 'labels'] as $csvField) {
                 $raw = $model->getAttribute($csvField);
                 if (is_array($raw))
@@ -103,8 +103,8 @@ class Deal extends Model
                 } elseif ($raw === null)
                     $model->setAttribute($csvField, null);
             }
-            if (!is_numeric($model->price) || $model->price < 0)
-                $model->price = 0.00;
+            if (!is_numeric($model->getAttribute('price')) || $model->getAttribute('price') < 0)
+                $model->setAttribute('price', 0.00);
             $st = $model->getAttribute(BC::COL_STT_LB);
             $model->setAttribute(BC::COL_STT_LB, EvaluationStatus::normalize($st));
         });

@@ -7,7 +7,7 @@ use App\Models\{Lead, Pipeline};
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -15,7 +15,7 @@ class LeadSeeder extends Seeder
 {
 	// ---------- Parâmetros fixos (mocking: não usar env) ----------
 	private const SEED            = 20251201;
-	private const DEFAULT_COUNT   = 64;    // total objetivo (ajustável via --count)
+	private const DEFAULT_COUNT   = 256;    // total objetivo (ajustável via --count)
 	private const OPTIONALITY     = 0.65;  // prob. média de preencher campos opcionais
 	private const MAX_TAGS        = 3;     // máx. IDs em sources/products/labels
 
@@ -56,89 +56,95 @@ class LeadSeeder extends Seeder
 
 					$batch = fake()->numberBetween(3, 10); // leads por pipeline nesta rodada
 					for ($i = 0; $i < $batch && $inserted < $target; $i++) {
-						$now  = Carbon::now();
-						$date = fake()->boolean(75)
-							? $now->subDays(fake()->numberBetween(0, 120))->toDateString()
-							: $now->toDateString();
+						try {
+							$now  = Carbon::now();
+							$date = fake()->boolean(75)
+								? $now->subDays(fake()->numberBetween(0, 120))->toDateString()
+								: $now->toDateString();
 
-						// Usuário responsável e caller (opcionais)
-						$userId   = $this->maybe() && $userIds     ? Arr::random($userIds)     : null;
-						$callerId = $this->maybe(0.40) && $employeeIds ? Arr::random($employeeIds) : null;
+							// Usuário responsável e caller (opcionais)
+							$userId   = $this->maybe() && $userIds     ? Arr::random($userIds)     : null;
+							$callerId = $this->maybe(0.40) && $employeeIds ? Arr::random($employeeIds) : null;
 
-						// Stage coerente com o pipeline
-						$stageId = null;
-						if (!empty($stageByPipeline[$pplId])) {
-							$stageId = $this->maybe(0.80) ? Arr::random($stageByPipeline[$pplId]) : null;
+							// Stage coerente com o pipeline
+							$stageId = null;
+							if (!empty($stageByPipeline[$pplId])) {
+								$stageId = $this->maybe(0.80) ? Arr::random($stageByPipeline[$pplId]) : null;
+							}
+
+							// Campos textuais
+							$hasName = $this->maybe(0.85); // name é nullable; geralmente presente
+							$name    = $hasName ? fake()->name() : null;
+
+							$email   = $this->maybe(0.80) ? fake()->unique()->safeEmail() : null;
+							$phone   = $this->maybe(0.70) ? fake()->cellphoneNumber()     : null;
+							$subject = $this->fakeSubject();
+
+							// Listas CSV (IDs existentes quando houver)
+							$labelsCsv   = $this->pickCsv($labelIds,   fake()->numberBetween(0, self::MAX_TAGS));
+							$productsCsv = $this->pickCsv($productIds, fake()->numberBetween(0, self::MAX_TAGS));
+							$sourcesCsv  = $this->pickCsv($sourceIds,  fake()->numberBetween(0, self::MAX_TAGS));
+
+							// Flags
+							$isCritical  = $this->maybe(0.15);
+							$isConverted = $this->maybe(0.25);
+
+							// Involved base (o boot() adiciona user_id/caller/creator)
+							$involved = [
+								'users'     => $this->maybe(0.35) && $userIds     ? Arr::random($userIds,   fake()->numberBetween(1, min(3, max(1, count($userIds)))))   : [],
+								'employees' => $this->maybe(0.30) && $employeeIds ? Arr::random($employeeIds, fake()->numberBetween(1, min(2, max(1, count($employeeIds))))) : [],
+							];
+							// Garantir arrays
+							foreach (['users', 'employees'] as $k) {
+								if (!is_array($involved[$k])) $involved[$k] = $involved[$k] ? [$involved[$k]] : [];
+							}
+
+							// Order e notas
+							$order = fake()->numberBetween(0, 100);
+							$notes = $this->maybe() ? fake()->realText(fake()->numberBetween(60, 180)) : null;
+
+							// Montagem
+							$payload = [
+								'name'              => $name,
+								'email'             => $email,
+								'phone'             => $phone,
+								'subject'           => $subject,
+								UC::COL_USER_ID     => $userId,
+								PJC::COL_PPL_ID     => $pplId,
+								PJC::COL_STG_ID     => $stageId,
+								'sources'           => $sourcesCsv,
+								'products'          => $productsCsv,
+								'labels'            => $labelsCsv,
+								'order'             => $order,
+								'notes'             => $notes,
+								PJC::COL_CNV        => $isConverted, // cast → boolean
+								PJC::COL_CRT        => $isCritical,  // cast → boolean
+								'date'              => $date,
+								'caller'            => $callerId,
+								'involved'          => $involved,     // cast → array(json)
+							];
+							(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Lead {$name} sobre {$subject} endereçado para {$email} / {$phone} no pipeline {$pplId}");
+						// Cria via Model (aciona booted::saving para normalizações)
+							/** @var Lead $lead */
+							$lead = Lead::query()->create($payload);
+
+							// Auditoria (guarded): atribuir depois e salvar
+							if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_CREATOR) && $this->maybe(0.35)) {
+								$lead->{DC::COL_TABLE_CREATOR} = $userIds ? Arr::random($userIds) : null;
+							}
+							if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_UPDATER) && $this->maybe(0.25)) {
+								$lead->{DC::COL_TABLE_UPDATER} = $userIds ? Arr::random($userIds) : null;
+							}
+							if ($lead->isDirty()) {
+								$lead->save(); // reaciona boot::saving para re-normalizar 'involved'
+							}
+
+							$inserted++;
+						} catch (\Exception $e) {
+							$inserted++;
+							Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+							continue;
 						}
-
-						// Campos textuais
-						$hasName = $this->maybe(0.85); // name é nullable; geralmente presente
-						$name    = $hasName ? fake()->name() : null;
-
-						$email   = $this->maybe(0.80) ? fake()->unique()->safeEmail() : null;
-						$phone   = $this->maybe(0.70) ? fake()->cellphoneNumber()     : null;
-						$subject = $this->fakeSubject();
-
-						// Listas CSV (IDs existentes quando houver)
-						$labelsCsv   = $this->pickCsv($labelIds,   fake()->numberBetween(0, self::MAX_TAGS));
-						$productsCsv = $this->pickCsv($productIds, fake()->numberBetween(0, self::MAX_TAGS));
-						$sourcesCsv  = $this->pickCsv($sourceIds,  fake()->numberBetween(0, self::MAX_TAGS));
-
-						// Flags
-						$isCritical  = $this->maybe(0.15);
-						$isConverted = $this->maybe(0.25);
-
-						// Involved base (o boot() adiciona user_id/caller/creator)
-						$involved = [
-							'users'     => $this->maybe(0.35) && $userIds     ? Arr::random($userIds,   fake()->numberBetween(1, min(3, max(1, count($userIds)))))   : [],
-							'employees' => $this->maybe(0.30) && $employeeIds ? Arr::random($employeeIds, fake()->numberBetween(1, min(2, max(1, count($employeeIds))))) : [],
-						];
-						// Garantir arrays
-						foreach (['users', 'employees'] as $k) {
-							if (!is_array($involved[$k])) $involved[$k] = $involved[$k] ? [$involved[$k]] : [];
-						}
-
-						// Order e notas
-						$order = fake()->numberBetween(0, 100);
-						$notes = $this->maybe() ? fake()->realText(fake()->numberBetween(60, 180)) : null;
-
-						// Montagem
-						$payload = array_filter([
-							'name'              => $name,
-							'email'             => $email,
-							'phone'             => $phone,
-							'subject'           => $subject,
-							UC::COL_USER_ID     => $userId,
-							PJC::COL_PPL_ID     => $pplId,
-							PJC::COL_STG_ID     => $stageId,
-							'sources'           => $sourcesCsv,
-							'products'          => $productsCsv,
-							'labels'            => $labelsCsv,
-							'order'             => $order,
-							'notes'             => $notes,
-							PJC::COL_CNV        => $isConverted, // cast → boolean
-							PJC::COL_CRT        => $isCritical,  // cast → boolean
-							'date'              => $date,
-							'caller'            => $callerId,
-							'involved'          => $involved,     // cast → array(json)
-						], static fn($v) => $v !== null && $v !== []);
-
-                        // Cria via Model (aciona booted::saving para normalizações)
-						/** @var Lead $lead */
-						$lead = Lead::query()->create($payload);
-
-						// Auditoria (guarded): atribuir depois e salvar
-						if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_CREATOR) && $this->maybe(0.35)) {
-							$lead->{DC::COL_TABLE_CREATOR} = $userIds ? Arr::random($userIds) : null;
-						}
-						if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_UPDATER) && $this->maybe(0.25)) {
-							$lead->{DC::COL_TABLE_UPDATER} = $userIds ? Arr::random($userIds) : null;
-						}
-						if ($lead->isDirty()) {
-							$lead->save(); // reaciona boot::saving para re-normalizar 'involved'
-						}
-
-						$inserted++;
 					}
 				}
 			}

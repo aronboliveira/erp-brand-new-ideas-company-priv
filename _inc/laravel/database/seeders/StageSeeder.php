@@ -30,24 +30,31 @@ final class StageSeeder extends Seeder
 				return;
 			}
 
-			$names = ['Backlog', 'A Fazer', 'Em Progresso', 'Revisão', 'Concluído'];
+			$names = ['Backlog', 'A Fazer', 'Em Progresso', 'Revisão', 'Concluído', 'Arquivado', 'Cancelado', 'Pausado', 'Em Espera', 'Rejeitado', 'Aprovado'];
 
 			foreach ($pipelineIds as $pipelineId) {
 				$order = 0;
 
 				foreach ($names as $nm) {
-					do $stageId = Str::uuid()->toString();
-					while (Stg::where('id', $stageId)->exists());
+					try {
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Estágio de Projeto: {$nm}");
+						do $stageId = Str::uuid()->toString();
+						while (Stg::where('id', $stageId)->exists());
 
-					$s = new Stg();
-					$s->id = $stageId;
-					$s->{PJC::COL_PPL_ID} = $pipelineId;
-					$s->{PJC::COL_STG_NM} = $nm;
-					$s->{AC::COL_OD}      = $order++;
-					$s->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$s->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$s = new Stg();
+						$s->id = $stageId;
+						$s->{PJC::COL_PPL_ID} = $pipelineId;
+						$s->{PJC::COL_STG_NM} = $nm;
+						$s->{AC::COL_OD}      = $order++;
+						$s->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$s->setAttribute(DC::COL_TABLE_UPDATER, null);
 
-					$s->save();
+						$s->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

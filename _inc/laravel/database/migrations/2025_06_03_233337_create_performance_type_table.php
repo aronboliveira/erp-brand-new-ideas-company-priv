@@ -19,7 +19,7 @@ class CreatePerformanceTypeTable extends Migration
             $table->uuid('id')->primary();       // ! CHANGED
             $table->string('name');
             $table->string('description')->nullable();
-            $table->string('category')->index()->nullable();
+            $table->string('category')->nullable()->index();
             $table->string(PJC::COL_M_METRIC)->nullable()->index();
             $table->json('metrics')->nullable();
             $table->boolean(PJC::COL_CRT)->default(false)->nullable();

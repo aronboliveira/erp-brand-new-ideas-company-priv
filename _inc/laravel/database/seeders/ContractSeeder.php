@@ -164,87 +164,94 @@ final class ContractSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $r) {
-				$typeName = $r['type_name'] ?? null;
-				$typeId   = $typeName && isset($typeIdByName[$typeName]) ? $typeIdByName[$typeName] : null;
-				$type     = $typeId ? ContractType::query()->find($typeId) : null;
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Contrato: {$r['title']}");
+				try {
+					$typeName = $r['type_name'] ?? null;
+					$typeId   = $typeName && isset($typeIdByName[$typeName]) ? $typeIdByName[$typeName] : null;
+					$type     = $typeId ? ContractType::query()->find($typeId) : null;
 
-				// Datas coerentes e variadas: início entre -2 e +1 mês
-				$start = $now->addMonthsNoOverflow(random_int(-2, 1));
-				$end   = $pickEndDateForType(
-					$start,
-					$type,
-					fallbackMinM: ($r['frequency'] ?? 'monthly') === 'once' ? 0 : 3,
-					fallbackMaxM: ($r['frequency'] ?? 'monthly') === 'annual' ? 12 : 24,
-					tz: $tz
-				);
+					// Datas coerentes e variadas: início entre -2 e +1 mês
+					$start = $now->addMonthsNoOverflow(random_int(-2, 1));
+					$end   = $pickEndDateForType(
+						$start,
+						$type,
+						fallbackMinM: ($r['frequency'] ?? 'monthly') === 'once' ? 0 : 3,
+						fallbackMaxM: ($r['frequency'] ?? 'monthly') === 'annual' ? 12 : 24,
+						tz: $tz
+					);
 
-				// Valor coerente com o tipo (respeita min/max do ContractType, se houver)
-				$value = $pickValueForType($type, fallbackMin: 1_000.00, fallbackMax: 250_000.00);
+					// Valor coerente com o tipo (respeita min/max do ContractType, se houver)
+					$value = $pickValueForType($type, fallbackMin: 1_000.00, fallbackMax: 250_000.00);
 
-				// Dados “reais” derivados do Faker
-				$clientName  = $faker->company;
-				$obligeeName = $clientName;         // tomador
-				$obligorName = $faker->company;     // prestador/fornecedor
-				$clientContact = $faker->phoneNumber . ' / ' . $faker->companyEmail;
-				$vendorContact = $faker->phoneNumber . ' / ' . $faker->companyEmail;
+					// Dados “reais” derivados do Faker
+					$clientName  = $faker->company;
+					$obligeeName = $clientName;         // tomador
+					$obligorName = $faker->company;     // prestador/fornecedor
+					$clientContact = $faker->phoneNumber . ' / ' . $faker->companyEmail;
+					$vendorContact = $faker->phoneNumber . ' / ' . $faker->companyEmail;
 
-				$payload = [
-					'type'                  => $typeId,
-					'title'                 => $r['title'],
-					'subject'               => $r['subject'],
-					'value'                 => number_format($value, 2, '.', ''), // string numérica (mutator aceita)
-					'currency'              => 'BRL',
-					'description'           => $faker->paragraphs(random_int(2, 4), true),
-					'notes'                 => $faker->sentence(),
-					PJC::COL_S_DT           => $start->format('Y-m-d'),
-					PJC::COL_E_DT           => $end->format('Y-m-d'),
-					PJC::COL_CDESC          => $type?->{BC::COL_TC} ?: $faker->paragraphs(3, true),
-					'status'                => $r['status'] ?? $statusOptions[array_rand($statusOptions)],
-					'renewable'             => (bool) ($r['renewable'] ?? false),
-					PJC::COL_ARNW           => (bool) ($r['renewable'] ?? false),
-					'frequency'             => $r['frequency'] ?? $freqOptions[array_rand($freqOptions)],
+					$payload = [
+						'type'                  => $typeId,
+						'title'                 => $r['title'],
+						'subject'               => $r['subject'],
+						'value'                 => number_format($value, 2, '.', ''), // string numérica (mutator aceita)
+						'currency'              => 'BRL',
+						'description'           => $faker->paragraphs(random_int(2, 4), true),
+						'notes'                 => $faker->sentence(),
+						PJC::COL_S_DT           => $start->format('Y-m-d'),
+						PJC::COL_E_DT           => $end->format('Y-m-d'),
+						PJC::COL_CDESC          => $type?->{BC::COL_TC} ?: $faker->paragraphs(3, true),
+						'status'                => $r['status'] ?? $statusOptions[array_rand($statusOptions)],
+						'renewable'             => (bool) ($r['renewable'] ?? false),
+						PJC::COL_ARNW           => (bool) ($r['renewable'] ?? false),
+						'frequency'             => $r['frequency'] ?? $freqOptions[array_rand($freqOptions)],
 
-					// Evitamos FKs sem garantir existência (company/client_id/project_id/approved_by);
-					// preenchemos campos textuais ricos no lugar:
-					PJC::COL_CLIENT_NAME    => $clientName,
-					PJC::COL_OBG_NAME       => $obligeeName,
-					PJC::COL_OBL_NAME       => $obligorName,
-					PJC::COL_OBG_IDF        => $randIdf(),
-					PJC::COL_OBL_IDF        => $randIdf(),
-					PJC::COL_OBG_ADDR       => $fullAddress($faker),
-					PJC::COL_OBL_ADDR       => $fullAddress($faker),
-					PJC::COL_OBG_CTC        => $clientContact,
-					PJC::COL_OBL_CTC        => $vendorContact,
+						// Evitamos FKs sem garantir existência (company/client_id/project_id/approved_by);
+						// preenchemos campos textuais ricos no lugar:
+						PJC::COL_CLIENT_NAME    => $clientName,
+						PJC::COL_OBG_NAME       => $obligeeName,
+						PJC::COL_OBL_NAME       => $obligorName,
+						PJC::COL_OBG_IDF        => $randIdf(),
+						PJC::COL_OBL_IDF        => $randIdf(),
+						PJC::COL_OBG_ADDR       => $fullAddress($faker),
+						PJC::COL_OBL_ADDR       => $fullAddress($faker),
+						PJC::COL_OBG_CTC        => $clientContact,
+						PJC::COL_OBL_CTC        => $vendorContact,
 
-					// Testemunhas (nomes/documentos) e datas de assinatura variadas
-					PJC::COL_WT_NM          => $faker->name,
-					PJC::COL_WT2_NM         => $faker->name,
-					PJC::COL_WT_IDF         => $randIdf(),
-					PJC::COL_WT2_IDF        => $randIdf(),
-					PJC::COL_WT_SIGN_AT     => $start->format('Y-m-d'),
-					PJC::COL_WT2_SIGN_AT    => $start->addDays(1)->format('Y-m-d'),
+						// Testemunhas (nomes/documentos) e datas de assinatura variadas
+						PJC::COL_WT_NM          => $faker->name,
+						PJC::COL_WT2_NM         => $faker->name,
+						PJC::COL_WT_IDF         => $randIdf(),
+						PJC::COL_WT2_IDF        => $randIdf(),
+						PJC::COL_WT_SIGN_AT     => $start->format('Y-m-d'),
+						PJC::COL_WT2_SIGN_AT    => $start->addDays(1)->format('Y-m-d'),
 
-					// Assinaturas do cliente/empresa: datas quando “active/completed”
-					PJC::COL_CL_SIGN_AT     => in_array(($r['status'] ?? ''), ['active', 'completed'], true) ? $start->format('Y-m-d') : null,
-					PJC::COL_CO_SIGN_AT     => in_array(($r['status'] ?? ''), ['active', 'completed'], true) ? $start->addDays(1)->format('Y-m-d') : null,
+						// Assinaturas do cliente/empresa: datas quando “active/completed”
+						PJC::COL_CL_SIGN_AT     => in_array(($r['status'] ?? ''), ['active', 'completed'], true) ? $start->format('Y-m-d') : null,
+						PJC::COL_CO_SIGN_AT     => in_array(($r['status'] ?? ''), ['active', 'completed'], true) ? $start->addDays(1)->format('Y-m-d') : null,
 
-					// Arquivo/Anexos propositalmente omitidos (requerem FKs e storage)
-					DC::COL_TABLE_CREATOR       => $systemUserId,
-				];
+						// Arquivo/Anexos propositalmente omitidos (requerem FKs e storage)
+						DC::COL_TABLE_CREATOR       => $systemUserId,
+					];
 
-				/** @var Contract $model */
-				$model = Contract::query()->updateOrCreate(
-					['title' => $payload['title']],
-					$payload
-				);
+					/** @var Contract $model */
+					$model = Contract::query()->updateOrCreate(
+						['title' => $payload['title']],
+						$payload
+					);
 
-				// Número do contrato (não fillable)
-				if (empty($model->{PJC::COL_CN})) {
-					$model->{PJC::COL_CN} = $makeUniqueCN();
-					$model->save();
+					// Número do contrato (não fillable)
+					if (empty($model->{PJC::COL_CN})) {
+						$model->{PJC::COL_CN} = $makeUniqueCN();
+						$model->save();
+					}
+
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				$model->wasRecentlyCreated ? $created++ : $updated++;
 			}
 
 			Log::info("ContractsSeeder: created={$created}, updated={$updated}");

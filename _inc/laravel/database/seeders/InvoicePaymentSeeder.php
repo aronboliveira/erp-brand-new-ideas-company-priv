@@ -10,7 +10,7 @@ use App\Enums\PaymentType;
 use App\Enums\TransferType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Carbon\CarbonImmutable as Carbon;
@@ -126,163 +126,168 @@ class InvoicePaymentSeeder extends Seeder
 			$bacc = Arr::random($bankAccIds);
 
 			for ($i = 0; $i < $desired; $i++) {
-				// Encerra se já atingiu alvo global
-				if ($targetCount > 0 && $totalPlanned >= $targetCount) {
-					break 2;
+				try {
+					// Encerra se já atingiu alvo global
+					if ($targetCount > 0 && $totalPlanned >= $targetCount) {
+						break 2;
+					}
+
+					// Gera código único
+					$code = $this->makeCode($codes);
+					$codes[$code] = true;
+
+					// Datas coerentes
+					$createdAt = $now->subDays(fake()->numberBetween(0, 40))->subMinutes(fake()->numberBetween(0, 1440));
+					$date      = $createdAt->addMinutes(fake()->numberBetween(0, 1440))->toDateString();
+					$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 2880));
+
+					// Status / reconciliação coerentes
+					$status = Arr::random($statusBag);
+					$isCompletedLike = in_array($status, [
+						PaymentStatus::Completed->value,
+						PaymentStatus::Refunded->value,
+						PaymentStatus::PartiallyRefunded->value,
+					], true);
+
+					$reconciledAt = $maybe(function () use ($isCompletedLike, $updatedAt) {
+						return $isCompletedLike ? $updatedAt->toDateTimeString() : null;
+					});
+					$reconciledBy = $reconciledAt && $userIds ? $maybe(fn() => Arr::random($userIds)) : null;
+
+					// Tipo / método de pagamento
+					$payType  = Arr::random($typeBag);
+					$pmInt    = fake()->numberBetween(0, 1); // compat
+					$pmLabel  = Arr::random($pmLabelBag);
+					$trfType  = $maybe(fn() => Arr::random(array_map(fn($v) => $v->value, TransferType::cases())));
+
+					// IDs opcionais / FKs
+					$catId    = $maybe(fn() => $catIds ? Arr::random($catIds) : null);
+					$orderId  = $maybe(fn() => $orderIds ? Arr::random($orderIds) : null);
+					$taxId    = $maybe(fn() => $taxIds ? Arr::random($taxIds) : null);
+					$psUnit   = $maybe(fn() => $psUnitIds ? Arr::random($psUnitIds) : null);
+					$loanId   = $maybe(fn() => $loanIds ? Arr::random($loanIds) : null);
+					$ctrId    = $maybe(fn() => $contractIds ? Arr::random($contractIds) : null);
+					$payslip  = $maybe(fn() => $payslipIds ? Arr::random($payslipIds) : null);
+
+					// Anexos / metadados
+					$attachments = $maybe(function () {
+						return [
+							['name' => fake()->lexify('recibo-????.pdf'), 'url' => fake()->url()],
+							['name' => fake()->lexify('comprovante-????.png'), 'url' => fake()->url()],
+						];
+					});
+					$rcpMeta = $maybe(function () {
+						return [
+							'hash' => Str::lower(Str::random(16)),
+							'issuer' => fake()->company(),
+							'channel' => Arr::random(['pix', 'ted', 'boleto', 'cash', 'card']),
+						];
+					});
+					$reconcileRules = $maybe(function () {
+						return [
+							'window_days' => fake()->numberBetween(1, 10),
+							'match' => Arr::random(['amount+date', 'amount+ref', 'strict']),
+						];
+					});
+					$taxesList = $maybe(function () {
+						$items = [
+							['name' => 'ISS', 'rate' => 2.00],
+							['name' => 'IOF', 'rate' => 0.38],
+							['name' => 'IRRF', 'rate' => 1.50],
+						];
+						return Arr::random($items, fake()->numberBetween(1, 2));
+					});
+
+					// Coerência de moeda com a fatura
+					$currencyId = $inv->currency_id ?: 'BRL';
+					$legacyCurrency = $maybe(fn() => $currencyId); // mantém compatibilidade
+
+					// Valores
+					$amount   = isset($payVals[$i]) ? (float) $payVals[$i] : round(fake()->randomFloat(2, 30, 1200), 2);
+					$svcFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.03), 2));
+					$taxFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.02), 2));
+
+					// Flags / campos diversos
+					$isScd    = $maybe(fn() => fake()->boolean(25));
+					$canCgbk  = $maybe(fn() => fake()->boolean(10));
+					$purpose  = $maybe(fn() => fake()->numerify('3##'));
+					$purposeD = $maybe(fn() => fake()->sentence(6));
+					$notes    = $maybe(fn() => fake()->realText(120));
+					$desc     = 'Pagamento da fatura ' . $inv->id;
+					$ref      = $maybe(fn() => 'REF-' . strtoupper(Str::random(6)));
+					$addRec   = $maybe(fn() => Arr::random(['yes', 'no']));
+					$nInst    = $maybe(fn() => fake()->numberBetween(1, 6));
+					$currInst = $nInst ? min($nInst, fake()->numberBetween(1, (int) $nInst)) : $maybe(fn() => 1);
+
+					$rows[] = [
+						'id'              => (string) Str::uuid(),
+						'code'            => $code,
+
+						// FK obrigatória (HasPaymentColumns com nullableInvoice=false usa invoice_id)
+						BC::COL_INV_ID    => $inv->id,
+
+						// Emissão financeira
+						BC::COL_CUR_ID    => $currencyId,
+						'amount'          => $amount,
+						BC::COL_SVC_FEE   => $svcFee,
+						BC::COL_TXS_FEE   => $taxFee,
+						'reference'       => $ref,
+						'description'     => $desc,
+						'notes'           => $notes,
+						'attachments'     => $json($attachments),
+						BC::COL_TC        => $json($maybe(fn() => ['no_refund' => true, 'due_days' => fake()->numberBetween(5, 30)])),
+						BC::COL_AUTORCC   => $maybe(fn() => fake()->boolean(20)),
+						BC::COL_RCC_RL    => $json($reconcileRules),
+
+						// Pagamento em si
+						'date'            => $date,
+						BC::COL_IS_SCD    => $isScd,
+						BC::COL_CAN_CHG_BK => $canCgbk,
+						BC::COL_PPS_CD    => $purpose,
+						BC::COL_TRF_TP    => $trfType,
+						BC::COL_PPS_DS    => $purposeD,
+						BC::COL_TXS_LST   => $json($taxesList),
+						BC::COL_PAY_MTD   => $pmInt,
+						BC::COL_PAY_MTD_LB => $pmLabel,
+						'status'          => $status,
+						BC::COL_N_INTR    => $nInst,
+						BC::COL_CURR_N_INTR => $currInst,
+						BC::COL_RCC_AT    => $reconciledAt,
+						BC::COL_RCC_BY    => $reconciledBy,
+
+						// Conclusão (account_id é NOT NULL pelo seu uso: nullableAcc=false)
+						BC::COL_BACC_ID   => $bacc,
+						BC::COL_CAT_ID    => $catId,
+						BC::COL_ADD_RCP   => $addRec,
+						BC::COL_RCP_MD    => $json($rcpMeta),
+
+						// Outras relações opcionais
+						'contract'        => $ctrId,
+						'loan'            => $loanId,
+						'payslip'         => $payslip,
+						BC::COL_PRD_SV_UNT => $psUnit,
+						BC::COL_OD_ID     => $orderId,
+						BC::COL_TAX_ID    => $taxId,
+
+						// Legado / compat
+						'currency'        => $legacyCurrency,
+						'receipt'         => $maybe(fn() => strtoupper(Str::random(10))),
+
+						// Tipo de pagamento (enum label)
+						BC::COL_PAY_TP    => $payType,
+
+						// Audit
+						DC::COL_TABLE_CREATOR => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
+						DC::COL_TABLE_UPDATER => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
+						'created_at'      => $createdAt->toDateTimeString(),
+						'updated_at'      => $updatedAt->toDateTimeString(),
+					];
+
+					$totalPlanned++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				// Gera código único
-				$code = $this->makeCode($codes);
-				$codes[$code] = true;
-
-				// Datas coerentes
-				$createdAt = $now->subDays(fake()->numberBetween(0, 40))->subMinutes(fake()->numberBetween(0, 1440));
-				$date      = $createdAt->addMinutes(fake()->numberBetween(0, 1440))->toDateString();
-				$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 2880));
-
-				// Status / reconciliação coerentes
-				$status = Arr::random($statusBag);
-				$isCompletedLike = in_array($status, [
-					PaymentStatus::Completed->value,
-					PaymentStatus::Refunded->value,
-					PaymentStatus::PartiallyRefunded->value,
-				], true);
-
-				$reconciledAt = $maybe(function () use ($isCompletedLike, $updatedAt) {
-					return $isCompletedLike ? $updatedAt->toDateTimeString() : null;
-				});
-				$reconciledBy = $reconciledAt && $userIds ? $maybe(fn() => Arr::random($userIds)) : null;
-
-				// Tipo / método de pagamento
-				$payType  = Arr::random($typeBag);
-				$pmInt    = fake()->numberBetween(0, 1); // compat
-				$pmLabel  = Arr::random($pmLabelBag);
-				$trfType  = $maybe(fn() => Arr::random(array_map(fn($v) => $v->value, TransferType::cases())));
-
-				// IDs opcionais / FKs
-				$catId    = $maybe(fn() => $catIds ? Arr::random($catIds) : null);
-				$orderId  = $maybe(fn() => $orderIds ? Arr::random($orderIds) : null);
-				$taxId    = $maybe(fn() => $taxIds ? Arr::random($taxIds) : null);
-				$psUnit   = $maybe(fn() => $psUnitIds ? Arr::random($psUnitIds) : null);
-				$loanId   = $maybe(fn() => $loanIds ? Arr::random($loanIds) : null);
-				$ctrId    = $maybe(fn() => $contractIds ? Arr::random($contractIds) : null);
-				$payslip  = $maybe(fn() => $payslipIds ? Arr::random($payslipIds) : null);
-
-				// Anexos / metadados
-				$attachments = $maybe(function () {
-					return [
-						['name' => fake()->lexify('recibo-????.pdf'), 'url' => fake()->url()],
-						['name' => fake()->lexify('comprovante-????.png'), 'url' => fake()->url()],
-					];
-				});
-				$rcpMeta = $maybe(function () {
-					return [
-						'hash' => Str::lower(Str::random(16)),
-						'issuer' => fake()->company(),
-						'channel' => Arr::random(['pix', 'ted', 'boleto', 'cash', 'card']),
-					];
-				});
-				$reconcileRules = $maybe(function () {
-					return [
-						'window_days' => fake()->numberBetween(1, 10),
-						'match' => Arr::random(['amount+date', 'amount+ref', 'strict']),
-					];
-				});
-				$taxesList = $maybe(function () {
-					$items = [
-						['name' => 'ISS', 'rate' => 2.00],
-						['name' => 'IOF', 'rate' => 0.38],
-						['name' => 'IRRF', 'rate' => 1.50],
-					];
-					return Arr::random($items, fake()->numberBetween(1, 2));
-				});
-
-				// Coerência de moeda com a fatura
-				$currencyId = $inv->currency_id ?: 'BRL';
-				$legacyCurrency = $maybe(fn() => $currencyId); // mantém compatibilidade
-
-				// Valores
-				$amount   = isset($payVals[$i]) ? (float) $payVals[$i] : round(fake()->randomFloat(2, 30, 1200), 2);
-				$svcFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.03), 2));
-				$taxFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.02), 2));
-
-				// Flags / campos diversos
-				$isScd    = $maybe(fn() => fake()->boolean(25));
-				$canCgbk  = $maybe(fn() => fake()->boolean(10));
-				$purpose  = $maybe(fn() => fake()->numerify('3##'));
-				$purposeD = $maybe(fn() => fake()->sentence(6));
-				$notes    = $maybe(fn() => fake()->realText(120));
-				$desc     = 'Pagamento da fatura ' . $inv->id;
-				$ref      = $maybe(fn() => 'REF-' . strtoupper(Str::random(6)));
-				$addRec   = $maybe(fn() => Arr::random(['yes', 'no']));
-				$nInst    = $maybe(fn() => fake()->numberBetween(1, 6));
-				$currInst = $nInst ? min($nInst, fake()->numberBetween(1, (int) $nInst)) : $maybe(fn() => 1);
-
-				$rows[] = array_filter([
-					'id'              => (string) Str::uuid(),
-					'code'            => $code,
-
-					// FK obrigatória (HasPaymentColumns com nullableInvoice=false usa invoice_id)
-					BC::COL_INV_ID    => $inv->id,
-
-					// Emissão financeira
-					BC::COL_CUR_ID    => $currencyId,
-					'amount'          => $amount,
-					BC::COL_SVC_FEE   => $svcFee,
-					BC::COL_TXS_FEE   => $taxFee,
-					'reference'       => $ref,
-					'description'     => $desc,
-					'notes'           => $notes,
-					'attachments'     => $json($attachments),
-					BC::COL_TC        => $json($maybe(fn() => ['no_refund' => true, 'due_days' => fake()->numberBetween(5, 30)])),
-					BC::COL_AUTORCC   => $maybe(fn() => fake()->boolean(20)),
-					BC::COL_RCC_RL    => $json($reconcileRules),
-
-					// Pagamento em si
-					'date'            => $date,
-					BC::COL_IS_SCD    => $isScd,
-					BC::COL_CAN_CHG_BK => $canCgbk,
-					BC::COL_PPS_CD    => $purpose,
-					BC::COL_TRF_TP    => $trfType,
-					BC::COL_PPS_DS    => $purposeD,
-					BC::COL_TXS_LST   => $json($taxesList),
-					BC::COL_PAY_MTD   => $pmInt,
-					BC::COL_PAY_MTD_LB => $pmLabel,
-					'status'          => $status,
-					BC::COL_N_INTR    => $nInst,
-					BC::COL_CURR_N_INTR => $currInst,
-					BC::COL_RCC_AT    => $reconciledAt,
-					BC::COL_RCC_BY    => $reconciledBy,
-
-					// Conclusão (account_id é NOT NULL pelo seu uso: nullableAcc=false)
-					BC::COL_BACC_ID   => $bacc,
-					BC::COL_CAT_ID    => $catId,
-					BC::COL_ADD_RCP   => $addRec,
-					BC::COL_RCP_MD    => $json($rcpMeta),
-
-					// Outras relações opcionais
-					'contract'        => $ctrId,
-					'loan'            => $loanId,
-					'payslip'         => $payslip,
-					BC::COL_PRD_SV_UNT => $psUnit,
-					BC::COL_OD_ID     => $orderId,
-					BC::COL_TAX_ID    => $taxId,
-
-					// Legado / compat
-					'currency'        => $legacyCurrency,
-					'receipt'         => $maybe(fn() => strtoupper(Str::random(10))),
-
-					// Tipo de pagamento (enum label)
-					BC::COL_PAY_TP    => $payType,
-
-					// Audit
-					DC::COL_TABLE_CREATOR => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
-					DC::COL_TABLE_UPDATER => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
-					'created_at'      => $createdAt->toDateTimeString(),
-					'updated_at'      => $updatedAt->toDateTimeString(),
-				], fn($v) => $v !== null);
-
-				$totalPlanned++;
 			}
 		}
 

@@ -19,6 +19,15 @@ enum AppModuleType: string
 	case Marketing = 'marketing';
 	case Custom = 'custom';
 	case LandingPage = 'landing_page';
+	case User = 'user';
+	case Customer = 'customer';
+	case Vendor = 'vendor';
+	case Product = 'product';
+	case Proposal = 'proposal';
+	case Invoice = 'invoice';
+	case Bill = 'bill';
+	case Account = 'account';
+
 	case Other = 'other';
 
 	public static function normalize(?string $value): self
@@ -149,6 +158,95 @@ enum AppModuleType: string
 			'lp'                => self::LandingPage,
 			'one_page'          => self::LandingPage,
 
+			// New entity modules
+			// User
+			'user'              => self::User,
+			'users'             => self::User,
+			'usuario'           => self::User,
+			'usuário'           => self::User,
+			'utilizador'        => self::User,
+			'benutzer'          => self::User,
+			'utilisateur'       => self::User,
+			'utente'            => self::User,
+			'account_user'      => self::User,
+			'system_user'       => self::User,
+
+			// Customer
+			'customer'          => self::Customer,
+			'customers'         => self::Customer,
+			'cliente'           => self::Customer,
+			'client'            => self::Customer,
+			'klant'             => self::Customer,
+			'kunde'             => self::Customer,
+			'clientes'          => self::Customer,
+			'clienti'           => self::Customer,
+
+			// Vendor
+			'vendor'            => self::Vendor,
+			'vendors'           => self::Vendor,
+			'supplier'          => self::Vendor,
+			'fornecedor'        => self::Vendor,
+			'proveedor'         => self::Vendor,
+			'lieferant'         => self::Vendor,
+			'fournisseur'       => self::Vendor,
+			'fornitore'         => self::Vendor,
+
+			// Product
+			'product'           => self::Product,
+			'products'          => self::Product,
+			'produto'           => self::Product,
+			'producto'          => self::Product,
+			'produkt'           => self::Product,
+			'produit'           => self::Product,
+			'prodotto'          => self::Product,
+			'item'              => self::Product,
+			'service'           => self::Product,
+
+			// Proposal
+			'proposal'          => self::Proposal,
+			'proposals'         => self::Proposal,
+			'quote'             => self::Proposal,
+			'quotation'         => self::Proposal,
+			'proposta'          => self::Proposal,
+			'propuesta'         => self::Proposal,
+			'angebot'           => self::Proposal,
+			'devis'             => self::Proposal,
+			'preventivo'        => self::Proposal,
+			'estimate'          => self::Proposal,
+
+			// Invoice
+			'invoice'           => self::Invoice,
+			'invoices'          => self::Invoice,
+			'fatura'            => self::Invoice,
+			'factura'           => self::Invoice,
+			'rechnung'          => self::Invoice,
+			'facture'           => self::Invoice,
+			'fattura'           => self::Invoice,
+			'bill_invoice'      => self::Invoice,
+			'receipt'           => self::Invoice,
+
+			// Bill
+			'bill'              => self::Bill,
+			'bills'             => self::Bill,
+			'conta'             => self::Bill,
+			'cuenta'            => self::Bill,
+			'rechnung_bill'     => self::Bill,
+			'note_de_frais'     => self::Bill,
+			'bolletta'          => self::Bill,
+			'expense'           => self::Bill,
+			'expense_bill'      => self::Bill,
+
+			// Account
+			'account'           => self::Account,
+			'accounts'          => self::Account,
+			'conta_financeira'  => self::Account,
+			'cuenta_financiera' => self::Account,
+			'konto'             => self::Account,
+			'compte'            => self::Account,
+			'conto'             => self::Account,
+			'financial_account' => self::Account,
+			'bank_account'      => self::Account,
+
 			// Other
 			'other'             => self::Other,
 			'outro'             => self::Other,
@@ -181,6 +279,14 @@ enum AppModuleType: string
 			self::Marketing      => 'Marketing',
 			self::Custom         => 'Custom',
 			self::LandingPage    => 'Landing Page',
+			self::User           => 'User',
+			self::Customer       => 'Customer',
+			self::Vendor         => 'Vendor',
+			self::Product        => 'Product',
+			self::Proposal       => 'Proposal',
+			self::Invoice        => 'Invoice',
+			self::Bill           => 'Bill',
+			self::Account        => 'Account',
 			self::Other          => 'Other',
 		};
 	}
@@ -223,6 +329,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Personalizado',
 			self::LandingPage->value    => 'Página de Destino',
+			self::User->value           => 'Usuário',
+			self::Customer->value       => 'Cliente',
+			self::Vendor->value         => 'Fornecedor',
+			self::Product->value        => 'Produto',
+			self::Proposal->value       => 'Proposta',
+			self::Invoice->value        => 'Fatura',
+			self::Bill->value           => 'Conta',
+			self::Account->value        => 'Conta',
 			self::Other->value          => 'Outro',
 		];
 	}
@@ -243,6 +357,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Custom',
 			self::LandingPage->value    => 'Landing Page',
+			self::User->value           => 'User',
+			self::Customer->value       => 'Customer',
+			self::Vendor->value         => 'Vendor',
+			self::Product->value        => 'Product',
+			self::Proposal->value       => 'Proposal',
+			self::Invoice->value        => 'Invoice',
+			self::Bill->value           => 'Bill',
+			self::Account->value        => 'Account',
 			self::Other->value          => 'Other',
 		];
 	}
@@ -263,6 +385,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Personalizado',
 			self::LandingPage->value    => 'Página de Aterrizaje',
+			self::User->value           => 'Usuario',
+			self::Customer->value       => 'Cliente',
+			self::Vendor->value         => 'Proveedor',
+			self::Product->value        => 'Producto',
+			self::Proposal->value       => 'Propuesta',
+			self::Invoice->value        => 'Factura',
+			self::Bill->value           => 'Cuenta',
+			self::Account->value        => 'Cuenta',
 			self::Other->value          => 'Otro',
 		];
 	}
@@ -283,6 +413,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'تسويق',
 			self::Custom->value         => 'مخصص',
 			self::LandingPage->value    => 'صفحة الهبوط',
+			self::User->value           => 'مستخدم',
+			self::Customer->value       => 'عميل',
+			self::Vendor->value         => 'مورد',
+			self::Product->value        => 'منتج',
+			self::Proposal->value       => 'اقتراح',
+			self::Invoice->value        => 'فاتورة',
+			self::Bill->value           => 'فاتورة',
+			self::Account->value        => 'حساب',
 			self::Other->value          => 'آخر',
 		];
 	}
@@ -303,6 +441,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Brugerdefineret',
 			self::LandingPage->value    => 'Landingsside',
+			self::User->value           => 'Bruger',
+			self::Customer->value       => 'Kunde',
+			self::Vendor->value         => 'Leverandør',
+			self::Product->value        => 'Produkt',
+			self::Proposal->value       => 'Tilbud',
+			self::Invoice->value        => 'Faktura',
+			self::Bill->value           => 'Regning',
+			self::Account->value        => 'Konto',
 			self::Other->value          => 'Andet',
 		];
 	}
@@ -323,6 +469,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Benutzerdefiniert',
 			self::LandingPage->value    => 'Landing Page',
+			self::User->value           => 'Benutzer',
+			self::Customer->value       => 'Kunde',
+			self::Vendor->value         => 'Lieferant',
+			self::Product->value        => 'Produkt',
+			self::Proposal->value       => 'Angebot',
+			self::Invoice->value        => 'Rechnung',
+			self::Bill->value           => 'Rechnung',
+			self::Account->value        => 'Konto',
 			self::Other->value          => 'Andere',
 		];
 	}
@@ -343,6 +497,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Personnalisé',
 			self::LandingPage->value    => 'Page de Destination',
+			self::User->value           => 'Utilisateur',
+			self::Customer->value       => 'Client',
+			self::Vendor->value         => 'Fournisseur',
+			self::Product->value        => 'Produit',
+			self::Proposal->value       => 'Devis',
+			self::Invoice->value        => 'Facture',
+			self::Bill->value           => 'Facture',
+			self::Account->value        => 'Compte',
 			self::Other->value          => 'Autre',
 		];
 	}
@@ -363,6 +525,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'שיווק',
 			self::Custom->value         => 'מותאם אישית',
 			self::LandingPage->value    => 'דף נחיתה',
+			self::User->value           => 'משתמש',
+			self::Customer->value       => 'לקוח',
+			self::Vendor->value         => 'ספק',
+			self::Product->value        => 'מוצר',
+			self::Proposal->value       => 'הצעה',
+			self::Invoice->value        => 'חשבונית',
+			self::Bill->value           => 'חשבונית',
+			self::Account->value        => 'חשבון',
 			self::Other->value          => 'אחר',
 		];
 	}
@@ -383,6 +553,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Personalizzato',
 			self::LandingPage->value    => 'Pagina di Destinazione',
+			self::User->value           => 'Utente',
+			self::Customer->value       => 'Cliente',
+			self::Vendor->value         => 'Fornitore',
+			self::Product->value        => 'Prodotto',
+			self::Proposal->value       => 'Preventivo',
+			self::Invoice->value        => 'Fattura',
+			self::Bill->value           => 'Fattura',
+			self::Account->value        => 'Conto',
 			self::Other->value          => 'Altro',
 		];
 	}
@@ -403,6 +581,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'マーケティング',
 			self::Custom->value         => 'カスタム',
 			self::LandingPage->value    => 'ランディングページ',
+			self::User->value           => 'ユーザー',
+			self::Customer->value       => '顧客',
+			self::Vendor->value         => 'ベンダー',
+			self::Product->value        => '製品',
+			self::Proposal->value       => '提案',
+			self::Invoice->value        => '請求書',
+			self::Bill->value           => '請求書',
+			self::Account->value        => '口座',
 			self::Other->value          => 'その他',
 		];
 	}
@@ -423,6 +609,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Aangepast',
 			self::LandingPage->value    => 'Landingspagina',
+			self::User->value           => 'Gebruiker',
+			self::Customer->value       => 'Klant',
+			self::Vendor->value         => 'Leverancier',
+			self::Product->value        => 'Product',
+			self::Proposal->value       => 'Voorstel',
+			self::Invoice->value        => 'Factuur',
+			self::Bill->value           => 'Rekening',
+			self::Account->value        => 'Rekening',
 			self::Other->value          => 'Anders',
 		];
 	}
@@ -443,6 +637,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Marketing',
 			self::Custom->value         => 'Niestandardowy',
 			self::LandingPage->value    => 'Strona Docelowa',
+			self::User->value           => 'Użytkownik',
+			self::Customer->value       => 'Klient',
+			self::Vendor->value         => 'Dostawca',
+			self::Product->value        => 'Produkt',
+			self::Proposal->value       => 'Propozycja',
+			self::Invoice->value        => 'Faktura',
+			self::Bill->value           => 'Rachunek',
+			self::Account->value        => 'Konto',
 			self::Other->value          => 'Inne',
 		];
 	}
@@ -463,6 +665,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Маркетинг',
 			self::Custom->value         => 'Пользовательский',
 			self::LandingPage->value    => 'Целевая страница',
+			self::User->value           => 'Пользователь',
+			self::Customer->value       => 'Клиент',
+			self::Vendor->value         => 'Поставщик',
+			self::Product->value        => 'Продукт',
+			self::Proposal->value       => 'Предложение',
+			self::Invoice->value        => 'Счёт',
+			self::Bill->value           => 'Счёт',
+			self::Account->value        => 'Счёт',
 			self::Other->value          => 'Другое',
 		];
 	}
@@ -483,6 +693,14 @@ enum AppModuleType: string
 			self::Marketing->value      => 'Pazarlama',
 			self::Custom->value         => 'Özel',
 			self::LandingPage->value    => 'Açılış Sayfası',
+			self::User->value           => 'Kullanıcı',
+			self::Customer->value       => 'Müşteri',
+			self::Vendor->value         => 'Satıcı',
+			self::Product->value        => 'Ürün',
+			self::Proposal->value       => 'Teklif',
+			self::Invoice->value        => 'Fatura',
+			self::Bill->value           => 'Fatura',
+			self::Account->value        => 'Hesap',
 			self::Other->value          => 'Diğer',
 		];
 	}
@@ -503,16 +721,25 @@ enum AppModuleType: string
 			self::Marketing->value      => '市场营销',
 			self::Custom->value         => '自定义',
 			self::LandingPage->value    => '着陆页',
+			self::User->value           => '用户',
+			self::Customer->value       => '客户',
+			self::Vendor->value         => '供应商',
+			self::Product->value        => '产品',
+			self::Proposal->value       => '提案',
+			self::Invoice->value        => '发票',
+			self::Bill->value           => '账单',
+			self::Account->value        => '账户',
 			self::Other->value          => '其他',
 		];
 	}
 
-	// Helper methods for business logic
 	public function isBusinessModule(): bool
 	{
 		return match ($this) {
 			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
-			self::Management, self::Inventory, self::Marketing => true,
+			self::Management, self::Inventory, self::Marketing,
+			self::User, self::Customer, self::Vendor, self::Product,
+			self::Proposal, self::Invoice, self::Bill, self::Account => true,
 			default => false,
 		};
 	}
@@ -528,7 +755,8 @@ enum AppModuleType: string
 	public function isCoreModule(): bool
 	{
 		return match ($this) {
-			self::Financial, self::Sales, self::CRM, self::HRM, self::Database => true,
+			self::Financial, self::Sales, self::CRM, self::HRM, self::Database,
+			self::User, self::Customer, self::Product, self::Invoice, self::Account => true,
 			default => false,
 		};
 	}
@@ -536,7 +764,8 @@ enum AppModuleType: string
 	public function isOptionalModule(): bool
 	{
 		return match ($this) {
-			self::Custom, self::LandingPage, self::Other => true,
+			self::Custom, self::LandingPage, self::Other,
+			self::Proposal, self::Bill, self::Vendor => true,
 			default => false,
 		};
 	}
@@ -545,7 +774,9 @@ enum AppModuleType: string
 	{
 		return match ($this) {
 			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
-			self::Management, self::Inventory, self::Marketing => 'business',
+			self::Management, self::Inventory, self::Marketing,
+			self::User, self::Customer, self::Vendor, self::Product,
+			self::Proposal, self::Invoice, self::Bill, self::Account => 'business',
 			self::Database, self::Infrastructure, self::Support => 'technical',
 			self::Custom, self::LandingPage => 'custom',
 			self::Other => 'other',
@@ -568,6 +799,14 @@ enum AppModuleType: string
 			self::Marketing      => 'megaphone',
 			self::Custom         => 'tool',
 			self::LandingPage    => 'layout',
+			self::User           => 'user',
+			self::Customer       => 'users',
+			self::Vendor         => 'truck',
+			self::Product        => 'box',
+			self::Proposal       => 'file-text',
+			self::Invoice        => 'file-invoice-dollar',
+			self::Bill           => 'receipt',
+			self::Account        => 'wallet',
 			self::Other          => 'box',
 		};
 	}
@@ -588,6 +827,14 @@ enum AppModuleType: string
 			self::Marketing      => 'pink',
 			self::Custom         => 'lime',
 			self::LandingPage    => 'amber',
+			self::User           => 'violet',
+			self::Customer       => 'sky',
+			self::Vendor         => 'emerald',
+			self::Product        => 'rose',
+			self::Proposal       => 'fuchsia',
+			self::Invoice        => 'green',
+			self::Bill           => 'red',
+			self::Account        => 'blue',
 			self::Other          => 'slate',
 		};
 	}

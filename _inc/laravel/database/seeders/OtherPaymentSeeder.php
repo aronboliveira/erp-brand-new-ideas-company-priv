@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\PaymentPatternType;
-use App\Models\OtherPayment;
+use App\Models\{Employee, OtherPayment};
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -53,7 +53,7 @@ final class OtherPaymentSeeder extends Seeder
 
 			foreach ($employeeIds as $empId) {
 				// 0 a 3 lançamentos por colaborador
-				$count = random_int(0, 3);
+				$count = random_int(0, 32);
 				if ($count === 0) {
 					continue;
 				}
@@ -62,33 +62,41 @@ final class OtherPaymentSeeder extends Seeder
 				$picked = $this->pickUnique($titles, $count);
 
 				foreach ($picked as $title) {
-					$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
+					try {
+						$ref = Employee::query()->where('id', $empId)->value('name') ?? $empId;
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Outro Pagamento para Funcionário {$ref}");
+						$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
 
-					// Valor compatível com o tipo
-					if ($type === PaymentPatternType::Percentage) {
-						// 3% a 30%
-						$amount = random_int(3, 30);
-					} else {
-						// R$ 60,00 a R$ 3.000,00 (duas casas)
-						$amount = random_int(6000, 300000) / 100;
+						// Valor compatível com o tipo
+						if ($type === PaymentPatternType::Percentage) {
+							// 3% a 30%
+							$amount = random_int(3, 30);
+						} else {
+							// R$ 60,00 a R$ 3.000,00 (duas casas)
+							$amount = random_int(6000, 300000) / 100;
+						}
+
+						// Timestamp aleatório nos últimos 540 dias
+						$dt = now($tz)->subDays(random_int(0, 540))
+							->setTime(random_int(8, 19), random_int(0, 59), random_int(0, 59));
+
+						OtherPayment::create([
+							UC::COL_EMP_ID     => $empId,
+							'title'            => $title,
+							'amount'           => $amount,
+							'type'             => $type, // cast para enum no model
+							'notes'            => self::SEED_TAG,
+							DC::COL_TABLE_CREATOR  => $systemUserId,
+							'created_at'       => $dt->format('Y-m-d H:i:s'),
+							'updated_at'       => $dt->format('Y-m-d H:i:s'),
+						]);
+
+						$created++;
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-
-					// Timestamp aleatório nos últimos 540 dias
-					$dt = now($tz)->subDays(random_int(0, 540))
-						->setTime(random_int(8, 19), random_int(0, 59), random_int(0, 59));
-
-					OtherPayment::create([
-						UC::COL_EMP_ID     => $empId,
-						'title'            => $title,
-						'amount'           => $amount,
-						'type'             => $type, // cast para enum no model
-						'notes'            => self::SEED_TAG,
-						DC::COL_TABLE_CREATOR  => $systemUserId,
-						'created_at'       => $dt->format('Y-m-d H:i:s'),
-						'updated_at'       => $dt->format('Y-m-d H:i:s'),
-					]);
-
-					$created++;
 				}
 			}
 

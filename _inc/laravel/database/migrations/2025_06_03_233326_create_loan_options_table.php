@@ -21,8 +21,7 @@ class CreateLoanOptionsTable extends Migration
                 ->default(96)
                 ->nullable(); // ? Nullable para testes iniciais
             $table->unsignedSmallInteger(BC::COL_FGTS_PCT)
-                ->nullable()
-                ->max(50); // ? Nullable para testes iniciais
+                ->nullable(); // ? Nullable para testes iniciais
             $table->boolean(BC::COL_SVR_GRT)
                 ->default(false)
                 ->nullable(); // ? Nullable para testes iniciais

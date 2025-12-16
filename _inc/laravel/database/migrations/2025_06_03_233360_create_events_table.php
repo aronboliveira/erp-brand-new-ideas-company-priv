@@ -15,8 +15,8 @@ class CreateEventsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(CC::COL_CP_ID)->nullable()->index(); // ? nullable for tests
             $this->addPlanningColumns($table, nullableTitle: true);
-            $table->string('responsible', 255)->index()->nullable(); // * name of the person responsible for the event
-            $table->uuid(AC::COL_RES_ID)->index()->nullable(); // ? a responsible is not necessary a registered user
+            $table->string('responsible', 255)->nullable()->index(); // * name of the person responsible for the event
+            $table->uuid(AC::COL_RES_ID)->nullable()->index(); // ? a responsible is not necessary a registered user
             $table->json('participants')->nullable(); // * list of participants' names and contacts, and the id they are linked to if registered in the system
             $table->json('organizers')->nullable(); // * list of organizers' names and contacts, and the id they are linked to if registered in the system, the responsible must be included through the model
             $table->json('confirmed')->nullable(); // * list of confirmed attendees' names and contacts, and the id they are linked to if registered in the system (booted and saving will check in the participants + organizers json to update this column)

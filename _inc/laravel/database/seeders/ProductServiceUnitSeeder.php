@@ -21,7 +21,7 @@ class ProductServiceUnitSeeder extends Seeder
 	use EnsuresSystemUser;
 
 	// Parâmetro fixo (sem env)
-	private const ORPHANS = 6; // units without product linkage
+	private const ORPHANS = 32; // units without product linkage
 
 	public function run(): void
 	{
@@ -74,9 +74,16 @@ class ProductServiceUnitSeeder extends Seeder
 			];
 
 			foreach ($fixtures as $fx) {
-				ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
-				$usedCode[$fx['code']] = true;
-				$usedName[$fx['name']] = true;
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Fixture de Unidade de Produto/Serviço: {$fx['name']}");
+					ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
+					$usedCode[$fx['code']] = true;
+					$usedName[$fx['name']] = true;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			// ---- Helper closures ---------------------------------------------
@@ -132,55 +139,68 @@ class ProductServiceUnitSeeder extends Seeder
 			// ---- Per-product units -------------------------------------------
 			$products = ProductService::query()->select(['id', 'name'])->get();
 			foreach ($products as $product) {
-				$n = fake()->numberBetween($perProductMin, $perProductMax);
-				for ($i = 1; $i <= $n; $i++) {
-					$unitLabel  = fake()->randomElement($unitsList);
-					$hint       = $product->name ? Str::slug($product->name) : null;
-					$code       = $uniqueCode($hint);
-					$baseName   = ($product->name ?: 'Product') . ' — ' . Str::title($unitLabel);
-					$name       = $uniqueName($baseName);
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Unidades de Produto/Serviço para: {$product->name}");
+					$n = fake()->numberBetween($perProductMin, $perProductMax);
+					for ($i = 1; $i <= $n; $i++) {
+						$unitLabel  = fake()->randomElement($unitsList);
+						$hint       = $product->name ? Str::slug($product->name) : null;
+						$code       = $uniqueCode($hint);
+						$baseName   = ($product->name ?: 'Product') . ' — ' . Str::title($unitLabel);
+						$name       = $uniqueName($baseName);
 
-					$price      = fake()->randomFloat(4, 10, 2500);
-					$discount   = fake()->boolean(35) ? min($price, fake()->randomFloat(4, 1, $price * 0.3)) : 0.0;
-
-					ProductServiceUnit::query()->create([
-						'product_service_id'      => $product->id,
-						'name'                    => $name,
-						'code'                    => $code,
-						'status'                  => $randStatus(),
-						AC::COL_MUNIT             => $unitLabel,
-						BC::COL_PRC_IDX           => $i,
-						BC::COL_BS_PRC            => $price,
-						'discount'                => $discount,
-						BC::COL_CUR_ID            => fake()->randomElement($currencies),
-						'attributes'              => $mkAttributes(),
-						'notes'                   => fake()->optional(0.3)->sentence(10),
-					]);
+						$price      = fake()->randomFloat(4, 10, 2500);
+						$discount   = fake()->boolean(35) ? min($price, fake()->randomFloat(4, 1, $price * 0.3)) : 0.0;
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Unidade de Produto/Serviço: {$name} ({$code})");
+						ProductServiceUnit::query()->create([
+							'product_service_id'      => $product->id,
+							'name'                    => $name,
+							'code'                    => $code,
+							'status'                  => $randStatus(),
+							AC::COL_MUNIT             => $unitLabel,
+							BC::COL_PRC_IDX           => $i,
+							BC::COL_BS_PRC            => $price,
+							'discount'                => $discount,
+							BC::COL_CUR_ID            => fake()->randomElement($currencies),
+							'attributes'              => $mkAttributes(),
+							'notes'                   => fake()->optional(0.3)->sentence(10),
+						]);
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 
 			// ---- Orphan units (no product linked) -----------------------------
 			for ($j = 0; $j < $orphans; $j++) {
-				$unitLabel = fake()->randomElement($unitsList);
-				$code      = $uniqueCode('orphan');
-				$name      = $uniqueName('Generic Unit — ' . Str::title($unitLabel));
+				try {
+					$unitLabel = fake()->randomElement($unitsList);
+					$code      = $uniqueCode('orphan');
+					$name      = $uniqueName('Generic Unit — ' . Str::title($unitLabel));
 
-				$price     = fake()->randomFloat(4, 5, 800);
-				$discount  = fake()->boolean(25) ? min($price, fake()->randomFloat(4, 1, $price * 0.25)) : 0.0;
+					$price     = fake()->randomFloat(4, 5, 800);
+					$discount  = fake()->boolean(25) ? min($price, fake()->randomFloat(4, 1, $price * 0.25)) : 0.0;
 
-				ProductServiceUnit::query()->create([
-					'product_service_id'      => null,
-					'name'                    => $name,
-					'code'                    => $code,
-					'status'                  => $randStatus(),
-					AC::COL_MUNIT             => $unitLabel,
-					BC::COL_PRC_IDX           => 1,
-					BC::COL_BS_PRC            => $price,
-					'discount'                => $discount,
-					BC::COL_CUR_ID            => fake()->randomElement(['BRL', 'USD', 'EUR']),
-					'attributes'              => $mkAttributes(),
-					'notes'                   => fake()->optional(0.3)->sentence(10),
-				]);
+					ProductServiceUnit::query()->create([
+						'product_service_id'      => null,
+						'name'                    => $name,
+						'code'                    => $code,
+						'status'                  => $randStatus(),
+						AC::COL_MUNIT             => $unitLabel,
+						BC::COL_PRC_IDX           => 1,
+						BC::COL_BS_PRC            => $price,
+						'discount'                => $discount,
+						BC::COL_CUR_ID            => fake()->randomElement(['BRL', 'USD', 'EUR']),
+						'attributes'              => $mkAttributes(),
+						'notes'                   => fake()->optional(0.3)->sentence(10),
+					]);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			DB::commit();

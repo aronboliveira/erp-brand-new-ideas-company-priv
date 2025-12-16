@@ -12,6 +12,7 @@ class EmailsConstants
 	public const COL_EM  = 'email';
 	public const COL_ATC = 'attachments';
 	public const COL_IA = 'is_active';
+	public const COL_PRT_ID = 'parent_id';
 	public const STATUS_MAP = [
 		'new_user' => 'New User',
 		'new_client' => 'New Client',

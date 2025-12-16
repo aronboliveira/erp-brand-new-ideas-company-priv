@@ -18,7 +18,7 @@ class DealEmail extends Model
 
     protected $table = DC::TABLE_DL_EMAILS;
 
-    private const FILLABLE_FIELDS = [
+    protected $fillable = [
         AC::COL_DL,              // deal_id
         UC::COL_USER_ID,         // user_id (dono do registro/contato)
         'from',                  // endereço/telefone origem
@@ -32,8 +32,6 @@ class DealEmail extends Model
         PJC::COL_ATC_FRULES,     // attachment_filter_rules
         DC::COL_TABLE_CREATOR,
     ];
-
-    protected $fillable = self::FILLABLE_FIELDS;
 
     protected $casts = [
         'counter'           => 'integer',
@@ -54,10 +52,9 @@ class DealEmail extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (DealEmail $dealEmail): void {
-            self::normalizeEmail($dealEmail->from, 'DealEmail from', $dealEmail->id ?? null);
-            self::normalizeEmail($dealEmail->to, 'DealEmail to', $dealEmail->id ?? null);
+            $dealEmail->setAttribute('from', self::normalizeEmail($dealEmail->getAttribute('from'), 'DealEmail from', $dealEmail->getAttribute('id') ?? null));
+            $dealEmail->setAttribute('to', self::normalizeEmail($dealEmail->getAttribute('to'), 'DealEmail to', $dealEmail->getAttribute('id') ?? null));
         });
     }
 
@@ -88,8 +85,7 @@ class DealEmail extends Model
 
     public function hasAttachments(): bool
     {
-        $attachments = $this->attachments ?? [];
-
+        $attachments = $this->getAttribute('attachments') ?? [];
         return is_array($attachments) && count($attachments) > 0;
     }
 }

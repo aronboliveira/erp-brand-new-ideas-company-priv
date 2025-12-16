@@ -134,17 +134,24 @@ final class ChartOfAccountSubTypeSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $data) {
-				/** @var ChartOfAccountSubType $model */
-				$model = ChartOfAccountSubType::query()
-					->where(CHTC::COL_CD, $data[CHTC::COL_CD])
-					->first();
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Subtipo de Gráfico de Conta: {$data[CHTC::COL_NM]}");
+					/** @var ChartOfAccountSubType $model */
+					$model = ChartOfAccountSubType::query()
+						->where(CHTC::COL_CD, $data[CHTC::COL_CD])
+						->first();
 
-				if ($model) {
-					$model->fill($data)->save();
-					$updated++;
-				} else {
-					ChartOfAccountSubType::create($data);
-					$created++;
+					if ($model) {
+						$model->fill($data)->save();
+						$updated++;
+					} else {
+						ChartOfAccountSubType::create($data);
+						$created++;
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 

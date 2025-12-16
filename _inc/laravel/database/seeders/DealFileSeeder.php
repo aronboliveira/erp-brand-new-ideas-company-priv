@@ -41,33 +41,39 @@ final class DealFileSeeder extends Seeder
 			));
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(1, 6);
-
+				$count = random_int(8, 64);
 				for ($i = 0; $i < $count; $i++) {
-					do $fileId = Str::uuid()->toString();
-					while (Df::where('id', $fileId)->exists());
+					try {
+						do $fileId = Str::uuid()->toString();
+						while (Df::where('id', $fileId)->exists());
 
-					$base = Str::slug($faker->words(random_int(1, 4), true), '-');
-					if ($base === '') $base = 'file';
+						$base = Str::slug($faker->words(random_int(1, 4), true), '-');
+						if ($base === '') $base = 'file';
 
-					$suffix   = substr(Str::uuid()->toString(), 0, 8);
-					$ext      = $faker->randomElement($exts);
+						$suffix   = substr(Str::uuid()->toString(), 0, 8);
+						$ext      = $faker->randomElement($exts);
 
-					$fileName = substr($base, 0, 160) . '-' . $suffix . '.' . $ext; // * reduz colisões e respeita limite típico de 255
-					$filePath = 'uploads/deals/' . $dealId . '/' . $fileName;
+						$fileName = substr($base, 0, 160) . '-' . $suffix . '.' . $ext; // * reduz colisões e respeita limite típico de 255
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando arquivo para acordo de negócios: {$fileName}");
+						$filePath = 'uploads/deals/' . $dealId . '/' . $fileName;
 
-					$ts = $faker->dateTimeBetween('-60 days', 'now');
+						$ts = $faker->dateTimeBetween('-60 days', 'now');
 
-					$df = new Df();
-					$df->id         = $fileId;
-					$df->deal_id    = $dealId;
-					$df->file_name  = $fileName;
-					$df->file_path  = $filePath;
-					$df->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$df->setAttribute(DC::COL_TABLE_UPDATER, null);
-					$df->setAttribute('created_at', $ts);
-					$df->setAttribute('updated_at', $ts);
-					$df->save();
+						$df = new Df();
+						$df->id         = $fileId;
+						$df->deal_id    = $dealId;
+						$df->file_name  = $fileName;
+						$df->file_path  = $filePath;
+						$df->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$df->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$df->setAttribute('created_at', $ts);
+						$df->setAttribute('updated_at', $ts);
+						$df->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

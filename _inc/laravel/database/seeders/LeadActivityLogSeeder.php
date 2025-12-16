@@ -18,7 +18,7 @@ use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class LeadActivityLogSeeder extends Seeder
@@ -104,123 +104,127 @@ class LeadActivityLogSeeder extends Seeder
 			 *   5 => related_categories
 			 */
 			for ($i = 0; $i < $count; $i++) {
-				$mask = $i % 64;
+				try {
+					$mask = $i % 64;
 
-				$hasUserType   = (bool) ($mask & (1 << 0));
-				$hasRemark     = (bool) ($mask & (1 << 1));
-				$hasModule     = (bool) ($mask & (1 << 2));
-				$hasLabel      = (bool) ($mask & (1 << 3));
-				$hasDesc       = (bool) ($mask & (1 << 4));
-				$hasCategories = (bool) ($mask & (1 << 5));
+					$hasUserType   = (bool) ($mask & (1 << 0));
+					$hasRemark     = (bool) ($mask & (1 << 1));
+					$hasModule     = (bool) ($mask & (1 << 2));
+					$hasLabel      = (bool) ($mask & (1 << 3));
+					$hasDesc       = (bool) ($mask & (1 << 4));
+					$hasCategories = (bool) ($mask & (1 << 5));
 
-				$userId = $pickId(DC::TABLE_USERS) ?? $pickId(DC::TABLE_USERS);
-				$leadId = $pickId(DC::TABLE_LEADS) ?? $pickId(DC::TABLE_LEADS);
+					$userId = $pickId(DC::TABLE_USERS) ?? $pickId(DC::TABLE_USERS);
+					$leadId = $pickId(DC::TABLE_LEADS) ?? $pickId(DC::TABLE_LEADS);
 
-				if (!$userId || !$leadId) {
+					if (!$userId || !$leadId) {
+						continue;
+					}
+
+					$logTypeValue = Arr::random($logTypes);
+					$moduleValue  = Arr::random($moduleTypes);
+
+					$userTypeValue = $hasUserType
+						? Arr::random($userTypes)
+						: null;
+
+					$remark = $hasRemark
+						? $faker->realText($faker->numberBetween(40, 180))
+						: null;
+
+					$label = $hasLabel
+						? ucfirst($faker->words($faker->numberBetween(2, 4), true))
+						: null;
+
+					$description = $hasDesc
+						? $faker->paragraph($faker->numberBetween(1, 3))
+						: null;
+
+					$relatedCategories = $hasCategories
+						? $faker->randomElements($categoryPool, $faker->numberBetween(1, 4))
+						: null;
+
+					$tags = $faker->boolean(70)
+						? $faker->randomElements($tagPool, $faker->numberBetween(1, 5))
+						: null;
+
+					$errorLog = null;
+					if (in_array($logTypeValue, [
+						LogType::Error->value,
+						LogType::Critical->value,
+						LogType::Alert->value,
+						LogType::Emergency->value,
+						LogType::Security->value,
+						LogType::System->value,
+						LogType::Database->value,
+					], true)) {
+						if ($faker->boolean(80)) {
+							$errorLog = [
+								'message'   => $faker->sentence(),
+								'code'      => $faker->numberBetween(1000, 9999),
+								'file'      => $faker->randomElement([
+									'LeadService.php',
+									'PipelineService.php',
+									'NotificationJob.php',
+									'SecurityMiddleware.php',
+								]),
+								'line'      => $faker->numberBetween(10, 300),
+								'trace_id'  => (string) Str::uuid(),
+								'extra'     => [
+									'lead_id'  => $leadId,
+									'user_id'  => $userId,
+									'severity' => $faker->randomElement(['low', 'medium', 'high', 'critical']),
+								],
+								'occurred_at' => Carbon::now()
+									->subMinutes($faker->numberBetween(0, 60))
+									->toIso8601String(),
+							];
+						}
+					}
+
+					if ($label === null && $faker->boolean(40)) {
+						$label = match ($logTypeValue) {
+							LogType::Mail->value          => 'Lead mail event',
+							LogType::Notification->value  => 'Lead notification',
+							LogType::Security->value      => 'Security log for lead',
+							LogType::Audit->value         => 'Lead audit record',
+							LogType::Performance->value   => 'Lead performance metric',
+							LogType::Api->value           => 'Lead API interaction',
+							LogType::Job->value           => 'Background job for lead',
+							default                       => ucfirst($logTypeValue) . ' log',
+						};
+					}
+
+					if ($description === null && $faker->boolean(35)) {
+						$description = $faker->sentence(12) . ' (lead activity log).';
+					}
+					$mod = $hasModule ? $moduleValue : AppModuleType::Other->value;
+					$payload = [
+						UC::COL_USER_ID     => $userId,
+						PJC::COL_LD_ID      => $leadId,
+						AC::COL_LOG_TP      => $logTypeValue,
+						'remark'            => $remark,
+						AC::COL_MD          => $mod,
+						'label'             => $label,
+						'description'       => $description,
+						DC::COL_RL_CAT      => $relatedCategories,
+						PJC::COL_TAGS       => $tags,
+						DC::COL_ER_LG       => $errorLog,
+					];
+
+					if ($userTypeValue !== null) {
+						$payload[UC::COL_U_TP] = $userTypeValue;
+					}
+
+					if (rand(0, 100) < 60) {
+						$payload[DC::COL_TABLE_CREATOR] = $userId;
+					}
+					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Log de Atividade {$label} de Lead {$leadId} para usuário {$userId} do módulo {$mod}");
+					LeadActivityLog::query()->create($payload);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
-
-				$logTypeValue = Arr::random($logTypes);
-				$moduleValue  = Arr::random($moduleTypes);
-
-				$userTypeValue = $hasUserType
-					? Arr::random($userTypes)
-					: null;
-
-				$remark = $hasRemark
-					? $faker->realText($faker->numberBetween(40, 180))
-					: null;
-
-				$label = $hasLabel
-					? ucfirst($faker->words($faker->numberBetween(2, 4), true))
-					: null;
-
-				$description = $hasDesc
-					? $faker->paragraph($faker->numberBetween(1, 3))
-					: null;
-
-				$relatedCategories = $hasCategories
-					? $faker->randomElements($categoryPool, $faker->numberBetween(1, 4))
-					: null;
-
-				$tags = $faker->boolean(70)
-					? $faker->randomElements($tagPool, $faker->numberBetween(1, 5))
-					: null;
-
-				$errorLog = null;
-				if (in_array($logTypeValue, [
-					LogType::Error->value,
-					LogType::Critical->value,
-					LogType::Alert->value,
-					LogType::Emergency->value,
-					LogType::Security->value,
-					LogType::System->value,
-					LogType::Database->value,
-				], true)) {
-					if ($faker->boolean(80)) {
-						$errorLog = [
-							'message'   => $faker->sentence(),
-							'code'      => $faker->numberBetween(1000, 9999),
-							'file'      => $faker->randomElement([
-								'LeadService.php',
-								'PipelineService.php',
-								'NotificationJob.php',
-								'SecurityMiddleware.php',
-							]),
-							'line'      => $faker->numberBetween(10, 300),
-							'trace_id'  => (string) Str::uuid(),
-							'extra'     => [
-								'lead_id'  => $leadId,
-								'user_id'  => $userId,
-								'severity' => $faker->randomElement(['low', 'medium', 'high', 'critical']),
-							],
-							'occurred_at' => Carbon::now()
-								->subMinutes($faker->numberBetween(0, 60))
-								->toIso8601String(),
-						];
-					}
-				}
-
-				if ($label === null && $faker->boolean(40)) {
-					$label = match ($logTypeValue) {
-						LogType::Mail->value          => 'Lead mail event',
-						LogType::Notification->value  => 'Lead notification',
-						LogType::Security->value      => 'Security log for lead',
-						LogType::Audit->value         => 'Lead audit record',
-						LogType::Performance->value   => 'Lead performance metric',
-						LogType::Api->value           => 'Lead API interaction',
-						LogType::Job->value           => 'Background job for lead',
-						default                       => ucfirst($logTypeValue) . ' log',
-					};
-				}
-
-				if ($description === null && $faker->boolean(35)) {
-					$description = $faker->sentence(12) . ' (lead activity log).';
-				}
-
-				$payload = [
-					'id'                => (string) Str::uuid(),
-					UC::COL_USER_ID     => $userId,
-					PJC::COL_LD_ID      => $leadId,
-					AC::COL_LOG_TP      => $logTypeValue,
-					'remark'            => $remark,
-					AC::COL_MD          => $hasModule ? $moduleValue : AppModuleType::Other->value,
-					'label'             => $label,
-					'description'       => $description,
-					DC::COL_RL_CAT      => $relatedCategories,
-					PJC::COL_TAGS       => $tags,
-					DC::COL_ER_LG       => $errorLog,
-				];
-
-				if ($userTypeValue !== null) {
-					$payload[UC::COL_U_TP] = $userTypeValue;
-				}
-
-				if (rand(0, 100) < 60) {
-					$payload[DC::COL_TABLE_CREATOR] = $userId;
-				}
-
-				LeadActivityLog::query()->create($payload);
 			}
 		});
 	}

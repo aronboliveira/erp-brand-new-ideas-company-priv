@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "AI駆動の自動化",
+    "discover_description": "<p>最先端の人工知能を活用して、繰り返しタスクを自動化し、トレンドを予測し、インテリジェントなインサイトでビジネスワークフローを最適化します。</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "リアルタイム分析ダッシュボード",
+    "discover_description": "<p>インタラクティブなダッシュボード、カスタムレポート、全部門にわたるリアルタイムKPI追跡で、ビジネスパフォーマンスを即座に把握できます。</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "多通貨会計",
+    "discover_description": "<p>自動通貨変換、税務コンプライアンス、リアルタイム為替レート統合により、国際取引をシームレスに管理します。</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "スマート在庫管理",
+    "discover_description": "<p>予測分析、自動発注、バーコードスキャンで在庫レベルを最適化し、効率的な倉庫運営を実現します。</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360°顧客関係管理",
+    "discover_description": "<p>すべての顧客インタラクションを追跡し、フォローアップを自動化し、顧客行動を分析して売上を増加させ、リテンション率を向上させます。</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "高度なプロジェクト管理",
+    "discover_description": "<p>ガントチャート、リソース割り当て、時間追跡、マイルストーン管理ツールでプロジェクトを計画、実行、監視します。</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "HR & 給与計算自動化",
+    "discover_description": "<p>自動給与処理、勤怠追跡、パフォーマンスレビュー、福利厚生管理で従業員管理を効率化します。</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "モバイルPOS & Eコマース",
+    "discover_description": "<p>モバイル販売時点情報管理システムでどこでも支払いを受け付け、オンラインストア管理と在庫同期と統合されます。</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "ビジネスインテリジェンスレポート",
+    "discover_description": "<p>カスタマイズ可能なレポート、データ可視化、経営ダッシュボードで生データを戦略的意思決定のための実用的な洞察に変えます。</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "カスタムワークフロービルダー",
+    "discover_description": "<p>ドラッグアンドドロップのワークフロービルダーで複雑なビジネスプロセスを設計し自動化し、手動エラーを減らし効率を向上させます。</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "シームレスなサードパーティ統合",
+    "discover_description": "<p>Salesforce、QuickBooks、Shopify、Zapierを含む500以上の人気ビジネスアプリと接続し、統一されたビジネスエコシステムを構築します。</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "エンタープライズグレードのセキュリティ",
+    "discover_description": "<p>軍事グレードの暗号化、ロールベースのアクセス制御、監査証跡、グローバルセキュリティ基準への準拠でビジネスデータを保護します。</p>"
+  }
+]

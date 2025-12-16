@@ -1,39 +1,49 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants, EmailsConstants};
+use App\Config\Constants\{DatabaseConstants as DC};
+use App\Enums\EmailTemplateType;
+use App\Traits\{HasNullableAuditColumns, IsTemplate};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateEmailTemplatesTable extends Migration
 {
-    private const TABLE = DatabaseConstants::TABLE_EMAIL_TEMPLATES;
+    use HasNullableAuditColumns, IsTemplate;
+    private const TABLE = DC::TABLE_EMAIL_TEMPLATES;
     public function up(): void
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary();       // ! CHANGED
-                $table->string(EmailsConstants::COL_TT);
-                $table->string(EmailsConstants::COL_FROM)->nullable();
-                $table->string(EmailsConstants::COL_SLG)->nullable();
-                $table->timestamps();
-                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);          // ! CHANGED
-                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
+                $table->uuid('id')->primary();
+                $table->enum('type', array_column(EmailTemplateType::cases(), 'value'))->default(EmailTemplateType::Other->value)->nullable()->index(); // ? nullable to avoid issues with existing data
+                $table->string('title')->nullable()->index();
+                $table->string('from')->nullable();
+                $table->uuid('notification')->nullable()->index();
+                $this->addTemplateColumns($table);
+                $this->addAuditColumns($table);
+                $table->json('variables')->nullable(); // ? json object with key-value pairs representing variables to be replaced in the template body and the expected types/format of these variables
+                $table->json('settings')->nullable(); // ? json object representing additional settings for the email template, such as priority, read receipt request, etc.
+                $table->json(DC::COL_PLT_AV)->nullable(); // ? platforms where this template is available, e.g., web, mobile, outlook, gmail, protonmail, etc.
+                $table->foreign('notification')
                     ->references('id')
-                    ->on(DatabaseConstants::TABLE_USERS)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->on(DC::TABLE_NOTIFICATION_TEMPLATES)
+                    ->nullOnDelete();
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, 'notification') &&
+                    $table->dropForeign(['notification']);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::COL_TABLE_CREATOR
+                        . 'notification'
+                        . ' on table '
+                        . self::TABLE
                         . ': '
                         . $e->getMessage()
                 );

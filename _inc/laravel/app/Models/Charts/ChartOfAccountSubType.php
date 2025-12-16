@@ -58,8 +58,8 @@ class ChartOfAccountSubType extends Model
     {
         parent::booted();
         static::creating(function ($model) {
-            if (empty($model->{CHTC::COL_DR_TP})) {
-                $model->{CHTC::COL_DR_TP} = [
+            if (empty($model->getAttribute(CHTC::COL_DR_TP))) {
+                $model->setAttribute(CHTC::COL_DR_TP, [
                     'type'   => 'line',
                     'colors' => [
                         'primary'   => '#3b82f6',
@@ -67,33 +67,60 @@ class ChartOfAccountSubType extends Model
                         'tertiary'  => '#bfdbfe',
                     ],
                     'options' => [],
-                ];
+                ]);
             }
         });
         static::saving(function (self $m): void {
-            foreach ([CHTC::COL_CD, CHTC::COL_NM, CHTC::COL_TP_NM] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-            if ($m->rules === null)          $m->rules = [];
-            elseif (!is_array($m->rules))    $m->rules = (array) $m->rules;
-            foreach ([CHTC::COL_DR_TP, CHTC::COL_CC_RL, CHTC::COL_VL_RL] as $jsonField)
-                if ($m->{$jsonField} !== null && !is_array($m->{$jsonField}))
-                    $m->{$jsonField} = (array) $m->{$jsonField};
-            $m->{CHTC::COL_DR_TP} = static::normalizeDrawingConfig($m->{CHTC::COL_DR_TP} ?? []);
-            if ($m->{CHTC::COL_TP}) {
+            // Trim string fields
+            foreach ([CHTC::COL_CD, CHTC::COL_NM, CHTC::COL_TP_NM] as $field) {
+                $value = $m->getAttribute($field);
+                if (is_string($value))
+                    $m->setAttribute($field, trim($value));
+            }
+
+            // Normalize rules to array
+            $rules = $m->getAttribute('rules');
+            if ($rules === null) {
+                $m->setAttribute('rules', []);
+            } elseif (!is_array($rules)) {
+                $m->setAttribute('rules', (array) $rules);
+            }
+
+            // Normalize JSON-like fields to arrays
+            foreach ([CHTC::COL_DR_TP, CHTC::COL_CC_RL, CHTC::COL_VL_RL] as $jsonField) {
+                $value = $m->getAttribute($jsonField);
+                if ($value !== null && !is_array($value))
+                    $m->setAttribute($jsonField, (array) $value);
+            }
+
+            // Normalize drawing config
+            $drawingConfig = $m->getAttribute(CHTC::COL_DR_TP) ?? [];
+            if (!is_array($drawingConfig))
+                $drawingConfig = (array) $drawingConfig;
+            $m->setAttribute(
+                CHTC::COL_DR_TP,
+                static::normalizeDrawingConfig($drawingConfig)
+            );
+            $typeKey = $m->getAttribute(CHTC::COL_TP);
+            if ($typeKey) {
                 /** @var \App\Models\ChartOfAccountType|null $type */
                 $type = $m->type()->first();
                 if ($type)
                     static::applyTypeConstraints($m, $type);
             }
-
-            if (empty($m->{CHTC::COL_CD})) {
+            $code = $m->getAttribute(CHTC::COL_CD);
+            if (empty($code)) {
                 $prefix = '';
                 if ($m->relationLoaded('type') && $m->type) {
-                    $prefix = strtoupper(Str::snake((string) $m->type->{CHTC::COL_CD}));
-                    $prefix = $prefix !== '' ? $prefix . '_' : '';
+                    $typeCode = $m->type->getAttribute(CHTC::COL_CD);
+                    $prefix   = strtoupper(Str::snake((string) $typeCode));
+                    $prefix   = $prefix !== '' ? $prefix . '_' : '';
                 }
-                $m->{CHTC::COL_CD} = strtoupper(Str::snake($prefix . (string) $m->{CHTC::COL_NM}));
+                $name = $m->getAttribute(CHTC::COL_NM);
+                $m->setAttribute(
+                    CHTC::COL_CD,
+                    strtoupper(Str::snake($prefix . (string) $name))
+                );
             }
         });
     }
@@ -105,61 +132,75 @@ class ChartOfAccountSubType extends Model
      * - Injeta unidade/metadata de eixo do "type->units" como defaults em draw_type.options (se ausentes)
      */
 
-    protected static function applyTypeConstraints(self $m, \App\Models\ChartOfAccountType $type): void
+    protected static function applyTypeConstraints(self $m, ChartOfAccountType $type): void
     {
-        $m->{CHTC::COL_TP_NM} = (string) ($type->{CHTC::COL_NM} ?? $m->{CHTC::COL_TP_NM});
-        $typeRules = NormalizesArrays::normalizeArrayField($type->rules ?? []);
-        $subRules  = NormalizesArrays::normalizeArrayField($m->rules ?? []);
+        $typeName       = $type->getAttribute(CHTC::COL_NM);
+        $currentTypeName = $m->getAttribute(CHTC::COL_TP_NM);
+        $m->setAttribute(
+            CHTC::COL_TP_NM,
+            (string) ($typeName ?? $currentTypeName)
+        );
+        $typeRulesRaw = $type->getAttribute('rules') ?? [];
+        $typeRules    = NormalizesArrays::normalizeArrayField($typeRulesRaw);
+        $subRulesRaw  = $m->getAttribute('rules') ?? [];
+        $subRules     = NormalizesArrays::normalizeArrayField($subRulesRaw);
         $mergedRules = static::mergeRulesRecursively($typeRules, $subRules);
-        $m->rules = $mergedRules;
+        $m->setAttribute('rules', $mergedRules);
         if (isset($mergedRules['description']) && is_array($mergedRules['description'])) {
-            $descCfg = $mergedRules['description'];
-            $maxLen  = $descCfg['max_length'] ?? null;
+            $descCfg     = $mergedRules['description'];
+            $maxLen      = $descCfg['max_length'] ?? null;
+            $description = $m->getAttribute('description');
+
             if (
                 is_numeric($maxLen)
                 && (int) $maxLen > 0
-                && is_string($m->description ?? null)
+                && is_string($description)
             )
-                $m->description = mb_substr($m->description, 0, (int) $maxLen);
+                $m->setAttribute(
+                    'description',
+                    mb_substr($description, 0, (int) $maxLen)
+                );
         }
-        $units   = NormalizesArrays::normalizeArrayField($type->units ?? []);
+
+        $unitsRaw = $type->getAttribute('units') ?? [];
+        $units    = NormalizesArrays::normalizeArrayField($unitsRaw);
+
         $xUnit   = Arr::get($units, 'X.unit');
         $xValues = Arr::get($units, 'X.values', []);
         $yUnit   = Arr::get($units, 'Y.unit');
         $yValues = Arr::get($units, 'Y.values', []);
-        $draw = is_array($m->{CHTC::COL_DR_TP} ?? null)
-            ? $m->{CHTC::COL_DR_TP}
-            : [];
-        $draw = static::normalizeDrawingConfig($draw);
+
+        $drawRaw = $m->getAttribute(CHTC::COL_DR_TP) ?? [];
+        $drawArr = is_array($drawRaw) ? $drawRaw : [];
+
+        $draw = static::normalizeDrawingConfig($drawArr);
+
         $opts = $draw['options'] ?? [];
         $opts['x_unit']   = $opts['x_unit']   ?? $xUnit;
         $opts['x_values'] = $opts['x_values'] ?? $xValues;
         $opts['y_unit']   = $opts['y_unit']   ?? $yUnit;
         $opts['y_values'] = $opts['y_values'] ?? $yValues;
-        $draw['options']      = $opts;
-        $m->{CHTC::COL_DR_TP} = $draw;
+
+        $draw['options'] = $opts;
+
+        $m->setAttribute(CHTC::COL_DR_TP, $draw);
     }
 
     protected static function normalizeDrawingConfig(array $cfg): array
     {
-        if (!isset($cfg['type']) || !is_string($cfg['type']) || trim($cfg['type']) === '') {
+        if (!isset($cfg['type']) || !is_string($cfg['type']) || trim($cfg['type']) === '')
             $cfg['type'] = 'line';
-        }
-
-        if (!isset($cfg['colors']) || !is_array($cfg['colors'])) {
+        if (!isset($cfg['colors']) || !is_array($cfg['colors']))
             $cfg['colors'] = [
                 'primary'   => '#3b82f6',
                 'secondary' => '#93c5fd',
                 'tertiary'  => '#bfdbfe',
             ];
-        }
-
-        if (!isset($cfg['options']) || !is_array($cfg['options'])) {
+        if (!isset($cfg['options']) || !is_array($cfg['options']))
             $cfg['options'] = [];
-        }
-
         return $cfg;
     }
+
 
     public function getChartTypeAttribute(): ?string
     {
@@ -173,7 +214,7 @@ class ChartOfAccountSubType extends Model
     public function type(): BelongsTo
     {
         return $this->belongsTo(
-            \App\Models\ChartOfAccountType::class,
+            ChartOfAccountType::class,
             CHTC::COL_TP,
             'id'
         );
@@ -182,7 +223,7 @@ class ChartOfAccountSubType extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(
-            \App\Models\User::class,
+            User::class,
             DC::COL_TABLE_CREATOR,
             'id'
         );

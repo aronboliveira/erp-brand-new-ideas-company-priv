@@ -1,46 +1,64 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\AssetType;
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateAssetsTable extends Migration
 {
-    private const TABLE = 'assets';
-    private const DATE = 'date';
-    private const COL_EMPLOYEE = 'employee_id';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_AST;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                    // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE)->nullable();           // * stores comma-separated UUIDs
+            $table->uuid('id')->primary();
+            $table->string('serial')->nullable()->unique(); // ? nullable for tests
+            $table->uuid('category')->nullable(); // ? nullable for tests
+            $table->enum('type', array_column(AssetType::cases(), 'value'))->default(AssetType::Other->value)->nullable(); // ? nullable for tests
             $table->string('name');
-            $table->date('purchase_' . self::DATE);
-            $table->date('supported_' . self::DATE);
-            $table->decimal('amount', 15, 2)->default(0.00);
+            $table->uuid(UC::COL_EMP_ID)->nullable(); // ? nullable for tests
+            $table->date(CC::COL_PRC_DT);
+            $table->date(CC::COL_SPT_DT);
+            $table->unsignedDecimal('amount', 15, 2)->default(0.00);
             $table->text('description')->nullable();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                        // ! CHANGED
-            $table->timestamps();
+            $table->text('purpose')->nullable(); // ? nullable for tests
+            $table->uuid('order')->nullable(); // ? nullable for tests
+            $table->uuid('transaction')->nullable(); // ? nullable for tests
+            $table->uuid(BC::COL_SIGN_BY)->nullable(); // * in production, if the linked COL_EMP_ID does not link to a COL_USER_ID that represent an user of the type admin, a super admin or a company, then this field MUST be present (checked in the model), else a permission error is raised
+            $table->string(BC::COL_SIGN_BY_NAME)->nullable(); // * in production, if the linked COL_EMP_ID does not link to a COL_USER_ID that represent an user of the type admin, a super admin or a company, then this field MUST be present (checked in the model), else a permission error is raised
+            $table->json('attachments')->nullable();
+            $table->json('metadata')->nullable();
+            $table->json('tags')->nullable();
             foreach (
                 [
-                    self::COL_EMPLOYEE                     => DatabaseConstants::TABLE_EMPLOYEES,
-                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                    UC::COL_EMP_ID => DC::TABLE_EMPLOYEES,
+                    BC::COL_SIGN_BY => DC::TABLE_EMPLOYEES,
+                    'order'        => DC::TABLE_ORDERS,
+                    'transaction'  => DC::TABLE_TRS,
+                    'category'     => DC::TABLE_PROD_SERV_CATS
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_EMPLOYEE,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    UC::COL_EMP_ID,
+                    BC::COL_SIGN_BY,
+                    'order',
+                    'transaction',
+                    'category',
                 ] as $column
             ) {
                 try {

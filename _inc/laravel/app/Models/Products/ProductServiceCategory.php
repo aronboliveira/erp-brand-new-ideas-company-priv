@@ -82,40 +82,30 @@ class ProductServiceCategory extends Model
 
         static::saving(function (self $m): void {
             foreach (['name', 'code', 'color', 'icon'] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-
-            $m->type = self::normalizeType($m->type ?? null);
-
-            $label = $m->{DC::COL_TP_LB} ?? null;
-
+                if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                    $m->setAttribute($field, trim($m->getAttribute($field)));
+            $m->setAttribute('type', self::normalizeType($m->getAttribute('type') ?? null));
+            $label = $m->getAttribute(DC::COL_TP_LB) ?? null;
             if ($label instanceof ConsumableType)
                 $normalized = $label;
             else
                 $normalized = ConsumableType::normalize(is_string($label) ? $label : null);
-
             $allowed = [
                 ConsumableType::Product,
                 ConsumableType::Service,
                 ConsumableType::Other,
             ];
-
             if (!$normalized || !in_array($normalized, $allowed, true))
                 $normalized = ConsumableType::Service;
-
-            $m->{DC::COL_TP_LB} = $normalized;
-
-            if ($m->color === null || $m->color === '')
-                $m->color = '#fc544b';
-
-            $m->attributes = self::normalizeArrayField($m->attributes);
-
-            $m->{DC::COL_RL_CAT} = self::normalizeAndFilterRelatedCategories(
-                $m->{DC::COL_RL_CAT} ?? null
-            );
-
-            if ($m->{AC::COL_IA} === null)
-                $m->{AC::COL_IA} = true;
+            $m->setAttribute(DC::COL_TP_LB, $normalized);
+            if ($m->getAttribute('color') === null || $m->getAttribute('color') === '')
+                $m->setAttribute('color', '#fc544b');
+            $m->setAttribute('attributes', self::normalizeArrayField($m->getAttribute('attributes') ?? null));
+            $m->setAttribute(DC::COL_RL_CAT, self::normalizeAndFilterRelatedCategories(
+                $m->getAttribute(DC::COL_RL_CAT) ?? null
+            ));
+            if ($m->getAttribute(AC::COL_IA) === null)
+                $m->setAttribute(AC::COL_IA, true);
         });
     }
 
@@ -123,58 +113,45 @@ class ProductServiceCategory extends Model
     {
         if ($value === null)
             return 0;
-
         if (is_string($value))
             $value = trim($value);
-
         if (!is_numeric($value))
             return 0;
-
         $int = (int) $value;
-
         if ($int < 0)
             $int = 0;
         elseif ($int > 9)
             $int = 9;
-
         return $int;
     }
 
     protected static function normalizeAndFilterRelatedCategories(mixed $value): array
     {
         $items = self::normalizeArrayField($value);
-
         $items = array_values(array_filter(
             $items,
             fn($item): bool =>
             is_array($item) && isset($item['id']) && is_string($item['id']) && trim($item['id']) !== ''
         ));
-
         if (!$items)
             return [];
-
         $ids = array_values(array_unique(array_map(
             fn(array $item): string => $item['id'],
             $items
         )));
-
         $existingIds = self::query()
             ->whereIn('id', $ids)
             ->pluck('id')
             ->all();
-
         if (!$existingIds)
             return [];
-
         $existingMap = array_flip($existingIds);
-
         $filtered = [];
         foreach ($items as $item) {
             $id = $item['id'];
             if (isset($existingMap[$id]))
                 $filtered[] = $item;
         }
-
         return $filtered;
     }
 

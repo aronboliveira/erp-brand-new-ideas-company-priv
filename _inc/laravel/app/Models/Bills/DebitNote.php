@@ -11,6 +11,8 @@ class DebitNote extends CardNote
 
     private const EXTRA_FILLABLE = [
         UC::COL_VD_ID,
+        'bill',
+        'invoice'
     ];
 
     protected $fillable = [

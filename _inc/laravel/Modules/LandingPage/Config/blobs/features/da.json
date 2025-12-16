@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "Funktion",
+    "feature_description": "<p>Lås op for stærke muligheder med vores omfattende funktionssæt, der er designet til at effektivisere din arbejdsgang og øge produktiviteten på tværs af alle dine projekter.</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "Support",
+    "feature_description": "<p>Få adgang til dedikeret kundesupport døgnet rundt, med eksperter der hjælper dig med hurtigt at løse problemer og holde dine processer kørende uden afbrydelser.</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "Integration",
+    "feature_description": "<p>Forbind problemfrit til dine foretrukne værktøjer og platforme via vores robuste API og forudbyggede integrationer, der fjerner datasiloer.</p>"
+  }
+]

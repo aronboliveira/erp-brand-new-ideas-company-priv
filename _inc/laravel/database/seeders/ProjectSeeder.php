@@ -3,8 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str as Str;
 
 use App\Config\Constants\DatabaseConstants as DC;
@@ -28,13 +27,16 @@ final class ProjectSeeder extends Seeder
 		DB::transaction(function () use ($faker) {
 			$systemUserId = DC::DEFAULT_UUID;
 			if (!Cli::exists()) {
-				for ($i = 0; $i < 5; $i++) {
+				for ($i = 0; $i < 8; $i++) {
+					$cName = $faker->boolean(30) ? $faker->company() : $faker->name();
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Cliente: {$cName}");
 					do $clientId = Str::uuid()->toString();
 					while (Cli::where('id', $clientId)->exists());
 
 					$c = new Cli();
 					$c->id = $clientId;
-					$c->{UC::COL_NM}      = $faker->name();
+					$c->{UC::COL_NM}      = $cName;
 					$c->{UC::COL_EM}      = $faker->unique()->safeEmail();
 					$c->{UC::COL_LG}      = 'pt_BR';
 					$c->{UC::COL_TEL}     = $faker->phoneNumber();
@@ -50,9 +52,11 @@ final class ProjectSeeder extends Seeder
 			}
 
 			if (!Pst::exists()) {
-				$names = ['Planejamento', 'Em andamento', 'Revisão', 'Concluído'];
+				$names = ['Planejamento', 'Em andamento', 'Revisão', 'Concluído', 'Aguardando cliente', 'Em espera', 'Cancelado', 'Arquivado', 'Iniciado', 'Em teste', 'Produção', 'Homologação', 'Análise', 'Design', 'Implementação', 'Lançamento', 'Suporte', 'Manutenção', 'Otimização', 'Encerramento'];
 				$ord = 0;
 				foreach ($names as $nm) {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Estágio: {$nm}");
 					do $stageId = Str::uuid()->toString();
 					while (Pst::where('id', $stageId)->exists());
 
@@ -66,38 +70,46 @@ final class ProjectSeeder extends Seeder
 				}
 			}
 
-			$quantity = 25;
+			$quantity = 64;
 			$statusKeys = array_keys(Prj::$project_status);
 
 			$clientIds = Cli::query()->pluck('id')->all();
 			$stageIds  = Pst::query()->pluck('id')->all();
 
 			for ($i = 0; $i < $quantity; $i++) {
-				do $projectId = Str::uuid()->toString();
-				while (Prj::where('id', $projectId)->exists());
+				try {
+					$pjNm = $faker->sentence(3);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Projeto: {$pjNm}");
+					do $projectId = Str::uuid()->toString();
+					while (Prj::where('id', $projectId)->exists());
 
-				$start = $faker->dateTimeBetween('-90 days', '+10 days');
-				$end   = $faker->boolean(70) ? $faker->dateTimeBetween($start, '+120 days') : null;
+					$start = $faker->dateTimeBetween('-90 days', '+10 days');
+					$end   = $faker->boolean(70) ? $faker->dateTimeBetween($start, '+120 days') : null;
 
-				$p = new Prj();
-				$p->id = $projectId;
-				$p->{PJC::COL_NM}          = $faker->sentence(3);
-				$p->{PJC::COL_S_DT}        = $start->format('Y-m-d');
-				$p->{PJC::COL_E_DT}        = $end?->format('Y-m-d');
-				$p->{PJC::COL_CLIENT_ID}   = $faker->randomElement($clientIds);
-				$p->{PJC::COL_IMG}         = null;
-				$p->{PJC::COL_BUDGET}      = $faker->numberBetween(5_000, 150_000);
-				$p->{PJC::COL_STAGE_ID}    = $faker->randomElement($stageIds);
-				$p->{PJC::COL_DESCRIPTION} = $faker->paragraph();
-				$p->{PJC::COL_STATUS}      = $faker->randomElement($statusKeys);
-				$p->{PJC::COL_E_HRS}       = (string) $faker->numberBetween(10, 480);
-				$p->{PJC::COL_PASSWORD}    = null; // crítico: evitar armazenar texto puro
-				$p->{PJC::COL_COPYLINK}    = null;
-				$p->{PJC::COL_TAGS}        = $faker->words(3, true);
-				$p->{DC::COL_TABLE_CREATOR}    = $systemUserId;
-				$p->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$p = new Prj();
+					$p->id = $projectId;
+					$p->{PJC::COL_NM}          = $pjNm;
+					$p->{PJC::COL_S_DT}        = $start->format('Y-m-d');
+					$p->{PJC::COL_E_DT}        = $end?->format('Y-m-d');
+					$p->{PJC::COL_CLIENT_ID}   = $faker->randomElement($clientIds);
+					$p->{PJC::COL_IMG}         = null;
+					$p->{PJC::COL_BUDGET}      = $faker->numberBetween(5_000, 150_000);
+					$p->{PJC::COL_STAGE_ID}    = $faker->randomElement($stageIds);
+					$p->{PJC::COL_DESCRIPTION} = $faker->paragraph();
+					$p->{PJC::COL_STATUS}      = $faker->randomElement($statusKeys);
+					$p->{PJC::COL_E_HRS}       = (string) $faker->numberBetween(10, 480);
+					$p->{PJC::COL_PASSWORD}    = null; // crítico: evitar armazenar texto puro
+					$p->{PJC::COL_COPYLINK}    = null;
+					$p->{PJC::COL_TAGS}        = $faker->words(3, true);
+					$p->{DC::COL_TABLE_CREATOR}    = $systemUserId;
+					$p->setAttribute(DC::COL_TABLE_UPDATER, null);
 
-				$p->save();
+					$p->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

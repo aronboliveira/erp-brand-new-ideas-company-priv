@@ -2,7 +2,7 @@
 
 namespace Modules\LandingPage\Database\Seeders;
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Database\{Eloquent\Model, Seeder};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\{Collection, Str};
@@ -15,130 +15,113 @@ use Modules\LandingPage\Entities\JoinUs;
 
 class LandingPageDataTableSeeder extends Seeder
 {
+    public const DEFAULT_DATA_ARR = [
+        LPC::TB_STT_K     => LPC::TB_STT_DEF,
+        LPC::TB_NTF_MSG_K => 'Technology assistance and support with over 30 years of tradition. Talk to Nova Prestech and protect your data and devices today.',
+        LPC::MB_STT_K     => LPC::MB_STT_DEF,
+        LPC::SL_K => 'site_logo.png',
+        LPC::SD_K => 'Technology assistance and support focusing on digital security, stability, and humanized service for businesses and end users.',
+        LPC::HM_STT_K      => LPC::HM_STT_DEF,
+        LPC::HM_OFF_TXT_K  => 'Assisted protection in every solution',
+        LPC::HM_TTL_K      => LPC::HM_TTL_DEF,
+        LPC::HM_HDG_K      => 'Technology assistance and support with over 30 years of tradition',
+        LPC::HM_DESC_K     => 'We combine Support, DevOps, and Web Development teams to deliver security, infrastructure, and cloud service solutions that drive your business.',
+        LPC::HM_TRST_BY_K  => '10,000+ success stories and equipment serviced',
+        LPC::HM_DEMO_LNK_K => 'https://prestech.com.br/services/',
+        LPC::HM_BUY_LNK_K  => 'https://prestech.com.br/site/contact/',
+        LPC::HM_BNR_K      => 'home_banner.png',
+        LPC::HM_LGO_K      => 'home_logo.png',
+        LPC::FT_STT_K      => LPC::FT_STT_DEF,
+        LPC::FT_TTL_K      => LPC::FT_TTL_DEF,
+        LPC::FT_HDG_K      => 'Why choose Nova Prestech assistance?',
+        LPC::FT_DESC_K     => 'User-centered services, stability and experience, humanized service, and security as a priority in all layers of the solutions.',
+        LPC::FT_BUY_LNK_K  => 'https://prestech.com.br/site/contact/',
+        LPC::FT_OF_FTS_K   => 'Unable to load the service list at the moment. Please try again later.',
+        LPC::HF_HDG_K      => 'Assisted protection in every solution!',
+        LPC::HF_DESC_K     => 'Complete infrastructure solutions, data security, backup, virtualization, and mature IT support for businesses that require high availability.',
+        LPC::HF_IMG_K      => 'highlight_feature_image.png',
+        LPC::DC_OF_FTS_K   => 'Unable to load the details of the technologies.',
+        LPC::OT_FTS_K      => 'Unable to load other services.',
+        LPC::DC_STT_K      => LPC::DC_STT_DEF,
+        LPC::DC_HDG_K      => 'IT technical support services for your business',
+        LPC::DC_DESC_K     => 'Cybersecurity management, solution development, data protection and persistence, technology product quotes, operating system preparation, and mature IT support.',
+        LPC::DC_DEMO_LNK_K => 'https://prestech.com.br/services/',
+        LPC::DC_BUY_LNK_K  => 'https://prestech.com.br/site/contact/',
+        LPC::SC_STT_K   => LPC::SC_STT_DEF,
+        LPC::SC_HDG_K   => 'Technologies and platforms we serve',
+        LPC::SC_DESC_K  => 'Windows, Linux, Office 365, Fortinet, Panda Security, Nextcloud, Azure, VMware, Zimbra, WordPress, Next.js, Oracle Linux, and other strategic technologies for your business.',
+        LPC::SC_SHTS_K  => 'Unable to load the technology gallery.',
+        LPC::PN_STT_K   => LPC::PN_STT_DEF,
+        LPC::PN_TTL_K   => LPC::PN_TTL_DEF,
+        LPC::PN_HDG_K   => 'Service plans and technology support contracts',
+        LPC::PN_DESC_K  => 'Contact us to build a custom plan for technical assistance, monitoring, infrastructure projects, and managed services.',
+        LPC::FAQ_STT_K  => LPC::FAQ_STT_DEF,
+        LPC::FAQ_TTL_K  => LPC::FAQ_TTL_DEF,
+        LPC::FAQ_HDG_K  => 'Frequently asked questions about technology assistance and support',
+        LPC::FAQ_DESC_K => 'We have gathered answers about service, support contracts, scheduling of remote and on-site services, SLA, and information security.',
+        LPC::FAQ_FQS_K  => 'Unable to load the frequently asked questions.',
+        LPC::TM_STT_K       => LPC::TM_STT_DEF,
+        LPC::TM_HDG_K       => 'Success stories with Prestech',
+        LPC::TM_DESC_K      => 'Testimonials from clients who transformed their IT infrastructure, security, and availability with our hardware, virtualization, and firewall solutions.',
+        LPC::TM_LONG_DESC_K => 'Our complete infrastructure solutions, with physical servers, virtual machines, network storage, and next-generation firewalls, deliver secure, scalable, and stable environments for businesses of different sizes.',
+        LPC::TM_TMS_K       => 'Unable to load the testimonials.',
+        LPC::FTR_STT_K  => LPC::FTR_STT_DEF,
+        LPC::JU_STT_K   => LPC::JU_STT_DEF,
+        LPC::JU_HDG_K   => 'Talk to Nova Prestech',
+        LPC::JU_DESC_K  => 'We are ready to support your business with technical assistance, infrastructure projects, cybersecurity, and solution development. Contact us and let us understand your needs.',
+        'email'         => 'comercial@prestech.com.br',
+    ];
     public function run(): void
     {
         $jsonDirs = module_path('LandingPage') . "/Config/blobs/";
         Model::unguard();
-        $data = [
-            // Top Bar & Menu Bar
-            LPC::TB_STT_K => LPC::TB_STT_DEF,
-            LPC::TB_NTF_MSG_K => '70% Special Offer. Don\'t Miss it. The offer ends in 72 hours.',
-            LPC::MB_STT_K => LPC::MB_STT_DEF,
-
-            // Site Logo & Description
-            LPC::SL_K => 'site_logo.png',
-            LPC::SD_K => 'We build modern web tools to help you jump-start your daily business work.',
-
-            // Home Section
-            LPC::HM_STT_K => LPC::HM_STT_DEF,
-            LPC::HM_OFF_TXT_K => '70% Special Offer',
-            LPC::HM_TTL_K => LPC::HM_TTL_DEF,
-            LPC::HM_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::HM_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::HM_TRST_BY_K => '1000+ Customer',
-            LPC::HM_DEMO_LNK_K => 'https://demo.rajodiya.com/erpgo-saas/login',
-            LPC::HM_BUY_LNK_K => 'https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm-pos/33263426',
-            LPC::HM_BNR_K => 'home_banner.png',
-            LPC::HM_LGO_K => 'home_logo.png',
-
-            // Features Section
-            LPC::FT_STT_K => LPC::FT_STT_DEF,
-            LPC::FT_TTL_K => LPC::FT_TTL_DEF,
-            LPC::FT_HDG_K => 'All In One Place CRM System',
-            LPC::FT_DESC_K => 'Use these awesome forms to login or create new account in your project for free. Use these awesome forms to login or create new account in your project for free.',
-            LPC::FT_BUY_LNK_K => 'https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm-pos/33263426',
-            LPC::FT_OF_FTS_K => 'Error loading features data',
-
-            // Highlight Feature
-            LPC::HF_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::HF_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::HF_IMG_K => 'highlight_feature_image.png',
-            LPC::DC_OF_FTS_K => 'Error loading discover features data',
-            LPC::OT_FTS_K => 'Error loading other features data',
-
-            // Discover Section
-            LPC::DC_STT_K => LPC::DC_STT_DEF,
-            LPC::DC_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::DC_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::DC_DEMO_LNK_K => 'https://demo.rajodiya.com/erpgo-saas/login',
-            LPC::DC_BUY_LNK_K => 'https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm-pos/33263426',
-
-            // Screenshots Section
-            LPC::SC_STT_K => LPC::SC_STT_DEF,
-            LPC::SC_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::SC_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::SC_SHTS_K => 'Error loading discover data',
-
-            // Pricing & FAQ Section
-            LPC::PN_STT_K => LPC::PN_STT_DEF,
-            LPC::PN_TTL_K => LPC::PN_TTL_DEF,
-            LPC::PN_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::PN_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::FAQ_STT_K => LPC::FAQ_STT_DEF,
-            LPC::FAQ_TTL_K => LPC::FAQ_TTL_DEF,
-            LPC::FAQ_HDG_K => 'ERPNovaPrestech All In One Business ERP With Project, Account, HRM, CRM',
-            LPC::FAQ_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::FAQ_FQS_K => 'Error loading FAQ data',
-
-            // Testimonials Section
-            LPC::TM_STT_K => LPC::TM_STT_DEF,
-            LPC::TM_HDG_K => 'From our Clients',
-            LPC::TM_DESC_K => 'Use these awesome forms to login or create new account in your project for free.',
-            LPC::TM_LONG_DESC_K => 'WorkDo seCommerce package offers you a "sales-ready."secure online store. The package puts all the key pieces together, from design to payment processing. This gives you a headstart in your eCommerce venture. Every store is built using a reliable PHP framework -laravel. Thisspeeds up the development process while increasing the store\'s security and performance.Additionally, thanks to the accompanying mobile app, you and your team can manage the store on the go. What\'s more, because the app works both for you and your customers, you can use it to reach a wider audience.And, unlike popular eCommerce platforms, it doesn\'t bind you to any terms and conditions or recurring fees. You get to choose where you host it or which payment gateway you use. Lastly, you getcomplete control over the looks of the store. And if it lacks any functionalities that you need, just reach out, and let\'s discuss customization possibilities',
-            LPC::TM_TMS_K => 'Error loading testimonials data',
-
-            // Footer & Join Us Section
-            LPC::FTR_STT_K => LPC::FTR_STT_DEF,
-            LPC::JU_STT_K => LPC::JU_STT_DEF,
-            LPC::JU_HDG_K => 'Join Our Community',
-            LPC::JU_DESC_K => 'We build modern web tools to help you jump-start your daily business work.',
-            "email" => "desenvolvimento@prestech.com.br"
-        ];
+        $lang = app()->getLocale() ?? DC::DEFAULT_LANG;
+        $data = $this->getLandingPageData();
         $jsonFiles = [
             [
-                'file' => 'menubar.json',
+                'file' => 'menubar',
                 'key' => LPC::MB_PG_K,
                 'name' => 'menubar',
                 'uuid' => true
             ],
             [
-                'file' => 'features.json',
+                'file' => 'features',
                 'key' => LPC::FT_OF_FTS_K,
                 'name' => 'features',
                 'uuid' => true
             ],
             [
-                'file' => 'other_features.json',
+                'file' => 'other_features',
                 'key' => LPC::OT_FTS_K,
                 'name' => 'other features',
                 'uuid' => true
             ],
             [
-                'file' => 'discover.json',
+                'file' => 'discover',
                 'key' => LPC::DC_OF_FTS_K,
                 'name' => RRC::DV,
                 'uuid' => true
             ],
             [
-                'file' => 'screenshots.json',
+                'file' => 'screenshots',
                 'key' => LPC::SC_SHTS_K,
                 'name' => RRC::SST,
                 'uuid' => true
             ],
             [
-                'file' => 'faq.json',
+                'file' => 'faq',
                 'key' => LPC::FAQ_FQS_K,
                 'name' => 'FAQ',
                 'uuid' => true
             ],
             [
-                'file' => 'testimonials.json',
+                'file' => 'testimonials',
                 'key' => LPC::TM_TMS_K,
                 'name' => 'testimonials',
                 'uuid' => true
             ],
             [
-                'file' => 'join_us.json',
+                'file' => 'join_us',
                 'key' => 'email',
                 'name' => RRC::JU,
                 'uuid' => true
@@ -146,7 +129,14 @@ class LandingPageDataTableSeeder extends Seeder
         ];
         foreach ($jsonFiles as $config) {
             try {
-                $content = file_get_contents($jsonDirs . $config['file']);
+                if (!file_exists($jsonDirs . $config['file'] . "/{$lang}.json") || empty(file_get_contents($jsonDirs . $config['file'] . "/{$lang}.json"))) {
+                    if (!file_exists($jsonDirs . $config['file'] . "/en.json") || empty(file_get_contents($jsonDirs . $config['file'] . "/en.json"))) {
+                        if (!file_exists($jsonDirs . $config['file'] . ".json") || empty(file_get_contents($jsonDirs . $config['file'] . ".json")))
+                            throw new \RuntimeException("{$config['file']} file for locale {$lang} not found");
+                        else
+                            $content = file_get_contents($jsonDirs . $config['file'] . ".json");
+                    } else $content = file_get_contents($jsonDirs . $config['file'] . "/en.json");
+                } else $content = file_get_contents($jsonDirs . $config['file'] . "/{$lang}.json");
                 if (!$content)
                     throw new \RuntimeException("Failed to read {$config['file']} file");
                 $rawData = json_decode($content, associative: true, flags: JSON_THROW_ON_ERROR);
@@ -162,14 +152,14 @@ class LandingPageDataTableSeeder extends Seeder
                             ['query_key' => $itemKey],
                             [
                                 'name' => $config['key'],
-                                'created_by' => DatabaseConstants::DEFAULT_UUID,
+                                'created_by' => DC::DEFAULT_UUID,
                                 'value' => json_encode($item, JSON_THROW_ON_ERROR)
                             ]
                         );
                         $rest = is_array($item) ? collect($item)->except('email')->toArray() : ($item instanceof Collection ? $item->except('email')->toArray() : []);
                         $config['key'] === 'email' && JoinUs::create([
                             'query_key' => $itemKey,
-                            'created_by' => DatabaseConstants::DEFAULT_UUID,
+                            'created_by' => DC::DEFAULT_UUID,
                             'email' => $item['email'],
                             ...$rest,
                         ]);
@@ -217,5 +207,49 @@ class LandingPageDataTableSeeder extends Seeder
                 ]);
             }
         }
+    }
+    private function getLandingPageData(): array
+    {
+        static $cache = [];
+        $locale = app()->getLocale() ?? DC::DEFAULT_LANG;
+        if (isset($cache[$locale])) return $cache[$locale];
+        try {
+            $data = match ($locale) {
+                'en' => self::DEFAULT_DATA_ARR,
+                'zh', 'pt-br', 'fr', 'es', 'da', 'he', 'ja', 'pt', 'ru', 'pl',
+                'de', 'it', 'ar', 'tr', 'nl' => function () use ($locale) {
+                    $jsonPath = module_path('LandingPage') . '/Config/blobs/landing/' . $locale . '.json';
+                    if (!file_exists($jsonPath))
+                        $jsonPath = public_path("assets/json/landing_page/{$locale}.json");
+                    if (!file_exists($jsonPath))
+                        throw new \Exception("Language file for {$locale} not found");
+                    $jsonContent = file_get_contents($jsonPath);
+                    $decodedData = json_decode($jsonContent, true, 512, JSON_THROW_ON_ERROR);
+                    if (!is_array($decodedData))
+                        throw new \Exception("Invalid JSON structure for {$locale}");
+                    return $decodedData;
+                },
+                default => throw new \Exception("Unsupported locale: {$locale}"),
+            };
+            if ($data instanceof \Closure)
+                $data = $data();
+            $cache[$locale] = $data;
+            return $data;
+        } catch (\Exception $e) {
+            Log::error("Failed to load landing page data for locale: {$locale}", [
+                'error' => $e->getMessage(),
+                'locale' => $locale
+            ]);
+            $englishData = $this->getLandingPageDataForLocale('en');
+            $cache[$locale] = $englishData;
+            return $englishData;
+        }
+    }
+    private function getLandingPageDataForLocale(string $locale): array
+    {
+        return match ($locale) {
+            'en' => self::DEFAULT_DATA_ARR,
+            default => self::DEFAULT_DATA_ARR,
+        };
     }
 }

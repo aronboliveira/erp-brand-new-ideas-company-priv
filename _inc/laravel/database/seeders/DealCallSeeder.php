@@ -8,10 +8,11 @@ use App\Config\Constants\{
 	UsersConstants as UC
 };
 use App\Enums\CallType;
+use App\Models\DealCall;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -20,9 +21,14 @@ class DealCallSeeder extends Seeder
 	// Probabilidade (0–1) de um campo opcional receber null
 	private const OPTIONALITY = 0.35;
 
+	// Calls adicionais por deal (além da obrigatória)
+	private const MIN_CALLS_PER_DEAL = 1;  // mínimo garantido
+	private const MAX_CALLS_PER_DEAL = 8;  // máximo possível
+
 	/**
 	 * CLI:
-	 *  --count=N  Quantidade de registros a gerar (se ausente, usa 64 * nº de deals)
+	 *  --min-calls=N  Mínimo de calls por deal (padrão: 1)
+	 *  --max-calls=N  Máximo de calls por deal (padrão: 8)
 	 */
 	public function run(): void
 	{
@@ -43,25 +49,22 @@ class DealCallSeeder extends Seeder
 			return;
 		}
 
-		// ---------- Regra de quantidade do projeto ----------
-		$defaultCount = max(64, 64 * $dealsCount);
-		$count        = $defaultCount;
+		// ---------- Parâmetros CLI ----------
+		$minCalls = self::MIN_CALLS_PER_DEAL;
+		$maxCalls = self::MAX_CALLS_PER_DEAL;
 
-		if ($this->command instanceof Command && $this->command->hasOption('count')) {
-			try {
-				$raw = $this->command->option('count');
+		if ($this->command instanceof Command) {
+			if ($this->command->hasOption('min-calls')) {
+				$raw = $this->command->option('min-calls');
 				if (is_numeric($raw) && (int) $raw > 0) {
-					$count = (int) $raw;
-				} else {
-					$this->command?->warn(sprintf(
-						'DealCallSeeder: valor inválido para --count (%s); usando %d.',
-						(string) $raw,
-						$defaultCount
-					));
+					$minCalls = (int) $raw;
 				}
-			} catch (\Throwable) {
-				$this->command?->warn('DealCallSeeder: falha ao ler --count; usando valor padrão.');
-				$count = $defaultCount;
+			}
+			if ($this->command->hasOption('max-calls')) {
+				$raw = $this->command->option('max-calls');
+				if (is_numeric($raw) && (int) $raw >= $minCalls) {
+					$maxCalls = (int) $raw;
+				}
 			}
 		}
 
@@ -71,7 +74,6 @@ class DealCallSeeder extends Seeder
 		};
 
 		$maybe = function (?callable $producer = null) use ($randBool) {
-			// true => retorna null (tolerância); false => produz valor
 			if ($randBool((int) round(self::OPTIONALITY * 100))) {
 				return null;
 			}
@@ -79,8 +81,7 @@ class DealCallSeeder extends Seeder
 		};
 
 		$endpoint = function () use ($faker): string {
-			// 65% e-mail / 35% telefone E.164
-			return $faker->boolean(65) ? $faker->unique()->safeEmail() : $faker->e164PhoneNumber();
+			return $faker->boolean(65) ? $faker->safeEmail() : $faker->e164PhoneNumber();
 		};
 
 		$durationStr = function (int $seconds): string {
@@ -102,10 +103,11 @@ class DealCallSeeder extends Seeder
 			'callback_requested'
 		];
 
-		// ---------- Inserção em transação ----------
+		// ---------- Criar chamadas para cada deal ----------
 		DB::transaction(function () use (
 			$faker,
-			$count,
+			$minCalls,
+			$maxCalls,
 			$maybe,
 			$endpoint,
 			$durationStr,
@@ -114,84 +116,85 @@ class DealCallSeeder extends Seeder
 			$dealIds = DB::table(DC::TABLE_DEALS)->pluck('id')->all();
 			$userIds = DB::table(DC::TABLE_USERS)->pluck('id')->all();
 
-			// Guardas finais
 			if (empty($dealIds) || empty($userIds)) {
 				return;
 			}
 
-			$callTypes = CallType::values(); // valores válidos do enum
+			$callTypes = CallType::values();
+			$totalInserted = 0;
 
-			for ($i = 0; $i < $count; $i++) {
-				// Base temporal: até 180 dias atrás
-				$startedAt = Carbon::now()
-					->subDays($faker->numberBetween(0, 180))
-					->subMinutes($faker->numberBetween(0, 1440));
+			// Para cada deal, criar entre minCalls e maxCalls chamadas
+			foreach ($dealIds as $dealId) {
+				$numCalls = $faker->numberBetween($minCalls, $maxCalls);
 
-				// Duração esperada: 30s–2h
-				$seconds   = $faker->numberBetween(30, 2 * 60 * 60);
-				$durHHMMSS = $durationStr($seconds);
+				for ($i = 0; $i < $numCalls; $i++) {
+					try {
+						$startedAt = Carbon::now()
+							->subDays($faker->numberBetween(0, 180))
+							->subMinutes($faker->numberBetween(0, 1440));
 
-				// Campos obrigatórios
-				$dealId = $dealIds[array_rand($dealIds)];
-				// Na migration, user_id acabou não nulo (nullableUser: true na trait); portanto, sempre preencher:
-				$userId = $userIds[array_rand($userIds)];
+						$seconds   = $faker->numberBetween(30, 2 * 60 * 60);
+						$durHHMMSS = $durationStr($seconds);
 
-				// from_id e to_id são opcionais (FK com nullOnDelete)
-				$fromUserId = $maybe(fn() => $userIds[array_rand($userIds)]);
-				$toUserId   = $maybe(fn() => $userIds[array_rand($userIds)]);
+						$userId = $userIds[array_rand($userIds)];
+						$fromUserId = $maybe(fn() => $userIds[array_rand($userIds)]);
+						$toUserId   = $maybe(fn() => $userIds[array_rand($userIds)]);
 
-				// Endpoints textuais normalizados
-				$fromAddr = $endpoint();
-				$toAddr   = $endpoint();
+						$fromAddr = $endpoint();
+						$toAddr   = $endpoint();
+						$callType = $callTypes[array_rand($callTypes)];
 
-				// Tipo de chamada
-				$callType = $callTypes[array_rand($callTypes)];
+						$callDatetime = $maybe(fn() => $startedAt->toDateTimeString());
+						$callDuration = $maybe(fn() => $durHHMMSS);
+						$duration     = $durHHMMSS;
 
-				// call_datetime (opcional), call_duration (TIME, opcional) e duration (string obrigatória)
-				$callDatetime = $maybe(fn() => $startedAt->toDateTimeString());
-				$callDuration = $maybe(fn() => $durHHMMSS); // TIME aceita HH:MM:SS
-				$duration     = $durHHMMSS;                 // sempre preenchido
+						$callResult  = $maybe(fn() => $faker->randomElement($callResults));
+						$subject     = 'Call: ' . $faker->sentence(5);
+						$description = $maybe(fn() => $faker->paragraphs($faker->numberBetween(1, 3), true));
+						$notes       = $maybe(fn() => $faker->sentences($faker->numberBetween(1, 2), true));
 
-				// Resultado e textos opcionais
-				$callResult  = $maybe(fn() => $faker->randomElement($callResults));
-				$subject     = 'Call: ' . $faker->sentence(5);
-				$description = $maybe(fn() => $faker->paragraphs($faker->numberBetween(1, 3), true));
-				$notes       = $maybe(fn() => $faker->sentences($faker->numberBetween(1, 2), true));
+						$creatorId = $maybe(fn() => $userIds[array_rand($userIds)]);
+						$updaterId = $maybe(fn() => $userIds[array_rand($userIds)]);
+						$updatedAt = $startedAt->addMinutes($faker->numberBetween(1, 240));
+						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Acordo de Negócios {$dealId} de {$fromAddr} para {$toAddr} sobre o assunto '{$subject}'");
+						DealCall::query()->create([
+							AC::COL_DL            => $dealId,
+							UC::COL_USER_ID       => $userId,
+							'from'                => $fromAddr,
+							AC::COL_TO_ID         => $toUserId,
+							'to'                  => $toAddr,
+							AC::COL_FRM_ID        => $fromUserId,
+							'subject'             => mb_substr($subject, 0, 255),
+							'description'         => $description,
+							'notes'               => $notes,
+							AC::COL_CL_TP         => $callType,
+							AC::COL_CL_DT         => $callDatetime,
+							AC::COL_CL_DUR        => $callDuration,
+							AC::COL_CL_RS         => $callResult,
+							'duration'            => $duration,
+							DC::COL_TABLE_CREATOR => $creatorId,
+							DC::COL_TABLE_UPDATER => $updaterId,
+							'created_at'          => $startedAt->toDateTimeString(),
+							'updated_at'          => $updatedAt->toDateTimeString(),
+						]);
 
-				// Auditoria (nulos tolerados nas FKs da trait)
-				$creatorId = $maybe(fn() => $userIds[array_rand($userIds)]);
-				$updaterId = $maybe(fn() => $userIds[array_rand($userIds)]);
-				$updatedAt = $startedAt->addMinutes($faker->numberBetween(1, 240));
+						$totalInserted++;
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed for deal ' . $dealId . ': ' . $e->getMessage());
+						continue;
+					}
+				}
+			}
 
-				DB::table(DC::TABLE_DL_CALLS)->insert([
-					'id'                   => (string) Str::uuid(),
-
-					// DealConnected
-					AC::COL_DL            => $dealId,
-
-					// IsBusinessContact (básico)
-					UC::COL_USER_ID       => $userId,
-					'from'                => $fromAddr,
-					AC::COL_TO_ID         => $toUserId,
-					'to'                  => $toAddr,
-					AC::COL_FRM_ID        => $fromUserId,
-					'subject'             => mb_substr($subject, 0, 255),
-					'description'         => $description,
-					'notes'               => $notes,
-
-					// BusinessCall
-					AC::COL_CL_TP         => $callType,
-					AC::COL_CL_DT         => $callDatetime,
-					AC::COL_CL_DUR        => $callDuration,   // TIME (nullable)
-					AC::COL_CL_RS         => $callResult,     // TEXT (nullable)
-					'duration'            => $duration,       // string(20) obrigatória
-
-					// Auditoria
-					DC::COL_TABLE_CREATOR => $creatorId,
-					DC::COL_TABLE_UPDATER => $updaterId,
-					'created_at'          => $startedAt->toDateTimeString(),
-					'updated_at'          => $updatedAt->toDateTimeString(),
-				]);
+			// Log final
+			if (method_exists($this, 'command') && $this->command) {
+				$avgPerDeal = $totalInserted / max(1, count($dealIds));
+				$this->command->info(sprintf(
+					'DealCallSeeder: %d calls inserted for %d deals (avg: %.1f per deal)',
+					$totalInserted,
+					count($dealIds),
+					$avgPerDeal
+				));
 			}
 		});
 	}

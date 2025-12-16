@@ -11,6 +11,7 @@ use App\Enums\ConsumableType;
 use App\Models\ProductServiceCategory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\{Log};
 use Faker\Factory as Faker;
 
 class ProductServiceCategorySeeder extends Seeder
@@ -118,33 +119,40 @@ class ProductServiceCategorySeeder extends Seeder
 		];
 
 		foreach (array_merge($catalog, $typedGenerics) as $row) {
-			$label = $row[DC::COL_TP_LB];
-			$typeIndex = $labelIndex[$label] ?? 0;
+			try {
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Categoria de Produto/Serviço: {$row['name']}");
+				$label = $row[DC::COL_TP_LB];
+				$typeIndex = $labelIndex[$label] ?? 0;
 
-			ProductServiceCategory::updateOrCreate(
-				['code' => $row['code']],
-				[
-					// Mantém ID estável em primeira criação; em updates, o DB ignorará mudança de PK
-					'id'            => (string) Str::uuid(),
-					'name'          => $row['name'],
-					// Índice compatível (0..9) alinhado ao label escolhido
-					'type'          => $typeIndex,
-					DC::COL_TP_LB   => $label,
-					BKC::COL_COA    => null,
-					'color'         => $row['color'] ?? '#fc544b',
-					'icon'          => $row['icon'] ?? null,
-					'attributes'    => [
-						'visibility'  => 'public',
-						'label_key'   => $label,
-						'label_index' => $typeIndex,
-						'tags'        => [$row['code'], 'catalog'],
-					],
-					'description'   => $faker->sentences(2, true),
-					DC::COL_RL_CAT  => [],
-					'notes'         => $faker->sentence(),
-					AC::COL_IA      => true,
-				]
-			);
+				ProductServiceCategory::updateOrCreate(
+					['code' => $row['code']],
+					[
+						// Mantém ID estável em primeira criação; em updates, o DB ignorará mudança de PK
+						'id'            => (string) Str::uuid(),
+						'name'          => $row['name'],
+						// Índice compatível (0..9) alinhado ao label escolhido
+						'type'          => $typeIndex,
+						DC::COL_TP_LB   => $label,
+						BKC::COL_COA    => null,
+						'color'         => $row['color'] ?? '#fc544b',
+						'icon'          => $row['icon'] ?? null,
+						'attributes'    => [
+							'visibility'  => 'public',
+							'label_key'   => $label,
+							'label_index' => $typeIndex,
+							'tags'        => [$row['code'], 'catalog'],
+						],
+						'description'   => $faker->sentences(2, true),
+						DC::COL_RL_CAT  => [],
+						'notes'         => $faker->sentence(),
+						AC::COL_IA      => true,
+					]
+				);
+			} catch (\Exception $e) {
+				Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+				continue;
+			}
 		}
 	}
 }

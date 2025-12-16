@@ -171,6 +171,20 @@ class BillsConstants
 	public const COL_MIN_PRV_ORD = 'minimum_previous_orders';
 	public const COL_MAX_PRV_ORD = 'maximum_previous_orders';
 	public const COL_CAN_BE_GIFT = 'can_be_gifted';
+	public const COL_EST_ID = 'estimation_id';
+	public const COL_ACC_AT = 'accepted_at';
+	public const COL_REJ_AT = 'rejected_at';
+	public const COL_RQ_SIGN = 'requests_signature';
+	public const COL_IS_SIGN = 'is_signed';
+	public const COL_SIGN_AT = 'signed_at';
+	public const COL_SIGN_BY = 'signed_by';
+	public const COL_SIGN_BY_NAME = 'signed_by_name';
+	public const COL_VW_AT = 'viewed_at';
+	public const COL_PPS_ID = 'proposal_id';
+	public const COL_CNV_INV_ID = 'converted_invoice_id';
+	public const COL_IS_CNV = 'is_convert';
+	public const COL_REJ_RS = 'rejection_reason';
+	public const COL_BILL_STATUS = 'bill_status';
 
 	// * VALORES
 

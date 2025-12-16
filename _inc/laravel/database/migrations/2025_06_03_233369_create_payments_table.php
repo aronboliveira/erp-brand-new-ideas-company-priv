@@ -1,23 +1,24 @@
 <?php
 
 use App\Config\Constants\{BanksConstants as BKC, BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures};
+use App\Traits\{AcceptsSchedule, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePaymentsTable extends Migration
 {
-    use HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures;
+    use AcceptsSchedule, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures;
     private const TABLE = DC::TABLE_PAY;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->date('date')->nullable(); // ? nullable for testing
             $table->uuid(BC::COL_BACC_ID)->nullable();
             $table->uuid(BC::COL_ACC_TO)->nullable(); // * the account to which the payment is made, can be null for cash payments, and managed at controller level
             $table->uuid(BKC::COL_COA)->default(DC::DEFAULT_UUID)->nullable(); // * this should be nullable for cases where the payment method is cash or pix, and managed at controller level // * defaulted to system id to avoid issues with legacy data
-            $table->uuid(UC::COL_VD_ID)->index()->nullable();
-            $table->uuid(BC::COL_CAT_ID)->index()->nullable();
+            $table->uuid(UC::COL_VD_ID)->nullable()->index();
+            $table->uuid(BC::COL_CAT_ID)->nullable()->index();
             $table->string('recurring')->nullable();
             $this->addPaymentColumns($table);
             $table->string(BC::COL_ADD_RCP)->nullable(); // * this is not clear in the old implementation, so keeping it as is for now for compatibility
@@ -37,6 +38,7 @@ class CreatePaymentsTable extends Migration
                     ->nullOnDelete();
             $this->addBillingColumns($table);
             $this->addAuditColumns($table);
+            $this->addScheduleColumns($table);
             $this->addFailureTrackingColumns($table);
         });
     }

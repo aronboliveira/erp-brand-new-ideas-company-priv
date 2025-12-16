@@ -16,11 +16,11 @@ trait IsBusinessContact
 {
 	protected function addBasicBusinessContactColumns(Blueprint $table, bool $nullableUser = false, bool $cascade = true): void
 	{
-		$nullableUser ? $table->uuid(UC::COL_USER_ID)->index()->nullable() : $table->uuid(UC::COL_USER_ID)->index()->nullable();
+		$nullableUser ? $table->uuid(UC::COL_USER_ID)->nullable()->index() : $table->uuid(UC::COL_USER_ID)->nullable()->index();
 		$table->string('from', 254)->index(); // * boot/save should normalize as email address or phone number
-		$table->uuid(AC::COL_TO_ID, 254)->index()->nullable();
+		$table->uuid(AC::COL_TO_ID, 254)->nullable()->index();
 		$table->string('to', 254)->index(); // * boot/save should normalize as email address or phone number
-		$table->uuid(AC::COL_FRM_ID)->index()->nullable();
+		$table->uuid(AC::COL_FRM_ID)->nullable()->index();
 		$table->string('subject', 255)->index();
 		$table->text('description')->nullable();
 		$table->text('notes')->nullable();

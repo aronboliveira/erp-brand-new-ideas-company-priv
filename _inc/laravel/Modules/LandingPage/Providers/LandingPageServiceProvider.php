@@ -34,7 +34,10 @@ class LandingPageServiceProvider extends ServiceProvider
                 Log::warning("{$this->moduleName} migrations missing at {$migrationsPath}");
                 $this->output->writeln("Warning: migrations directory empty or missing at {$migrationsPath}");
             }
+            $this->output->writeln("<question>Loading migrations from {$migrationsPath}...</question>");
             $this->loadMigrationsFrom($migrationsPath);
+            $this->output->writeln("<question>Loading routes from " . module_path($this->moduleName, 'Routes/web.php') . "...</question>");
+            $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/web.php'));
             Log::debug("{$tag} completed");
             $this->output->writeln("{$tag} completed");
         } catch (Throwable $e) {

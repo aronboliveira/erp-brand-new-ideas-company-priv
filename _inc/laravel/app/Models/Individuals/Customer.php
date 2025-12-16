@@ -147,133 +147,122 @@ class Customer extends Authenticatable
                     UC::COL_LG,
                 ] as $field
             )
-                if (isset($customer->{$field}) && is_string($customer->{$field}))
-                    $customer->{$field} = trim($customer->{$field});
-
-            if ($customer->{UC::COL_EM} ?? null)
-                $customer->{UC::COL_EM} = self::normalizeEmail(
-                    $customer->{UC::COL_EM},
+                if (!empty($customer->getAttribute($field)) && is_string($customer->getAttribute($field)))
+                    $customer->setAttribute($field, trim($customer->getAttribute($field)));
+            if ($customer->getAttribute(UC::COL_EM) ?? null)
+                $customer->setAttribute(UC::COL_EM, self::normalizeEmail(
+                    $customer->getAttribute(UC::COL_EM),
                     'main',
-                    $customer->id ?? null
-                );
-
-            if ($customer->{BC::COL_BL_EMAIL} ?? null)
-                $customer->{BC::COL_BL_EMAIL} = self::normalizeEmail(
-                    $customer->{BC::COL_BL_EMAIL},
+                    $customer->getAttribute('id') ?? null
+                ));
+            if ($customer->getAttribute(BC::COL_BL_EMAIL) ?? null)
+                $customer->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
+                    $customer->getAttribute(BC::COL_BL_EMAIL),
                     'billing',
-                    $customer->id ?? null
-                );
-
-            $customer->contact = self::normalizePhone(
-                $customer->contact ?? null,
+                    $customer->getAttribute('id') ?? null
+                ));
+            $customer->setAttribute('contact', self::normalizePhone(
+                $customer->getAttribute('contact') ?? null,
                 'contact',
-                $customer->id ?? null
-            );
+                $customer->getAttribute('id') ?? null,
+                true // todo remove after tests
+            ));
 
-            $customer->{BC::COL_BL_TEL} = self::normalizePhone(
-                $customer->{BC::COL_BL_TEL} ?? null,
+            $customer->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
+                $customer->getAttribute(BC::COL_BL_TEL) ?? null,
                 'billing',
-                $customer->id ?? null
-            );
+                $customer->getAttribute('id') ?? null,
+                true
+            ));
 
-            $customer->{BC::COL_SHIP_TEL} = self::normalizePhone(
-                $customer->{BC::COL_SHIP_TEL} ?? null,
+            $customer->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
+                $customer->getAttribute(BC::COL_SHIP_TEL) ?? null,
                 'shipping',
-                $customer->id ?? null
-            );
-
+                $customer->getAttribute('id') ?? null,
+                true
+            ));
             self::normalizeBillingCountry($customer);
             self::normalizeShippingCountry($customer);
-
-            if ($customer->{BC::COL_TX_N}) {
-                if (!is_string($customer->{BC::COL_TX_N})) {
-                    if (is_numeric($customer->{BC::COL_TX_N}))
-                        $customer->{BC::COL_TX_N} = (string) $customer->{BC::COL_TX_N};
+            if ($customer->getAttribute(BC::COL_TX_N)) {
+                if (!is_string($customer->getAttribute(BC::COL_TX_N))) {
+                    if (is_numeric($customer->getAttribute(BC::COL_TX_N)))
+                        $customer->setAttribute(BC::COL_TX_N, (string) $customer->getAttribute(BC::COL_TX_N));
                     else
-                        $customer->{BC::COL_TX_N} = null;
+                        $customer->setAttribute(BC::COL_TX_N, null);
                 } else {
-                    $raw = trim((string) $customer->{BC::COL_TX_N});
+                    $raw = trim((string) $customer->getAttribute(BC::COL_TX_N));
                     if (static::looksLikeUuid($raw))
-                        $customer->{BC::COL_TX_N} = strtolower($raw);
+                        $customer->setAttribute(BC::COL_TX_N, strtolower($raw));
                     else {
                         $digits = preg_replace('/\D+/', '', $raw);
                         if (strlen($digits) === 11 || strlen($digits) === 14)
-                            $customer->{BC::COL_TX_N} = $digits;
+                            $customer->setAttribute(BC::COL_TX_N, $digits);
                         else
-                            $customer->{BC::COL_TX_N} = null;
+                            $customer->setAttribute(BC::COL_TX_N, null);
                     }
                 }
             }
 
             try {
-                $customer->{BC::COL_OT_TX_ID} = self::normalizeArrayField($customer->{BC::COL_OT_TX_ID} ?? []);
+                $customer->setAttribute(BC::COL_OT_TX_ID, self::normalizeArrayField($customer->getAttribute(BC::COL_OT_TX_ID) ?? []));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize other_taxes_ids', [
                     'customer_id' => $customer->id ?? null,
                     'error'       => $e->getMessage(),
                 ]);
-                $customer->{BC::COL_OT_TX_ID} = [];
+                $customer->setAttribute(BC::COL_OT_TX_ID, []);
             }
 
             try {
-                $customer->preferences = self::normalizeArrayField($customer->preferences ?? []);
+                $customer->setAttribute('preferences', self::normalizeArrayField($customer->getAttribute('preferences') ?? []));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize preferences', [
                     'customer_id' => $customer->id ?? null,
                     'error'       => $e->getMessage(),
                 ]);
-                $customer->preferences = [];
+                $customer->setAttribute('preferences', []);
             }
-
-            if ($customer->{UC::COL_AVG_RT} !== null) {
-                $rating = (float) $customer->{UC::COL_AVG_RT};
+            if ($customer->getAttribute(UC::COL_AVG_RT) !== null) {
+                $rating = (float) $customer->getAttribute(UC::COL_AVG_RT);
                 if ($rating < 0) $rating = 0;
                 if ($rating > 5) $rating = 5;
-                $customer->{UC::COL_AVG_RT} = $rating;
+                $customer->setAttribute(UC::COL_AVG_RT, $rating);
             }
-
-            if ($customer->{BC::COL_OD_C} !== null && $customer->{BC::COL_OD_C} < 0)
-                $customer->{BC::COL_OD_C} = 0;
-
-            if ($customer->balance === null || !is_numeric($customer->balance) || $customer->balance < 0)
-                $customer->balance = 0.00;
-
-            if ($customer->{UC::COL_LG})
-                $customer->{UC::COL_LG} = strtolower(trim($customer->{UC::COL_LG}));
+            if ($customer->getAttribute(BC::COL_OD_C) !== null && $customer->getAttribute(BC::COL_OD_C) < 0)
+                $customer->setAttribute(BC::COL_OD_C, 0);
+            if ($customer->getAttribute('balance') === null || !is_numeric($customer->getAttribute('balance')) || $customer->getAttribute('balance') < 0)
+                $customer->setAttribute('balance', 0.00);
+            if ($customer->getAttribute(UC::COL_LG))
+                $customer->setAttribute(UC::COL_LG, strtolower(trim($customer->getAttribute(UC::COL_LG))));
             else
-                $customer->{UC::COL_LG} = DC::DEFAULT_LANG;
-
-            $billingCountryEnum = CountryName::normalize($customer->{BC::COL_BL_CTR} ?? null)
+                $customer->setAttribute(UC::COL_LG, DC::DEFAULT_LANG);
+            $billingCountryEnum = CountryName::normalize($customer->getAttribute(BC::COL_BL_CTR) ?? null)
                 ?? CountryName::Brazil;
-            $shippingCountryEnum = CountryName::normalize($customer->{BC::COL_SHIP_CTR} ?? null)
+            $shippingCountryEnum = CountryName::normalize($customer->getAttribute(BC::COL_SHIP_CTR) ?? null)
                 ?? CountryName::Brazil;
-            $customer->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
-            $customer->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
+            $customer->setAttribute(BC::COL_BL_CTR, $billingCountryEnum->value);
+            $customer->setAttribute(BC::COL_SHIP_CTR, $shippingCountryEnum->value);
             self::normalizeStateField($customer, BC::COL_BL_ST, $billingCountryEnum);
             self::normalizeStateField($customer, BC::COL_SHIP_ST, $shippingCountryEnum);
-
-            $customer->{BC::COL_BL_ZIP} = self::normalizeZip(
-                $customer->{BC::COL_BL_ZIP} ?? null,
-                $customer->{BC::COL_BL_CTR},
+            $customer->setAttribute(BC::COL_BL_ZIP, self::normalizeZip(
+                $customer->getAttribute(BC::COL_BL_ZIP) ?? null,
+                $customer->getAttribute(BC::COL_BL_CTR),
                 'billing',
                 $customer->id ?? null
-            );
-
-            $customer->{BC::COL_SHIP_ZIP} = self::normalizeZip(
-                $customer->{BC::COL_SHIP_ZIP} ?? null,
-                $customer->{BC::COL_SHIP_CTR},
+            ));
+            $customer->setAttribute(BC::COL_SHIP_ZIP, self::normalizeZip(
+                $customer->getAttribute(BC::COL_SHIP_ZIP) ?? null,
+                $customer->getAttribute(BC::COL_SHIP_CTR),
                 'shipping',
                 $customer->id ?? null
-            );
+            ));
+            if ($customer->getAttribute(UC::COL_IA) === null)
+                $customer->setAttribute(UC::COL_IA, true);
 
-            if ($customer->{UC::COL_IA} === null)
-                $customer->{UC::COL_IA} = true;
-
-            if ($customer->{BC::COL_IS_PRM} === null)
-                $customer->{BC::COL_IS_PRM} = false;
-
-            if (!$customer->{BC::COL_CST_ID} && auth()->check())
-                $customer->{BC::COL_CST_ID} = auth()->id();
+            if ($customer->getAttribute(BC::COL_IS_PRM) === null)
+                $customer->setAttribute(BC::COL_IS_PRM, false);
+            if (!$customer->getAttribute(BC::COL_CST_ID) && auth()->check())
+                $customer->setAttribute(BC::COL_CST_ID, auth()->id());
         });
     }
 
@@ -481,9 +470,7 @@ class Customer extends Authenticatable
             ($userOrRedirect = self::_checkLogin())
             instanceof \Illuminate\Http\RedirectResponse
         ) return $userOrRedirect;
-
         $user = $userOrRedirect;
-
         return DB::table(DC::TABLE_CUSTOMERS)
             ->where(UC::COL_NM, $customerName)
             ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())

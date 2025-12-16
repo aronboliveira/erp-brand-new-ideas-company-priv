@@ -34,20 +34,26 @@ final class BugStatusSeeder extends Seeder
 			];
 
 			foreach ($rows as $r) {
-				if (Bst::where(AC::COL_TT, $r['title'])->exists()) {
+				try {
+					if (Bst::where(AC::COL_TT, $r['title'])->exists()) {
+						continue;
+					}
+
+					do $statusId = Str::uuid()->toString();
+					while (Bst::where('id', $statusId)->exists());
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Status de Bug: {$r['title']}");
+					$bs = new Bst();
+					$bs->id                   = $statusId;
+					$bs->{AC::COL_OD}         = $r['ord'];
+					$bs->{AC::COL_TT}         = $r['title'];
+					$bs->{DC::COL_TABLE_CREATOR}  = $systemUserId;
+					$bs->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$bs->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
-
-				do $statusId = Str::uuid()->toString();
-				while (Bst::where('id', $statusId)->exists());
-
-				$bs = new Bst();
-				$bs->id                   = $statusId;
-				$bs->{AC::COL_OD}         = $r['ord'];
-				$bs->{AC::COL_TT}         = $r['title'];
-				$bs->{DC::COL_TABLE_CREATOR}  = $systemUserId;
-				$bs->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$bs->save();
 			}
 		}, 3);
 	}

@@ -5,10 +5,9 @@ namespace App\Models;
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, Frequency};
 use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\{Log, Validator};
 use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
@@ -110,80 +109,105 @@ class Contract extends Model
     {
         parent::booted();
         static::saving(function (self $c): void {
-            if ($c->renewable === false)
-                $c->{PJC::COL_ARNW} = false;
-            if ($c->{PJC::COL_S_DT} && $c->{PJC::COL_E_DT} && $c->{PJC::COL_E_DT} < $c->{PJC::COL_S_DT})
+            if ($c->getAttribute('renewable') === false)
+                $c->setAttribute(PJC::COL_ARNW, false);
+            $start = $c->getAttribute(PJC::COL_S_DT);
+            $end   = $c->getAttribute(PJC::COL_E_DT);
+            if ($start && $end && $end < $start)
                 throw ValidationException::withMessages([
                     PJC::COL_E_DT => 'A data de término não pode ser anterior ao início.',
                 ]);
-            foreach (['title', 'subject', PJC::COL_CLIENT_NAME] as $f)
-                if (isset($c->{$f}) && is_string($c->{$f})) $c->{$f} = trim($c->{$f});
-            if ($c->type) {
+            foreach (['title', 'subject', PJC::COL_CLIENT_NAME] as $f) {
+                $value = $c->getAttribute($f);
+                if (is_string($value))
+                    $c->setAttribute($f, trim($value));
+            }
+            $typeKey = $c->getAttribute('type');
+            if ($typeKey) {
                 /** @var ContractType|null $t */
                 $t = $c->contractType()->first();
-                if ($t) self::applyTypeConstraints($c, $t);
+                if ($t)
+                    self::applyTypeConstraints($c, $t);
             }
             $v = Validator::make($c->getAttributes(), [
                 'currency' => ['nullable', 'string', 'max:8'],
                 'value'    => ['nullable', 'regex:/^\d+(\.\d{1,2})?$/'], // compatível com coluna string
             ]);
-            if ($v->fails()) throw new ValidationException($v);
+            if ($v->fails())
+                throw new ValidationException($v);
         });
     }
 
-    private static function applyTypeConstraints(self $c, ContractType $t): void
+    /**
+     * Apply ContractType constraints to the Contract model
+     *
+     * @param self $contract
+     * @param ContractType $type
+     * @return void
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    private static function applyTypeConstraints(self $contract, ContractType $type): void
     {
-        $val = $c->value !== null ? (float)$c->value : null;
-        $minV = $t->{BC::COL_MIN_V} ?? null;
-        $maxV = $t->{BC::COL_MAX_V} ?? null;
-
-        if ($val !== null) {
-            if ($minV !== null && $val < (float)$minV)
-                throw ValidationException::withMessages([
-                    'value' => "Valor abaixo do mínimo para o tipo selecionado (mínimo: " . number_format((float)$minV, 2, ',', '.') . ").",
-                ]);
-            if ($maxV !== null && (float)$maxV > 0 && $val > (float)$maxV)
-                throw ValidationException::withMessages([
-                    'value' => "Valor acima do máximo para o tipo selecionado (máximo: " . number_format((float)$maxV, 2, ',', '.') . ").",
-                ]);
-        }
-
-        $start = self::toImmutable($c->{PJC::COL_S_DT});
-        $end   = self::toImmutable($c->{PJC::COL_E_DT});
-        if ($start && $end) {
-            $months = $start->diffInMonths($end) ?: 0;
-
-            $minM = $t->{BC::COL_MIN_M} ?? null;
-            $maxM = $t->{BC::COL_MAX_M} ?? null;
-
-            if ($minM !== null && $months < (int)$minM) {
-                throw ValidationException::withMessages([
-                    PJC::COL_E_DT => "Duração inferior ao mínimo para o tipo selecionado ({$minM} meses).",
-                ]);
-            }
-            if ($maxM !== null && (int)$maxM > 0 && $months > (int)$maxM) {
-                throw ValidationException::withMessages([
-                    PJC::COL_E_DT => "Duração superior ao máximo para o tipo selecionado ({$maxM} meses).",
-                ]);
+        $value = $contract->getAttribute('value');
+        $startDate = self::toImmutable($contract->getAttribute(PJC::COL_S_DT));
+        $endDate = self::toImmutable($contract->getAttribute(PJC::COL_E_DT));
+        if ($value !== null && $value !== '') {
+            $numericValue = is_numeric($value) ? (float)$value : null;
+            if ($numericValue !== null) {
+                $minValue = $type->getAttribute(BC::COL_MIN_V);
+                $maxValue = $type->getAttribute(BC::COL_MAX_V);
+                if ($minValue !== null && $numericValue < (float)$minValue) {
+                    Log::warning([
+                        'value' => "O valor do contrato não pode ser menor que " . number_format($minValue, 2, ',', '.'),
+                    ]);
+                    $contract->setAttribute('value', number_format((float)$minValue, 2, '.', ''));
+                }
+                if ($maxValue !== null && $numericValue > (float)$maxValue) {
+                    Log::warning([
+                        'value' => "O valor do contrato não pode ser maior que " . number_format($maxValue, 2, ',', '.'),
+                    ]);
+                    $contract->setAttribute('value', number_format((float)$maxValue, 2, '.', ''));
+                }
             }
         }
-
-        $termsCol = BC::COL_TC;
-        if (empty($c->{PJC::COL_CDESC}) && !empty($t->{$termsCol}))
-            $c->{PJC::COL_CDESC} = (string)$t->{$termsCol};
-        $rngtCol = BC::COL_RNGT;
-        if (isset($t->{$rngtCol})) {
-            $isRenegotiable = (bool)$t->{$rngtCol};
-            if (!$isRenegotiable) {
-                $c->renewable = false;
-                $c->{PJC::COL_ARNW} = false;
+        if ($startDate && $endDate) {
+            $durationMonths = $startDate->diffInMonths($endDate);
+            $minMonths = $type->getAttribute(BC::COL_MIN_M);
+            $maxMonths = $type->getAttribute(BC::COL_MAX_M);
+            if ($minMonths !== null && $durationMonths < (int)$minMonths) {
+                Log::warning([
+                    PJC::COL_E_DT => "A duração do contrato deve ser de pelo menos {$minMonths} " . ($minMonths === 1 ? 'mês' : 'meses'),
+                ]);
+                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$minMonths)->toDateString()); // todo for now set, but later throw error
+            }
+            if ($maxMonths !== null && $durationMonths > (int)$maxMonths) {
+                Log::warning([
+                    PJC::COL_E_DT => "A duração do contrato não pode exceder {$maxMonths} " . ($maxMonths === 1 ? 'mês' : 'meses'),
+                ]);
+                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$maxMonths)->toDateString());
             }
         }
-
-        // ? garantias do tipo (se o tipo exigir, não ajustamos aqui por falta de campos específicos;
-        // ? validação documental pode ser feita na camada de caso de uso / serviço).
+        $renewable = $contract->getAttribute('renewable');
+        $allowsRenegotiation = $type->getAttribute(BC::COL_RNGT);
+        if ($allowsRenegotiation === false && $renewable === true) {
+            Log::warning([
+                'renewable' => 'Este tipo de contrato não permite renovação.',
+            ]);
+            $contract->setAttribute('renewable', false);
+        }
+        $allowsSeveranceGuarantee = $type->getAttribute(BC::COL_SVR_GRT);
+        if ($allowsSeveranceGuarantee === false) {
+            // todo work on this later
+        }
+        $definesTermination = $type->getAttribute(BC::COL_DEF_TRMC);
+        if ($definesTermination === true) {
+            // todo work on this later
+        }
+        $typeTerms = $type->getAttribute(BC::COL_TC);
+        $contractDescription = $contract->getAttribute('description');
+        if ($typeTerms && (!$contractDescription || trim($contractDescription) === ''))
+            $contract->setAttribute('description', $typeTerms);
     }
-
     /** @var \Carbon\CarbonImmutable|null */
     private static function toImmutable($date)
     {

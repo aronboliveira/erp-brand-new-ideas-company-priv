@@ -27,7 +27,7 @@ final class OrderSeeder extends Seeder
 	/**
 	 * Quantidade de pedidos a gerar
 	 */
-	private const TOTAL = 24;
+	private const TOTAL = 256;
 
 	public function run(): void
 	{
@@ -44,103 +44,111 @@ final class OrderSeeder extends Seeder
 			$failed  = 0;
 
 			for ($i = 0; $i < self::TOTAL; $i++) {
-				// Método de pagamento preferencial (60% Pix, 25% Crédito, 15% Débito)
-				$method = $this->pickWeighted([
-					PaymentMethod::Pix->value        => 60,
-					PaymentMethod::CardCredit->value => 25,
-					PaymentMethod::CardDebit->value  => 15,
-				]);
-
-				// Preço/desconto coerentes
-				$price    = $this->money2($faker->randomFloat(2, 79, 8999));
-				$discount = $this->money2($faker->randomFloat(2, 0, $price * 0.25));
-
-				// Parcelas (apenas faz sentido para crédito; demais ficam 1)
-				$installments = $method === PaymentMethod::CardCredit->value
-					? random_int(1, 12)
-					: 1;
-
-				// Instrumentos (requisito: ao menos um entre cartão | pix | payslip)
-				$card = $method === PaymentMethod::CardCredit->value || $method === PaymentMethod::CardDebit->value
-					? $this->makeCardData($faker)
-					: null;
-
-				$pixKey = $method === PaymentMethod::Pix->value
-					? $this->makePixKey($faker)
-					: null;
-
-				// Status inicial realista
-				$status = $this->pick([
-					PaymentStatus::Pending->value,
-					PaymentStatus::Processing->value,
-					PaymentStatus::Authorized->value,
-					PaymentStatus::Completed->value,
-				]);
-
-				// FK de usuário (único). Se pool esgotar, usa NULL (permitido e NÃO conflita com UNIQUE)
-				$userId = $userIds[$i] ?? null;
-
-				$payload = [
-					UC::COL_USER_ID       => $userId,                    // UNIQUE e nullable
-					BC::COL_OD_ID         => 'ORD-' . Str::upper(Str::random(12)), // UNIQUE externo
-					'name'                => $faker->name(),
-					'email'               => $faker->unique()->safeEmail(),
-					UC::COL_PLAN_ID       => $planId,                    // FK obrigatória
-					UC::COL_PLAN_NM       => $this->pick(['Starter', 'Business', 'Enterprise']),
-					'price'               => $price,
-					'discount'            => $discount,
-					BC::COL_PRC_CUR       => strtoupper(SC::DEF_SITE_CURRENCY_ID ?? 'BRL'),
-					BC::COL_N_INTR        => $installments,
-
-					// Cartão (preenchido apenas quando necessário)
-					BC::COL_CD_FLG        => $card['flag']     ?? null,
-					BC::COL_CD_NB         => $card['number']   ?? null,
-					BC::COL_CD_DG         => $card['digits']   ?? null,
-					BC::COL_CD_HNM        => $card['holder']   ?? null,
-					BC::COL_CD_EX_M       => $card['exp_mon']  ?? null, // MonthName::value
-					BC::COL_CD_EX_Y       => $card['exp_year'] ?? null, // string YYYY
-
-					// Pix (preenchido apenas quando necessário)
-					BC::COL_PIX_KEY       => $pixKey,
-
-					// Tributos (opcional: deixa nulos/array vazio; modelo filtra IDs inexistentes)
-					BC::COL_TAX_ID        => null,
-					BC::COL_OT_TX_ID      => [],
-
-					// Payslip: evitamos setar FK para não forçar dependências
-					BC::COL_PSLP_ID       => null,
-
-					// Status / método
-					BC::COL_PAY_STT       => $status,
-					BC::COL_PAY_TP        => $method,
-
-					// Recibo e metadados auxiliares
-					'receipt'             => null,
-					BC::COL_RCP_MD        => [
-						'ip'         => $faker->ipv4(),
-						'user_agent' => $faker->userAgent(),
-						'notes'      => $faker->optional(0.3)->sentence(),
-					],
-
-					// Auditoria
-					DC::COL_TABLE_CREATOR     => $systemUserId,
-				];
-
 				try {
-					Order::create($payload);
-					$created++;
-				} catch (\Throwable $e) {
-					$failed++;
-					Log::warning(self::class . ' failed to create Order row', [
-						'i'       => $i,
-						'error'   => $e->getMessage(),
-						'payload' => [
-							'user_id' => $payload[UC::COL_USER_ID],
-							'plan_id' => $payload[UC::COL_PLAN_ID],
-							'email'   => $payload['email'],
-							'method'  => $payload[BC::COL_PAY_TP],
-						],
+					// Método de pagamento preferencial (60% Pix, 25% Crédito, 15% Débito)
+					$method = $this->pickWeighted([
+						PaymentMethod::Pix->value        => 60,
+						PaymentMethod::CardCredit->value => 25,
+						PaymentMethod::CardDebit->value  => 15,
 					]);
+
+					// Preço/desconto coerentes
+					$price    = $this->money2($faker->randomFloat(2, 79, 8999));
+					$discount = $this->money2($faker->randomFloat(2, 0, $price * 0.25));
+
+					// Parcelas (apenas faz sentido para crédito; demais ficam 1)
+					$installments = $method === PaymentMethod::CardCredit->value
+						? random_int(1, 12)
+						: 1;
+
+					// Instrumentos (requisito: ao menos um entre cartão | pix | payslip)
+					$card = $method === PaymentMethod::CardCredit->value || $method === PaymentMethod::CardDebit->value
+						? $this->makeCardData($faker)
+						: null;
+
+					$pixKey = $method === PaymentMethod::Pix->value
+						? $this->makePixKey($faker)
+						: null;
+
+					// Status inicial realista
+					$status = $this->pick([
+						PaymentStatus::Pending->value,
+						PaymentStatus::Processing->value,
+						PaymentStatus::Authorized->value,
+						PaymentStatus::Completed->value,
+					]);
+
+					// FK de usuário (único). Se pool esgotar, usa NULL (permitido e NÃO conflita com UNIQUE)
+					$userId = $userIds[$i] ?? null;
+					$orderId = 'ORD-' . Str::upper(Str::random(12)); // UNIQUE externo
+					$name = $faker->boolean(75) ? $faker->company() . ' Service' : ($faker->boolean(50) ? $faker->company() . ' Product' : $faker->sentence(3));
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Pedido {$orderId} de {$name} via {$method} para {$userId}");
+					$payload = [
+						UC::COL_USER_ID       => $userId,                    // UNIQUE e nullable
+						BC::COL_OD_ID         => $orderId, // UNIQUE externo
+						'name'                => $name,
+						'email'               => $faker->unique()->safeEmail(),
+						UC::COL_PLAN_ID       => $planId,                    // FK obrigatória
+						UC::COL_PLAN_NM       => $this->pick(['Starter', 'Business', 'Enterprise']),
+						'price'               => $price,
+						'discount'            => $discount,
+						BC::COL_PRC_CUR       => strtoupper(SC::DEF_SITE_CURRENCY_ID ?? 'BRL'),
+						BC::COL_N_INTR        => $installments,
+
+						// Cartão (preenchido apenas quando necessário)
+						BC::COL_CD_FLG        => $card['flag']     ?? null,
+						BC::COL_CD_NB         => $card['number']   ?? null,
+						BC::COL_CD_DG         => $card['digits']   ?? null,
+						BC::COL_CD_HNM        => $card['holder']   ?? null,
+						BC::COL_CD_EX_M       => $card['exp_mon']  ?? null, // MonthName::value
+						BC::COL_CD_EX_Y       => $card['exp_year'] ?? null, // string YYYY
+
+						// Pix (preenchido apenas quando necessário)
+						BC::COL_PIX_KEY       => $pixKey,
+
+						// Tributos (opcional: deixa nulos/array vazio; modelo filtra IDs inexistentes)
+						BC::COL_TAX_ID        => null,
+						BC::COL_OT_TX_ID      => [],
+
+						// Payslip: evitamos setar FK para não forçar dependências
+						BC::COL_PSLP_ID       => null,
+
+						// Status / método
+						BC::COL_PAY_STT       => $status,
+						BC::COL_PAY_TP        => $method,
+
+						// Recibo e metadados auxiliares
+						'receipt'             => null,
+						BC::COL_RCP_MD        => [
+							'ip'         => $faker->ipv4(),
+							'user_agent' => $faker->userAgent(),
+							'notes'      => $faker->optional(0.3)->sentence(),
+						],
+
+						// Auditoria
+						DC::COL_TABLE_CREATOR     => $systemUserId,
+					];
+
+					try {
+						Order::create($payload);
+						$created++;
+					} catch (\Throwable $e) {
+						$failed++;
+						Log::warning(self::class . ' failed to create Order row', [
+							'i'       => $i,
+							'error'   => $e->getMessage(),
+							'payload' => [
+								'user_id' => $payload[UC::COL_USER_ID],
+								'plan_id' => $payload[UC::COL_PLAN_ID],
+								'email'   => $payload['email'],
+								'method'  => $payload[BC::COL_PAY_TP],
+							],
+						]);
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 

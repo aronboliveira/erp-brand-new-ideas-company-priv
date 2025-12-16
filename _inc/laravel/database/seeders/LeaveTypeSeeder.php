@@ -46,6 +46,8 @@ final class LeaveTypeSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($catalog as [$title, $days, $ext, $paid, $isHealth, $pct]) {
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Tipo de Licença {$title}");
 				[$minPct, $maxPct] = $pct;
 
 				// Hardening de limites
@@ -94,44 +96,49 @@ final class LeaveTypeSeeder extends Seeder
 			}
 
 			// Extras opcionais para variedade controlada
-			$extra = 4;
+			$extra = 64;
 			for ($i = 0; $i < $extra; $i++) {
-				$isHealth = (bool) random_int(0, 1);
-				$base     = $isHealth ? 'Licença Especial de Saúde' : 'Licença Administrativa';
-				$title    = $base . ' ' . ($i + 1);
+				try {
+					$isHealth = (bool) random_int(0, 1);
+					$base     = $isHealth ? 'Licença Especial de Saúde' : 'Licença Administrativa';
+					$title    = $base . ' ' . ($i + 1);
 
-				$days   = max(0, random_int(1, 10));
-				$ext    = max(0, random_int(0, 5));
-				$paid   = (bool) random_int(0, 1);
+					$days   = max(0, random_int(1, 10));
+					$ext    = max(0, random_int(0, 5));
+					$paid   = (bool) random_int(0, 1);
 
-				// Dedução salarial: 0% se pago; até 100% se não remunerado
-				if ($paid) {
-					$minPct = 0;
-					$maxPct = 0;
-				} else {
-					$maxPct = random_int(30, 100);
-					$minPct = random_int(0, $maxPct);
+					// Dedução salarial: 0% se pago; até 100% se não remunerado
+					if ($paid) {
+						$minPct = 0;
+						$maxPct = 0;
+					} else {
+						$maxPct = random_int(30, 100);
+						$minPct = random_int(0, $maxPct);
+					}
+
+					$payload = [
+						'title'                           => $title,
+						'days'                            => $days,
+						PJC::COL_EXT_DY                   => $ext,
+						'paid'                            => $paid,
+						PJC::COL_HLT_RL                   => $isHealth,
+						PJC::COL_SL_MIN_DD_PCT            => $minPct,
+						PJC::COL_SL_MAX_DD_PCT            => $maxPct,
+						'description'                     => $faker->sentence(random_int(8, 18)),
+						'categories'                      => $isHealth ? ['saúde'] : ['administrativo'],
+						'conditions'                      => $isHealth ? ['exigir_atestado' => true] : ['exigir_aviso_previo' => true],
+						'attachments'                     => $isHealth
+							? [['type' => 'pdf', 'required' => true, 'label' => 'Atestado']]
+							: [['type' => 'pdf', 'required' => false, 'label' => 'Comprovante']],
+						DC::COL_TABLE_CREATOR                 => $systemUserId,
+					];
+
+					LeaveType::updateOrCreate(['title' => $title], $payload);
+					$created++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				$payload = [
-					'title'                           => $title,
-					'days'                            => $days,
-					PJC::COL_EXT_DY                   => $ext,
-					'paid'                            => $paid,
-					PJC::COL_HLT_RL                   => $isHealth,
-					PJC::COL_SL_MIN_DD_PCT            => $minPct,
-					PJC::COL_SL_MAX_DD_PCT            => $maxPct,
-					'description'                     => $faker->sentence(random_int(8, 18)),
-					'categories'                      => $isHealth ? ['saúde'] : ['administrativo'],
-					'conditions'                      => $isHealth ? ['exigir_atestado' => true] : ['exigir_aviso_previo' => true],
-					'attachments'                     => $isHealth
-						? [['type' => 'pdf', 'required' => true, 'label' => 'Atestado']]
-						: [['type' => 'pdf', 'required' => false, 'label' => 'Comprovante']],
-					DC::COL_TABLE_CREATOR                 => $systemUserId,
-				];
-
-				LeaveType::updateOrCreate(['title' => $title], $payload);
-				$created++;
 			}
 
 			Log::info('LeaveTypeSeeder: created=' . $created . ', updated=' . $updated);

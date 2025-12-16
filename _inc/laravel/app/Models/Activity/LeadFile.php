@@ -179,7 +179,7 @@ final class LeadFile extends Model
 
         if (!$mimeEnum)
             $mimeEnum = MimeType::APPLICATION_OCTET_STREAM;
-        $this->{DC::COL_MM_TP} = $mimeEnum;
+        $this->setAttribute(DC::COL_MM_TP, $mimeEnum);
         $typeAttr = $this->getAttribute('type');
         $category = null;
         if ($typeAttr instanceof FileCategory)
@@ -204,7 +204,6 @@ final class LeadFile extends Model
         $columns = ['executors', 'editors', 'viewers'];
         $allIds = [];
         $parsedByColumn = [];
-
         foreach ($columns as $column) {
             $raw = $this->getAttribute($column);
             $items = $this->parseActorRawItems($raw, $column);

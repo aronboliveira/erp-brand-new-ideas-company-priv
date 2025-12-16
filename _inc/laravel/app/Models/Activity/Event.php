@@ -117,25 +117,25 @@ class Event extends Model
 
         static::saving(function (self $event): void {
             $event->syncParticipantsFromAttributes();
-            $ownerId = $event->id ?? null;
-            $participants = self::normalizeArrayField($event->participants);
+            $ownerId = $event->getAttribute('id') ?? null;
+            $participants = self::normalizeArrayField($event->getAttribute('participants') ?? null);
             $participants = $event->normalizeContactArrayRecursive(
                 $participants,
                 'event.participants',
                 $ownerId
             );
-            $event->participants = $participants;
+            $event->setAttribute('participants', $participants);
             foreach (['organizers', 'confirmed', 'sponsors'] as $field) {
-                $value = self::normalizeArrayField($event->{$field} ?? null);
+                $value = self::normalizeArrayField($event->getAttribute($field) ?? null);
                 if ($value === []) {
-                    $event->{$field} = [];
+                    $event->setAttribute($field, []);
                     continue;
                 }
-                $event->{$field} = $event->normalizeContactArrayRecursive(
+                $event->setAttribute($field, $event->normalizeContactArrayRecursive(
                     $value,
                     'event.' . $field,
                     $ownerId
-                );
+                ));
             }
             $event->ensureJsonFieldsEncoded();
         });
@@ -231,14 +231,6 @@ class Event extends Model
         return !$this->isInternal();
     }
 
-    /*
-     |--------------------------------------------------------------------------
-     | Mutators para todos os campos JSON
-     |--------------------------------------------------------------------------
-     | Usam encodeJsonAttribute() vindo de NormalizesArrays.
-     |--------------------------------------------------------------------------
-     */
-
     public function setAttachmentsAttribute($value): void
     {
         $this->encodeJsonAttribute('attachments', $value);
@@ -304,21 +296,21 @@ class Event extends Model
 
     private function syncParticipantsFromAttributes(): void
     {
-        $participants = $this->participants;
+        $participants = $this->getAttribute('participants');
         if (!is_array($participants))
             $participants = [];
-        $organizers = $this->organizers;
+        $organizers = $this->getAttribute('organizers');
         if (is_array($organizers))
             foreach ($organizers as $organizer)
                 if (is_array($organizer))
                     $participants = $this->addParticipantIfMissing($participants, $organizer);
-        $confirmed = $this->confirmed;
+        $confirmed = $this->getAttribute('confirmed');
         if (is_array($confirmed))
             foreach ($confirmed as $attendee)
                 if (is_array($attendee))
                     $participants = $this->addParticipantIfMissing($participants, $attendee);
         // host (employee_id)
-        $employeeId = $this->{UC::COL_EMP_ID} ?? null;
+        $employeeId = $this->getAttribute(UC::COL_EMP_ID) ?? null;
         if ($employeeId)
             $participants = $this->addParticipantIfMissing($participants, [
                 'id'     => (string) $employeeId,
@@ -339,11 +331,10 @@ class Event extends Model
                 $responsible,
                 static fn($v) => $v !== null && $v !== ''
             );
-
             if ($responsible !== [])
                 $participants = $this->addParticipantIfMissing($participants, $responsible);
         }
-        $this->participants = array_values($participants);
+        $this->setAttribute('participants', array_values($participants));
     }
 
     private function addParticipantIfMissing(array $participants, array $candidate): array

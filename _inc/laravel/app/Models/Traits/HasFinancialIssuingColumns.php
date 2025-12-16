@@ -23,9 +23,9 @@ trait HasFinancialIssuingColumns
 		$nullableReconcile ? $table->boolean(BC::COL_AUTORCC)->default(false)->nullable() : $table->boolean(BC::COL_AUTORCC)->default(false);
 		$nullableReconcile ? $table->json(BC::COL_RCC_RL)->nullable() : $table->json(BC::COL_RCC_RL);
 		// * Possíveis ponteiros de relação
-		$table->uuid('contract')->index()->nullable();
-		$table->uuid('loan')->index()->nullable();
-		$table->uuid(BC::COL_PRD_SV_UNT)->index()->nullable();
+		$table->uuid('contract')->nullable()->index();
+		$table->uuid('loan')->nullable()->index();
+		$table->uuid(BC::COL_PRD_SV_UNT)->nullable()->index();
 		foreach (
 			[
 				'contract'    => DC::TABLE_CONTRACTS,

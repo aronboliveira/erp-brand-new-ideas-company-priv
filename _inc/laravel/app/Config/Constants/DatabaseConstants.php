@@ -141,6 +141,17 @@ class DatabaseConstants
 	public const TABLE_DL_EMAILS = 'deal_emails';
 	public const TABLE_DL_CALLS = 'deal_calls';
 	public const TABLE_USR_CPNS = 'user_coupons';
+	public const TABLE_EST = 'estimations';
+	public const TABLE_NTF = 'notifications';
+	public const TABLE_GL = 'goals';
+	public const TABLE_GL_TRK = 'goal_trackings';
+	public const TABLE_AST = 'assets';
+	public const TABLE_CFV = 'custom_field_values';
+	public const TABLE_DOC_UP = 'document_uploads';
+	public const TABLE_EML_TMP_LG = 'email_template_langs';
+	public const TABLE_USER_EML_TMPS = 'user_email_templates';
+	public const TABLE_IND = 'indicators';
+	public const TABLE_APR = 'appraisals';
 
 	// * FIELD NAMES
 	// invoice
@@ -177,6 +188,20 @@ class DatabaseConstants
 	public const COL_IR = 'is_required';
 	public const COL_IPV = 'is_private';
 	public const COL_LA = 'last_accessed';
+	public const COL_V_NUM = 'version_number';
+	public const COL_RCD_ID = 'record_id';
+	public const COL_FLD_ID = 'field_id';
+	public const COL_DOC_ID = 'document_id';
+	public const COL_RQ_SPC = 'required_storage';
+	public const COL_OBJ_URL = 'object_url';
+	public const COL_IS_ENC = 'is_encrypted';
+	public const COL_ENC_ALG = 'encryption_algorithm';
+	public const COL_MW_SCAN = 'malware_scan';
+	public const COL_MW_FREE = 'is_malware_free';
+	public const COL_PLT_AV = 'platforms_available';
+	public const COL_IS_DEF = 'is_default';
+	public const COL_CRT_USR = 'created_user';
+
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';

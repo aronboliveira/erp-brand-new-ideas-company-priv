@@ -777,7 +777,7 @@
                                                                         data-sv-localized="true"
                                                                         data-guard-msg="{{ $leaveMessage }}"
                                                                     >
-                                                                        {{ __(VW::LV) }}
+                                                                        {{ __('Leave') }}
                                                                     </a>
                                                                 </li>
                                                                 <li class="dash-item {{ (request()->is('reports-monthly-attendance') || request()->is('reports_monthly_attendance')) ? 'active' : '' }}">

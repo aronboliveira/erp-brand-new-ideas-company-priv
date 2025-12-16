@@ -9,13 +9,13 @@ use App\Config\Constants\{
 	ProjectsConstants as PJC,
 	UsersConstants as UC
 };
-use App\Models\Department;
-use App\Models\Event;
+use App\Models\{Department, Utility};
+use App\Models\{Event, User};
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -168,210 +168,219 @@ class EventSeeder extends Seeder
 			$deptNameToId
 		): void {
 			for ($i = 0; $i < $count; $i++) {
-				$date = Carbon::now()
-					->subDays($faker->numberBetween(0, 120))
-					->format('Y-m-d');
+				try {
+					$date = Carbon::now()
+						->subDays($faker->numberBetween(0, 120))
+						->format('Y-m-d');
 
-				$time = $faker->time('H:i:s');
+					$time = $faker->time('H:i:s');
 
-				$minDuration = $faker->numberBetween(30, 240); // minutos
-				$expDuration = $randBool(70)
-					? $faker->numberBetween($minDuration, $minDuration + 180)
-					: null;
+					$minDuration = $faker->numberBetween(30, 240); // minutos
+					$expDuration = $randBool(70)
+						? $faker->numberBetween($minDuration, $minDuration + 180)
+						: null;
 
-				$maxDuration = $randBool(40)
-					? $faker->numberBetween(
-						$expDuration ?? $minDuration,
-						($expDuration ?? $minDuration) + 180
-					)
-					: null;
+					$maxDuration = $randBool(40)
+						? $faker->numberBetween(
+							$expDuration ?? $minDuration,
+							($expDuration ?? $minDuration) + 180
+						)
+						: null;
 
-				// FKs opcionais
-				$companyId     = $pickId($tables['company']);
-				$employeeId    = $maybe(fn() => $pickId($tables['employee']));
-				$responsible   = $maybe(fn() => $faker->name());
-				$responsibleId = $maybe(fn() => $pickId($tables['user']));
+					// FKs opcionais
+					$companyId     = $pickId($tables['company']);
+					$employeeId    = $maybe(fn() => $pickId($tables['employee']));
+					$responsible   = $maybe(fn() => $faker->name());
+					$responsibleId = $maybe(fn() => $pickId($tables['user']));
 
-				// --------- Branch + Departments (nova lógica) ---------
-				$branchId      = null;
-				$departmentId  = null;
-				$branchDeptsRaw = null;
+					// --------- Branch + Departments (nova lógica) ---------
+					$branchId      = null;
+					$departmentId  = null;
+					$branchDeptsRaw = null;
 
-				if ($hasBranchesTable && $branches->count() > 0 && $faker->boolean(75)) {
-					$chosenBranch   = $branches->random();
-					$branchId       = $chosenBranch->id ?? null;
-					$branchDeptsRaw = $chosenBranch->departments ?? null;
+					if ($hasBranchesTable && $branches->count() > 0 && $faker->boolean(75)) {
+						$chosenBranch   = $branches->random();
+						$branchId       = $chosenBranch->id ?? null;
+						$branchDeptsRaw = $chosenBranch->departments ?? null;
+					}
+
+					if ($hasDepartmentsTable && !empty($allDepartmentIds)) {
+						if ($branchId !== null) {
+							// Branch definido → usa departments do próprio branch
+							$departmentId = $this->resolveDepartmentFromBranch(
+								$branchDeptsRaw,
+								$allDepartmentIds,
+								$deptNameToId
+							);
+						} else {
+							// Branch nulo → escolhe entre todos os departments existentes
+							$departmentId = Arr::random($allDepartmentIds);
+						}
+
+						// Tolerância a null em department_id (ainda que raramente)
+						if (
+							$departmentId !== null
+							&& $faker->boolean((int) round(self::DEPT_NULL_TOLERANCE * 100))
+						) {
+							$departmentId = null;
+						}
+					}
+
+					// --------- Campos “complexos” opcionais ---------
+					$attachments = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 3);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'name' => $faker->words(3, true) . '.pdf',
+								'url'  => $faker->url(),
+							];
+						}
+						return $items;
+					});
+
+					$invited = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 8);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'name'   => $faker->name(),
+								'email'  => $faker->boolean(75) ? $faker->safeEmail() : null,
+								'phone'  => $faker->boolean(65) ? $faker->e164PhoneNumber() : null,
+								'locale' => $faker->randomElement(['pt_BR', 'en', 'es', 'de', 'fr']),
+							];
+						}
+						return $items;
+					});
+
+					$conditions = $maybe(function () use ($faker) {
+						return [
+							'dress_code' => $faker->randomElement(['casual', 'business', 'formal']),
+							'contact'    => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
+						];
+					});
+
+					$organizers = $maybe(function () use ($faker, $employeeId) {
+						$n     = $faker->numberBetween(1, 4);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'id'      => $faker->boolean(55) ? (string) Str::uuid() : null,
+								'name'    => $faker->name(),
+								'email'   => $faker->boolean(70) ? $faker->safeEmail() : null,
+								'phone'   => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
+								'contact' => $faker->boolean(40) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
+								'type'    => $faker->randomElement(['employee', 'user', 'external']),
+							];
+						}
+						if ($employeeId) {
+							$items[] = [
+								'id'      => (string) $employeeId,
+								'name'    => null,
+								'phone'   => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
+								'type'    => 'employee',
+								'contact' => $faker->boolean(45) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
+							];
+						}
+						return $items;
+					});
+
+					$confirmed = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 6);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'name'      => $faker->name(),
+								'email'     => $faker->boolean(70) ? $faker->safeEmail() : null,
+								'phone'     => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
+								'contact'   => $faker->boolean(40) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
+								'confirmed' => true,
+							];
+						}
+						return $items;
+					});
+
+					$gifts = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 4);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'item'     => $faker->word(),
+								'quantity' => $faker->numberBetween(1, 20),
+								'contact'  => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
+							];
+						}
+						return $items;
+					});
+
+					$sponsors = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 3);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'name'    => $faker->company(),
+								'email'   => $faker->boolean(60) ? $faker->companyEmail() : null,
+								'phone'   => $faker->boolean(60) ? $faker->e164PhoneNumber() : null,
+								'contact' => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
+							];
+						}
+						return $items;
+					});
+
+					$tags = $maybe(fn() => $faker->words($faker->numberBetween(1, 4)));
+
+					// Lembretes variáveis
+					$reminders = $maybe(function () use ($faker) {
+						$n     = $faker->numberBetween(0, 3);
+						$items = [];
+						for ($j = 0; $j < $n; $j++) {
+							$items[] = [
+								'offset_minutes' => $faker->randomElement([5, 10, 15, 30, 60, 120]),
+								'channel'        => $faker->randomElement(['email', 'sms', 'push']),
+							];
+						}
+						return $items;
+					});
+					$title = $faker->sentence(4);
+					$location = $faker->address();
+					$companyName = User::query()->where('id', $companyId)->value('name') ?? '#EMPRESA_NAO_ENCONTRADA';
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Evento {$title} da empresa {$companyName} no dia {$date} às {$time}, em {$location}, organizado por " . ($responsible ?? 'N/A'));
+					Event::query()->create([
+						'id'                      => (string) Str::uuid(),
+						'title'                   => $title,
+						'date'                    => $date,
+						'time'                    => $time,
+						CC::COL_DEP_ID           => $departmentId,
+						PJC::COL_MIN_DR          => $minDuration,
+						PJC::COL_EXP_DR          => $expDuration,
+						PJC::COL_MAX_DR          => $maxDuration,
+						'url'                     => $faker->url(),
+						'location'                => $location,
+						'note'                    => $maybe(fn() => $faker->sentence(10)),
+						CC::COL_IS_INT           => $faker->boolean(40),
+						'attachments'             => $attachments,
+						'invited'                 => $invited,
+						'conditions'              => $conditions,
+						'reminders'               => $reminders,
+						'tags'                    => $tags,
+						CC::COL_CP_ID            => $companyId,
+						CC::COL_BRC_ID           => $branchId,
+						UC::COL_EMP_ID           => $employeeId,
+						'responsible'             => $responsible,
+						AC::COL_RES_ID           => $responsibleId,
+						'organizers'              => $organizers,
+						'confirmed'               => $confirmed,
+						'gifts'                   => $gifts,
+						'sponsors'                => $sponsors,
+						// participants é montado no saving() pelo model
+						'color'                   => $faker->randomElement(['#3788d8', '#22c55e', '#f97316', '#ef4444']),
+						'description'             => $maybe(fn() => $faker->paragraph()),
+					]);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				if ($hasDepartmentsTable && !empty($allDepartmentIds)) {
-					if ($branchId !== null) {
-						// Branch definido → usa departments do próprio branch
-						$departmentId = $this->resolveDepartmentFromBranch(
-							$branchDeptsRaw,
-							$allDepartmentIds,
-							$deptNameToId
-						);
-					} else {
-						// Branch nulo → escolhe entre todos os departments existentes
-						$departmentId = Arr::random($allDepartmentIds);
-					}
-
-					// Tolerância a null em department_id (ainda que raramente)
-					if (
-						$departmentId !== null
-						&& $faker->boolean((int) round(self::DEPT_NULL_TOLERANCE * 100))
-					) {
-						$departmentId = null;
-					}
-				}
-
-				// --------- Campos “complexos” opcionais ---------
-				$attachments = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 3);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'name' => $faker->words(3, true) . '.pdf',
-							'url'  => $faker->url(),
-						];
-					}
-					return $items;
-				});
-
-				$invited = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 8);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'name'   => $faker->name(),
-							'email'  => $faker->boolean(75) ? $faker->safeEmail() : null,
-							'phone'  => $faker->boolean(65) ? $faker->e164PhoneNumber() : null,
-							'locale' => $faker->randomElement(['pt_BR', 'en', 'es', 'de', 'fr']),
-						];
-					}
-					return $items;
-				});
-
-				$conditions = $maybe(function () use ($faker) {
-					return [
-						'dress_code' => $faker->randomElement(['casual', 'business', 'formal']),
-						'contact'    => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
-					];
-				});
-
-				$organizers = $maybe(function () use ($faker, $employeeId) {
-					$n     = $faker->numberBetween(1, 4);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'id'      => $faker->boolean(55) ? (string) Str::uuid() : null,
-							'name'    => $faker->name(),
-							'email'   => $faker->boolean(70) ? $faker->safeEmail() : null,
-							'phone'   => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
-							'contact' => $faker->boolean(40) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
-							'type'    => $faker->randomElement(['employee', 'user', 'external']),
-						];
-					}
-					if ($employeeId) {
-						$items[] = [
-							'id'      => (string) $employeeId,
-							'name'    => null,
-							'phone'   => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
-							'type'    => 'employee',
-							'contact' => $faker->boolean(45) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
-						];
-					}
-					return $items;
-				});
-
-				$confirmed = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 6);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'name'      => $faker->name(),
-							'email'     => $faker->boolean(70) ? $faker->safeEmail() : null,
-							'phone'     => $faker->boolean(70) ? $faker->e164PhoneNumber() : null,
-							'contact'   => $faker->boolean(40) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
-							'confirmed' => true,
-						];
-					}
-					return $items;
-				});
-
-				$gifts = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 4);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'item'     => $faker->word(),
-							'quantity' => $faker->numberBetween(1, 20),
-							'contact'  => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
-						];
-					}
-					return $items;
-				});
-
-				$sponsors = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 3);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'name'    => $faker->company(),
-							'email'   => $faker->boolean(60) ? $faker->companyEmail() : null,
-							'phone'   => $faker->boolean(60) ? $faker->e164PhoneNumber() : null,
-							'contact' => $faker->randomElement([$faker->safeEmail(), $faker->e164PhoneNumber()]),
-						];
-					}
-					return $items;
-				});
-
-				$tags = $maybe(fn() => $faker->words($faker->numberBetween(1, 4)));
-
-				// Lembretes variáveis
-				$reminders = $maybe(function () use ($faker) {
-					$n     = $faker->numberBetween(0, 3);
-					$items = [];
-					for ($j = 0; $j < $n; $j++) {
-						$items[] = [
-							'offset_minutes' => $faker->randomElement([5, 10, 15, 30, 60, 120]),
-							'channel'        => $faker->randomElement(['email', 'sms', 'push']),
-						];
-					}
-					return $items;
-				});
-
-				Event::query()->create([
-					'id'                      => (string) Str::uuid(),
-					'title'                   => $faker->sentence(4),
-					'date'                    => $date,
-					'time'                    => $time,
-					CC::COL_DEP_ID           => $departmentId,
-					PJC::COL_MIN_DR          => $minDuration,
-					PJC::COL_EXP_DR          => $expDuration,
-					PJC::COL_MAX_DR          => $maxDuration,
-					'url'                     => $faker->url(),
-					'location'                => $faker->address(),
-					'note'                    => $maybe(fn() => $faker->sentence(10)),
-					CC::COL_IS_INT           => $faker->boolean(40),
-					'attachments'             => $attachments,
-					'invited'                 => $invited,
-					'conditions'              => $conditions,
-					'reminders'               => $reminders,
-					'tags'                    => $tags,
-					CC::COL_CP_ID            => $companyId,
-					CC::COL_BRC_ID           => $branchId,
-					UC::COL_EMP_ID           => $employeeId,
-					'responsible'             => $responsible,
-					AC::COL_RES_ID           => $responsibleId,
-					'organizers'              => $organizers,
-					'confirmed'               => $confirmed,
-					'gifts'                   => $gifts,
-					'sponsors'                => $sponsors,
-					// participants é montado no saving() pelo model
-					'color'                   => $faker->randomElement(['#3788d8', '#22c55e', '#f97316', '#ef4444']),
-					'description'             => $maybe(fn() => $faker->paragraph()),
-				]);
 			}
 		});
 	}
@@ -411,9 +420,7 @@ class EventSeeder extends Seeder
 
 			$looksUuid = false;
 			try {
-				if (class_exists('\\Utility') && method_exists('\\Utility', 'looksLikeUuid')) {
-					$looksUuid = (bool) \Utility::looksLikeUuid($token);
-				}
+				$looksUuid = (bool) Utility::looksLikeUuid($token);
 			} catch (\Throwable) {
 				$looksUuid = false;
 			}

@@ -25,14 +25,14 @@ class CreateChartOfAccountsTable extends Migration
             $table->uuid('id')->primary();
             $table->string(CHTC::COL_NM)->index();
             $table->integer(CHTC::COL_CD)->default(0)->index();
-            $table->integer('depth')->default(0)->index()->nullable(); // ? nullable para testes
+            $table->integer('depth')->default(0)->nullable()->index(); // ? nullable para testes
             $table->decimal(CHTC::CUR_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
             $table->decimal(CHTC::INIT_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
             $table->decimal(CHTC::EXP_NXT_MN_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
             $table->string(BC::COL_CUR_ID, 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable para testes
             $table->json('rules')->nullable();
             $table->json('restrictions')->nullable();
-            $table->uuid(UC::COL_RSP_ID)->index()->nullable(); // * ponteiro para responsável legal, se cabível; se nulo, delegar ao user_id
+            $table->uuid(UC::COL_RSP_ID)->nullable()->index(); // * ponteiro para responsável legal, se cabível; se nulo, delegar ao user_id
             $table->boolean(UC::COL_PD_UPD)->default(false)->nullable(); // ? nullable para testes
             $table->boolean(UC::COL_IS_SYS)->default(true)->nullable(); // ? nullable para testes; em ::saving verificar creator vs DEFAULT_UUID
             $table->uuid(CHTC::COL_TP)->nullable();

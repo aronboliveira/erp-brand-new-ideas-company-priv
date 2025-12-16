@@ -30,8 +30,8 @@ trait HasPaymentColumns
 		$nullableReconcile ? $table->timestamp(BC::COL_RCC_AT)->nullable() : $table->timestamp(BC::COL_RCC_AT);
 		$table->uuid(BC::COL_RCC_BY)->nullable();
 		// * Possíveis ponteiros de rela'ção
-		$nullableInvoice ? $table->uuid('invoice')->index()->nullable() : $table->uuid(BC::COL_INV_ID)->index(); // todo this should be changed later, keeping for tests
-		$table->uuid('payslip')->index()->nullable();
+		$nullableInvoice ? $table->uuid('invoice')->nullable()->index() : $table->uuid(BC::COL_INV_ID)->index(); // todo this should be changed later, keeping for tests
+		$table->uuid('payslip')->nullable()->index();
 		$nullableInvoice ? $table->foreign('invoice')
 			->references('id')
 			->on(DC::TABLE_INVS)
@@ -52,7 +52,7 @@ trait HasPaymentColumns
 				->nullOnDelete();
 	}
 
-	protected function dropPaymentColumnForeigns(Blueprint $table): void
+	protected function dropPaymentColumnForeigns(Blueprint $table, ?string $tableName = null): void
 	{
 		$this->dropFinancialIssuingColumnForeigns($table);
 		foreach (
@@ -63,7 +63,7 @@ trait HasPaymentColumns
 			] as $col
 		) {
 			try {
-				Schema::hasColumn($table->getTable(), $col) &&
+				Schema::hasColumn($tableName ?? $table->getTable(), $col) &&
 					$table->dropForeign([$col]);
 			} catch (\Exception $e) {
 				Log::warning(

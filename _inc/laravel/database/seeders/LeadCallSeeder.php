@@ -7,7 +7,7 @@ use App\Enums\CallType;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -50,8 +50,8 @@ class LeadCallSeeder extends Seeder
 			return ['id' => $u->id, 'email' => $email, 'phone' => $phone];
 		})->all();
 
-		// Quantidade total: --count (se fornecido) senão 64 * nº de leads
-		$target = 64 * max(1, $leads->count());
+		// Quantidade total: --count (se fornecido) senão 16 * nº de leads
+		$target = 8 * max(1, $leads->count());
 		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
 			$opt = (int) $this->command->option('count');
 			if ($opt > 0) $target = $opt;
@@ -93,66 +93,71 @@ class LeadCallSeeder extends Seeder
 			if ($callsForLead === 0) continue;
 
 			for ($i = 0; $i < $callsForLead; $i++) {
-				if ($inserted >= $target) break 2;
+				try {
+					if ($inserted >= $target) break 2;
 
-				$type = Arr::random(CallType::values());
-				$when = $now->subDays(fake()->numberBetween(0, 180))
-					->subMinutes(fake()->numberBetween(0, 1440));
+					$type = Arr::random(CallType::values());
+					$when = $now->subDays(fake()->numberBetween(0, 180))
+						->subMinutes(fake()->numberBetween(0, 1440));
 
-				$seconds   = fake()->numberBetween(30, 7200);
-				$hhmmss    = self::secondsToHms($seconds);
+					$seconds   = fake()->numberBetween(30, 7200);
+					$hhmmss    = self::secondsToHms($seconds);
 
-				// Participantes (usuários) e "owner" (user_id)
-				$fromUser = Arr::random($userRows);
-				$toUser   = Arr::random($userRows);
-				if ($toUser['id'] === $fromUser['id'] && count($userRows) > 1) {
-					// Garante usuários distintos quando possível
-					do {
-						$toUser = Arr::random($userRows);
-					} while ($toUser['id'] === $fromUser['id']);
+					// Participantes (usuários) e "owner" (user_id)
+					$fromUser = Arr::random($userRows);
+					$toUser   = Arr::random($userRows);
+					if ($toUser['id'] === $fromUser['id'] && count($userRows) > 1) {
+						// Garante usuários distintos quando possível
+						do {
+							$toUser = Arr::random($userRows);
+						} while ($toUser['id'] === $fromUser['id']);
+					}
+					$ownerUserId = $fromUser['id'];
+
+					// Endpoints "from" e "to" coerentes com o tipo
+					$preferPhone = self::typePrefersPhone($type);
+					$fromEndpoint = self::pickEndpoint($fromUser, $preferPhone);
+					$toEndpoint   = self::pickEndpoint($toUser, $preferPhone);
+
+					$subject = Arr::random($subjects) . ' - ' . self::humanize($type);
+
+					$createdAt = $when->subMinutes(fake()->numberBetween(5, 60));
+					$updatedAt = $when->addMinutes(fake()->numberBetween(0, 1440));
+
+					$row = [
+						'id'                  => (string) Str::uuid(),
+						UC::COL_USER_ID       => $ownerUserId,
+						'from'                => $fromEndpoint,
+						AC::COL_TO_ID         => $toUser['id'] ?? null,
+						'to'                  => $toEndpoint,
+						AC::COL_FRM_ID        => $fromUser['id'] ?? null,
+						PJC::COL_LD_ID        => $lead->id,
+						'subject'             => $subject,
+						AC::COL_CL_TP         => $type,
+						AC::COL_CL_DT         => $when->toDateTimeString(),
+						AC::COL_CL_DUR        => $hhmmss,           // TIME no banco
+						'duration'            => $hhmmss,           // string coerente
+						'description'         => fake()->boolean(70) ? fake()->sentence(12) : null,
+						AC::COL_CL_RS         => Arr::random($results),
+						'notes'               => fake()->boolean(30) ? fake()->sentence(10) : null,
+						'created_at'          => $createdAt->toDateTimeString(),
+						'updated_at'          => $updatedAt->toDateTimeString(),
+					];
+
+					// Auditoria, se existirem
+					if (Schema::hasColumn(DC::TABLE_LD_CALLS, DC::COL_TABLE_CREATOR)) {
+						$row[DC::COL_TABLE_CREATOR] = $fromUser['id'] ?? null;
+					}
+					if (Schema::hasColumn(DC::TABLE_LD_CALLS, DC::COL_TABLE_UPDATER)) {
+						$row[DC::COL_TABLE_UPDATER] = $toUser['id'] ?? null;
+					}
+					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Lead {$lead->id} de {$fromEndpoint} para {$toEndpoint} sobre o assunto '{$subject}'");
+					$rows[] = $row;
+					$inserted++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-				$ownerUserId = $fromUser['id'];
-
-				// Endpoints "from" e "to" coerentes com o tipo
-				$preferPhone = self::typePrefersPhone($type);
-				$fromEndpoint = self::pickEndpoint($fromUser, $preferPhone);
-				$toEndpoint   = self::pickEndpoint($toUser, $preferPhone);
-
-				$subject = Arr::random($subjects) . ' - ' . self::humanize($type);
-
-				$createdAt = $when->subMinutes(fake()->numberBetween(5, 60));
-				$updatedAt = $when->addMinutes(fake()->numberBetween(0, 1440));
-
-				$row = [
-					'id'                  => (string) Str::uuid(),
-					UC::COL_USER_ID       => $ownerUserId,
-					'from'                => $fromEndpoint,
-					AC::COL_TO_ID         => $toUser['id'] ?? null,
-					'to'                  => $toEndpoint,
-					AC::COL_FRM_ID        => $fromUser['id'] ?? null,
-					PJC::COL_LD_ID        => $lead->id,
-					'subject'             => $subject,
-					AC::COL_CL_TP         => $type,
-					AC::COL_CL_DT         => $when->toDateTimeString(),
-					AC::COL_CL_DUR        => $hhmmss,           // TIME no banco
-					'duration'            => $hhmmss,           // string coerente
-					'description'         => fake()->boolean(70) ? fake()->sentence(12) : null,
-					AC::COL_CL_RS         => Arr::random($results),
-					'notes'               => fake()->boolean(30) ? fake()->sentence(10) : null,
-					'created_at'          => $createdAt->toDateTimeString(),
-					'updated_at'          => $updatedAt->toDateTimeString(),
-				];
-
-				// Auditoria, se existirem
-				if (Schema::hasColumn(DC::TABLE_LD_CALLS, DC::COL_TABLE_CREATOR)) {
-					$row[DC::COL_TABLE_CREATOR] = $fromUser['id'] ?? null;
-				}
-				if (Schema::hasColumn(DC::TABLE_LD_CALLS, DC::COL_TABLE_UPDATER)) {
-					$row[DC::COL_TABLE_UPDATER] = $toUser['id'] ?? null;
-				}
-
-				$rows[] = $row;
-				$inserted++;
 			}
 		}
 

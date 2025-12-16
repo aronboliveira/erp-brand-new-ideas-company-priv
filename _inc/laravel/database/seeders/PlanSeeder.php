@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str as Str;
+use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Str;
 
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\PlansConstants as PLC;
@@ -131,36 +131,42 @@ final class PlanSeeder extends Seeder
 			];
 
 			foreach ($plans as $p) {
-				if (Pln::where(PLC::COL_NM, $p[PLC::COL_NM])->exists()) continue;
+				try {
+					if (Pln::where(PLC::COL_NM, $p[PLC::COL_NM])->exists()) continue;
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando plano: {$p[PLC::COL_NM]}");
+					do $planId = Str::uuid()->toString();
+					while (Pln::where('id', $planId)->exists());
 
-				do $planId = Str::uuid()->toString();
-				while (Pln::where('id', $planId)->exists());
+					do $planQueryKey = Str::uuid()->toString();
+					while (Pln::where('query_key', $planQueryKey)->exists());
 
-				do $planQueryKey = Str::uuid()->toString();
-				while (Pln::where('query_key', $planQueryKey)->exists());
-
-				$pl = new Pln();
-				$pl->id                      = $planId;
-				$pl->query_key               = $planQueryKey;
-				$pl->{PLC::COL_NM}           = $p[PLC::COL_NM];
-				$pl->{PLC::COL_DUR}          = $p[PLC::COL_DUR];
-				$pl->{PLC::COL_PC}           = $p[PLC::COL_PC];
-				$pl->{PLC::COL_MAX_U}        = $p[PLC::COL_MAX_U];
-				$pl->{PLC::COL_MAX_CR}       = $p[PLC::COL_MAX_CR];
-				$pl->{PLC::COL_MAX_V}        = $p[PLC::COL_MAX_V];
-				$pl->{PLC::COL_MAX_CL}       = $p[PLC::COL_MAX_CL];
-				$pl->{PLC::COL_SL}           = $p[PLC::COL_SL];
-				$pl->{PLC::COL_GPT}          = $p[PLC::COL_GPT];
-				$pl->{PLC::COL_CRM}          = $p[PLC::COL_CRM];
-				$pl->{PLC::COL_HRM}          = $p[PLC::COL_HRM];
-				$pl->{PLC::COL_ACC}          = $p[PLC::COL_ACC];
-				$pl->{PLC::COL_PJ}           = $p[PLC::COL_PJ];
-				$pl->{PLC::COL_POS}          = $p[PLC::COL_POS];
-				$pl->{PLC::COL_DESC}         = $p[PLC::COL_DESC];
-				$pl->{PLC::COL_IMG}          = $p[PLC::COL_IMG];
-				$pl->{DC::COL_TABLE_CREATOR}     = $creatorId;
-				$pl->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$pl->save();
+					$pl = new Pln();
+					$pl->id                      = $planId;
+					$pl->query_key               = $planQueryKey;
+					$pl->{PLC::COL_NM}           = $p[PLC::COL_NM];
+					$pl->{PLC::COL_DUR}          = $p[PLC::COL_DUR];
+					$pl->{PLC::COL_PC}           = $p[PLC::COL_PC];
+					$pl->{PLC::COL_MAX_U}        = $p[PLC::COL_MAX_U];
+					$pl->{PLC::COL_MAX_CR}       = $p[PLC::COL_MAX_CR];
+					$pl->{PLC::COL_MAX_V}        = $p[PLC::COL_MAX_V];
+					$pl->{PLC::COL_MAX_CL}       = $p[PLC::COL_MAX_CL];
+					$pl->{PLC::COL_SL}           = $p[PLC::COL_SL];
+					$pl->{PLC::COL_GPT}          = $p[PLC::COL_GPT];
+					$pl->{PLC::COL_CRM}          = $p[PLC::COL_CRM];
+					$pl->{PLC::COL_HRM}          = $p[PLC::COL_HRM];
+					$pl->{PLC::COL_ACC}          = $p[PLC::COL_ACC];
+					$pl->{PLC::COL_PJ}           = $p[PLC::COL_PJ];
+					$pl->{PLC::COL_POS}          = $p[PLC::COL_POS];
+					$pl->{PLC::COL_DESC}         = $p[PLC::COL_DESC];
+					$pl->{PLC::COL_IMG}          = $p[PLC::COL_IMG];
+					$pl->{DC::COL_TABLE_CREATOR}     = $creatorId;
+					$pl->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$pl->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

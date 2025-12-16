@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+use Termwind\Components\Li;
 
 final class AwardSeeder extends Seeder
 {
@@ -30,19 +31,44 @@ final class AwardSeeder extends Seeder
 					'Melhor Atendimento',
 					'Produtividade',
 					'Tempo de Casa',
+					'Inovação',
+					'Trabalho em Equipe',
+					'Liderança',
+					'Cumprimento de Metas',
+					'Qualidade',
+					'Atendimento ao Cliente',
+					'Segurança no Trabalho',
+					'Projeto do Ano',
+					'Melhor Estagiário',
+					'Melhor Novato',
+					'Liderança',
+					'Cumprimento de Metas',
+					'Qualidade',
+					'Atendimento ao Cliente',
+					'Segurança no Trabalho',
+					'Projeto do Ano',
+					'Melhor Estagiário',
+					'Melhor Novato',
 				];
 
 				$now = now('America/Sao_Paulo');
 				$payload = [];
 				foreach ($defaults as $name) {
-					$payload[] = [
-						'id'              => (string) Str::uuid(),
-						'name'            => $name,
-						DC::COL_TABLE_CREATOR => $systemUserId,
-						DC::COL_TABLE_UPDATER => null,
-						'created_at'      => $now,
-						'updated_at'      => $now,
-					];
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Prêmio: {$name}");
+					try {
+						$payload[] = [
+							'id'              => (string) Str::uuid(),
+							'name'            => $name,
+							DC::COL_TABLE_CREATOR => $systemUserId,
+							DC::COL_TABLE_UPDATER => null,
+							'created_at'      => $now,
+							'updated_at'      => $now,
+						];
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 
 				DB::table(DC::TABLE_AWD_TPS)->insert($payload);

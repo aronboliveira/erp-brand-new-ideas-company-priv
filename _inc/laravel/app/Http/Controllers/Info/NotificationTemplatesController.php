@@ -9,8 +9,8 @@ use App\Config\Constants\{
 };
 use App\Models\{
     Language,
-    NotificationTemplateLangs,
-    NotificationTemplates,
+    NotificationTemplateLang,
+    NotificationTemplate,
     Utility
 };
 use App\Traits\ChecksLogin;
@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
-class NotificationTemplatesController extends Controller
+class NotificationTemplateController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
@@ -47,19 +47,19 @@ class NotificationTemplatesController extends Controller
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if (!($denial = $this->guard($request, 'manage notification template'))) return $denial;
-                $template = $id ? NotificationTemplates::find($id) : NotificationTemplates::first();
+                $template = $id ? NotificationTemplate::find($id) : NotificationTemplate::first();
                 if (!$template) return redirect()->back()->with('error', __('Not exists in notification template.'));
                 $languages  = Utility::languages();
                 $langName   = Language::where('code', $lang)->first();
-                $translation = NotificationTemplateLangs::where('parent_id', $template->id)
+                $translation = NotificationTemplateLang::where('parent_id', $template->id)
                     ->where('lang', $lang)
                     ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->first()
-                    ?: NotificationTemplateLangs::where('parent_id', $template->id)
+                    ?: NotificationTemplateLang::where('parent_id', $template->id)
                     ->where('lang', $lang)
                     ->first()
                     ?: tap(
-                        NotificationTemplateLangs::where('parent_id', $template->id)
+                        NotificationTemplateLang::where('parent_id', $template->id)
                             ->where('lang', DatabaseConstants::DEFAULT_LANG)
                             ->first(),
                         function ($t) use ($lang) {
@@ -67,7 +67,7 @@ class NotificationTemplatesController extends Controller
                         }
                     );
 
-                $allTemplates = NotificationTemplates::all();
+                $allTemplates = NotificationTemplate::all();
 
                 if (!ViewFacade::exists($view))
                     return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
@@ -108,18 +108,18 @@ class NotificationTemplatesController extends Controller
                 $content   = $request->input('content');
                 $creatorId = $request->user()->creatorId();
 
-                $record = NotificationTemplateLangs::where('parent_id', $id)
+                $record = NotificationTemplateLang::where('parent_id', $id)
                     ->where('lang', $lang)
                     ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->first();
 
                 if (!$record) {
-                    $variables = NotificationTemplateLangs::where('parent_id', $id)
+                    $variables = NotificationTemplateLang::where('parent_id', $id)
                         ->where('lang', $lang)
                         ->first()
                         ?->variables;
 
-                    $record = new NotificationTemplateLangs();
+                    $record = new NotificationTemplateLang();
                     $record->parent_id  = $id;
                     $record->lang       = $lang;
                     $record->variables  = $variables;

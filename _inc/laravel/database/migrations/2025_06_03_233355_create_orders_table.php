@@ -14,7 +14,7 @@ class CreateOrdersTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(UC::COL_USER_ID)->index()->nullable(); // ? not every buyer is a registered user
+            $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? not every buyer is a registered user
             $table->uuid(BC::COL_OD_ID)->index(); // ? external order identifier, not clear purpose yet
             $table->string('name', 1024)->nullable();
             $table->string('email', 256)->nullable()->unique();
@@ -32,12 +32,12 @@ class CreateOrdersTable extends Migration
             $table->uuid(BC::COL_TAX_ID)->nullable();
             $table->json(BC::COL_OT_TX_ID)->nullable(); // * model should ensure these taxes exist through queries on the taxes table
 
-            $table->string(BC::COL_PIX_KEY)->index()->nullable(); // * pix key can be email, phone, cpf/cnpj or random key (max 36 characters) => model should constrain length according to its type
+            $table->string(BC::COL_PIX_KEY)->nullable()->index(); // * pix key can be email, phone, cpf/cnpj or random key (max 36 characters) => model should constrain length according to its type
             // ? should be stored encrypted in the model
 
-            $table->uuid(BC::COL_PSLP_ID)->index()->nullable();
+            $table->uuid(BC::COL_PSLP_ID)->nullable()->index();
 
-            $table->enum(BC::COL_PAY_STT, PaymentStatus::values())->default(PaymentStatus::Undefined->value)->index()->nullable(); // * model should ensure valid transitions between statuses
+            $table->enum(BC::COL_PAY_STT, PaymentStatus::values())->default(PaymentStatus::Undefined->value)->nullable()->index(); // * model should ensure valid transitions between statuses
             $table->enum(BC::COL_PAY_TP, PaymentMethod::values())->default(PaymentMethod::Other->value)->index();
             $table->longText('receipt')->nullable(); // * not clear for now, so kept for legacy purposes
             $table->json(BC::COL_RCP_MD)->nullable(); // * saving all useful receipt data here

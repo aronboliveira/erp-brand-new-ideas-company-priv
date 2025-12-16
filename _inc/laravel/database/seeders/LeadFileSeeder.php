@@ -7,7 +7,7 @@ use App\Config\Constants\ProjectsConstants as PJC;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -178,92 +178,97 @@ class LeadFileSeeder extends Seeder
 			if ($filesForLead === 0) continue;
 
 			for ($i = 0; $i < $filesForLead; $i++) {
-				if ($target > 0 && $inserted >= $target) break 2;
+				try {
+					if ($target > 0 && $inserted >= $target) break 2;
 
-				// Categoria, extensão e MIME coerentes
-				$category = Arr::random(array_keys($catalog));
-				$extMime  = $catalog[$category];
-				$ext      = Arr::random(array_keys($extMime));
-				$mime     = $extMime[$ext];
+					// Categoria, extensão e MIME coerentes
+					$category = Arr::random(array_keys($catalog));
+					$extMime  = $catalog[$category];
+					$ext      = Arr::random(array_keys($extMime));
+					$mime     = $extMime[$ext];
 
-				// Tamanho plausível por categoria (bytes)
-				$size = match ($category) {
-					'video'       => fake()->numberBetween(2000000, 120000000),
-					'audio'       => fake()->numberBetween(200000, 12000000),
-					'image'       => fake()->numberBetween(40000, 8000000),
-					'archive'     => fake()->numberBetween(500000, 80000000),
-					'document'    => fake()->numberBetween(10000, 6000000),
-					'spreadsheet' => fake()->numberBetween(50000, 5000000),
-					'presentation' => fake()->numberBetween(80000, 10000000),
-					default       => fake()->numberBetween(20000, 3000000),
-				};
+					// Tamanho plausível por categoria (bytes)
+					$size = match ($category) {
+						'video'       => fake()->numberBetween(2000000, 120000000),
+						'audio'       => fake()->numberBetween(200000, 12000000),
+						'image'       => fake()->numberBetween(40000, 8000000),
+						'archive'     => fake()->numberBetween(500000, 80000000),
+						'document'    => fake()->numberBetween(10000, 6000000),
+						'spreadsheet' => fake()->numberBetween(50000, 5000000),
+						'presentation' => fake()->numberBetween(80000, 10000000),
+						default       => fake()->numberBetween(20000, 3000000),
+					};
 
-				// Datas
-				$createdAt = $now->subDays(fake()->numberBetween(0, 180))
-					->subMinutes(fake()->numberBetween(0, 1440));
-				$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 10080));
-				$lastAcc   = fake()->boolean(60) ? $updatedAt->addMinutes(fake()->numberBetween(0, 4320)) : null;
+					// Datas
+					$createdAt = $now->subDays(fake()->numberBetween(0, 180))
+						->subMinutes(fake()->numberBetween(0, 1440));
+					$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 10080));
+					$lastAcc   = fake()->boolean(60) ? $updatedAt->addMinutes(fake()->numberBetween(0, 4320)) : null;
 
-				// Expiração (eventualmente no passado p/ cobrir fluxo expirado)
-				$expiresAt = $maybe(function () use ($updatedAt) {
-					return fake()->boolean(85)
-						? $updatedAt->addDays(fake()->numberBetween(30, 365))
-						: $updatedAt->subDays(fake()->numberBetween(1, 60));
-				});
+					// Expiração (eventualmente no passado p/ cobrir fluxo expirado)
+					$expiresAt = $maybe(function () use ($updatedAt) {
+						return fake()->boolean(85)
+							? $updatedAt->addDays(fake()->numberBetween(30, 365))
+							: $updatedAt->subDays(fake()->numberBetween(1, 60));
+					});
 
-				// Nome e caminho
-				$base   = Arr::random($nameSeeds);
-				$suffix = Arr::random(['v1', 'v2', 'final', 'draft', 'review', 'signed', null]);
-				$fname  = trim($base . ($suffix ? "_{$suffix}" : '')) . '.' . $ext;
-				$fpath  = 'leads/' . $lead->id . '/files/' . Str::lower(Str::uuid()->toString()) . '.' . $ext;
+					// Nome e caminho
+					$base   = Arr::random($nameSeeds);
+					$suffix = Arr::random(['v1', 'v2', 'final', 'draft', 'review', 'signed', null]);
+					$fname  = trim($base . ($suffix ? "_{$suffix}" : '')) . '.' . $ext;
+					$fpath  = 'leads/' . $lead->id . '/files/' . Str::lower(Str::uuid()->toString()) . '.' . $ext;
 
-				// Regras de permissão octais (6+ dígitos 0-7)
-				$perm = implode('', array_map(fn() => (string) random_int(0, 7), range(1, 6)));
+					// Regras de permissão octais (6+ dígitos 0-7)
+					$perm = implode('', array_map(fn() => (string) random_int(0, 7), range(1, 6)));
 
-				// Listas de atores (validadas por existência de usuários)
-				$pickActors = function (int $max) use ($userIds) {
-					if (!$userIds) return [];
-					$count = fake()->numberBetween(0, min($max, count($userIds)));
-					return $count > 0 ? Arr::random($userIds, $count) : [];
-				};
-				$executors = $pickActors(3);
-				$editors   = $pickActors(3);
-				$viewers   = $pickActors(5);
+					// Listas de atores (validadas por existência de usuários)
+					$pickActors = function (int $max) use ($userIds) {
+						if (!$userIds) return [];
+						$count = fake()->numberBetween(0, min($max, count($userIds)));
+						return $count > 0 ? Arr::random($userIds, $count) : [];
+					};
+					$executors = $pickActors(3);
+					$editors   = $pickActors(3);
+					$viewers   = $pickActors(5);
 
-				$row = [
-					'id'                    => (string) Str::uuid(),
-					PJC::COL_LD_ID          => $lead->id,
-					DC::COL_FL_NM           => $maybe(fn() => $fname),
-					DC::COL_FL_PT           => $fpath,
-					'extension'             => $ext,
-					DC::COL_MM_TP           => $mime,
-					DC::COL_LA              => $lastAcc?->toDateTimeString(),
-					'type'                  => $category,
-					'size'                  => $size,
-					'description'           => $maybe(fn() => fake()->sentence(10)),
-					'notes'                 => $maybe(fn() => fake()->sentence(12)),
-					DC::COL_DL_CT           => fake()->numberBetween(0, 250),
-					DC::COL_FL_SZ           => number_format((float) $size, 4, '.', ''), // decimal(16,4)
-					DC::COL_EXP_DT          => $expiresAt?->toDateTimeString(),
-					DC::COL_PERM_RLS        => $perm,
-					'executors'             => $json($executors),
-					'editors'               => $json($editors),
-					'viewers'               => $json($viewers),
-					'created_at'            => $createdAt->toDateTimeString(),
-					'updated_at'            => $updatedAt->toDateTimeString(),
-				];
+					$row = [
+						'id'                    => (string) Str::uuid(),
+						PJC::COL_LD_ID          => $lead->id,
+						DC::COL_FL_NM           => $maybe(fn() => $fname),
+						DC::COL_FL_PT           => $fpath,
+						'extension'             => $ext,
+						DC::COL_MM_TP           => $mime,
+						DC::COL_LA              => $lastAcc?->toDateTimeString(),
+						'type'                  => $category,
+						'size'                  => $size,
+						'description'           => $maybe(fn() => fake()->sentence(10)),
+						'notes'                 => $maybe(fn() => fake()->sentence(12)),
+						DC::COL_DL_CT           => fake()->numberBetween(0, 250),
+						DC::COL_FL_SZ           => number_format((float) $size, 4, '.', ''), // decimal(16,4)
+						DC::COL_EXP_DT          => $expiresAt?->toDateTimeString(),
+						DC::COL_PERM_RLS        => $perm,
+						'executors'             => $json($executors),
+						'editors'               => $json($editors),
+						'viewers'               => $json($viewers),
+						'created_at'            => $createdAt->toDateTimeString(),
+						'updated_at'            => $updatedAt->toDateTimeString(),
+					];
 
-				// Auditoria (se existir)
-				if (Schema::hasColumn(DC::TABLE_LD_FILES, DC::COL_TABLE_CREATOR)) {
-					$row[DC::COL_TABLE_CREATOR] = $userIds ? Arr::random($userIds) : null;
+					// Auditoria (se existir)
+					if (Schema::hasColumn(DC::TABLE_LD_FILES, DC::COL_TABLE_CREATOR)) {
+						$row[DC::COL_TABLE_CREATOR] = $userIds ? Arr::random($userIds) : null;
+					}
+					if (Schema::hasColumn(DC::TABLE_LD_FILES, DC::COL_TABLE_UPDATER)) {
+						$row[DC::COL_TABLE_UPDATER] = $userIds ? Arr::random($userIds) : null;
+					}
+					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Arquivo sobre Lead {$lead->id} com nome '{$fname}' e mime '{$mime}'");
+					// Remove apenas nulls (manter 0/false)
+					$rows[] = $row;
+					$inserted++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-				if (Schema::hasColumn(DC::TABLE_LD_FILES, DC::COL_TABLE_UPDATER)) {
-					$row[DC::COL_TABLE_UPDATER] = $userIds ? Arr::random($userIds) : null;
-				}
-
-				// Remove apenas nulls (manter 0/false)
-				$rows[] = $row;
-				$inserted++;
 			}
 		}
 

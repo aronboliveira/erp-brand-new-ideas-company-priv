@@ -136,46 +136,39 @@ class Pos extends Model
         parent::booted();
 
         static::saving(function (self $m): void {
-            $ownerId = $m->{DC::COL_TABLE_CREATOR} ?? $m->{BC::COL_CST_ID} ?? null;
-
-            $m->{BC::COL_BL_EMAIL} = static::normalizeEmail(
-                $m->{BC::COL_BL_EMAIL} ?? null,
+            $ownerId = $m->getAttribute(DC::COL_TABLE_CREATOR) ?? $m->getAttribute(BC::COL_CST_ID) ?? null;
+            $m->setAttribute(BC::COL_BL_EMAIL, static::normalizeEmail(
+                $m->getAttribute(BC::COL_BL_EMAIL) ?? null,
                 'pos_billing',
                 $ownerId
-            );
-
-            $m->{BC::COL_BL_TEL} = static::normalizePhone(
-                $m->{BC::COL_BL_TEL} ?? null,
+            ));
+            $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
+                $m->getAttribute(BC::COL_BL_TEL) ?? null,
                 'pos_billing',
                 $ownerId
-            );
-
-            $m->{BC::COL_BL_ZIP} = static::normalizeZip(
-                $m->{BC::COL_BL_ZIP} ?? null,
-                $m->{BC::COL_BL_CTR} ?? null,
+            ));
+            $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
+                $m->getAttribute(BC::COL_BL_ZIP) ?? null,
+                $m->getAttribute(BC::COL_BL_CTR) ?? null,
                 'pos_billing',
                 $ownerId
-            );
-
+            ));
             self::normalizeBillingCountry($m);
-
             foreach ([BC::COL_TRS_CNT, DC::COL_RTR_CT] as $intField) {
-                if ($m->{$intField} !== null) {
-                    $val = (int) $m->{$intField};
-                    if ($val < 0) {
+                if ($m->getAttribute($intField) !== null) {
+                    $val = (int) $m->getAttribute($intField);
+                    if ($val < 0)
                         $val = 0;
-                    }
-                    $m->{$intField} = $val;
+                    $m->setAttribute($intField, $val);
                 }
             }
 
             foreach ([BC::COL_ACC_TTL, BC::COL_SVC_FEE] as $decField) {
-                if ($m->{$decField} !== null) {
-                    $val = (float) $m->{$decField};
-                    if ($val < 0.0) {
+                if ($m->getAttribute($decField) !== null) {
+                    $val = (float) $m->getAttribute($decField);
+                    if ($val < 0.0)
                         $val = 0.0;
-                    }
-                    $m->{$decField} = $val;
+                    $m->setAttribute($decField, $val);
                 }
             }
         });

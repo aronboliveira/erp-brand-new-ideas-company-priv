@@ -20,12 +20,12 @@ class CreateBankAccountsTable extends Migration
             $table->boolean(BLC::COL_AUTORCC)->default(false)->nullable(); // ? nullable para testes
             $table->json(BLC::COL_RCC_RL)->nullable();
 
-            $table->uuid(BKC::COL_HD_ID)->index()->nullable(); // ? um holder não necessariamente possui uma conta no sistema
+            $table->uuid(BKC::COL_HD_ID)->nullable()->index(); // ? um holder não necessariamente possui uma conta no sistema
             $table->string(BKC::COL_HNM)->index();
             $table->string(BKC::COL_CT); // TODO revisar tipo (telefone, E.164, etc.)
             $table->text(BKC::COL_HD_ADDR)->nullable(); // ? nullable para testes
 
-            $table->uuid(UC::COL_RSP_ID)->index()->nullable(); // ? um responsável não necessariamente possui uma conta no sistema
+            $table->uuid(UC::COL_RSP_ID)->nullable()->index(); // ? um responsável não necessariamente possui uma conta no sistema
             $table->string(UC::COL_RSP_NM)->nullable(); // ? nullable para testes
             $table->string(UC::COL_RSP_TEL)->nullable(); // ? nullable para testes
             $table->string(UC::COL_RSP_EM)->nullable(); // ? nullable para testes
@@ -33,7 +33,7 @@ class CreateBankAccountsTable extends Migration
 
             $table->string(BKC::COL_NM);
             $table->text(BKC::COL_ADR);
-            $table->string(BKC::COL_BANK_IDF)->index()->nullable(); // ? nullable para testes, deve corresponder ao CNPJ no brasil
+            $table->string(BKC::COL_BANK_IDF)->nullable()->index(); // ? nullable para testes, deve corresponder ao CNPJ no brasil
             $table->string(BKC::COL_AG_N)->nullable();
             $table->string(BKC::COL_AG_DG)->nullable();
 
@@ -58,10 +58,10 @@ class CreateBankAccountsTable extends Migration
             // * in ::booted and ::saving, if has_debit_card is true, ensure debit_cards is not null/empty, else switch it to false
             $table->json(BKC::COL_DBT_CD)->nullable();
             $table->boolean(BKC::COL_ACPTS_DBT_CD)->default(false)->nullable(); // ? nullable para testes
-            $table->boolean(BLC::COL_IS_PRM)->default(false)->index()->nullable(); // ? nullable para testes
+            $table->boolean(BLC::COL_IS_PRM)->default(false)->nullable()->index(); // ? nullable para testes
             $table->float(BKC::COL_RSK)->default(0.00)->nullable(); // ? nullable para testes
-            $table->boolean(UC::COL_IA)->default(true)->index()->nullable(); // ? nullable para testes
-            $table->string(BKC::COL_INT_PRV)->default('manual')->index()->nullable();
+            $table->boolean(UC::COL_IA)->default(true)->nullable()->index(); // ? nullable para testes
+            $table->string(BKC::COL_INT_PRV)->default('manual')->nullable()->index();
             $table->json(BLC::COL_SYNC_ER)->nullable();
             foreach (
                 [

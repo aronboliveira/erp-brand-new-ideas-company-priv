@@ -28,12 +28,12 @@ class CreateInvoiceProductsTable extends Migration
             $table->text('notes')->nullable();
             $table->json(BC::COL_TXS_LST)->nullable(); // ? nullable for testing purposes
             $table->json('attachments')->nullable();
-            $table->uuid('contract')->index()->nullable();
-            $table->uuid('loan')->index()->nullable();
+            $table->uuid('contract')->nullable()->index();
+            $table->uuid('loan')->nullable()->index();
             $table->uuid(BC::COL_WRH_ID)->nullable();
             $table->foreign(BC::COL_INV_ID)
                 ->references('id')
-                ->on(DC::TABLE_PROD_SERVS)
+                ->on(DC::TABLE_INVS)
                 ->restrictOnDelete();
             foreach (
                 [
@@ -56,6 +56,7 @@ class CreateInvoiceProductsTable extends Migration
             $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
+                    BC::COL_INV_ID,
                     'contract',
                     'loan',
                     BC::COL_WRH_ID,

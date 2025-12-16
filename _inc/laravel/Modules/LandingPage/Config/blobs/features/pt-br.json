@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "Funcionalidades",
+    "feature_description": "<p>Desbloqueie recursos poderosos com nosso conjunto completo de funcionalidades, pensado para organizar seu fluxo de trabalho e aumentar a produtividade em todos os seus projetos.</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "Suporte",
+    "feature_description": "<p>Conte com suporte ao cliente dedicado 24/7, com especialistas prontos para ajudar você a resolver problemas rapidamente e manter suas operações funcionando sem interrupções.</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "Integração",
+    "feature_description": "<p>Conecte-se facilmente às suas ferramentas e plataformas favoritas por meio de nossa API robusta e integrações prontas, eliminando silos de dados.</p>"
+  }
+]

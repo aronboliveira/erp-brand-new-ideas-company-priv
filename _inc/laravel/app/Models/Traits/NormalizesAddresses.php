@@ -12,12 +12,11 @@ trait NormalizesAddresses
 {
 	use NormalizesArrays;
 
-	public static function normalizeEmail(?string $email, string $context, string|int|null $ownerId): ?string
+	public static function normalizeEmail(?string $email, string|null $context = '', string|int|null $ownerId = ''): ?string
 	{
 		$email = strtolower(trim((string) $email));
 		if ($email === '')
 			return null;
-
 		if (!preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) {
 			Log::warning(static::class . " invalid {$context} email", [
 				'owner_id' => $ownerId,
@@ -29,29 +28,43 @@ trait NormalizesAddresses
 		return $email;
 	}
 
-	public static function normalizePhone(?string $phone, string $context, string|int|null $ownerId): ?string
+	public static function normalizePhone(?string $phone, ?string $context, string|int|null $ownerId, ?bool $isMock = false): ?string
 	{
-		$phone = trim((string) $phone);
-		if ($phone === '')
-			return null;
-
-		if (!preg_match('/^\+?[0-9 ()\-]{7,20}$/', $phone)) {
-			Log::warning(static::class . " invalid {$context} phone", [
-				'owner_id' => $ownerId,
-				'phone'    => $phone,
-			]);
-			return $phone;
+		if ($phone === null || gettype($phone) !== 'string' || trim((string) $phone) === '') {
+			if ($isMock)
+				return Utility::generateBrazilianPhone();
+			else {
+				Log::debug(static::class . " empty {$context} phone", [
+					'owner_id' => $ownerId,
+				]);
+				return null;
+			}
 		}
-
+		$phone = trim((string) $phone);
+		if (empty($context)) $context = '#NO_CONTEXT';
+		if (empty($ownerId)) $ownerId = '#NO_OWNER_ID';
+		if (!preg_match('/^\+?[0-9 ()\-]{7,20}$/', $phone)) {
+			if ($isMock)
+				return Utility::generateBrazilianPhone();
+			else {
+				Log::warning(static::class . " invalid {$context} phone", [
+					'owner_id' => $ownerId,
+					'phone'    => $phone,
+				]);
+				return null;
+			}
+		}
 		return $phone;
 	}
 
-	public static function normalizeZip(?string $zip, ?string $country, string $context, string|int|null $ownerId): ?string
+	public static function normalizeZip(?string $zip, ?string $country, ?string $context, string|int|null $ownerId): ?string
 	{
 		$zip = trim((string) $zip);
 		if ($zip === '')
 			return null;
-
+		if ($country === null || trim((string) $country) === '') $country = 'brazil';
+		if (empty($context)) $context = '#NO_CONTEXT';
+		if (empty($ownerId)) $ownerId = '#NO_OWNER_ID';
 		$countryNorm = strtolower(trim((string) $country));
 
 		// Brasil – CEP
@@ -205,23 +218,22 @@ trait NormalizesAddresses
 	}
 	protected static function normalizeBillingCountry(Model $model): void
 	{
-		$billingCountryEnum = CountryName::normalize($model->{BC::COL_BL_CTR} ?? null)
+		$billingCountryEnum = CountryName::normalize($model->getAttribute(BC::COL_BL_CTR) ?? null)
 			?? CountryName::Brazil;
-		$model->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
+		$model->setAttribute(BC::COL_BL_CTR, $billingCountryEnum->value);
 		self::normalizeStateField($model, BC::COL_BL_ST, $billingCountryEnum);
 	}
 	protected static function normalizeShippingCountry(Model $model): void
 	{
-		$shippingCountryEnum = CountryName::normalize($model->{BC::COL_SHIP_CTR} ?? null)
+		$shippingCountryEnum = CountryName::normalize($model->getAttribute(BC::COL_SHIP_CTR) ?? null)
 			?? CountryName::Brazil;
-		$model->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
+		$model->setAttribute(BC::COL_SHIP_CTR, $shippingCountryEnum->value);
 		self::normalizeStateField($model, BC::COL_SHIP_ST, $shippingCountryEnum);
 	}
 	protected static function normalizeStateField(self $customer, string $column, CountryName $country): void
 	{
-		$raw = $customer->{$column} ?? null;
+		$raw = $customer->getAttribute($column) ?? null;
 		$normalized = null;
-
 		switch ($country) {
 			case CountryName::Brazil:
 				$normalized = BrazilState::normalize($raw) ?? BrazilState::RJ;
@@ -237,10 +249,9 @@ trait NormalizesAddresses
 				break;
 			default:
 				if (is_string($raw))
-					$customer->{$column} = strtoupper(trim($raw));
+					$customer->setAttribute($column, strtoupper(trim($raw)));
 				return;
 		}
-
-		$customer->{$column} = $normalized->value;
+		$customer->setAttribute($column, $normalized->value);
 	}
 }

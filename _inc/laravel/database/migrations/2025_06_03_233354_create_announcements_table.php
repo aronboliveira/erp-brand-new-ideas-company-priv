@@ -17,12 +17,12 @@ class CreateAnnouncementsTable extends Migration
             $table->date(PJC::COL_S_DT)->default(now()->format('Y-m-d'));
             $table->date(PJC::COL_E_DT)->nullable();
             $table->uuid(CC::COL_BRC_ID)->index();
-            $table->uuid(CC::COL_DEP_ID)->index()->nullable();
-            $table->uuid(UC::COL_EMP_ID)->index()->nullable(); // ? the employee who made the announcement
-            $table->uuid('recruiter')->index()->nullable(); // ? the employee who is responsible for recruiting
+            $table->uuid(CC::COL_DEP_ID)->nullable()->index();
+            $table->uuid(UC::COL_EMP_ID)->nullable()->index(); // ? the employee who made the announcement
+            $table->uuid('recruiter')->nullable()->index(); // ? the employee who is responsible for recruiting
             $table->text('description')->nullable();
-            $table->boolean(UC::COL_IA)->default(true)->index()->nullable(); // ? nullable for tests
-            $table->boolean(UC::COL_IS_RD)->default(true)->index()->nullable(); // ? nullable for tests
+            $table->boolean(UC::COL_IA)->default(true)->nullable()->index(); // ? nullable for tests
+            $table->boolean(UC::COL_IS_RD)->default(true)->nullable()->index(); // ? nullable for tests
             $table->date(PJC::COL_PLN_ST)->default(now()->format('Y-m-d'))->nullable(); // ? nullable for tests, when the job is planned to start
             $table->json('requirements')->nullable();
             $table->json('tags')->nullable();

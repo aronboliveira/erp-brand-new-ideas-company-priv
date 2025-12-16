@@ -20,6 +20,7 @@ class Indicator extends Model
         'rating',
     ];
 
+    // * legacy, should match the default labels of the IndicatorTechnicalLevel enum
     public static $technical = [
         'None',
         'Beginner',
@@ -28,6 +29,7 @@ class Indicator extends Model
         'Expert / Leader',
     ];
 
+    // * legacy, should match the default labels of the IndicatorTechnicalLevel enum
     public static $organizational = [
         'None',
         'Beginner',

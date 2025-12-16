@@ -12,6 +12,24 @@ enum BillStatus: string
 	case PartiallyPaid = 'Partially Paid';
 	case Paid          = 'Paid';
 
+	public static function normalize(string|null|self $value = null): self
+	{
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return self::Draft;
+
+		$normalizedValue = strtolower(trim($value));
+		return match ($normalizedValue) {
+			'draft' => self::Draft,
+			'sent' => self::Sent,
+			'unpaid' => self::Unpaid,
+			'partially paid', 'partiallypaid', 'partially_paid' => self::PartiallyPaid,
+			'paid' => self::Paid,
+			default => self::Draft,
+		};
+	}
+
 	public static function values(): array
 	{
 		return [

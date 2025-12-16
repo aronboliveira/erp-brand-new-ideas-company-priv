@@ -74,7 +74,7 @@ class PosPayment extends Model
                         if ($m->discount !== null)
                             $payment->discount = $m->discount;
                         if ($m->amount !== null)
-                            $payment->{BC::COL_PRC_AMT} = $m->amount;
+                            $payment->amount = $m->amount;
                         $payment->save();
                     }
                 } catch (\Throwable $e) {

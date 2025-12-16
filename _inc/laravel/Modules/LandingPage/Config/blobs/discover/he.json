@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "אוטומציה מונחית בינה מלאכותית",
+    "discover_description": "<p>נצל בינה מלאכותית מתקדמת לאוטומציה של משימות שחוזרות על עצמן, חיזוי מגמות ואופטימיזציה של תהליכי העבודה העסקיים שלך עם תובנות חכמות.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "לוח מחוונים לניתוח בזמן אמת",
+    "discover_description": "<p>השג נראות מיידית לביצועי העסק שלך עם לוחות מחוונים אינטראקטיביים, דוחות מותאמים אישית ומעקב אחר מדדי ביצוע עיקריים בזמן אמת בכל המחלקות.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "חשבונאות רב-מטבעית",
+    "discover_description": "<p>נהל עסקאות בינלאומיות בצורה חלקה עם המרת מטבע אוטומטית, עמידה בדרישות מס ושילוב שערי חליפין בזמן אמת.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "ניהול מלאי חכם",
+    "discover_description": "<p>מטב רמות מלאי עם ניתוח תחזיתי, הזמנה מחדש אוטומטית וסריקת ברקודים לפעולות מחסן יעילות.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "ניהול קשרי לקוחות 360°",
+    "discover_description": "<p>עקוב אחר כל אינטראקציה עם לקוח, הפוך מעקבים לאוטומטיים ונתח התנהגות לקוחות כדי להגביר מכירות ולשפר שיעורי שימור.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "ניהול פרויקטים מתקדם",
+    "discover_description": "<p>תכנן, בצע ופקח על פרויקטים עם תרשימי גנט, הקצאת משאבים, מעקב זמן וכלי ניהול אבני דרך.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "אוטומציה של משאבי אנוש ושכר",
+    "discover_description": "<p>פתח ניהול עובדים עם עיבוד שכר אוטומטי, מעקב נוכחות, סקרי ביצועים וניהול הטבות.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "קופה ניידת וסחר אלקטרוני",
+    "discover_description": "<p>קבל תשלומים בכל מקום עם מערכת הקופה הניידת שלנו, המשולבת עם ניהול חנות מקוונת וסנכרון מלאי.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "דיווחי בינה עסקית",
+    "discover_description": "<p>הפוך נתונים גולמיים לתובנות ברות ביצוע עם דוחות הניתנים להתאמה אישית, הדמיית נתונים ולוחות מחוונים ניהוליים לקבלת החלטות אסטרטגית.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "בונה תהליכי עבודה מותאמים אישית",
+    "discover_description": "<p>עצב והפעל תהליכים עסקיים מורכבים עם בונה תהליכי העבודה בגרירה ושחרור שלנו, המפחית טעויות ידניות ומגביר יעילות.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "אינטגרציה חלקה לצד שלישי",
+    "discover_description": "<p>התחבר ל-500+ אפליקציות עסקיות פופולריות כולל Salesforce, QuickBooks, Shopify ו-Zapier עבור מערכת אקולוגית עסקית מאוחדת.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "אבטחה ברמה ארגונית",
+    "discover_description": "<p>הגן על נתוני העסק שלך עם הצפנה ברמה צבאית, בקרות גישה מבוססות תפקיד, עקבות ביקורת ועמידה בתקני אבטחה גלובליים.</p>"
+  }
+]

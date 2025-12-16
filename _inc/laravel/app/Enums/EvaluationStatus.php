@@ -18,6 +18,8 @@ enum EvaluationStatus: string
 	case Undefined = 'undefined';
 	case Accept    = 'accept';
 	case Decline   = 'decline';
+	case NotStarted = 'not_started';
+	case InProgress = 'in_progress';
 
 	public static function normalize(null|string|BackedEnum $v): self
 	{
@@ -40,6 +42,9 @@ enum EvaluationStatus: string
 			'arquivado'   => 'archived',
 			'aceito'      => 'accept',
 			'recusado'    => 'decline',
+			'não_iniciado' => 'not_started',
+			'em_andamento' => 'in_progress',
+			'completado'   => 'completed',
 		];
 
 		$k = $aliases[$k] ?? $k;
@@ -83,6 +88,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Indefinido',
 			self::Accept->value    => 'Aceitar',
 			self::Decline->value   => 'Recusar',
+			self::NotStarted->value => 'Não Iniciado',
+			self::InProgress->value => 'Em Andamento',
 		];
 	}
 
@@ -100,6 +107,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Undefined',
 			self::Accept->value    => 'Accept',
 			self::Decline->value   => 'Decline',
+			self::NotStarted->value => 'Not Started',
+			self::InProgress->value => 'In Progress',
 		];
 	}
 
@@ -117,6 +126,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Indefinido',
 			self::Accept->value    => 'Aceptar',
 			self::Decline->value   => 'Rechazar',
+			self::NotStarted->value => 'No Iniciado',
+			self::InProgress->value => 'En Progreso',
 		];
 	}
 
@@ -134,6 +145,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'غير محدد',
 			self::Accept->value    => 'قبول',
 			self::Decline->value   => 'رفض',
+			self::NotStarted->value => 'لم يبدأ',
+			self::InProgress->value => 'قيد التقدم',
 		];
 	}
 
@@ -151,6 +164,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Udefineret',
 			self::Accept->value    => 'Acceptere',
 			self::Decline->value   => 'Afvise',
+			self::NotStarted->value => 'Ikke startet',
+			self::InProgress->value => 'I gang',
 		];
 	}
 
@@ -168,6 +183,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Undefiniert',
 			self::Accept->value    => 'Akzeptieren',
 			self::Decline->value   => 'Ablehnen',
+			self::NotStarted->value => 'Nicht Gestartet',
+			self::InProgress->value => 'In Bearbeitung'
 		];
 	}
 
@@ -185,6 +202,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Indéfini',
 			self::Accept->value    => 'Accepter',
 			self::Decline->value   => 'Refuser',
+			self::NotStarted->value => 'Non Commencé',
+			self::InProgress->value => 'En Cours',
 		];
 	}
 
@@ -202,6 +221,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'לא מוגדר',
 			self::Accept->value    => 'לקבל',
 			self::Decline->value   => 'לדחות',
+			self::NotStarted->value => 'לא התחיל',
+			self::InProgress->value => 'בתהליך'
 		];
 	}
 
@@ -219,6 +240,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Indefinito',
 			self::Accept->value    => 'Accettare',
 			self::Decline->value   => 'Rifiutare',
+			self::NotStarted->value => 'Non Iniziato',
+			self::InProgress->value => 'In Corso'
 		];
 	}
 
@@ -236,6 +259,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => '未定義',
 			self::Accept->value    => '受け入れる',
 			self::Decline->value   => '拒否',
+			self::NotStarted->value => '未開始',
+			self::InProgress->value => '進行中',
 		];
 	}
 
@@ -253,6 +278,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Ongedefinieerd',
 			self::Accept->value    => 'Accepteren',
 			self::Decline->value   => 'Weigeren',
+			self::NotStarted->value => 'Niet Gestart',
+			self::InProgress->value => 'In Uitvoering'
 		];
 	}
 
@@ -270,6 +297,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Niezdefiniowany',
 			self::Accept->value    => 'Zaakceptować',
 			self::Decline->value   => 'Odrzucić',
+			self::NotStarted->value => 'Nie Rozpoczęty',
+			self::InProgress->value => 'W Toku'
 		];
 	}
 
@@ -287,6 +316,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Неопределен',
 			self::Accept->value    => 'Принять',
 			self::Decline->value   => 'Отклонить',
+			self::NotStarted->value => 'Не Начато',
+			self::InProgress->value => 'В Процессе'
 		];
 	}
 
@@ -304,6 +335,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => 'Tanımsız',
 			self::Accept->value    => 'Kabul Etmek',
 			self::Decline->value   => 'Reddetmek',
+			self::NotStarted->value => 'Başlanmadı',
+			self::InProgress->value => 'Devam Ediyor'
 		];
 	}
 
@@ -321,6 +354,8 @@ enum EvaluationStatus: string
 			self::Undefined->value => '未定义',
 			self::Accept->value    => '接受',
 			self::Decline->value   => '拒绝',
+			self::NotStarted->value => '未开始',
+			self::InProgress->value => '进行中'
 		];
 	}
 }

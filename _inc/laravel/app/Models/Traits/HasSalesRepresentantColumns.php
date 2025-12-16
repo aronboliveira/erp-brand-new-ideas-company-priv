@@ -10,11 +10,11 @@ trait HasSalesRepresentantColumns
 {
 	protected function addSalesRepresentantColumns(Blueprint $table, string $prefix): void
 	{
-		$table->uuid($prefix . '_id')->index()->nullable(); // ? not every saler is a user
+		$table->uuid($prefix . '_id')->nullable()->index(); // ? not every saler is a user
 		$table->string(BC::COL_TX_N)->nullable(); // * kept as string for legacy, but it should be converted to uuid later
 		$table->json(BC::COL_OT_TX_ID)->nullable();
 		$table->string('contact')->nullable();
-		$table->boolean(BC::COL_IS_PRM)->default(false)->index()->nullable();
+		$table->boolean(BC::COL_IS_PRM)->default(false)->nullable()->index();
 		foreach (
 			[
 				$prefix . '_id' => DC::TABLE_USERS,

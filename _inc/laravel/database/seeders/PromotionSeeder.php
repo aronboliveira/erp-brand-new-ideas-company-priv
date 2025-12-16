@@ -17,7 +17,7 @@ final class PromotionSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
-	private const MAX_PROMOTIONS_PER_EMPLOYEE = 2;
+	private const MAX_PROMOTIONS_PER_EMPLOYEE = 4;
 	private const PAST_DAYS  = 540; // datas no passado até ~18 meses
 	private const FUTURE_DAYS = 30; // e até +30 dias no futuro
 
@@ -72,54 +72,61 @@ final class PromotionSeeder extends Seeder
 				}
 
 				for ($i = 0; $i < $qty; $i++) {
-					$now = now('America/Sao_Paulo');
-					// data entre (-PAST_DAYS .. +FUTURE_DAYS)
-					$start = $now
-						->subDays(random_int(0, self::PAST_DAYS))
-						->addDays(random_int(0, self::FUTURE_DAYS));
-
-					// Escolhe uma designação do mesmo departamento, se existir; senão, qualquer uma
-					$deptId = $emp->{CPC::COL_DEP_ID};
-					$pool   = $designationsByDept->get($deptId)?->pluck('id')->all() ?? [];
-					if (empty($pool)) {
-						$pool = $allDesignations;
-					}
-					$designationId = $faker->randomElement($pool);
-
-					$title = $faker->randomElement(self::TITLES);
-
-					// Evita duplicar a mesma combinação (emp+desig+data+título)
-					$exists = Promotion::query()
-						->where(UC::COL_EMP_ID, $emp->id)
-						->where(UC::COL_DSG_ID, $designationId)
-						->where(UC::COL_PRMT_DT, $start->format('Y-m-d'))
-						->where(UC::COL_PRMT_TL, $title)
-						->exists();
-
-					if ($exists) {
-						continue;
-					}
-
-					$p = new Promotion();
-					$p->{UC::COL_EMP_ID}  = $emp->id;
-					$p->{UC::COL_DSG_ID}  = $designationId;
-					$p->{UC::COL_PRMT_TL} = $title;
-					$p->{UC::COL_PRMT_DT} = $start->format('Y-m-d');
-					$p->description       = $faker->boolean(55) ? $faker->sentence(12) : null;
-
-					// Auditoria
-					$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
-
 					try {
-						$p->save();
-					} catch (\Throwable $e) {
-						Log::warning('PromotionSeeder: falha ao salvar promoção', [
-							'employee_id'   => $emp->id,
-							'designation_id' => $designationId,
-							'promotion_date' => $p->{UC::COL_PRMT_DT},
-							'title'         => $title,
-							'error'         => $e->getMessage(),
-						]);
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Promoção para funcionário ID: {$emp->id}");
+						$now = now('America/Sao_Paulo');
+						// data entre (-PAST_DAYS .. +FUTURE_DAYS)
+						$start = $now
+							->subDays(random_int(0, self::PAST_DAYS))
+							->addDays(random_int(0, self::FUTURE_DAYS));
+
+						// Escolhe uma designação do mesmo departamento, se existir; senão, qualquer uma
+						$deptId = $emp->{CPC::COL_DEP_ID};
+						$pool   = $designationsByDept->get($deptId)?->pluck('id')->all() ?? [];
+						if (empty($pool)) {
+							$pool = $allDesignations;
+						}
+						$designationId = $faker->randomElement($pool);
+
+						$title = $faker->randomElement(self::TITLES);
+
+						// Evita duplicar a mesma combinação (emp+desig+data+título)
+						$exists = Promotion::query()
+							->where(UC::COL_EMP_ID, $emp->id)
+							->where(UC::COL_DSG_ID, $designationId)
+							->where(UC::COL_PRMT_DT, $start->format('Y-m-d'))
+							->where(UC::COL_PRMT_TL, $title)
+							->exists();
+
+						if ($exists) {
+							continue;
+						}
+
+						$p = new Promotion();
+						$p->{UC::COL_EMP_ID}  = $emp->id;
+						$p->{UC::COL_DSG_ID}  = $designationId;
+						$p->{UC::COL_PRMT_TL} = $title;
+						$p->{UC::COL_PRMT_DT} = $start->format('Y-m-d');
+						$p->description       = $faker->boolean(55) ? $faker->sentence(12) : null;
+
+						// Auditoria
+						$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
+
+						try {
+							$p->save();
+						} catch (\Throwable $e) {
+							Log::warning('PromotionSeeder: falha ao salvar promoção', [
+								'employee_id'   => $emp->id,
+								'designation_id' => $designationId,
+								'promotion_date' => $p->{UC::COL_PRMT_DT},
+								'title'         => $title,
+								'error'         => $e->getMessage(),
+							]);
+						}
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
 				}
 			}

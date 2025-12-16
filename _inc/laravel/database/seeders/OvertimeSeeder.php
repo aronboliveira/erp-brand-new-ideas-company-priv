@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Enums\PaymentPatternType;
-use App\Models\Overtime;
+use App\Models\{Employee, Overtime};
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -53,7 +53,7 @@ final class OvertimeSeeder extends Seeder
 			$created = 0;
 
 			foreach ($employeeIds as $empId) {
-				$qtd = random_int(0, 3);
+				$qtd = random_int(0, 16);
 				if ($qtd === 0) {
 					continue;
 				}
@@ -61,36 +61,44 @@ final class OvertimeSeeder extends Seeder
 				$picked = $this->pickUnique($titles, $qtd);
 
 				foreach ($picked as $title) {
-					$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
+					$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Hora Extra para funcionário: {$ref}");
+					try {
+						$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
 
-					// Parâmetros coerentes
-					$days  = random_int(0, 5);        // pode ser 0 se compensado em horas
-					$hours = max(1, random_int(1, 8)); // 1..8
-					if ($type === PaymentPatternType::Percentage) {
-						$rate = random_int(3, 30);      // 3%..30% (campo inteiro)
-					} else {
-						$rate = random_int(10, 200);     // R$ por hora (inteiro)
+						// Parâmetros coerentes
+						$days  = random_int(0, 5);        // pode ser 0 se compensado em horas
+						$hours = max(1, random_int(1, 8)); // 1..8
+						if ($type === PaymentPatternType::Percentage) {
+							$rate = random_int(3, 30);      // 3%..30% (campo inteiro)
+						} else {
+							$rate = random_int(10, 200);     // R$ por hora (inteiro)
+						}
+
+						// Timestamp (até 360 dias atrás)
+						$dt = (clone $base)
+							->subDays(random_int(0, 360))
+							->setTime(random_int(8, 19), random_int(0, 59), random_int(0, 59));
+
+						Overtime::create([
+							UC::COL_EMP_ID    => $empId,
+							'title'           => $title,
+							UC::COL_NDAYS     => $days,
+							'hours'           => $hours,
+							'rate'            => $rate,
+							'type'            => $type,               // cast enum no model
+							'notes'           => self::SEED_TAG,
+							DC::COL_TABLE_CREATOR => $systemUserId,
+							'created_at'      => $dt->format('Y-m-d H:i:s'),
+							'updated_at'      => $dt->format('Y-m-d H:i:s'),
+						]);
+
+						$created++;
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-
-					// Timestamp (até 360 dias atrás)
-					$dt = (clone $base)
-						->subDays(random_int(0, 360))
-						->setTime(random_int(8, 19), random_int(0, 59), random_int(0, 59));
-
-					Overtime::create([
-						UC::COL_EMP_ID    => $empId,
-						'title'           => $title,
-						UC::COL_NDAYS     => $days,
-						'hours'           => $hours,
-						'rate'            => $rate,
-						'type'            => $type,               // cast enum no model
-						'notes'           => self::SEED_TAG,
-						DC::COL_TABLE_CREATOR => $systemUserId,
-						'created_at'      => $dt->format('Y-m-d H:i:s'),
-						'updated_at'      => $dt->format('Y-m-d H:i:s'),
-					]);
-
-					$created++;
 				}
 			}
 

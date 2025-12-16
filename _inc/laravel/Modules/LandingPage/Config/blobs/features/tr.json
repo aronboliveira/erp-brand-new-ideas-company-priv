@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "Özellik",
+    "feature_description": "<p>İş akışınızı sadeleştirmek ve tüm projelerinizde verimliliği artırmak için tasarlanmış kapsamlı özellik setimizle güçlü yeteneklerin kilidini açın.</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "Destek",
+    "feature_description": "<p>Uzman ekibimizin hızlıca sorun çözmenize ve operasyonlarınızı kesintisiz sürdürmenize yardımcı olduğu, 7/24 özel müşteri desteğine erişin.</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "Entegrasyon",
+    "feature_description": "<p>Sağlam API’miz ve önceden oluşturulmuş entegrasyonlarımız sayesinde favori araç ve platformlarınıza sorunsuz şekilde bağlanın ve veri adacıklarını ortadan kaldırın.</p>"
+  }
+]

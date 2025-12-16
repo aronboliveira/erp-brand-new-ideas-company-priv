@@ -59,32 +59,44 @@ final class BasicFavoritesSeeder extends Seeder
 			}
 
 			foreach ($userIds as $uid) {
-				$count = random_int(0, 7);
-				if ($count === 0) continue;
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Favorito Básico para Usuário: {$uid}");
+				try {
+					$count = random_int(0, 7);
+					if ($count === 0) continue;
 
-				$picked = collect($candidates)->shuffle()->take($count)->all();
+					$picked = collect($candidates)->shuffle()->take($count)->all();
 
-				foreach ($picked as $favId) {
-					$exists = DB::table('basic_favorites')
-						->where('user_id', $uid)
-						->where('favorite_id', $favId)
-						->exists();
-					if ($exists) continue;
+					foreach ($picked as $favId) {
+						try {
+							$exists = DB::table('basic_favorites')
+								->where('user_id', $uid)
+								->where('favorite_id', $favId)
+								->exists();
+							if ($exists) continue;
 
-					do $favRowId = Str::uuid()->toString();
-					while (DB::table('basic_favorites')->where('id', $favRowId)->exists());
+							do $favRowId = Str::uuid()->toString();
+							while (DB::table('basic_favorites')->where('id', $favRowId)->exists());
 
-					$ts = $faker->dateTimeBetween('-60 days', 'now');
+							$ts = $faker->dateTimeBetween('-60 days', 'now');
 
-					DB::table('basic_favorites')->insert([
-						'id'              => $favRowId,
-						'user_id'         => $uid,
-						'favorite_id'     => $favId,
-						'created_at'      => $ts,
-						'updated_at'      => $ts,
-						DC::COL_TABLE_CREATOR => $systemUserId,
-						DC::COL_TABLE_UPDATER => null,
-					]);
+							DB::table('basic_favorites')->insert([
+								'id'              => $favRowId,
+								'user_id'         => $uid,
+								'favorite_id'     => $favId,
+								'created_at'      => $ts,
+								'updated_at'      => $ts,
+								DC::COL_TABLE_CREATOR => $systemUserId,
+								DC::COL_TABLE_UPDATER => null,
+							]);
+						} catch (\Exception $e) {
+							Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+							continue;
+						}
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 		}, 3);

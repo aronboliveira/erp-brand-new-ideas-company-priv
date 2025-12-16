@@ -135,11 +135,18 @@ final class AllowanceOptionSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $payload) {
-				$model = AllowanceOption::updateOrCreate(
-					['name' => $payload['name']],
-					$payload + [DC::COL_TABLE_CREATOR => $systemUserId]
-				);
-				$model->wasRecentlyCreated ? $created++ : $updated++;
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Reserva: {$payload['name']}");
+					$model = AllowanceOption::updateOrCreate(
+						['name' => $payload['name']],
+						$payload + [DC::COL_TABLE_CREATOR => $systemUserId]
+					);
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			Log::info("AllowanceOptionSeeder completed", [

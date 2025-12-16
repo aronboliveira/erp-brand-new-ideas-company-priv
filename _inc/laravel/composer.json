@@ -185,7 +185,37 @@
     "rm-logs-ps": [
       "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Remove-Item -Force; Write-Host 'Logs removed successfully.' -ForegroundColor Green\""
     ],
-    "artclrs-ps": [
+    "clear-all-cache": [
+      "@php artisan clear-compiled",
+      "@php artisan cache:clear",
+      "@php artisan config:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@composer dump-autoload -o"
+    ],
+    "serve-ps--hard": [
+      "@php artisan db:wipe --drop-views --force",
+      "@php artisan migrate",
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear || true",
+      "@php artisan cache:clear || true",
+      "@php artisan optimize:clear || true",
+      "@php artisan route:clear || true",
+      "@php artisan view:clear || true",
+      "@php artisan clear-compiled",
+      "@php -r \"@unlink('bootstrap/cache/services.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/packages.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/compiled.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/routes.php');\" || true",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
+      "@php artisan route:list --sort=uri",
+      "@php artisan serve"
+    ],
+    "serve-ps--mixed": [
       "@php artisan permission:cache-reset",
       "@php artisan config:clear",
       "@php artisan cache:clear",
@@ -200,46 +230,39 @@
       "@composer dump-autoload -o",
       "@php artisan migrate:status",
       "@php artisan migrate:reset",
-      "@php artisan migrate:fresh --seed",
-      "@php artisan route:list --sort=uri",
+      "@php artisan migrate:fresh --seed --force",
       "@php artisan serve"
     ],
-    "artisan-serve--reset--ps--soft": [
-      "@artclrs-ps"
+    "serve-ps--soft": [
+      "@php artisan clear-compiled",
+      "@php -r \"@unlink('bootstrap/cache/services.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/packages.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/compiled.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/routes.php');\"",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan serve"
     ],
-    "artisan-serve--reset--ps--hard": [
-      "@php artisan db:wipe",
+    "serve-sh--hard": [
+      "@php artisan db:wipe --drop-views --force",
       "@php artisan migrate",
-      "@artclrs-ps"
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear || true",
+      "@php artisan cache:clear || true",
+      "@php artisan optimize:clear || true",
+      "@php artisan route:clear || true",
+      "@php artisan view:clear || true",
+      "@php artisan clear-compiled",
+      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
+      "@php artisan serve"
     ],
-    "artisan-serve--ps--reset--hard": [
-      "@artisan-serve--reset--ps--hard"
-    ],
-    "artisan-serve--hard--reset--ps": [
-      "@artisan-serve--reset--ps--hard"
-    ],
-    "artisan-serve--hard--ps--reset": [
-      "@artisan-serve--reset--ps--hard"
-    ],
-    "artisan-serve--ps--hard--reset": [
-      "@artisan-serve--reset--ps--hard"
-    ],
-    "artisan-serve--reset--hard--ps": [
-      "@artisan-serve--reset--ps--hard"
-    ],
-    "artisan-serve--ps--reset--soft": [
-      "@artisan-serve--reset--ps--soft"
-    ],
-    "artisan-serve--soft--reset--ps": [
-      "@artisan-serve--reset--ps--soft"
-    ],
-    "artisan-serve--soft--ps--reset": [
-      "@artisan-serve--reset--ps--soft"
-    ],
-    "artisan-serve--ps--soft--reset": [
-      "@artisan-serve--reset--ps--soft"
-    ],
-    "artclrs-sh": [
+    "serve-sh--mixed": [
       "@php artisan permission:cache-reset",
       "@php artisan config:clear",
       "@php artisan cache:clear",
@@ -254,44 +277,63 @@
       "@php artisan migrate:fresh --seed",
       "@php artisan serve"
     ],
-    "artisan-serve--reset--sh--soft": [
-      "@artclrs-sh"
+    "serve-sh--soft": [
+      "@php artisan clear-compiled",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan serve"
     ],
-    "artisan-serve--reset--sh--hard": [
-      "@php artisan db:wipe",
-      "@php artisan migrate",
-      "@artclrs-sh"
-    ],
-    "artisan-serve--sh--reset--hard": [
-      "@artisan-serve--reset--sh--hard"
-    ],
-    "artisan-serve--hard--reset--sh": [
-      "@artisan-serve--reset--sh--hard"
-    ],
-    "artisan-serve--hard--sh--reset": [
-      "@artisan-serve--reset--sh--hard"
-    ],
-    "artisan-serve--sh--hard--reset": [
-      "@artisan-serve--reset--sh--hard"
-    ],
-    "artisan-serve--reset--hard--sh": [
-      "@artisan-serve--reset--sh--hard"
-    ],
-    "artisan-serve--sh--reset--soft": [
-      "@artisan-serve--reset--sh--soft"
-    ],
-    "artisan-serve--soft--reset--sh": [
-      "@artisan-serve--reset--sh--soft"
-    ],
-    "artisan-serve--soft--sh--reset": [
-      "@artisan-serve--reset--sh--soft"
-    ],
-    "artisan-serve--sh--soft--reset": [
-      "@artisan-serve--reset--sh--soft"
-    ],
-    "artisan-serve--reset--soft--sh": [
-      "@artisan-serve--reset--sh--soft"
-    ],
+    "serve-ps": "@serve-ps--mixed",
+    "serve-sh": "@serve-sh--soft",
+    "serve--hard": "@serve-ps--hard",
+    "serve--mixed": "@serve-ps--mixed",
+    "serve--soft": "@serve-ps--soft",
+    "serve--ps": "@serve-ps--soft",
+    "serve--sh": "@serve-sh--mixed",
+    "artisan-serve-ps--hard": "@serve-ps--hard",
+    "artisan-serve-ps--mixed": "@serve-ps--mixed",
+    "artisan-serve-ps--soft": "@serve-ps--soft",
+    "artisan-serve-sh--hard": "@serve-sh--hard",
+    "artisan-serve-sh--mixed": "@serve-sh--mixed",
+    "artisan-serve-sh--soft": "@serve-sh--soft",
+    "artisan-serve-ps": "@serve-ps--soft",
+    "artisan-serve-sh": "@serve-sh--soft",
+    "artisan-serve--hard": "@serve-ps--hard",
+    "artisan-serve--mixed": "@serve-ps--mixed",
+    "artisan-serve--soft": "@serve-ps--soft",
+    "artisan-serve--ps": "@serve-ps--soft",
+    "artisan-serve--sh": "@serve-sh--soft",
+    "artisan-serve": "@serve-ps--soft",
+    "artclrs-ps--hard": "@serve-ps--hard",
+    "artclrs-ps--mixed": "@serve-ps--mixed",
+    "artclrs-ps--soft": "@serve-ps--soft",
+    "artclrs-sh--hard": "@serve-sh--hard",
+    "artclrs-sh--mixed": "@serve-sh--mixed",
+    "artclrs-sh--soft": "@serve-sh--soft",
+    "artclrs-ps": "@serve-ps--soft",
+    "artclrs-sh": "@serve-sh--soft",
+    "artclrs--hard": "@serve-ps--hard",
+    "artclrs--mixed": "@serve-ps--mixed",
+    "artclrs--soft": "@serve-ps--soft",
+    "artclrs--ps": "@serve-ps--soft",
+    "artclrs--sh": "@serve-sh--soft",
+    "artclrs": "@serve-ps--soft",
+    "artisan-artclrs-ps--hard": "@serve-ps--hard",
+    "artisan-artclrs-ps--mixed": "@serve-ps--mixed",
+    "artisan-artclrs-ps--soft": "@serve-ps--soft",
+    "artisan-artclrs-sh--hard": "@serve-sh--hard",
+    "artisan-artclrs-sh--mixed": "@serve-sh--mixed",
+    "artisan-artclrs-sh--soft": "@serve-sh--soft",
+    "artisan-artclrs-ps": "@serve-ps--soft",
+    "artisan-artclrs-sh": "@serve-sh--soft",
+    "artisan-artclrs--hard": "@serve-ps--hard",
+    "artisan-artclrs--mixed": "@serve-ps--mixed",
+    "artisan-artclrs--soft": "@serve-ps--soft",
+    "artisan-artclrs--ps": "@serve-ps--soft",
+    "artisan-artclrs--sh": "@serve-sh--soft",
+    "artisan-artclrs": "@serve-ps--soft",
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"

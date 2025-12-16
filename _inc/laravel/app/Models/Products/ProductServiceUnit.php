@@ -73,64 +73,53 @@ class ProductServiceUnit extends Model
 
         static::saving(function (self $m): void {
             foreach (['name', 'code', BC::COL_CUR_ID, AC::COL_MUNIT] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-
-            $currentStatus = $m->status instanceof ProductStatus
-                ? $m->status->value
-                : (string) $m->status;
-
+                if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                    $m->setAttribute($field, trim($m->getAttribute($field)));
+            $currentStatus = $m->getAttribute('status') instanceof ProductStatus
+                ? $m->getAttribute('status')->value
+                : (string) $m->getAttribute('status');
             $normalizedStatus = ProductStatus::normalize($currentStatus);
-            $m->status = $normalizedStatus ?? ProductStatus::Undefined;
-
-            $idx = $m->purchase_index;
+            $m->setAttribute('status', $normalizedStatus ?? ProductStatus::Undefined);
+            $idx = $m->getAttribute('purchase_index');
             if (!is_numeric($idx) || (int) $idx < 1)
-                $m->purchase_index = 1;
+                $m->setAttribute('purchase_index', 1);
             else
-                $m->purchase_index = (int) $idx;
-
-            if ($m->{BC::COL_BS_PRC} === null || $m->{BC::COL_BS_PRC} < 0)
-                $m->{BC::COL_BS_PRC} = 0.0000;
-
-            if ($m->discount === null || $m->discount < 0)
-                $m->discount = 0.0000;
-            if ($m->discount > $m->{BC::COL_BS_PRC})
-                $m->discount = $m->{BC::COL_BS_PRC};
-
-            $m->attributes = self::normalizeArrayField($m->attributes ?? null);
-
-            if ($m->product_service_id) {
+                $m->setAttribute('purchase_index', (int) $idx);
+            if ($m->getAttribute(BC::COL_BS_PRC) === null || $m->getAttribute(BC::COL_BS_PRC) < 0)
+                $m->setAttribute(BC::COL_BS_PRC, 0.0000);
+            if ($m->getAttribute('discount') === null || $m->getAttribute('discount') < 0)
+                $m->setAttribute('discount', 0.0000);
+            if ($m->getAttribute('discount') > $m->getAttribute(BC::COL_BS_PRC))
+                $m->setAttribute('discount', $m->getAttribute(BC::COL_BS_PRC));
+            $m->setAttribute('attributes', self::normalizeArrayField($m->getAttribute('attributes') ?? null));
+            if ($m->getAttribute('product_service_id')) {
                 $product = $m->relationLoaded('productService')
                     ? $m->productService
-                    : ProductService::find($m->product_service_id);
-
+                    : ProductService::find($m->getAttribute('product_service_id'));
                 if ($product) {
-                    $baseName = trim((string) $product->name);
+                    $baseName = trim((string) $product->getAttribute('name'));
                     $m->name  = self::buildUnitName(
                         $baseName,
-                        (string) ($m->getOriginal('name') ?? $m->name)
+                        (string) ($m->getOriginal('name') ?? $m->getAttribute('name'))
                     );
-
-                    if (!$m->{AC::COL_MUNIT}) {
-                        $units = self::normalizeArrayField($product->{BC::COL_AC_MUNITS} ?? null);
+                    if (!$m->getAttribute(AC::COL_MUNIT)) {
+                        $units = self::normalizeArrayField($product->getAttribute(BC::COL_AC_MUNITS) ?? null);
                         $firstUnit = $units ? reset($units) : null;
                         if (is_string($firstUnit) && trim($firstUnit) !== '')
-                            $m->{AC::COL_MUNIT} = trim($firstUnit);
+                            $m->setAttribute(AC::COL_MUNIT, trim($firstUnit));
                     }
-
-                    if (!$m->{BC::COL_CUR_ID}) {
-                        $currencies = self::normalizeArrayField($product->{BC::COL_AC_CUR} ?? null);
+                    if (!$m->getAttribute(BC::COL_CUR_ID)) {
+                        $currencies = self::normalizeArrayField($product->getAttribute(BC::COL_AC_CUR) ?? null);
                         $firstCur   = $currencies ? reset($currencies) : null;
                         $code       = $firstCur && is_string($firstCur)
                             ? strtoupper(substr(trim($firstCur), 0, 3))
                             : strtoupper(SC::DEF_SITE_CURRENCY_ID);
-                        $m->{BC::COL_CUR_ID} = $code;
+                        $m->setAttribute(BC::COL_CUR_ID, $code);
                     }
                 }
             }
-
-            if ($m->{BC::COL_CUR_ID})
-                $m->{BC::COL_CUR_ID} = strtoupper(substr((string) $m->{BC::COL_CUR_ID}, 0, 3));
+            if ($m->getAttribute(BC::COL_CUR_ID))
+                $m->setAttribute(BC::COL_CUR_ID, strtoupper(substr((string) $m->getAttribute(BC::COL_CUR_ID), 0, 3)));
         });
     }
 

@@ -188,21 +188,28 @@ final class ChartOfAccountTypeSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $data) {
-				// Garantia de CODE único, compacto
-				$data[CHTC::COL_CD] = strtoupper(Str::snake($data[CHTC::COL_CD]));
-				$data[DC::COL_TABLE_CREATOR] = $systemUserId;
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Gráfico de Conta: {$data[CHTC::COL_NM]}");
+					// Garantia de CODE único, compacto
+					$data[CHTC::COL_CD] = strtoupper(Str::snake($data[CHTC::COL_CD]));
+					$data[DC::COL_TABLE_CREATOR] = $systemUserId;
 
-				/** @var ChartOfAccountType $model */
-				$model = ChartOfAccountType::query()
-					->where(CHTC::COL_CD, $data[CHTC::COL_CD])
-					->first();
+					/** @var ChartOfAccountType $model */
+					$model = ChartOfAccountType::query()
+						->where(CHTC::COL_CD, $data[CHTC::COL_CD])
+						->first();
 
-				if ($model) {
-					$model->fill($data)->save();
-					$updated++;
-				} else {
-					ChartOfAccountType::create($data);
-					$created++;
+					if ($model) {
+						$model->fill($data)->save();
+						$updated++;
+					} else {
+						ChartOfAccountType::create($data);
+						$created++;
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 

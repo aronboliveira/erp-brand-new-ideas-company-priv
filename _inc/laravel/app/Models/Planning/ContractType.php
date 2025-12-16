@@ -46,24 +46,28 @@ class ContractType extends Model
     {
         parent::booted();
         static::saving(function (self $m): void {
-            $m->{BC::COL_MIN_V} ??= 0.00;
-            $m->{BC::COL_MAX_V} ??= 9999999999.00;
-            if ($m->{BC::COL_MIN_V} !== null && $m->{BC::COL_MIN_V} < 0)
-                $m->{BC::COL_MIN_V} = 0.00;
-            if ($m->{BC::COL_MAX_V} !== null && $m->{BC::COL_MAX_V} < 0)
-                $m->{BC::COL_MAX_V} = 0.00;
-            if ($m->{BC::COL_MIN_M} !== null && $m->{BC::COL_MIN_M} < 0)
-                $m->{BC::COL_MIN_M} = 0;
-            if ($m->{BC::COL_MAX_M} !== null && $m->{BC::COL_MAX_M} < 0)
-                $m->{BC::COL_MAX_M} = 0;
-            $minV = $m->{BC::COL_MIN_V};
-            $maxV = $m->{BC::COL_MAX_V};
-            if ($minV !== null && $maxV !== null && $minV > $maxV)
-                [$m->{BC::COL_MIN_V}, $m->{BC::COL_MAX_V}] = [$maxV, $minV];
-            $minM = $m->{BC::COL_MIN_M};
-            $maxM = $m->{BC::COL_MAX_M};
-            if ($minM !== null && $maxM !== null && $minM > $maxM)
-                [$m->{BC::COL_MIN_M}, $m->{BC::COL_MAX_M}] = [$maxM, $minM];
+            $m->setAttribute(BC::COL_MIN_V, $m->{BC::COL_MIN_V} ?? 0.00);
+            $m->setAttribute(BC::COL_MAX_V, $m->{BC::COL_MAX_V} ?? 9999999999.00);
+            if ($m->getAttribute(BC::COL_MIN_V) !== null && $m->getAttribute(BC::COL_MIN_V) < 0)
+                $m->setAttribute(BC::COL_MIN_V, 0.00);
+            if ($m->getAttribute(BC::COL_MAX_V) !== null && $m->getAttribute(BC::COL_MAX_V) < 0)
+                $m->setAttribute(BC::COL_MAX_V, 0.00);
+            if ($m->getAttribute(BC::COL_MIN_M) !== null && $m->getAttribute(BC::COL_MIN_M) < 0)
+                $m->setAttribute(BC::COL_MIN_M, 0);
+            if ($m->getAttribute(BC::COL_MAX_M) !== null && $m->getAttribute(BC::COL_MAX_M) < 0)
+                $m->setAttribute(BC::COL_MAX_M, 0);
+            $minV = $m->getAttribute(BC::COL_MIN_V);
+            $maxV = $m->getAttribute(BC::COL_MAX_V);
+            if ($minV !== null && $maxV !== null && $minV > $maxV) {
+                $m->setAttribute(BC::COL_MIN_V, $maxV);
+                $m->setAttribute(BC::COL_MAX_V, $minV);
+            }
+            $minM = $m->getAttribute(BC::COL_MIN_M);
+            $maxM = $m->getAttribute(BC::COL_MAX_M);
+            if ($minM !== null && $maxM !== null && $minM > $maxM) {
+                $m->setAttribute(BC::COL_MIN_M, $maxM);
+                $m->setAttribute(BC::COL_MAX_M, $minM);
+            }
         });
     }
 }

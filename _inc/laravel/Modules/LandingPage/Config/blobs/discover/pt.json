@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "Automação com IA",
+    "discover_description": "<p>Aproveite a inteligência artificial de ponta para automatizar tarefas repetitivas, prever tendências e otimizar os seus fluxos de trabalho com insights inteligentes.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Dashboard de Análise em Tempo Real",
+    "discover_description": "<p>Obtenha visibilidade instantânea do desempenho do seu negócio com painéis interativos, relatórios personalizados e acompanhamento de KPIs em tempo real em todos os departamentos.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Contabilidade Multi-moeda",
+    "discover_description": "<p>Gerencie transações internacionalmente de forma perfeita com conversão automática de moeda, conformidade fiscal e integração de taxas de câmbio em tempo real.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Gestão Inteligente de Inventário",
+    "discover_description": "<p>Otimize os níveis de stock com análise preditiva, reabastecimento automatizado e leitura de código de barras para operações eficientes de armazém.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "Gestão de Relacionamento com o Cliente 360°",
+    "discover_description": "<p>Acompanhe cada interação com o cliente, automatize follow-ups e analise o comportamento do cliente para aumentar vendas e melhorar as taxas de retenção.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Gestão de Projetos Avançada",
+    "discover_description": "<p>Planeie, execute e monitore projetos com gráficos de Gantt, alocação de recursos, controlo de tempo e ferramentas de gestão de marcos.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "Automação de RH & Folha de Pagamento",
+    "discover_description": "<p>Simplifique a gestão de funcionários com processamento automatizado de folha de pagamento, controlo de presença, avaliações de desempenho e administração de benefícios.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "PDV Móvel & Comércio Eletrónico",
+    "discover_description": "<p>Aceite pagamentos em qualquer lugar com o nosso sistema de ponto de venda móvel, integrado com gestão de loja online e sincronização de inventário.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Relatórios de Business Intelligence",
+    "discover_description": "<p>Transforme dados brutos em insights acionáveis com relatórios personalizáveis, visualização de dados e painéis executivos para tomada de decisão estratégica.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Construtor de Fluxo de Trabalho Personalizado",
+    "discover_description": "<p>Projete e automatize processos de negócios complexos com o nosso construtor de fluxo de trabalho arrastar e largar, reduzindo erros manuais e aumentando a eficiência.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Integração Transparente com Terceiros",
+    "discover_description": "<p>Conecte-se com 500+ aplicativos de negócios populares, incluindo Salesforce, QuickBooks, Shopify e Zapier para um ecossistema empresarial unificado.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Segurança de Nível Empresarial",
+    "discover_description": "<p>Proteja os dados do seu negócio com encriptação de nível militar, controlos de acesso baseados em função, trilhas de auditoria e conformidade com padrões globais de segurança.</p>"
+  }
+]

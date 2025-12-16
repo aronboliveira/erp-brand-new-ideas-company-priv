@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "人工智能自动化",
+    "discover_description": "<p>利用尖端人工智能自动化重复任务、预测趋势，并通过智能洞察优化您的业务流程。</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "实时分析仪表板",
+    "discover_description": "<p>通过交互式仪表板、自定义报告和跨所有部门的实时KPI跟踪，即时了解您的业务绩效。</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "多币种会计",
+    "discover_description": "<p>通过自动货币转换、税务合规和实时汇率集成，无缝管理国际交易。</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "智能库存管理",
+    "discover_description": "<p>通过预测分析、自动补货和条形码扫描优化库存水平，实现高效的仓库运营。</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360°客户关系管理",
+    "discover_description": "<p>跟踪每一次客户互动，自动化跟进，并分析客户行为以提高销售和改善留存率。</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "高级项目管理",
+    "discover_description": "<p>使用甘特图、资源分配、时间跟踪和里程碑管理工具规划、执行和监控项目。</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "人力资源与工资自动化",
+    "discover_description": "<p>通过自动化工资处理、考勤跟踪、绩效评估和福利管理，简化员工管理。</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "移动POS和电子商务",
+    "discover_description": "<p>使用我们的移动销售点系统在任何地方接受付款，并与在线商店管理和库存同步集成。</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "商业智能报告",
+    "discover_description": "<p>通过可自定义的报告、数据可视化和执行仪表板，将原始数据转化为可操作的见解，用于战略决策。</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "自定义工作流程构建器",
+    "discover_description": "<p>使用我们的拖放式工作流程构建器设计和自动化复杂的业务流程，减少人工错误并提高效率。</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "无缝第三方集成",
+    "discover_description": "<p>连接500多个流行的商业应用程序，包括Salesforce、QuickBooks、Shopify和Zapier，打造统一的商业生态系统。</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "企业级安全",
+    "discover_description": "<p>通过军事级加密、基于角色的访问控制、审计跟踪和符合全球安全标准来保护您的业务数据。</p>"
+  }
+]

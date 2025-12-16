@@ -133,127 +133,107 @@ class Vendor extends Authenticatable
                     UC::COL_LG,
                 ] as $field
             )
-                if (isset($vendor->{$field}) && is_string($vendor->{$field}))
-                    $vendor->{$field} = trim($vendor->{$field});
-
-            if ($vendor->{UC::COL_EM} ?? null)
-                $vendor->{UC::COL_EM} = self::normalizeEmail(
-                    $vendor->{UC::COL_EM},
+                if (!empty($vendor->getAttribute($field)) && is_string($vendor->getAttribute($field)))
+                    $vendor->setAttribute($field, trim($vendor->getAttribute($field)));
+            if ($vendor->getAttribute(UC::COL_EM) ?? null)
+                $vendor->setAttribute(UC::COL_EM, self::normalizeEmail(
+                    $vendor->getAttribute(UC::COL_EM),
                     'main',
                     $vendor->id ?? null
-                );
-
-            if ($vendor->{BC::COL_BL_EMAIL} ?? null)
-                $vendor->{BC::COL_BL_EMAIL} = self::normalizeEmail(
-                    $vendor->{BC::COL_BL_EMAIL},
+                ));
+            if ($vendor->getAttribute(BC::COL_BL_EMAIL) ?? null)
+                $vendor->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
+                    $vendor->getAttribute(BC::COL_BL_EMAIL),
                     'billing',
                     $vendor->id ?? null
-                );
-
-            $vendor->contact = self::normalizePhone(
-                $vendor->contact ?? null,
+                ));
+            $vendor->setAttribute('contact', self::normalizePhone(
+                $vendor->getAttribute('contact') ?? null,
                 'contact',
                 $vendor->id ?? null
-            );
-
-            $vendor->{BC::COL_BL_TEL} = self::normalizePhone(
-                $vendor->{BC::COL_BL_TEL} ?? null,
+            ));
+            $vendor->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
+                $vendor->getAttribute(BC::COL_BL_TEL) ?? null,
                 'billing',
                 $vendor->id ?? null
-            );
-
-            $vendor->{BC::COL_SHIP_TEL} = self::normalizePhone(
-                $vendor->{BC::COL_SHIP_TEL} ?? null,
+            ));
+            $vendor->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
+                $vendor->getAttribute(BC::COL_SHIP_TEL) ?? null,
                 'shipping',
                 $vendor->id ?? null
-            );
-
-            if (!$vendor->{UC::COL_LG})
-                $vendor->{UC::COL_LG} = DC::DEFAULT_LANG;
-
-            $billingCountryEnum = CountryName::normalize($vendor->{BC::COL_BL_CTR} ?? null)
+            ));
+            if (!$vendor->getAttribute(UC::COL_LG))
+                $vendor->setAttribute(UC::COL_LG, DC::DEFAULT_LANG);
+            $billingCountryEnum = CountryName::normalize($vendor->getAttribute(BC::COL_BL_CTR) ?? null)
                 ?? CountryName::Brazil;
-            $shippingCountryEnum = CountryName::normalize($vendor->{BC::COL_SHIP_CTR} ?? null)
+            $shippingCountryEnum = CountryName::normalize($vendor->getAttribute(BC::COL_SHIP_CTR) ?? null)
                 ?? CountryName::Brazil;
-
-            $vendor->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
-            $vendor->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
-
+            $vendor->setAttribute(BC::COL_BL_CTR, $billingCountryEnum->value);
+            $vendor->setAttribute(BC::COL_SHIP_CTR, $shippingCountryEnum->value);
             self::normalizeStateField(
                 $vendor,
                 BC::COL_BL_ST,
                 $billingCountryEnum
             );
-
             self::normalizeStateField(
                 $vendor,
                 BC::COL_SHIP_ST,
                 $shippingCountryEnum
             );
-
-            $vendor->{BC::COL_BL_ZIP} = self::normalizeZip(
-                $vendor->{BC::COL_BL_ZIP} ?? null,
-                $vendor->{BC::COL_BL_CTR},
+            $vendor->setAttribute(BC::COL_BL_ZIP, self::normalizeZip(
+                $vendor->getAttribute(BC::COL_BL_ZIP) ?? null,
+                $vendor->getAttribute(BC::COL_BL_CTR),
                 'billing',
                 $vendor->id ?? null
-            );
-
-            $vendor->{BC::COL_SHIP_ZIP} = self::normalizeZip(
-                $vendor->{BC::COL_SHIP_ZIP} ?? null,
-                $vendor->{BC::COL_SHIP_CTR},
+            ));
+            $vendor->setAttribute(BC::COL_SHIP_ZIP, self::normalizeZip(
+                $vendor->getAttribute(BC::COL_SHIP_ZIP) ?? null,
+                $vendor->getAttribute(BC::COL_SHIP_CTR) ?? null,
                 'shipping',
                 $vendor->id ?? null
-            );
-
+            ));
             self::normalizeBillingCountry($vendor);
             self::normalizeShippingCountry($vendor);
-
-            if ($vendor->balance === null || !is_numeric($vendor->balance) || $vendor->balance < 0)
-                $vendor->balance = 0.00;
-
-            if ($vendor->{UC::COL_IA} === null)
-                $vendor->{UC::COL_IA} = true;
-
-            if ($vendor->{BC::COL_IS_PRM} === null)
-                $vendor->{BC::COL_IS_PRM} = false;
-
+            if ($vendor->getAttribute('balance') === null || !is_numeric($vendor->getAttribute('balance')) || $vendor->getAttribute('balance') < 0)
+                $vendor->setAttribute('balance', 0.00);
+            if ($vendor->getAttribute(UC::COL_IA) === null)
+                $vendor->setAttribute(UC::COL_IA, true);
+            if ($vendor->getAttribute(BC::COL_IS_PRM) === null)
+                $vendor->setAttribute(BC::COL_IS_PRM, false);
             try {
-                $vendor->preferences = self::normalizeArrayField($vendor->preferences ?? []);
+                $vendor->setAttribute('preferences', self::normalizeArrayField($vendor->getAttribute('preferences') ?? []));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize preferences', [
                     UC::COL_VD_ID => $vendor->id ?? null,
                     'error'     => $e->getMessage(),
                 ]);
-                $vendor->preferences = [];
+                $vendor->setAttribute('preferences', []);
             }
-
             try {
-                $vendor->{BC::COL_OT_TX_ID} = self::normalizeArrayField($vendor->{BC::COL_OT_TX_ID} ?? []);
+                $vendor->setAttribute(BC::COL_OT_TX_ID, self::normalizeArrayField($vendor->getAttribute(BC::COL_OT_TX_ID) ?? []));
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' failed to normalize other_taxes_ids', [
                     UC::COL_VD_ID => $vendor->id ?? null,
                     'error'     => $e->getMessage(),
                 ]);
-                $vendor->{BC::COL_OT_TX_ID} = [];
+                $vendor->setAttribute(BC::COL_OT_TX_ID, []);
             }
-
             try {
-                $vendor->offers = self::sanitizeOffers($vendor->offers ?? []);
+                $vendor->setAttribute('offers', self::sanitizeOffers($vendor->getAttribute('offers') ?? []));
             } catch (\Throwable $e) {
                 Log::error(self::class . ' failed to normalize offers', [
                     UC::COL_VD_ID => $vendor->id ?? null,
                     'error'     => $e->getMessage(),
                 ]);
-                $vendor->offers = [];
+                $vendor->setAttribute('offers', []);
             }
         });
     }
 
     protected static function normalizeStateField(self $vendor, string $column, CountryName $country): void
     {
-        $raw = $vendor->{$column} ?? null;
+        $raw = $vendor->getAttribute($column) ?? null;
         $normalized = null;
-
         switch ($country) {
             case CountryName::Brazil:
                 $normalized = BrazilState::normalize($raw) ?? BrazilState::RJ;
@@ -269,11 +249,10 @@ class Vendor extends Authenticatable
                 break;
             default:
                 if (is_string($raw))
-                    $vendor->{$column} = strtoupper(trim($raw));
+                    $vendor->setAttribute($column, strtoupper(trim($raw)));
                 return;
         }
-
-        $vendor->{$column} = $normalized->value;
+        $vendor->setAttribute($column, $normalized->value);
     }
 
     protected static function sanitizeOffers(mixed $raw): array
@@ -281,38 +260,28 @@ class Vendor extends Authenticatable
         $items = self::normalizeArrayField($raw);
         if (!$items)
             return [];
-
         $valid = [];
-
         foreach ($items as $item) {
             if (!is_array($item))
                 continue;
-
             $hasKey = false;
-
             foreach (['id', 'key', 'product_service_id', 'unit_id'] as $k) {
                 if (!array_key_exists($k, $item))
                     continue;
-
                 $v = $item[$k];
-
                 if (is_string($v) && trim($v) !== '') {
                     $hasKey = true;
                     break;
                 }
-
                 if (is_int($v) || is_float($v)) {
                     $hasKey = true;
                     break;
                 }
             }
-
             if (!$hasKey)
                 continue;
-
             $valid[] = $item;
         }
-
         return $valid;
     }
 

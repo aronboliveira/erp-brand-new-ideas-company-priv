@@ -80,6 +80,11 @@ class ProjectsConstants
 	public const COL_ATC_FRULES = 'attachment_filter_rules';
 	public const COL_IS_FUP = 'is_follow_up';
 	public const COL_GRP_ID = 'group_id';
+	public const COL_IS_DSP = 'is_display';
+	public const COL_GL_TP = 'goal_type';
+	public const COL_TRG_ACHV = 'target_achievement';
+	public const COL_CST_EXP = 'customer_experience';
+	public const COL_APR_DT = 'appraisal_date';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

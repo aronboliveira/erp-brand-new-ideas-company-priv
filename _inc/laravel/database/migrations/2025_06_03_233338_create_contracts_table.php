@@ -18,7 +18,7 @@ class CreateContractsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid('type')->nullable();
             $table->string(PJC::COL_CN)->unique()->nullable(); // ? nullable for initial tests
-            $table->string('title')->index()->nullable();               // ? nullable for initial tests
+            $table->string('title')->nullable()->index();               // ? nullable for initial tests
             $table->string('subject')->nullable();
             $table->string('value')->nullable(); // TODO mudar posteriormente para decimal
             $table->string('currency', 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // * CR_SB => 'site_currency_symbol', nullable for initial tests

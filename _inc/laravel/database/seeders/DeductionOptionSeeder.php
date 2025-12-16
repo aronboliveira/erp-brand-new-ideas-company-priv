@@ -123,16 +123,23 @@ final class DeductionOptionSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $data) {
-				$key = !empty($data['code'])
-					? ['code' => $data['code']]
-					: ['name' => $data['name']];
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Dedução: {$data['name']}");
+					$key = !empty($data['code'])
+						? ['code' => $data['code']]
+						: ['name' => $data['name']];
 
-				$model = DeductionOption::updateOrCreate(
-					$key,
-					array_merge($data, [DC::COL_TABLE_CREATOR => $systemUserId])
-				);
+					$model = DeductionOption::updateOrCreate(
+						$key,
+						array_merge($data, [DC::COL_TABLE_CREATOR => $systemUserId])
+					);
 
-				$model->wasRecentlyCreated ? $created++ : $updated++;
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			Log::info("DeductionOptionSeeder: created={$created}, updated={$updated}");

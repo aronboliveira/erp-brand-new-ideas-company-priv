@@ -16,6 +16,7 @@ use App\Config\Constants\{
     SettingsConstants as SC,
     UsersConstants as UC
 };
+use App\Enums\BrazilState;
 use App\Mail\CommonEmailTemplate;
 use App\Models\{
     Branch,
@@ -1495,52 +1496,167 @@ class Utility extends Model
     {
         $user = User::find($userId);
         if (!$user) return;
-        $faker = Faker::create();
+        if (Employee::where(UC::COL_USER_ID, $user->id)->exists()) return;
+        $faker = Faker::create('pt_BR');
         try {
             DB::transaction(function () use ($user, $createdBy, $faker) {
+                $branchBudget   = $faker->randomFloat(2, 100_000, 1_000_000);
+                $branchExpenses = $faker->randomFloat(2, 0, $branchBudget);
+                $branchProfit   = $branchBudget - $branchExpenses;
                 $branch = Branch::create([
-                    CPC::COL_BRC_NM       => $faker->company,
+                    CPC::COL_BRC_NM       => $faker->company . ' ' . Str::upper(Str::random(4)), // unique
+                    'address'             => $faker->streetAddress(),
+                    'phone'               => $faker->phoneNumber(),
+                    CPC::COL_FND          => (string) $createdBy,
+                    CPC::COL_MNG          => $createdBy,
+                    CPC::COL_ADM          => $createdBy,
+                    'description'         => $faker->sentence(),
+                    'departments'         => '[]',
+                    'budget'              => $branchBudget,
+                    'expenses'            => $branchExpenses,
+                    'profit'              => $branchProfit,
+                    // audit
                     DC::COL_TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_UPDATER => $createdBy,
                 ]);
+
+                $deptBudget   = $faker->randomFloat(2, 10_000, 200_000);
+                $deptExpenses = $faker->randomFloat(2, 0, $deptBudget);
+                $deptProfit   = $deptBudget - $deptExpenses;
                 $department = Department::create([
-                    CPC::COL_DEP_NM       => $faker->word,
-                    CPC::COL_BRC_ID  => $branch->id,
+                    CPC::COL_DEP_NM       => ucfirst($faker->unique()->word()), // per-branch uniqueness handled by unique([branch_id, name])
+                    CPC::COL_BRC_ID       => $branch->id,
+                    'description'         => $faker->sentence(),
+                    'phone'               => $faker->phoneNumber(),
+                    'email'               => $faker->companyEmail(),
+                    CPC::COL_MNG          => $createdBy,
+                    'budget'              => $deptBudget,
+                    'expenses'            => $deptExpenses,
+                    'profit'              => $deptProfit,
+                    // audit
                     DC::COL_TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_UPDATER => $createdBy,
                 ]);
+
+                $dsgBudget = $faker->randomFloat(2, 5_000, 100_000);
+                $validFrom = $faker->dateTimeBetween('-1 year', 'now');
+                $validTo   = $faker->dateTimeBetween('now', '+10 years');
+
                 $designation = Designation::create([
-                    UC::COL_DSG_NM           => $faker->jobTitle,
-                    CPC::COL_DEP_ID  => $department->id,
-                    DC::COL_TABLE_CREATOR     => $createdBy,
+                    UC::COL_DSG_NM        => $faker->jobTitle(),
+                    CPC::COL_DEP_ID       => $department->id,
+                    CPC::COL_EBDG         => $dsgBudget,
+                    'description'         => $faker->sentence(),
+                    'notes'               => $faker->sentence(),
+                    CPC::COL_VFROM        => $validFrom->format('Y-m-d'),
+                    CPC::COL_VTO          => $validTo->format('Y-m-d'),
+                    // audit
+                    DC::COL_TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_UPDATER => $createdBy,
                 ]);
+
+                $taxName = 'Tax ' . $faker->unique()->randomNumber(3);
+                $taxRate = $faker->randomFloat(2, 0, 30); // up to 30%
+
                 $tax = Tax::create([
-                    BillsConstants::COL_TAX_NM       => 'Tax ' . $faker->randomNumber(2),
-                    BillsConstants::COL_TAX_RT       => $faker->randomFloat(2, 0, 1),
-                    DC::COL_TABLE_CREATOR => $createdBy,
+                    BillsConstants::COL_TAX_NM       => $taxName,
+                    BillsConstants::COL_TAX_RT       => $taxRate,
+                    // audit
+                    DC::COL_TABLE_CREATOR            => $createdBy,
+                    DC::COL_TABLE_UPDATER            => $createdBy,
                 ]);
+
+                $payslipTypeName = $faker->randomElement(['Monthly', 'Hourly', 'Daily']);
+
+                $code = (string) Str::uuid();
+                while (PayslipType::where('code', $code)->exists())
+                    $code = (string) Str::uuid();
+
+                $minAmount = $faker->randomFloat(2, 0, 1_000);
+                $maxAmount = $minAmount + $faker->randomFloat(2, 0, 10_000);
+
+                $rolesApplies = json_encode(
+                    $faker->randomElement([
+                        ['all'],
+                        ['employee', 'manager'],
+                        ['contractor'],
+                    ])
+                );
+
                 $payslipType = PayslipType::create([
-                    BillsConstants::COL_PAY_SLP_NM       => $faker->randomElement(['Monthly', 'Hourly', 'Daily']),
-                    DC::COL_TABLE_CREATOR => $createdBy,
+                    'code'                   => $code,
+                    BillsConstants::COL_PAY_SLP_NM => $payslipTypeName, // maps to 'name'
+                    'description'            => $faker->sentence(),
+                    BillsConstants::COL_MIN_AMT    => $minAmount,
+                    BillsConstants::COL_MAX_AMT    => $maxAmount,
+                    BillsConstants::COL_RL_APL     => $rolesApplies,
+                    // audit
+                    DC::COL_TABLE_CREATOR    => $createdBy,
+                    DC::COL_TABLE_UPDATER    => $createdBy,
                 ]);
+
+                $phone = $faker->phoneNumber();
+                while (Employee::where('phone', $phone)->exists()) {
+                    $phone = $faker->phoneNumber();
+                }
+
+                $email = $user[UC::COL_EM] ?? $user->email ?? $faker->unique()->safeEmail();
+                if (Employee::where('email', $email)->exists()) {
+                    $email = $faker->unique()->safeEmail();
+                }
+
+                $accountName = $faker->bothify('ACC-####-' . substr((string) $user->id, 0, 4));
+                while (Employee::where(UC::COL_ACC_NM, $accountName)->exists()) {
+                    $accountName = $faker->bothify('ACC-####-' . substr((string) Str::uuid(), 0, 4));
+                }
+
+                $employeeNumber = self::employeeNumber($createdBy);
+
+                $documents = json_encode([
+                    'id_card'  => (string) Str::uuid(),
+                    'contract' => (string) Str::uuid(),
+                ]);
+
+                $dob = $faker->optional()->dateTimeBetween('-60 years', '-18 years');
+
                 Employee::create([
-                    UC::COL_USER_ID     => $user?->id,
-                    UC::COL_NM        => $user[UC::COL_NM],
-                    UC::COL_EM       => $user[UC::COL_EM],
-                    UC::COL_PW    => $user[UC::COL_PW],
-                    UC::COL_EMP_ID => self::employeeNumber($createdBy),
-                    UC::COL_BRC_ID       => $branch->id,
-                    UC::COL_DEP_ID   => $department->id,
-                    UC::COL_DSG_ID  => $designation->id,
-                    UC::COL_TAX_ID    => $tax->id,
-                    UC::COL_SLR_TP     => $payslipType->id,
-                    UC::COL_SLR          => $faker->numberBetween(30000, 100000),
+                    UC::COL_EMP_ID        => $employeeNumber,
+                    UC::COL_USER_ID       => $user->id,
+                    'name'                => $user[UC::COL_NM] ?? $user->name,
+                    'phone'               => $phone,
+                    'email'               => $email,
+                    'gender'              => $faker->randomElement(['male', 'female', 'other']),
+                    'notes'               => $faker->sentence(),
+                    'password'            => $user[UC::COL_PW] ?? $user->password,
+                    'address'             => $faker->address(),
+                    'dob'                 => $dob ? $dob->format('Y-m-d') : null,
+                    CPC::COL_BRC_ID       => $branch->id,
+                    CPC::COL_BRC_LC       => $branch->address,
+                    CPC::COL_DEP_ID       => $department->id,
+                    UC::COL_DSG_ID        => $designation->id,
+                    CPC::COL_DOJ          => $faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'),
+                    'documents'           => $documents,
+                    UC::COL_ACC_HD        => $user[UC::COL_NM] ?? $user->name,
+                    UC::COL_ACC_NM        => $accountName,
+                    UC::COL_BANK_NM       => $faker->company() . ' Bank',
+                    UC::COL_BANK_IC       => strtoupper($faker->bothify('BR##-####')),
+                    UC::COL_TAX_ID        => $tax->id,
+                    'salary'              => $faker->randomFloat(2, 30_000, 100_000),
+                    UC::COL_SLR_TP        => $payslipType->id,
+                    UC::COL_IA            => 1,
+                    // audit
                     DC::COL_TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_UPDATER => $createdBy,
                 ]);
             });
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ .
-                " failed creating Employee for user[{$userId}]: {$e->getMessage()}");
+            Log::error(
+                __CLASS__ . '::' . __FUNCTION__
+                    . " failed creating Employee for user[{$userId}]: {$e->getMessage()}"
+            );
         }
     }
+
 
     public static function employeeDetailsUpdate(string|int $userId, string|int $createdBy): void
     {
@@ -1886,19 +2002,19 @@ class Utility extends Model
 
     public static function sendSlackMsg(string $slug, array $obj, ?int $userId = null): void
     {
-        $template = NotificationTemplates::where('slug', $slug)->first();
+        $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) return;
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return;
         $lang = $user?->lang;
-        $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
+        $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->where(UC::COL_USER_ID, $user?->id)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', 'en')
             ->first();
         if (!$notiLang || empty($notiLang->content)) return;
@@ -1916,7 +2032,7 @@ class Utility extends Model
 
     public static function sendTelegramMsg(string $slug, array $obj, ?int $userId = null): void
     {
-        $template = NotificationTemplates::where('slug', $slug)->first();
+        $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) {
             return;
         }
@@ -1925,14 +2041,14 @@ class Utility extends Model
             return;
         }
         $lang = $user?->lang;
-        $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
+        $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->where(UC::COL_USER_ID, $user?->id)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', 'en')
             ->first();
         if (!$notiLang || empty($notiLang->content))
@@ -1956,19 +2072,19 @@ class Utility extends Model
 
     public static function sendTwilioMsg(string $to, string $slug, array $obj, ?int $userId = null): void
     {
-        $template = NotificationTemplates::where('slug', $slug)->first();
+        $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) return;
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return;
         $lang = $user?->lang;
-        $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
+        $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->where(UC::COL_USER_ID, $user?->id)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
             ->first()
-            ?: NotificationTemplateLangs::where('parent_id', $template->id)
+            ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', 'en')
             ->first();
         if (!$notiLang || empty($notiLang->content)) return;
@@ -2622,6 +2738,60 @@ class Utility extends Model
         return 'desktop';
     }
 
+    public static function generateBrazilianPhone($mobile = true, $formatted = true): string
+    {
+        $areaCodes = BrazilState::DDD;
+        $areaCode = $areaCodes[array_rand($areaCodes)];
+        if ($mobile) {
+            // Mobile numbers start with 9 and have 9 digits total
+            $firstDigit = 9;
+            $secondDigit = rand(6, 9); // Usually 9, but can be 6-9
+            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $number = $firstDigit . $secondDigit . $remaining;
+
+            if ($formatted) {
+                return sprintf(
+                    '+55 (%02d) %d%d%d%d%d-%d%d%d%d',
+                    $areaCode,
+                    $firstDigit,
+                    $secondDigit,
+                    (int)$remaining[0],
+                    (int)$remaining[1],
+                    (int)$remaining[2],
+                    (int)$remaining[3],
+                    (int)$remaining[4],
+                    (int)$remaining[5],
+                    (int)$remaining[6]
+                );
+            } else {
+                return '55' . $areaCode . $number;
+            }
+        } else {
+            // Landline numbers have 8 digits and start with 2-5
+            $firstDigit = rand(2, 5);
+            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $number = $firstDigit . $remaining;
+
+            if ($formatted) {
+                return sprintf(
+                    '+55 (%02d) %d%d%d%d-%d%d%d%d',
+                    $areaCode,
+                    $firstDigit,
+                    (int)$remaining[0],
+                    (int)$remaining[1],
+                    (int)$remaining[2],
+                    (int)$remaining[3],
+                    (int)$remaining[4],
+                    (int)$remaining[5],
+                    (int)$remaining[6]
+                );
+            } else {
+                return '55' . $areaCode . $number;
+            }
+        }
+        return '+55 00000-0000';
+    }
+
     public static function updateStorageLimit(int $companyId, float $imageSize): string|int
     {
         try {
@@ -2832,6 +3002,8 @@ class Utility extends Model
     public static function languageCreate(?string $createdBy = DB::DEFAULT_UUID): void
     {
         foreach (self::langList() as $code => $fullName) {
+            $output = new ConsoleOutput();
+            $output->writeln("Creating or finding language: {$code} - {$fullName}");
             try {
                 Language::firstOrCreate(
                     ['code'      => $code],
@@ -2839,6 +3011,10 @@ class Utility extends Model
                         'full_name'         => $fullName,
                         DC::COL_TABLE_CREATOR => $createdBy,
                     ]
+                );
+                Log::debug(
+                    __CLASS__ . '::' . __FUNCTION__
+                        . ": language [{$code}] newly created or already existed."
                 );
             } catch (QueryException $e) {
                 Log::error(

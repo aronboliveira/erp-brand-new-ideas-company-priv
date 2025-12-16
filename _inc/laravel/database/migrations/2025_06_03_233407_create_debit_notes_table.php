@@ -13,7 +13,7 @@ class CreateDebitNotesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $this->addCardNoteColumns($table);
+            $this->addCardNoteColumns($table, billIdentifier: 'bill');
             $table->uuid(UC::COL_VD_ID)->index();
             $table->foreign(UC::COL_VD_ID)
                 ->references('id')

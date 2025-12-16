@@ -4,9 +4,10 @@ namespace Database\Seeders;
 
 use App\Config\Constants\BillsConstants as BC;
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Models\InvoiceProduct;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Carbon\CarbonImmutable as Carbon;
@@ -39,7 +40,7 @@ class InvoiceProductSeeder extends Seeder
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
 		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-		$invoices = DB::table(DC::TABLE_INVS)->select('id', BC::COL_CUR_ID . ' as currency_id')->get();
+		$invoices = DB::table(DC::TABLE_INVS)->get();
 		if ($invoices->isEmpty()) {
 			$this->command?->warn('Nenhuma fatura encontrada. Pulando.');
 			return;
@@ -75,78 +76,83 @@ class InvoiceProductSeeder extends Seeder
 			if ($itemsForInvoice === 0) continue;
 
 			for ($i = 0; $i < $itemsForInvoice; $i++) {
-				if ($target > 0 && $totalPlanned >= $target) break 2;
+				try {
+					if ($target > 0 && $totalPlanned >= $target) break 2;
 
-				$p = $products->random();
-				$price = $this->pickPrice($p);
-				if ($price <= 0) $price = round(fake()->randomFloat(2, 10, 900), 2);
+					$p = $products->random();
+					$price = $this->pickPrice($p);
+					if ($price <= 0) $price = round(fake()->randomFloat(2, 10, 900), 2);
 
-				$qty = fake()->numberBetween(1, $maxQty);
-				$subtotal = round($price * $qty, 2);
+					$qty = fake()->numberBetween(1, $maxQty);
+					$subtotal = round($price * $qty, 2);
 
-				$discount = $maybe(function () use ($subtotal) {
-					if ($subtotal <= 0) return 0.0;
-					$max = min($subtotal, round($subtotal * fake()->randomFloat(2, 0, 0.25), 2));
-					return $max > 0 ? round(fake()->randomFloat(2, 0, $max), 2) : 0.0;
-				}) ?? 0.0;
+					$discount = $maybe(function () use ($subtotal) {
+						if ($subtotal <= 0) return 0.0;
+						$max = min($subtotal, round($subtotal * fake()->randomFloat(2, 0, 0.25), 2));
+						return $max > 0 ? round(fake()->randomFloat(2, 0, $max), 2) : 0.0;
+					}) ?? 0.0;
 
-				$svcFee = $maybe(fn() => round($subtotal * fake()->randomFloat(2, 0.00, 0.03), 2));
-				$isSec  = $maybe(fn() => fake()->boolean(20));
-				$charge = $maybe(fn() => fake()->boolean(10));
+					$svcFee = $maybe(fn() => round($subtotal * fake()->randomFloat(2, 0.00, 0.03), 2));
+					$isSec  = $maybe(fn() => fake()->boolean(20));
+					$charge = $maybe(fn() => fake()->boolean(10));
 
-				$createdAt = $now->subDays(fake()->numberBetween(0, 60))->subMinutes(fake()->numberBetween(0, 1440));
-				$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 2880));
+					$createdAt = $now->subDays(fake()->numberBetween(0, 60))->subMinutes(fake()->numberBetween(0, 1440));
+					$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 2880));
 
-				$taxStr = $maybe(function () {
-					$names = ['ISS', 'ICMS', 'IOF', 'PIS', 'COFINS'];
-					$n = Arr::random($names);
-					$rate = ['0%', '2%', '5%', '7,6%', '12%'];
-					return $n . ' ' . Arr::random($rate);
-				});
+					$taxStr = $maybe(function () {
+						$names = ['ISS', 'ICMS', 'IOF', 'PIS', 'COFINS'];
+						$n = Arr::random($names);
+						$rate = ['0%', '2%', '5%', '7,6%', '12%'];
+						return $n . ' ' . Arr::random($rate);
+					});
 
-				$taxesList = $maybe(function () {
-					$sample = [
-						['name' => 'ISS', 'rate' => 2.00],
-						['name' => 'PIS', 'rate' => 1.65],
-						['name' => 'COFINS', 'rate' => 7.60],
+					$taxesList = $maybe(function () {
+						$sample = [
+							['name' => 'ISS', 'rate' => 2.00],
+							['name' => 'PIS', 'rate' => 1.65],
+							['name' => 'COFINS', 'rate' => 7.60],
+						];
+						return Arr::random($sample, fake()->numberBetween(1, 2));
+					});
+
+					$attachments = $maybe(function () {
+						return [
+							['name' => fake()->lexify('spec-????.pdf'), 'url' => fake()->url()],
+							['name' => fake()->lexify('img-????.png'), 'url' => fake()->url()],
+						];
+					});
+
+					$rows[] = [
+						BC::COL_INV_ID       => $inv->id,
+						BC::COL_PRD_ID       => $p->id,
+						'quantity'           => $qty,
+						'tax'                => $taxStr,
+						'price'              => $price,
+						BC::COL_CUR_ID       => $inv->currency_id ?: 'BRL',
+						'discount'           => $discount,
+						BC::COL_SVC_FEE      => $svcFee,
+						BC::COL_IS_SCD       => $isSec,
+						BC::COL_CAN_CHG_BK   => $charge,
+						'reference'          => $maybe(fn() => 'REF-' . strtoupper(Str::random(6))),
+						'description'        => 'Item de fatura para ' . (property_exists($p, 'name') ? $p->name : ('produto ' . substr($p->id, 0, 6))),
+						'notes'              => $maybe(fn() => fake()->realText(120)),
+						BC::COL_TXS_LST      => $json($taxesList),
+						'attachments'        => $json($attachments),
+						'contract'           => $maybe(fn() => $contractIds ? Arr::random($contractIds) : null),
+						'loan'               => $maybe(fn() => $loanIds ? Arr::random($loanIds) : null),
+						BC::COL_WRH_ID       => $maybe(fn() => $warehouseIds ? Arr::random($warehouseIds) : null),
+
+						DC::COL_TABLE_CREATOR    => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
+						'created_at'         => $createdAt->toDateTimeString(),
+						'updated_at'         => $updatedAt->toDateTimeString(),
 					];
-					return Arr::random($sample, fake()->numberBetween(1, 2));
-				});
-
-				$attachments = $maybe(function () {
-					return [
-						['name' => fake()->lexify('spec-????.pdf'), 'url' => fake()->url()],
-						['name' => fake()->lexify('img-????.png'), 'url' => fake()->url()],
-					];
-				});
-
-				$rows[] = array_filter([
-					'id'                 => (string) Str::uuid(),
-					BC::COL_INV_ID       => $inv->id,
-					BC::COL_PRD_ID       => $p->id,
-					'quantity'           => $qty,
-					'tax'                => $taxStr,
-					'price'              => $price,
-					BC::COL_CUR_ID       => $inv->currency_id ?: 'BRL',
-					'discount'           => $discount,
-					BC::COL_SVC_FEE      => $svcFee,
-					BC::COL_IS_SCD       => $isSec,
-					BC::COL_CAN_CHG_BK   => $charge,
-					'reference'          => $maybe(fn() => 'REF-' . strtoupper(Str::random(6))),
-					'description'        => 'Item de fatura para ' . (property_exists($p, 'name') ? $p->name : ('produto ' . substr($p->id, 0, 6))),
-					'notes'              => $maybe(fn() => fake()->realText(120)),
-					BC::COL_TXS_LST      => $json($taxesList),
-					'attachments'        => $json($attachments),
-					'contract'           => $maybe(fn() => $contractIds ? Arr::random($contractIds) : null),
-					'loan'               => $maybe(fn() => $loanIds ? Arr::random($loanIds) : null),
-					BC::COL_WRH_ID       => $maybe(fn() => $warehouseIds ? Arr::random($warehouseIds) : null),
-
-					DC::COL_TABLE_CREATOR    => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
-					'created_at'         => $createdAt->toDateTimeString(),
-					'updated_at'         => $updatedAt->toDateTimeString(),
-				], fn($v) => $v !== null);
-
-				$totalPlanned++;
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Produto de Fatura relacionado à Fatura {$inv->id} e Produto {$p->id}, no Valor de {$price} x {$qty}");
+					$totalPlanned++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}
 
@@ -157,7 +163,7 @@ class InvoiceProductSeeder extends Seeder
 
 		DB::transaction(function () use ($rows) {
 			foreach (array_chunk($rows, 1000) as $chunk) {
-				DB::table(DC::TABLE_INV_PRD)->insert($chunk);
+				foreach ($chunk as $row) InvoiceProduct::create($row);
 			}
 		});
 

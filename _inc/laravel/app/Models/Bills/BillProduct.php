@@ -77,43 +77,35 @@ class BillProduct extends Model
         static::saving(function (self $m): void {
             try {
                 foreach (['tax', 'description'] as $field)
-                    if (isset($m->{$field}) && is_string($m->{$field}))
-                        $m->{$field} = trim($m->{$field});
-
-                if (!is_numeric($m->quantity) || (int) $m->quantity < 1)
-                    $m->quantity = 1;
+                    if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                        $m->setAttribute($field, trim($m->getAttribute($field)));
+                if (!is_numeric($m->getAttribute('quantity')) || (int) $m->getAttribute('quantity') < 1)
+                    $m->setAttribute('quantity', 1);
                 else
-                    $m->quantity = (int) $m->quantity;
-
-                if (!is_numeric($m->discount) || $m->discount < 0)
-                    $m->discount = 0.0;
-
-                if (!is_numeric($m->total) || $m->total < 0)
-                    $m->total = 0.0000;
-
-                $m->{BC::COL_OT_TX} = self::normalizeArrayField($m->{BC::COL_OT_TX} ?? null);
-                $m->attachments     = self::normalizeArrayField($m->attachments ?? null);
-                $m->metadata        = self::normalizeArrayField($m->metadata ?? null);
-
-                if ($m->{BC::COL_BL_ID})
-                    $m->{BC::COL_OT_TX} = self::filterOtherTaxesAgainstBill(
-                        $m->{BC::COL_OT_TX},
-                        $m->{BC::COL_BL_ID}
-                    );
+                    $m->setAttribute('quantity', (int) $m->getAttribute('quantity'));
+                if (!is_numeric($m->getAttribute('discount')) || $m->getAttribute('discount') < 0)
+                    $m->setAttribute('discount', 0.0);
+                if (!is_numeric($m->getAttribute('total')) || $m->getAttribute('total') < 0)
+                    $m->setAttribute('total', 0.0000);
+                $m->setAttribute(BC::COL_OT_TX, self::normalizeArrayField($m->getAttribute(BC::COL_OT_TX) ?? null));
+                $m->setAttribute('attachments', self::normalizeArrayField($m->getAttribute('attachments') ?? null));
+                $m->setAttribute('metadata', self::normalizeArrayField($m->getAttribute('metadata') ?? null));
+                if ($m->getAttribute(BC::COL_BL_ID))
+                    $m->setAttribute(BC::COL_OT_TX, self::filterOtherTaxesAgainstBill(
+                        $m->getAttribute(BC::COL_OT_TX),
+                        $m->getAttribute(BC::COL_BL_ID)
+                    ));
             } catch (\Throwable $e) {
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $m->id ?? null,
                     'error' => $e->getMessage(),
                 ]);
-
-                if (!is_array($m->{BC::COL_OT_TX} ?? null))
-                    $m->{BC::COL_OT_TX} = [];
-
-                if (!is_array($m->attachments ?? null))
-                    $m->attachments = [];
-
-                if (!is_array($m->metadata ?? null))
-                    $m->metadata = [];
+                if (!is_array($m->getAttribute(BC::COL_OT_TX) ?? null))
+                    $m->setAttribute(BC::COL_OT_TX, []);
+                if (!is_array($m->getAttribute('attachments') ?? null))
+                    $m->setAttribute('attachments', []);
+                if (!is_array($m->getAttribute('metadata') ?? null))
+                    $m->setAttribute('metadata', []);
             }
         });
     }

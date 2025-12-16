@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str as Str;
+use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Str;
 
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\ActivitiesConstants as AC;
@@ -28,22 +28,75 @@ final class PipelineSeeder extends Seeder
 				'Projetos',
 				'Suporte',
 				'Renovação',
+				'Feedback',
+				'Retenção',
+				'Upsell',
+				'Cross-sell',
+				'Encerramento',
+				'Pós-venda',
+				'Implementação',
+				'Treinamento',
+				'Consultoria',
+				'Manutenção',
+				'Desenvolvimento',
+				'Teste',
+				'Deploy',
+				'Monitoramento',
+				'Análise de Requisitos',
+				'Design',
+				'Documentação',
+				'Treinamento Interno',
+				'Planejamento Estratégico',
+				'Pesquisa de Mercado',
+				'Gestão de Riscos',
+				'Controle de Qualidade',
+				'Suporte Técnico',
+				'Atendimento ao Cliente',
+				'Logística',
+				'Financeiro',
+				'Recursos Humanos',
+				'Marketing',
+				'Comunicação',
+				'Jurídico',
+				'Compras',
+				'Administração',
+				'TI',
+				'Operações',
+				'Desenvolvimento de Produto',
+				'Inovação',
+				'Parcerias Estratégicas',
+				'Eventos Corporativos',
+				'Relações Públicas',
+				'Sustentabilidade',
+				'Responsabilidade Social',
+				'Governança Corporativa',
+				'Segurança da Informação',
+				'Análise de Dados',
+				'Business Intelligence',
+				'Transformação Digital'
 			];
 
 			$order = 0;
 
 			foreach ($names as $nm) {
-				do $pipelineId = Str::uuid()->toString();
-				while (Pln::where('id', $pipelineId)->exists());
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando pipeline: {$nm}");
+					do $pipelineId = Str::uuid()->toString();
+					while (Pln::where('id', $pipelineId)->exists());
 
-				$p = new Pln();
-				$p->id = $pipelineId;
-				$p->{PJC::COL_PPL_NM} = $nm;
-				$p->{AC::COL_OD}      = $order++;
-				$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
-				$p->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$p = new Pln();
+					$p->id = $pipelineId;
+					$p->{PJC::COL_PPL_NM} = $nm;
+					$p->{AC::COL_OD}      = $order++;
+					$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$p->setAttribute(DC::COL_TABLE_UPDATER, null);
 
-				$p->save();
+					$p->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

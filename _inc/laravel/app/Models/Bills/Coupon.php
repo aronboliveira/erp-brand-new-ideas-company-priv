@@ -80,52 +80,59 @@ class Coupon extends Model
     protected static function booted(): void
     {
         static::saving(function (self $coupon): void {
-            $coupon->code = strtoupper(trim((string) $coupon->code));
-            $coupon->discount = max(0.0, (float) $coupon->discount);
-            $coupon->limit    = max(1, (int) ($coupon->limit ?: 1));
-            $pattern = PaymentPatternType::normalize($coupon->{BC::COL_DSC_TP} ?? null)
+            $coupon->setAttribute('code', strtoupper(trim((string) $coupon->getAttribute('code'))));
+            $coupon->setAttribute('discount', max(0.0, (float) $coupon->getAttribute('discount')));
+            $coupon->setAttribute('limit', max(1, (int) ($coupon->getAttribute('limit') ?: 1)));
+            $pattern = PaymentPatternType::normalize($coupon->getAttribute(BC::COL_DSC_TP) ?? null)
                 ?? PaymentPatternType::Fixed;
-            $coupon->{BC::COL_DSC_TP} = $pattern;
-            if ($coupon->{BC::COL_MIN_UNLCK} === null) $coupon->{BC::COL_MIN_UNLCK} = 0.0;
-            if ($coupon->{BC::COL_MAX_DSC} === null)   $coupon->{BC::COL_MAX_DSC}   = 0.0;
-            if ($coupon->{AC::COL_IA} === null)        $coupon->{AC::COL_IA}        = true;
-            if ($coupon->{BC::COL_VLD_FRM} === null)   $coupon->{BC::COL_VLD_FRM}   = now();
-            if ($coupon->{BC::COL_VLD_TO} === null)    $coupon->{BC::COL_VLD_TO}    = now()->addMonth();
-            if ($coupon->stackable === null)           $coupon->stackable           = true;
-            foreach ([BC::COL_EXC_PRD, BC::COL_EXC_CAT, BC::COL_APL_CAT, 'rules'] as $attr)
-                $coupon->{$attr} = self::normalizeArrayAttribute($coupon->{$attr});
-            $productIds = array_filter($coupon->{BC::COL_EXC_PRD} ?? [], fn($v) => $v !== '');
-            if (!empty($productIds))
-                $coupon->{BC::COL_EXC_PRD} = json_encode(array_values(ProductService::query()->whereIn('id', $productIds)->pluck('id')->all()));
-            else
-                $coupon->{BC::COL_EXC_PRD} = json_encode([]);
-            $categoryAttrs = [BC::COL_EXC_CAT, BC::COL_APL_CAT];
-            $allCategoryIds = [];
+            $coupon->setAttribute(BC::COL_DSC_TP, $pattern);
+
+            if ($coupon->getAttribute(BC::COL_MIN_UNLCK) === null) $coupon->setAttribute(BC::COL_MIN_UNLCK, 0.0);
+            if ($coupon->getAttribute(BC::COL_MAX_DSC)   === null) $coupon->setAttribute(BC::COL_MAX_DSC, 0.0);
+            if ($coupon->getAttribute(AC::COL_IA)        === null) $coupon->setAttribute(AC::COL_IA, true);
+            if ($coupon->getAttribute(BC::COL_VLD_FRM)   === null) $coupon->setAttribute(BC::COL_VLD_FRM, now());
+            if ($coupon->getAttribute(BC::COL_VLD_TO)    === null) $coupon->setAttribute(BC::COL_VLD_TO, now()->addMonth());
+            if ($coupon->getAttribute('stackable')           === null) $coupon->setAttribute('stackable', true);
+            if ($coupon->getAttribute(BC::COL_MUST_BE_VRF) === null) $coupon->setAttribute(BC::COL_MUST_BE_VRF, false);
+            if ($coupon->getAttribute(BC::COL_CAN_BE_GIFT) === null) $coupon->setAttribute(BC::COL_CAN_BE_GIFT, false);
+
+            foreach ([BC::COL_EXC_PRD, BC::COL_EXC_CAT, BC::COL_APL_CAT] as $attr)
+                $coupon->setAttribute($attr, self::normalizeArrayAttribute($coupon->getAttribute($attr)));
+            $productIds = array_filter($coupon->getAttribute(BC::COL_EXC_PRD) ?? [], fn($v) => $v !== '');
+            $coupon->setAttribute(BC::COL_EXC_PRD, $productIds
+                ? array_values(ProductService::query()
+                    ->whereIn('id', $productIds)
+                    ->pluck('id')
+                    ->all())
+                : []);
+            $categoryAttrs   = [BC::COL_EXC_CAT, BC::COL_APL_CAT];
+            $allCategoryIds  = [];
             foreach ($categoryAttrs as $attr)
-                $allCategoryIds = array_merge($allCategoryIds, array_filter($coupon->{$attr} ?? [], fn($v) => $v !== ''));
+                $allCategoryIds = array_merge(
+                    $allCategoryIds,
+                    array_filter($coupon->getAttribute($attr) ?? [], fn($v) => $v !== '')
+                );
             if (!empty($allCategoryIds)) {
                 $validCategoryIds = ProductServiceCategory::query()
                     ->whereIn('id', array_unique($allCategoryIds))
                     ->pluck('id')
                     ->all();
                 foreach ($categoryAttrs as $attr) {
-                    $attrIds = array_filter($coupon->{$attr} ?? [], fn($v) => $v !== '');
+                    $attrIds  = array_filter($coupon->getAttribute($attr) ?? [], fn($v) => $v !== '');
                     $validIds = array_values(array_intersect($attrIds, $validCategoryIds));
-                    $coupon->{$attr} = json_encode($validIds);
+                    $coupon->setAttribute($attr, $validIds);
                 }
             } else
                 foreach ($categoryAttrs as $attr)
-                    $coupon->{$attr} = json_encode([]);
-            if ($coupon->{BC::COL_MUST_BE_VRF} === null) $coupon->{BC::COL_MUST_BE_VRF} = false;
-            if ($coupon->{BC::COL_CAN_BE_GIFT} === null) $coupon->{BC::COL_CAN_BE_GIFT} = false;
-            $minPrev = (int) ($coupon->{BC::COL_MIN_PRV_ORD} ?? 0);
-            $maxPrev = (int) ($coupon->{BC::COL_MAX_PRV_ORD} ?? 2);
+                    $coupon->setAttribute($attr, []);
+            $minPrev = (int) ($coupon->getAttribute(BC::COL_MIN_PRV_ORD) ?? 0);
+            $maxPrev = (int) ($coupon->getAttribute(BC::COL_MAX_PRV_ORD) ?? 2);
             if ($minPrev < 0) $minPrev = 0;
             if ($maxPrev < 0) $maxPrev = 0;
             if ($maxPrev < $minPrev) $maxPrev = $minPrev;
-            $coupon->{BC::COL_MIN_PRV_ORD} = $minPrev;
-            $coupon->{BC::COL_MAX_PRV_ORD} = $maxPrev;
-            $coupon->{BC::COL_EXC_RLS} = self::normalizeRoleArray($coupon->{BC::COL_EXC_RLS});
+            $coupon->setAttribute(BC::COL_MIN_PRV_ORD, $minPrev);
+            $coupon->setAttribute(BC::COL_MAX_PRV_ORD, $maxPrev);
+            $coupon->setAttribute(BC::COL_EXC_RLS, self::normalizeRoleArray($coupon->getAttribute(BC::COL_EXC_RLS)));
         });
     }
 

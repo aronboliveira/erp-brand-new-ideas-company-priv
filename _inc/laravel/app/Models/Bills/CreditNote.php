@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
-use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 
-class CreditNote extends CardNote
+final class CreditNote extends CardNote
 {
     protected $table = DC::TABLE_CR_NOTES;
+
+    protected $fillable = [
+        ...parent::BASE_FILLABLE,
+        'invoice',
+        BC::COL_BL_ID,
+    ];
 
     protected function monetarySign(): int
     {

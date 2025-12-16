@@ -10,10 +10,10 @@ trait StoresPlanning
 {
 	protected function addPlanningColumns(Blueprint $table, bool $nullableTitle = false, bool $nullableFixedDate = true, bool $nullableFixedTime = true, bool $nullableDept = true, string $onDeleteDept = 'set null'): void
 	{
-		$nullableTitle ? $table->string('title')->index()->nullable() : $table->string('title')->index();
-		$nullableFixedDate ? $table->uuid('date')->default(now()->format('Y-m-d'))->index()->nullable() : $table->uuid('date')->default(now()->format('Y-m-d'))->index();
+		$nullableTitle ? $table->string('title')->nullable()->index() : $table->string('title')->index();
+		$nullableFixedDate ? $table->uuid('date')->default(now()->format('Y-m-d'))->nullable()->index() : $table->uuid('date')->default(now()->format('Y-m-d'))->index();
 		$onDeleteDept = strtolower((string) trim($onDeleteDept));
-		$nullableFixedTime ? $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->index()->nullable() : $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->index();
+		$nullableFixedTime ? $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->nullable()->index() : $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->index();
 		switch (true) {
 			case $nullableDept && in_array($onDeleteDept, ['cascade', 'restrict']):
 				Log::warning(
@@ -28,7 +28,7 @@ trait StoresPlanning
 			default:
 				$onDeleteDept = 'set null';
 		}
-		$nullableDept ? $table->uuid(CC::COL_DEP_ID)->index()->nullable() : $table->uuid(CC::COL_DEP_ID)->index();
+		$nullableDept ? $table->uuid(CC::COL_DEP_ID)->nullable()->index() : $table->uuid(CC::COL_DEP_ID)->index();
 		$table->unsignedTinyInteger(PJC::COL_MIN_DR)->default(15)->nullable(); // * duration in minutes
 		$table->unsignedTinyInteger(PJC::COL_EXP_DR)->default(30)->nullable(); // * duration in minutes
 		$table->unsignedTinyInteger(PJC::COL_MAX_DR)->default(60)->nullable(); // * duration in minutes

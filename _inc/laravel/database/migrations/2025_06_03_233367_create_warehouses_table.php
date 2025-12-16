@@ -14,13 +14,15 @@ class CreateWarehousesTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique()->nullable(); // ? nullable for tests
-            $table->string('name')->unique();
-            $table->uuid(CC::COL_CP_ID)->index()->nullable(); // ? nullable for tests
+            $table->string('name')->index();
+            $table->uuid(CC::COL_CP_ID)->nullable()->index(); // ? nullable for tests
             $table->string('zip')->index();
             $table->string('country', 256)->nullable(); // ? nullable for tests
-            $table->string('state', 256)->index()->nullable(); // ? nullable for tests
+            $table->string('state', 256)->nullable()->index(); // ? nullable for tests
             $table->string('city', 256)->index();
-            $table->text('address');
+            $table->string('address', 256);
+            $table->unique(['zip', 'name']);
+            $table->unique(['city', 'address', 'name']);
             $table->text(CC::COL_ADR_DTL)->nullable();
             $table->string('notes')->nullable();
             $table->string('phone', 32)->nullable(); // ? nullable for tests

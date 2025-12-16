@@ -58,81 +58,89 @@ final class PayslipSeeder extends Seeder
 				->orderBy('id')
 				->chunkById(200, function ($employees) use ($now, $tz, $idPool, $attachProb, $systemUserId, &$created, &$updated) {
 					foreach ($employees as $emp) {
-						// Gera de 2 a 6 folhas (meses recentes)
-						$monthsBack = random_int(2, 6);
+						// Gera de 2 a 12 folhas (meses recentes)
+						$monthsBack = random_int(2, 12);
 
 						for ($i = 0; $i < $monthsBack; $i++) {
-							// Referência de mês (sem usar copy/parse/createFromDate)
-							$ref = now($tz)->subMonths($i);
+							$empRef = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
+							(new \Symfony\Component\Console\Output\ConsoleOutput
+							)->writeln("Criando Folha de Pagamento para Funcionário ID: {$empRef}");
+							try {
+								// Referência de mês (sem usar copy/parse/createFromDate)
+								$ref = now($tz)->subMonths($i);
 
-							// Mês de competência (string)
-							$salaryMonth = $ref->format('Y-m');
+								// Mês de competência (string)
+								$salaryMonth = $ref->format('Y-m');
 
-							// Faixa de salário bruto (R$ 2.500,00 a R$ 15.000,00)
-							$gross = $this->money(mt_rand(250000, 1500000) / 100);
+								// Faixa de salário bruto (R$ 2.500,00 a R$ 15.000,00)
+								$gross = $this->money(mt_rand(250000, 1500000) / 100);
 
-							// Deduções e acréscimos aproximados
-							$deductionsPct = mt_rand(5, 25) / 100;   // 5% a 25%
-							$additionsPct  = mt_rand(0, 12) / 100;  // 0% a 12%
+								// Deduções e acréscimos aproximados
+								$deductionsPct = mt_rand(5, 25) / 100;   // 5% a 25%
+								$additionsPct  = mt_rand(0, 12) / 100;  // 0% a 12%
 
-							$net = $gross - ($gross * $deductionsPct) + ($gross * $additionsPct);
-							if ($net < 0) {
-								$net = 0.00;
-							}
-
-							$gross = $this->money($gross);
-							$net   = $this->money($net);
-
-							// Valor líquido pagável (inteiro, nunca maior que o líquido)
-							$netPayable = (int) floor($net);
-
-							// Define um dia de pagamento entre 25 e 28 do mês de referência
-							$payDayDay   = mt_rand(25, 28);
-							$payDay      = sprintf('%04d-%02d-%02d', (int)$ref->format('Y'), (int)$ref->format('m'), $payDayDay);
-							$todayString = $now->format('Y-m-d');
-
-							// Status simples: 0=pending, 1=processed, 2=paid
-							$status = (strcmp($todayString, $payDay) >= 0) ? mt_rand(1, 2) : 0;
-
-							// Relações opcionais (com probabilidade)
-							$rels = [
-								'allowance'     => $this->maybePickId($idPool['allowance'],  $attachProb['allowance']),
-								'commission'    => $this->maybePickId($idPool['commission'], $attachProb['commission']),
-								'loan'          => $this->maybePickId($idPool['loan'],       $attachProb['loan']),
-								BC::COL_ST_DD   => $this->maybePickId($idPool['st_ded'],     $attachProb['st_ded']),
-								BC::COL_OT_PAY  => $this->maybePickId($idPool['ot_pay'],     $attachProb['ot_pay']),
-								'overtime'      => $this->maybePickId($idPool['overtime'],   $attachProb['overtime']),
-							];
-
-							// Payload consolidado
-							$payload = array_merge([
-								UC::COL_EMP_ID      => $emp->id,
-								BC::COL_SLR_M       => $salaryMonth,
-								BC::COL_P_DAY       => $payDay,
-								BC::COL_G_SLR       => $gross,
-								BC::COL_N_SLR       => $net,
-								BC::COL_NET_PAYABLE => $netPayable,
-								'status'            => $status,
-							], $rels);
-
-							// Evita duplicar por funcionário + competência
-							$existing = Payslip::query()
-								->where(UC::COL_EMP_ID, $emp->id)
-								->where(BC::COL_SLR_M, $salaryMonth)
-								->first();
-
-							if ($existing) {
-								$existing->fill($payload);
-								if (empty($existing->{DC::COL_TABLE_CREATOR})) {
-									$existing->{DC::COL_TABLE_CREATOR} = $systemUserId;
+								$net = $gross - ($gross * $deductionsPct) + ($gross * $additionsPct);
+								if ($net < 0) {
+									$net = 0.00;
 								}
-								$existing->save();
-								$updated++;
-							} else {
-								$m = new Payslip($payload);
-								$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
-								$m->save();
-								$created++;
+
+								$gross = $this->money($gross);
+								$net   = $this->money($net);
+
+								// Valor líquido pagável (inteiro, nunca maior que o líquido)
+								$netPayable = (int) floor($net);
+
+								// Define um dia de pagamento entre 25 e 28 do mês de referência
+								$payDayDay   = mt_rand(25, 28);
+								$payDay      = sprintf('%04d-%02d-%02d', (int)$ref->format('Y'), (int)$ref->format('m'), $payDayDay);
+								$todayString = $now->format('Y-m-d');
+
+								// Status simples: 0=pending, 1=processed, 2=paid
+								$status = (strcmp($todayString, $payDay) >= 0) ? mt_rand(1, 2) : 0;
+
+								// Relações opcionais (com probabilidade)
+								$rels = [
+									'allowance'     => $this->maybePickId($idPool['allowance'],  $attachProb['allowance']),
+									'commission'    => $this->maybePickId($idPool['commission'], $attachProb['commission']),
+									'loan'          => $this->maybePickId($idPool['loan'],       $attachProb['loan']),
+									BC::COL_ST_DD   => $this->maybePickId($idPool['st_ded'],     $attachProb['st_ded']),
+									BC::COL_OT_PAY  => $this->maybePickId($idPool['ot_pay'],     $attachProb['ot_pay']),
+									'overtime'      => $this->maybePickId($idPool['overtime'],   $attachProb['overtime']),
+								];
+
+								// Payload consolidado
+								$payload = array_merge([
+									UC::COL_EMP_ID      => $emp->id,
+									BC::COL_SLR_M       => $salaryMonth,
+									BC::COL_P_DAY       => $payDay,
+									BC::COL_G_SLR       => $gross,
+									BC::COL_N_SLR       => $net,
+									BC::COL_NET_PAYABLE => $netPayable,
+									'status'            => $status,
+								], $rels);
+
+								// Evita duplicar por funcionário + competência
+								$existing = Payslip::query()
+									->where(UC::COL_EMP_ID, $emp->id)
+									->where(BC::COL_SLR_M, $salaryMonth)
+									->first();
+
+								if ($existing) {
+									$existing->fill($payload);
+									if (empty($existing->{DC::COL_TABLE_CREATOR})) {
+										$existing->{DC::COL_TABLE_CREATOR} = $systemUserId;
+									}
+									$existing->save();
+									$updated++;
+								} else {
+									$m = new Payslip($payload);
+									$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
+									$m->save();
+									$created++;
+								}
+							} catch (\Exception $e) {
+								Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+								continue;
 							}
 						}
 					}

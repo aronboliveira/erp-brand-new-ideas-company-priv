@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "功能",
+    "feature_description": "<p>通过我们完善的功能套件，释放强大的能力，帮助你简化工作流程并提升所有项目的工作效率。</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "支持",
+    "feature_description": "<p>获得全年无休的专属客户支持，专业团队随时待命，帮助你快速解决问题，确保业务持续稳定运行。</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "集成",
+    "feature_description": "<p>通过我们强大的 API 和预构建集成，无缝连接你常用的工具和平台，消除数据孤岛。</p>"
+  }
+]

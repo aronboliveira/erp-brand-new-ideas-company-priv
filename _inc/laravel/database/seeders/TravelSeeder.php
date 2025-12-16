@@ -17,7 +17,7 @@ final class TravelSeeder extends Seeder
 	 * Quantas viagens no máximo por colaborador nesta carga.
 	 * Ajuste conforme necessário.
 	 */
-	private const MAX_TRIPS_PER_EMPLOYEE = 3;
+	private const MAX_TRIPS_PER_EMPLOYEE = 32;
 
 	/**
 	 * Janela temporal (dias) para datas de início.
@@ -62,55 +62,62 @@ final class TravelSeeder extends Seeder
 				}
 
 				for ($i = 0; $i < $count; $i++) {
-					// Datas coerentes no fuso de São Paulo
-					$now   = now('America/Sao_Paulo');
-					$start = $now
-						->subDays(random_int(0, self::PAST_DAYS))
-						->addDays(random_int(0, self::FUTURE_DAYS));
-					// duração de 1 a 14 dias
-					$end   = $start->addDays(random_int(1, 14));
-
-					// Local e propósito
-					$city   = $faker->city();
-					$state  = $faker->state(); // evita depender de stateAbbr no locale
-					$place  = "{$city}/{$state}";
-					$purpose = $faker->randomElement($purposes);
-
-					// Evita duplicar registros iguais para o mesmo colaborador na mesma data/local/propósito
-					$exists = Travel::query()
-						->where(UC::COL_EMP_ID, $empId)
-						->where(PJC::COL_S_DT, $start->format('Y-m-d'))
-						->where(PJC::VST_PLC, $place)
-						->where(PJC::VST_PPS, $purpose)
-						->exists();
-
-					if ($exists) {
-						continue;
-					}
-
-					$t = new Travel();
-					$t->{UC::COL_EMP_ID}  = $empId;
-					$t->{PJC::COL_S_DT}   = $start->format('Y-m-d');
-					$t->{PJC::COL_E_DT}   = $end->format('Y-m-d');
-					$t->{PJC::VST_PLC}    = $place;
-					$t->{PJC::VST_PPS}    = $purpose;
-					$t->description       = $faker->boolean(55) ? $faker->sentence(12) : null;
-					// a coluna "notes" existe na migração; set por atribuição direta (fora do fillable)
-					$t->notes             = $faker->boolean(35) ? $faker->paragraph() : null;
-
-					// Auditoria
-					$t->{DC::COL_TABLE_CREATOR} = $systemUserId;
-
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Viagem ou Dispensa para funcionário ID: {$empId}");
 					try {
-						$t->save();
-					} catch (\Throwable $e) {
-						Log::warning('TravelSeeder: falha ao salvar viagem', [
-							'employee_id' => $empId,
-							'start_date'  => $t->{PJC::COL_S_DT},
-							'place'       => $t->{PJC::VST_PLC},
-							'purpose'     => $t->{PJC::VST_PPS},
-							'error'       => $e->getMessage(),
-						]);
+						// Datas coerentes no fuso de São Paulo
+						$now   = now('America/Sao_Paulo');
+						$start = $now
+							->subDays(random_int(0, self::PAST_DAYS))
+							->addDays(random_int(0, self::FUTURE_DAYS));
+						// duração de 1 a 14 dias
+						$end   = $start->addDays(random_int(1, 14));
+
+						// Local e propósito
+						$city   = $faker->city();
+						$state  = $faker->state(); // evita depender de stateAbbr no locale
+						$place  = "{$city}/{$state}";
+						$purpose = $faker->randomElement($purposes);
+
+						// Evita duplicar registros iguais para o mesmo colaborador na mesma data/local/propósito
+						$exists = Travel::query()
+							->where(UC::COL_EMP_ID, $empId)
+							->where(PJC::COL_S_DT, $start->format('Y-m-d'))
+							->where(PJC::VST_PLC, $place)
+							->where(PJC::VST_PPS, $purpose)
+							->exists();
+
+						if ($exists) {
+							continue;
+						}
+
+						$t = new Travel();
+						$t->{UC::COL_EMP_ID}  = $empId;
+						$t->{PJC::COL_S_DT}   = $start->format('Y-m-d');
+						$t->{PJC::COL_E_DT}   = $end->format('Y-m-d');
+						$t->{PJC::VST_PLC}    = $place;
+						$t->{PJC::VST_PPS}    = $purpose;
+						$t->description       = $faker->boolean(55) ? $faker->sentence(12) : null;
+						// a coluna "notes" existe na migração; set por atribuição direta (fora do fillable)
+						$t->notes             = $faker->boolean(35) ? $faker->paragraph() : null;
+
+						// Auditoria
+						$t->{DC::COL_TABLE_CREATOR} = $systemUserId;
+
+						try {
+							$t->save();
+						} catch (\Throwable $e) {
+							Log::warning('TravelSeeder: falha ao salvar viagem', [
+								'employee_id' => $empId,
+								'start_date'  => $t->{PJC::COL_S_DT},
+								'place'       => $t->{PJC::VST_PLC},
+								'purpose'     => $t->{PJC::VST_PPS},
+								'error'       => $e->getMessage(),
+							]);
+						}
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
 				}
 			}

@@ -9,7 +9,6 @@ class CreateDealEmailsTable extends Migration
 {
     use DealConnected, HasNullableAuditColumns, IsBusinessContact;
     private const TABLE = DC::TABLE_DL_EMAILS;
-    // todo criar trait para colunas de business email e business call + classe abstrata para dividir lógica comum
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {

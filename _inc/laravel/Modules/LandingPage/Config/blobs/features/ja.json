@@ -1,0 +1,17 @@
+[
+  {
+    "feature_logo": "1688108756-feature_logo.png",
+    "feature_heading": "機能",
+    "feature_description": "<p>包括的な機能セットにより強力な能力を引き出し、ワークフローを効率化して、すべてのプロジェクトの生産性を向上させます。</p>"
+  },
+  {
+    "feature_logo": "1688099120-feature_logo.png",
+    "feature_heading": "サポート",
+    "feature_description": "<p>専任スタッフによる24時間365日のカスタマーサポートにアクセスでき、問題を迅速に解決し、業務を円滑に継続できます。</p>"
+  },
+  {
+    "feature_logo": "1688099197-feature_logo.png",
+    "feature_heading": "連携",
+    "feature_description": "<p>堅牢なAPIと事前構築された連携機能により、お気に入りのツールやプラットフォームとシームレスに接続し、データサイロを解消します。</p>"
+  }
+]

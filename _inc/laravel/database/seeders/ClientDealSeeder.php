@@ -31,26 +31,33 @@ final class ClientDealSeeder extends Seeder
 			}
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(0, 4);
+				$count = random_int(64, 128);
 				if ($count === 0) continue;
 
 				$picked = collect($clientIds)->shuffle()->take($count)->all();
 
 				foreach ($picked as $clientId) {
-					if (Cld::where('deal_id', $dealId)->where('client_id', $clientId)->exists()) {
-						continue; // * evita violar UNIQUE(deal_id, client_id)
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Associação de Cliente para Acordo de Negócios: {$dealId} - Cliente: {$clientId}");
+					try {
+						if (Cld::where('deal_id', $dealId)->where('client_id', $clientId)->exists()) {
+							continue; // * evita violar UNIQUE(deal_id, client_id)
+						}
+
+						do $pivotId = Str::uuid()->toString();
+						while (Cld::where('id', $pivotId)->exists());
+
+						$cd = new Cld();
+						$cd->id         = $pivotId;
+						$cd->deal_id    = $dealId;
+						$cd->client_id  = $clientId;
+						$cd->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$cd->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$cd->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-
-					do $pivotId = Str::uuid()->toString();
-					while (Cld::where('id', $pivotId)->exists());
-
-					$cd = new Cld();
-					$cd->id         = $pivotId;
-					$cd->deal_id    = $dealId;
-					$cd->client_id  = $clientId;
-					$cd->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$cd->setAttribute(DC::COL_TABLE_UPDATER, null);
-					$cd->save();
 				}
 			}
 		}, 3);

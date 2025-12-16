@@ -42,7 +42,7 @@ trait HasPaymentConclusionColumns
 			default:
 				$onDeleteCat = 'set null';
 		}
-		$nullableAcc ? $table->uuid(BC::COL_BACC_ID)->index()->nullable() : $table->uuid(BC::COL_BACC_ID)->index();
+		$nullableAcc ? $table->uuid(BC::COL_BACC_ID)->nullable()->index() : $table->uuid(BC::COL_BACC_ID)->index();
 		$nullableCat ? $table->uuid(BC::COL_CAT_ID)->nullable() : $table->uuid(BC::COL_CAT_ID);
 		$table->string(BC::COL_ADD_RCP)->nullable();
 		$table->foreign(BC::COL_BACC_ID)

@@ -1,0 +1,32 @@
+[
+  {
+    "menubar_page_name": "Om os",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "Velkommen til Nova Prestechs website. Vi er en virksomhed inden for it-assistance og support med årtiers erfaring i infrastruktur, cybersikkerhed, cloud-tjenester og software. Vores teams kombinerer teknisk ekspertise med menneskecentreret service for at holde dine personlige og virksomhedsrelaterede systemer stabile, sikre og produktive. På denne side kan du læse mere om, hvem vi er, hvad vi laver, og hvordan vi hjælper dig med at designe, implementere og vedligeholde pålidelige it-miljøer.",
+    "page_slug": "about_us",
+    "header": "on",
+    "footer": "on",
+    "login": "on"
+  },
+  {
+    "menubar_page_name": "Vilkår og betingelser",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "Velkommen til Nova Prestechs website. Ved at få adgang til eller bruge dette website accepterer du disse vilkår og betingelser; hvis du ikke accepterer nogen del af dem, bedes du undlade at bruge siden. Indholdet gives som generel information om Nova Prestechs tjenester og kan ændres eller fjernes uden varsel. Vi kan bruge cookies og lignende teknologier til at forbedre din oplevelse og til analyseformål; hvis du tillader cookies, kan visse tekniske eller personlige data blive lagret og behandlet i overensstemmelse med vores privatlivspolitik. Vi bestræber os på at holde oplysningerne korrekte og opdaterede, men giver ingen garanti for fuldstændighed, pålidelighed eller egnethed til et bestemt formål, og brugen af websitet sker på eget ansvar. Det er dit ansvar at sikre, at de tjenester, løsninger eller anbefalinger, der beskrives her, opfylder dine specifikke behov, før du baserer beslutninger på dem. Medmindre andet er angivet, tilhører design, tekst, grafik, logoer og andet materiale på dette site Nova Prestech eller er licenseret til os, og uautoriseret gengivelse er forbudt. Uautoriseret brug af websitet kan medføre erstatningskrav og eller være en strafbar handling. Websitet kan fra tid til anden indeholde links til tredjepartssider, som kun stilles til rådighed for nemheds skyld; Nova Prestech anbefaler ikke disse sider og er ikke ansvarlig for deres indhold eller praksis.",
+    "page_slug": "terms_and_conditions",
+    "header": "off",
+    "footer": "on",
+    "login": "on"
+  },
+  {
+    "menubar_page_name": "Privatlivspolitik",
+    "template_name": "page_content",
+    "page_url": "",
+    "menubar_page_contant": "Denne privatlivspolitik forklarer, hvordan Nova Prestech indsamler, bruger og beskytter personoplysninger, når du besøger vores website eller bruger vores support- og teknologitjenester. Vi kan indsamle oplysninger, du selv giver, såsom navn, kontaktoplysninger, virksomhedsdata og indholdet af supportanmodninger, samt tekniske data om din enhed, logfiler og brugsmønstre. Vi bruger disse data til at levere og forbedre vores tjenester, håndtere sager, målrette kommunikation, opretholde sikkerhed, udarbejde statistik og opfylde juridiske forpligtelser. Vi kan dele data med betroede tjenesteudbydere og partnere, der hjælper med hosting, analyse, sikkerhed, fakturering eller kundesupport, under passende aftaler om fortrolighed og databeskyttelse. Vi implementerer tekniske og organisatoriske foranstaltninger såsom kryptering, adgangskontrol og overvågning for at beskytte dine data mod uautoriseret adgang, tab eller misbrug. Hvor det er relevant, kan du opdatere dine oplysninger, administrere kommunikationspræferencer og anmode om indsigt, rettelse eller sletning af dine personoplysninger i henhold til lokal lovgivning. Vores website kan bruge cookies og lignende teknologier til funktionalitet, analyse og sikkerhed; du kan styre disse via din browser og eventuelle samtykkeværktøjer på siden. Vores tjenester kan indeholde links til eksterne websites, som har deres egne privatlivspolitikker, vi ikke kontrollerer. Vi opbevarer persondata kun så længe, det er nødvendigt til de beskrevne formål eller krævet ved lov. Afhængigt af din jurisdiktion kan du have yderligere rettigheder i henhold til databeskyttelseslove som GDPR eller lignende; vi behandler data på grundlag af samtykke, kontraktmæssig nødvendighed, legitime interesser eller juridiske forpligtelser. Vi kan opdatere denne privatlivspolitik fra tid til anden, og væsentlige ændringer vil blive fremhævet på denne side eller meddelt via passende kanaler. Hvis du har spørgsmål om privatliv eller ønsker at udøve dine rettigheder, kan du kontakte Nova Prestech via kontaktoplysningerne på websitet.",
+    "page_slug": "privacy_policy",
+    "header": "off",
+    "footer": "on",
+    "login": "on"
+  }
+]

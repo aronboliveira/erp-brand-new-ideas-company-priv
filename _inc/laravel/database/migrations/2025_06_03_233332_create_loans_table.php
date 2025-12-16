@@ -22,7 +22,7 @@ class CreateLoansTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $this->addEmployeeColumns($table, unique: false, nullable: false);
-            $table->uuid(BC::COL_LN_OPT)->index()->nullable();
+            $table->uuid(BC::COL_LN_OPT)->nullable()->index();
             $table->string('title');
             $table->decimal('amount', 15, 2)->default(0.00);
             $table->string('type')->nullable()->index();

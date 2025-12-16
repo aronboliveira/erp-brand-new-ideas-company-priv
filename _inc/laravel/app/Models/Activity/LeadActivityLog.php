@@ -104,7 +104,7 @@ final class LeadActivityLog extends Model
                     DC::COL_ER_LG
                 ] as $column
             )
-                $model->{$column} = self::normalizeArrayField($model->{$column});
+                $model->setAttribute($column, self::normalizeArrayField($model->getAttribute($column) ?? null));
         });
     }
 

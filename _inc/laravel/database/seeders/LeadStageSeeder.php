@@ -10,7 +10,7 @@ use App\Config\Constants\{
 use App\Models\{LeadStage, Pipeline};
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -111,6 +111,7 @@ class LeadStageSeeder extends Seeder
 					if ($stage->isDirty()) {
 						$stage->save();
 					}
+					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Estágio de Lead como Fixture com nome {$fx['nm']} para Pipeline {$pipelineId}");
 				}
 
 				// 2) Extras aleatórios por pipeline (0..N) com combinações diversas
@@ -118,29 +119,35 @@ class LeadStageSeeder extends Seeder
 				$baseOrder = 50;
 
 				for ($i = 0; $i < $extras; $i++) {
-					// Gera um nome razoável e garante unicidade por pipeline
-					$name = $this->uniqueStageName($pipelineId);
+					try {
+						// Gera um nome razoável e garante unicidade por pipeline
+						$name = $this->uniqueStageName($pipelineId);
 
-					$payload = [
-						PJC::COL_STG_NM  => $name,
-						PJC::COL_PPL_ID  => $pipelineId,
-						AC::COL_OD       => $baseOrder + ($i * 5) + fake()->numberBetween(0, 4),
-						'notes'          => $notesOrNull(),
-						PJC::COL_EST_CC  => $intOrNull(0, 100),   // às vezes null
-						PJC::COL_CRT     => $boolOrNull(),        // às vezes null/true/false
-					];
+						$payload = [
+							PJC::COL_STG_NM  => $name,
+							PJC::COL_PPL_ID  => $pipelineId,
+							AC::COL_OD       => $baseOrder + ($i * 5) + fake()->numberBetween(0, 4),
+							'notes'          => $notesOrNull(),
+							PJC::COL_EST_CC  => $intOrNull(0, 100),   // às vezes null
+							PJC::COL_CRT     => $boolOrNull(),        // às vezes null/true/false
+						];
 
-					$stage = LeadStage::query()->create($payload);
+						$stage = LeadStage::query()->create($payload);
 
-					// Auditoria opcional (atribuição direta para não violar guarded)
-					if (Schema::hasColumn(DC::TABLE_LEAD_STAGES, DC::COL_TABLE_CREATOR) && $this->shouldFillAudit()) {
-						$stage->{DC::COL_TABLE_CREATOR} = $userIds ? Arr::random($userIds) : null;
-					}
-					if (Schema::hasColumn(DC::TABLE_LEAD_STAGES, DC::COL_TABLE_UPDATER) && $this->shouldFillAudit()) {
-						$stage->{DC::COL_TABLE_UPDATER} = $userIds ? Arr::random($userIds) : null;
-					}
-					if ($stage->isDirty()) {
-						$stage->save();
+						// Auditoria opcional (atribuição direta para não violar guarded)
+						if (Schema::hasColumn(DC::TABLE_LEAD_STAGES, DC::COL_TABLE_CREATOR) && $this->shouldFillAudit()) {
+							$stage->{DC::COL_TABLE_CREATOR} = $userIds ? Arr::random($userIds) : null;
+						}
+						if (Schema::hasColumn(DC::TABLE_LEAD_STAGES, DC::COL_TABLE_UPDATER) && $this->shouldFillAudit()) {
+							$stage->{DC::COL_TABLE_UPDATER} = $userIds ? Arr::random($userIds) : null;
+						}
+						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Estágio de Lead com nome {$name} para Pipeline {$pipelineId}");
+						if ($stage->isDirty()) {
+							$stage->save();
+						}
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
 				}
 			}

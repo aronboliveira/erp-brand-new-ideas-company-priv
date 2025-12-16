@@ -54,7 +54,7 @@ class CreateDeductionOptionsTable extends Migration
                 'annual',
             ])->default('monthly')
                 ->nullable()->index(); // ? Nullable para testes iniciais
-            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->min(1)->max(31)->nullable(); // ? Nullable para testes iniciais
+            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->nullable(); // ? Nullable para testes iniciais
             $this->addAuditColumns($table);
         });
     }

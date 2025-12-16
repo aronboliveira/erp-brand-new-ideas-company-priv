@@ -13,8 +13,8 @@ class CreateRevenuesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->uuid('company')->index()->nullable(); // ? nullable for testing purposes
-            $table->uuid('user')->index()->nullable(); // ? nullable for testing purposes
+            $table->uuid('company')->nullable()->index(); // ? nullable for testing purposes
+            $table->uuid('user')->nullable()->index(); // ? nullable for testing purposes
             $this->addCustomerColumns($table, nullable: false, unique: false, onDelete: 'restrict');
             $this->addPaymentColumns($table);
             $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');

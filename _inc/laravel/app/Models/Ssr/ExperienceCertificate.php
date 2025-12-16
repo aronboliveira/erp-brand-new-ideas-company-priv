@@ -1056,7 +1056,7 @@ class ExperienceCertificate extends Model
             try {
                 self::firstOrCreate(
                     [
-                        TemplatesConstants::COL_LG                     => $lang,
+                        TemplatesConstants::COL_LG => $lang,
                         DatabaseConstants::COL_TABLE_CREATOR => $userId,
                     ],
                     [TemplatesConstants::COL_CT => $content]

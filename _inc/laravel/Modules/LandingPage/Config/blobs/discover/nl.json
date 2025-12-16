@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "AI-gestuurde automatisering",
+    "discover_description": "<p>Maak gebruik van geavanceerde kunstmatige intelligentie om repetitieve taken te automatiseren, trends te voorspellen en uw bedrijfsprocessen te optimaliseren met intelligente inzichten.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Real-time analyse dashboard",
+    "discover_description": "<p>Krijg direct inzicht in uw bedrijfsprestaties met interactieve dashboards, aangepaste rapporten en real-time KPI-tracking in alle afdelingen.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Multi-valuta boekhouding",
+    "discover_description": "<p>Beheer internationale transacties naadloos met automatische valuta-omrekening, belastingconformiteit en real-time wisselkoersintegratie.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Slimme voorraadbeheer",
+    "discover_description": "<p>Optimaliseer voorraadniveaus met voorspellende analyses, geautomatiseerd nabestellen en barcodescannen voor efficiënte magazijnoperaties.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° klantrelatiebeheer",
+    "discover_description": "<p>Volg elke klantinteractie, automatiseer opvolgingen en analyseer klantgedrag om verkoop te verhogen en retentietarieven te verbeteren.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Geavanceerd projectmanagement",
+    "discover_description": "<p>Plan, voer uit en monitor projecten met Gantt-diagrammen, resourceallocatie, tijdregistratie en mijlpalenbeheertools.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "HR & Salarisautomatisering",
+    "discover_description": "<p>Stroomlijn personeelsbeheer met geautomatiseerde salarisverwerking, aanwezigheidsregistratie, prestatiebeoordelingen en beheer van arbeidsvoorwaarden.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobiele kassa & E-commerce",
+    "discover_description": "<p>Accepteer overal betalingen met ons mobiele kassasysteem, geïntegreerd met online winkelbeheer en voorraadsynchronisatie.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Business Intelligence rapportage",
+    "discover_description": "<p>Transformeer ruwe data in bruikbare inzichten met aanpasbare rapporten, datavisualisatie en executive dashboards voor strategische besluitvorming.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Aangepaste workflow-bouwer",
+    "discover_description": "<p>Ontwerp en automatiseer complexe bedrijfsprocessen met onze drag-and-drop workflow-bouwer, waardoor handmatige fouten worden verminderd en efficiëntie wordt verhoogd.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Naadloze integratie met derden",
+    "discover_description": "<p>Verbind met 500+ populaire bedrijfsapps, waaronder Salesforce, QuickBooks, Shopify en Zapier voor een verenigd bedrijfsecosysteem.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Bedrijfsniveau beveiliging",
+    "discover_description": "<p>Bescherm uw bedrijfsgegevens met militaire encryptie, rolgebaseerde toegangscontroles, audittrails en naleving van wereldwijde beveiligingsnormen.</p>"
+  }
+]

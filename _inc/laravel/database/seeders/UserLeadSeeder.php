@@ -9,7 +9,7 @@ use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -137,65 +137,71 @@ class UserLeadSeeder extends Seeder
 
 				while ($inserted < ($current + $inserted) && $tries < $limit) {
 					$tries++;
+					try {
 
-					$leadId = Arr::random($leadIds);
-					$userId = Arr::random($userIds);
-					$key    = $leadId . ':' . $userId;
+						$leadId = Arr::random($leadIds);
+						$userId = Arr::random($userIds);
+						$key    = $leadId . ':' . $userId;
 
-					if (isset($used[$key])) {
-						continue; // já existe esse par
-					}
+						if (isset($used[$key])) {
+							continue; // já existe esse par
+						}
 
-					// Log candidates (opcionais, filtrados pelo Model)
-					$logs   = [];
-					if (fake()->boolean(45)) {
-						$candidates = $fetchLogIds($leadId);
-						if ($candidates) {
-							$take = min(self::LOGS_MAX_ITEMS, count($candidates));
-							$pick = (array) Arr::random($candidates, fake()->numberBetween(1, $take));
-							foreach ((array) $pick as $logId) {
-								$logs[] = [
-									'id'  => (string) $logId,
-									'tag' => Arr::random(['auto-link', 'evidence', 'audit']),
-								];
+						// Log candidates (opcionais, filtrados pelo Model)
+						$logs   = [];
+						if (fake()->boolean(45)) {
+							$candidates = $fetchLogIds($leadId);
+							if ($candidates) {
+								$take = min(self::LOGS_MAX_ITEMS, count($candidates));
+								$pick = (array) Arr::random($candidates, fake()->numberBetween(1, $take));
+								foreach ((array) $pick as $logId) {
+									$logs[] = [
+										'id'  => (string) $logId,
+										'tag' => Arr::random(['auto-link', 'evidence', 'audit']),
+									];
+								}
 							}
 						}
+
+						// Datas variadas
+						$created  = $now->subDays(fake()->numberBetween(0, 120))
+							->subMinutes(fake()->numberBetween(0, 1_440));
+						$updated  = (clone $created)->addMinutes(fake()->numberBetween(0, 20_160));
+						$role = $pickRole();
+						// Montagem do payload
+						$payload = [
+							PJC::COL_LD_ID        => $leadId,
+							UC::COL_USER_ID       => $userId,
+							'role'                => $role,
+							AC::COL_CAN_MK_DCS    => fake()->boolean(20), // Model ajusta para true se for Manager/Supervisor/Admin/SuperAdmin
+							'logs'                => $logs,
+						];
+
+						/** @var UserLead $row */
+						$row = UserLead::query()->create($payload);
+
+						// Timestamps fora de mass assignment
+						$row->created_at = $created;
+						$row->updated_at = $updated;
+
+						// Auditoria opcional (se existir no schema)
+						if (Schema::hasColumn(DC::TABLE_USR_LD, DC::COL_TABLE_CREATOR)) {
+							$row->{DC::COL_TABLE_CREATOR} = $userId;
+						}
+						if (Schema::hasColumn(DC::TABLE_USR_LD, DC::COL_TABLE_UPDATER)) {
+							$row->{DC::COL_TABLE_UPDATER} = $userId;
+						}
+						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Usuário {$userId} para Lead {$leadId} com papel de {$role}");
+						$row->save();
+
+						// marca par utilizado
+						$used[$key] = true;
+						$inserted++;
+					} catch (\Exception $e) {
+						$inserted++;
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-
-					// Datas variadas
-					$created  = $now->subDays(fake()->numberBetween(0, 120))
-						->subMinutes(fake()->numberBetween(0, 1_440));
-					$updated  = (clone $created)->addMinutes(fake()->numberBetween(0, 20_160));
-
-					// Montagem do payload
-					$payload = [
-						PJC::COL_LD_ID        => $leadId,
-						UC::COL_USER_ID       => $userId,
-						'role'                => $pickRole(),
-						AC::COL_CAN_MK_DCS    => fake()->boolean(20), // Model ajusta para true se for Manager/Supervisor/Admin/SuperAdmin
-						'logs'                => $logs,
-					];
-
-					/** @var UserLead $row */
-					$row = UserLead::query()->create($payload);
-
-					// Timestamps fora de mass assignment
-					$row->created_at = $created;
-					$row->updated_at = $updated;
-
-					// Auditoria opcional (se existir no schema)
-					if (Schema::hasColumn(DC::TABLE_USR_LD, DC::COL_TABLE_CREATOR)) {
-						$row->{DC::COL_TABLE_CREATOR} = $userId;
-					}
-					if (Schema::hasColumn(DC::TABLE_USR_LD, DC::COL_TABLE_UPDATER)) {
-						$row->{DC::COL_TABLE_UPDATER} = $userId;
-					}
-
-					$row->save();
-
-					// marca par utilizado
-					$used[$key] = true;
-					$inserted++;
 				}
 			});
 		}

@@ -1,0 +1,26 @@
+[
+  {
+    "other_features_image": "1688108824-other_features_image.png",
+    "other_features_heading": "マネージドITサポートとヘルプデスク",
+    "other_featured_description": "<p>Nova Prestech のマネージドITサポートにより、ワークステーション・サーバー・ネットワークを安定稼働させます。リモート監視、オンサイト対応、人に寄り添ったヘルプデスクを組み合わせ、チーム全体を支援します。</p>",
+    "other_feature_buy_now_link": "https://prestech.com.br/site/servicos/"
+  },
+  {
+    "other_features_image": "1688108842-other_features_image.png",
+    "other_features_heading": "サイバーセキュリティ管理とデータ保護",
+    "other_featured_description": "<p>ファイアウォール管理、アンチウイルス、継続的な監視、成熟したバックアップおよび災害復旧戦略により、ビジネスデータを保護し、セキュリティ体制を強化します。</p>",
+    "other_feature_buy_now_link": "https://prestech.com.br/site/servicos/"
+  },
+  {
+    "other_features_image": "1688115908-other_features_image.png",
+    "other_features_heading": "クラウドサービス・仮想化・ホスティング",
+    "other_featured_description": "<p>クラウドサービス、サーバー仮想化、信頼性の高いホスティングを組み合わせたモダンな環境を計画・運用し、インフラ全体の可用性・性能・コストを最適化します。</p>",
+    "other_feature_buy_now_link": "https://prestech.com.br/site/servicos/"
+  },
+  {
+    "other_features_image": "1688108947-other_features_image.png",
+    "other_features_heading": "カスタム開発とWebソリューション",
+    "other_featured_description": "<p>カスタム開発、システム連携、Webソリューションを通じてプロセスとユーザー体験を変革し、業務フローとユーザーの日常に合わせたIT環境を実現します。</p>",
+    "other_feature_buy_now_link": "https://prestech.com.br/site/servicos/"
+  }
+]

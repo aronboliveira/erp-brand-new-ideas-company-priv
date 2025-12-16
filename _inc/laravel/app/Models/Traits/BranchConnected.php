@@ -8,24 +8,26 @@ use Illuminate\Support\Facades\{Log, Schema};
 
 trait BranchConnected
 {
-	protected function addBranchColumns(Blueprint $table, bool $unique = false, bool $nullable = false): void
+	protected function addBranchColumns(Blueprint $table, bool $unique = false, bool $nullable = false, ?bool $prefixed = true): void
 	{
-		$unique ? ($nullable ? $table->uuid(CC::COL_BRC_ID)->nullable()->unique() : $table->uuid(CC::COL_BRC_ID)->index()) : ($nullable ? $table->uuid(CC::COL_BRC_ID)->nullable()->index() : $table->uuid(CC::COL_BRC_ID)->index());
+		$id = $prefixed ? CC::COL_BRC_ID : 'branch';
+		$unique ? ($nullable ? $table->uuid($id)->nullable()->unique() : $table->uuid($id)->index()) : ($nullable ? $table->uuid($id)->nullable()->index() : $table->uuid($id)->index());
 		$nullable ?
-			$table->foreign(CC::COL_BRC_ID)
+			$table->foreign($id)
 			->references('id')
 			->on(DC::TABLE_BRANCHES)
 			->nullOnDelete() :
-			$table->foreign(CC::COL_BRC_ID)
+			$table->foreign($id)
 			->references('id')
 			->on(DC::TABLE_BRANCHES)
 			->cascadeOnDelete();
 	}
-	protected function dropBranchColumnForeign(Blueprint $table, string $tableName): void
+	protected function dropBranchColumnForeign(Blueprint $table, string $tableName, ?bool $prefixed = true): void
 	{
 		try {
-			Schema::hasColumn($tableName, CC::COL_BRC_ID) &&
-				$table->dropForeign([CC::COL_BRC_ID]);
+			$id = $prefixed ? CC::COL_BRC_ID : 'branch';
+			Schema::hasColumn($tableName, $id) &&
+				$table->dropForeign([$id]);
 		} catch (\Exception $e) {
 			Log::warning(
 				'Failed to drop foreign key for '

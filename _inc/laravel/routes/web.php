@@ -71,7 +71,7 @@ use App\Http\Controllers\{
     LoanController,
     LoanOptionController,
     MeetingController,
-    NotificationTemplatesController,
+    NotificationTemplateController,
     OtherPaymentController,
     OvertimeController,
     PaymentController,
@@ -1677,8 +1677,8 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //================================= Notification Templates ====================================//
     #region
-    R::get(VW::NTF_TMP . '/{id?}/{lang?}', [NotificationTemplatesController::class, 'index'])->name(VW::NTF_TMP . '.index')->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::NTF_TMP, NotificationTemplatesController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::NTF_TMP . '/{id?}/{lang?}', [NotificationTemplateController::class, 'index'])->name(VW::NTF_TMP . '.index')->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::NTF_TMP, NotificationTemplateController::class)->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
 
     //================================= Notification Templates ====================================//

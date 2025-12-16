@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "Automatyzacja napędzana AI",
+    "discover_description": "<p>Wykorzystaj najnowocześniejszą sztuczną inteligencję do automatyzacji powtarzalnych zadań, przewidywania trendów i optymalizacji przepływów pracy w firmie dzięki inteligentnym analizom.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Panel analiz w czasie rzeczywistym",
+    "discover_description": "<p>Zyskaj natychmiastową widoczność wydajności swojej firmy dzięki interaktywnym pulpitom nawigacyjnym, niestandardowym raportom i śledzeniu KPI w czasie rzeczywistym we wszystkich działach.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Księgowość wielowalutowa",
+    "discover_description": "<p>Bezproblemowo zarządzaj transakcjami międzynarodowymi dzięki automatycznej konwersji walut, zgodności podatkowej i integracji kursów walut w czasie rzeczywistym.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Inteligentne zarządzanie zapasami",
+    "discover_description": "<p>Optymalizuj poziomy zapasów dzięki analityce predykcyjnej, automatycznemu uzupełnianiu zamówień i skanowaniu kodów kreskowych dla efektywnych operacji magazynowych.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° zarządzanie relacjami z klientami",
+    "discover_description": "<p>Śledź każdą interakcję z klientem, automatyzuj działania następcze i analizuj zachowanie klientów, aby zwiększyć sprzedaż i poprawić wskaźniki retencji.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Zaawansowane zarządzanie projektami",
+    "discover_description": "<p>Planuj, realizuj i monitoruj projekty za pomocą diagramów Gantta, alokacji zasobów, śledzenia czasu i narzędzi do zarządzania kamieniami milowymi.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "Automatyzacja HR & Płac",
+    "discover_description": "<p>Usprawnij zarządzanie pracownikami dzięki automatycznemu przetwarzaniu płac, śledzeniu obecności, ocenom wydajności i administracji świadczeniami.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobilny POS & E-commerce",
+    "discover_description": "<p>Akceptuj płatności w dowolnym miejscu dzięki naszemu mobilnemu systemowi punktu sprzedaży, zintegrowanemu z zarządzaniem sklepem online i synchronizacją zapasów.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Raportowanie Business Intelligence",
+    "discover_description": "<p>Przekształć surowe dane w przydatne informacje dzięki konfigurowalnym raportom, wizualizacji danych i pulpitom nawigacyjnym dla kadry kierowniczej do strategicznego podejmowania decyzji.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Konstruktor niestandardowych przepływów pracy",
+    "discover_description": "<p>Projektuj i automatyzuj złożone procesy biznesowe za pomocą naszego konstruktora przepływów pracy typu przeciągnij i upuść, zmniejszając błędy manualne i zwiększając efektywność.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Bezproblemowa integracja z firmami trzecimi",
+    "discover_description": "<p>Połącz się z 500+ popularnymi aplikacjami biznesowymi, w tym Salesforce, QuickBooks, Shopify i Zapier, dla ujednoliconego ekosystemu biznesowego.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Bezpieczeństwo klasy korporacyjnej",
+    "discover_description": "<p>Chroń dane swojej firmy dzięki szyfrowaniu na poziomie militarnym, kontrolom dostępu opartym na rolach, śladom audytowym i zgodności z globalnymi standardami bezpieczeństwa.</p>"
+  }
+]

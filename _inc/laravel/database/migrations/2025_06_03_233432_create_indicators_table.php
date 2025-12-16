@@ -1,57 +1,56 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
+use App\Enums\IndicatorTechnicalLevel;
+use App\Traits\{HasNullableAuditColumns, HasRatingColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateIndicatorsTable extends Migration
 {
-    private const TABLE = 'indicators';
-    private const COL_BRANCH = 'branch';
-    private const COL_DEP = 'department';
-    private const COL_DESIGN = 'designation';
+    use HasNullableAuditColumns, HasRatingColumns;
+    private const TABLE = DC::TABLE_IND;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                // ! CHANGED
-            $table->uuid(self::COL_BRANCH)->index();              // ! CHANGED
-            $table->uuid(self::COL_DEP)->index();          // ! CHANGED
-            $table->uuid(self::COL_DESIGN)->index();         // ! CHANGED
-            $table->string('rating')->nullable();
-            $table->integer('attendance')->default(0);
-            $table->integer('administration')->default(0);
-            $table->integer('customer_experience')->default(0);
-            $table->integer('integrity')->default(0);
-            $table->integer('marketing')->default(0);
-            $table->integer('professionalism')->default(0);
-            $table->uuid('created_user')->index();        // ! CHANGED
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();          // ! CHANGED
+            $table->uuid('id')->primary();
+            $this->addRatingColumns($table, nullableEmployee: true);
+            $table->uuid('department')->nullable()->index();
+            $table->uuid('designation')->nullable()->index();
+            $table->uuid('project')->nullable()->index();
+            $table->uuid(DC::COL_CRT_USR)->index();
+            $table->enum('level', array_column(IndicatorTechnicalLevel::cases(), 'value'))->default(IndicatorTechnicalLevel::None->value)->nullable()->index(); // ? nullable for testing, enforced with the Enum at model/level
+            $table->json('sources')->nullable(); // ? a list of uuids for sources that refer to Source or Appraisals rows querying through their ids, filtered at boot/save with that in consideration
+            $table->foreign(DC::COL_CRT_USR)
+                ->references('id')
+                ->on(DC::TABLE_USERS)
+                ->cascadeOnDelete();  // ? the user who created the indicator entry is not necessarily the user who made the rating
             foreach (
                 [
-                    self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
-                    self::COL_DEP                    => DatabaseConstants::TABLE_DEPARTMENTS,
-                    self::COL_DESIGN                 => DatabaseConstants::TABLE_DESIGNS,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    'department'                  => DC::TABLE_DEPARTMENTS,
+                    'designation'                 => DC::TABLE_DESIGNS,
+                    'project'                     => DC::TABLE_PROJECTS,
                 ] as $column => $referencedTable
-            ) {
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
-            }
+                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropRatingColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_BRANCH,
-                    self::COL_DEP,
-                    self::COL_DESIGN,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    'department',
+                    'designation',
+                    'project',
+                    DC::COL_CRT_USR,
                 ] as $column
             ) {
                 try {

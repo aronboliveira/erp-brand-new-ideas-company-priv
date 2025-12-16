@@ -9,10 +9,11 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\TransactionType;
 use App\Enums\TransferType;
+use App\Models\Transaction;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -271,7 +272,6 @@ class TransactionSeeder extends Seeder
 				$updater = $maybe(fn() => $users ? Arr::random($users) : null);
 
 				$row = [
-					'id'               => (string) Str::uuid(),
 					'account'          => $accountId,
 					UC::COL_USER_ID    => $userId,
 					UC::COL_U_TP       => $userType,
@@ -329,9 +329,9 @@ class TransactionSeeder extends Seeder
 				if ($hasUpdaterCol) {
 					$row[DC::COL_TABLE_UPDATER] = $updater;
 				}
-
-				// Remove apenas nulls; 0 e false permanecem
-				return array_filter($row, static fn($v) => $v !== null);
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Transação de conta {$accountId} pelo usuário {$userId} do tipo {$type->value} no valor de {$amount}");
+				return $row;
 			};
 
 			// Gerador baseado em um conjunto (bills / invoices / pos)
@@ -361,36 +361,41 @@ class TransactionSeeder extends Seeder
 					$count = fake()->numberBetween(max(0, $min), max($min, $max));
 
 					for ($i = 0; $i < $count; $i++) {
-						if ($target > 0 && $inserted >= $target) {
-							return;
+						try {
+							if ($target > 0 && $inserted >= $target) {
+								return;
+							}
+
+							$createdAt = $now
+								->subDays(fake()->numberBetween(0, 120))
+								->subMinutes(fake()->numberBetween(0, 24 * 60));
+
+							$accountId = $bankAccounts
+								? Arr::random($bankAccounts)
+								: null;
+
+							$userId = $users
+								? Arr::random($users)
+								: null;
+
+							$userType = Arr::random(['admin', 'employee', 'client', 'system']);
+
+							$row = $buildRow(
+								$type,
+								$id,
+								$accountId,
+								$userId,
+								$userType,
+								$sourceTypeLabel,
+								$createdAt
+							);
+
+							Transaction::query()->create($row);
+							$inserted++;
+						} catch (\Exception $e) {
+							Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+							continue;
 						}
-
-						$createdAt = $now
-							->subDays(fake()->numberBetween(0, 120))
-							->subMinutes(fake()->numberBetween(0, 24 * 60));
-
-						$accountId = $bankAccounts
-							? Arr::random($bankAccounts)
-							: null;
-
-						$userId = $users
-							? Arr::random($users)
-							: null;
-
-						$userType = Arr::random(['admin', 'employee', 'client', 'system']);
-
-						$row = $buildRow(
-							$type,
-							$id,
-							$accountId,
-							$userId,
-							$userType,
-							$sourceTypeLabel,
-							$createdAt
-						);
-
-						DB::table(DC::TABLE_TRS)->insert($row);
-						$inserted++;
 					}
 				}
 			};
@@ -405,39 +410,44 @@ class TransactionSeeder extends Seeder
 			$otherCount = min($remaining, self::OTHER_MAX);
 
 			for ($i = 0; $i < $otherCount; $i++) {
-				if ($target > 0 && $inserted >= $target) {
-					break;
+				try {
+					if ($target > 0 && $inserted >= $target) {
+						break;
+					}
+
+					$createdAt = $now
+						->subDays(fake()->numberBetween(0, 90))
+						->subMinutes(fake()->numberBetween(0, 24 * 60));
+
+					$accountId = $bankAccounts
+						? Arr::random($bankAccounts)
+						: null;
+
+					$userId = $users
+						? Arr::random($users)
+						: null;
+
+					$userType = Arr::random(['system', 'admin', 'employee']);
+
+					$row = $buildRow(
+						TransactionType::Other,
+						null, // payId: para "other" podemos eventualmente usar Payment real
+						$accountId,
+						$userId,
+						$userType,
+						Arr::random(['manual', 'gateway_a', 'gateway_b', 'reconciliation', 'import']),
+						$createdAt
+					);
+
+					// Ajuste de descrição para destacar que é "other"
+					$row['description'] = 'Lançamento avulso (other) gerado pelo seeder';
+
+					Transaction::query()->create($row);
+					$inserted++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-
-				$createdAt = $now
-					->subDays(fake()->numberBetween(0, 90))
-					->subMinutes(fake()->numberBetween(0, 24 * 60));
-
-				$accountId = $bankAccounts
-					? Arr::random($bankAccounts)
-					: null;
-
-				$userId = $users
-					? Arr::random($users)
-					: null;
-
-				$userType = Arr::random(['system', 'admin', 'employee']);
-
-				$row = $buildRow(
-					TransactionType::Other,
-					null, // payId: para "other" podemos eventualmente usar Payment real
-					$accountId,
-					$userId,
-					$userType,
-					Arr::random(['manual', 'gateway_a', 'gateway_b', 'reconciliation', 'import']),
-					$createdAt
-				);
-
-				// Ajuste de descrição para destacar que é "other"
-				$row['description'] = 'Lançamento avulso (other) gerado pelo seeder';
-
-				DB::table(DC::TABLE_TRS)->insert($row);
-				$inserted++;
 			}
 		});
 

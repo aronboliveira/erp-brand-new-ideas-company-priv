@@ -13,6 +13,7 @@ final class AddMenuProvider extends ServiceProvider
     private const ROUTE_PREFIX = self::MODULE;
     private const STACK_NAME  = 'add_menu';
     private const VIEW_NAME   = self::MODULE . '::menu.' . self::MODULE;
+    protected $defer = true;
 
     /**
      * Boot service: register view composer for named routes.
@@ -35,7 +36,7 @@ final class AddMenuProvider extends ServiceProvider
             }
             View::composer(
                 $routes,
-                fn ($view) => $view->getFactory()->startPush(
+                fn($view) => $view->getFactory()->startPush(
                     self::STACK_NAME,
                     view(self::VIEW_NAME)
                 )
@@ -61,20 +62,19 @@ final class AddMenuProvider extends ServiceProvider
      */
     private function getNamedRoutes(string $prefix): array
     {
-        (new ConsoleOutput)->writeln('Getting named routes...');
         Log::debug(
             __CLASS__ . '::' . __FUNCTION__ . ' called',
             ['prefix' => $prefix]
         );
         $allNames = collect(Route::getRoutes())
-            ->map(fn ($route) => $route->getName());
+            ->map(fn($route) => $route->getName());
         if ($allNames->isEmpty()) {
             Log::warning(__CLASS__ . '::' . __FUNCTION__ . ' found no routes');
             return [];
         }
         // TODO: consider caching route names for performance
         $named = $allNames
-            ->filter(fn ($name) => is_string($name) &&
+            ->filter(fn($name) => is_string($name) &&
                 str_starts_with($name, $prefix))
             ->values()
             ->toArray();
@@ -109,6 +109,6 @@ final class AddMenuProvider extends ServiceProvider
     public function provides(): array
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        return [];
+        return ['landingpage.menu'];
     }
 }

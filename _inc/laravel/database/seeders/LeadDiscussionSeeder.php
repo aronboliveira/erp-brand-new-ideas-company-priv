@@ -9,7 +9,7 @@ use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command as ArtisanCommand;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -121,57 +121,62 @@ class LeadDiscussionSeeder extends Seeder
 				$makeMetadata
 			) {
 				for ($i = 0; $i < $current; $i++) {
-					$leadId   = Arr::random($leadIds);
-					$userId   = $maybe(65, fn() => $userIds ? Arr::random($userIds) : null);
-					$uType    = Arr::random(UserType::values());
+					try {
+						$leadId   = Arr::random($leadIds);
+						$userId   = $maybe(65, fn() => $userIds ? Arr::random($userIds) : null);
+						$uType    = Arr::random(UserType::values());
 
-					$created  = $now->subDays(fake()->numberBetween(0, 90))
-						->subMinutes(fake()->numberBetween(0, 1_440));
-					$updated  = (clone $created)->addMinutes(fake()->numberBetween(0, 10_080));
+						$created  = $now->subDays(fake()->numberBetween(0, 90))
+							->subMinutes(fake()->numberBetween(0, 1_440));
+						$updated  = (clone $created)->addMinutes(fake()->numberBetween(0, 10_080));
 
-					// Monta payload mínimo; arrays são passadas como array (Model normaliza)
-					$payload = [
-						PJC::COL_LD_ID          => $leadId,
-						UC::COL_USER_ID         => $userId,
-						UC::COL_U_TP            => $uType,
-						'comment'               => fake()->paragraphs(fake()->numberBetween(1, 3), true),
+						// Monta payload mínimo; arrays são passadas como array (Model normaliza)
+						$payload = [
+							PJC::COL_LD_ID          => $leadId,
+							UC::COL_USER_ID         => $userId,
+							UC::COL_U_TP            => $uType,
+							'comment'               => fake()->paragraphs(fake()->numberBetween(1, 3), true),
 
-						// Flags opcionais
-						AC::COL_CAN_NADM_DL     => (bool) fake()->boolean(10),
-						AC::COL_IS_FLAG         => (bool) fake()->boolean(8),
-						AC::COL_IS_RPL          => (bool) fake()->boolean(18),
-						AC::COL_IS_RPLD         => (bool) fake()->boolean(15),
+							// Flags opcionais
+							AC::COL_CAN_NADM_DL     => (bool) fake()->boolean(10),
+							AC::COL_IS_FLAG         => (bool) fake()->boolean(8),
+							AC::COL_IS_RPL          => (bool) fake()->boolean(18),
+							AC::COL_IS_RPLD         => (bool) fake()->boolean(15),
 
-						// Opcionais variados
-						'label'                 => $maybe(25, fn() => Arr::random([
-							'question',
-							'clarification',
-							'decision',
-							'ops',
-							'customer',
-							'internal'
-						])),
-						'attachments'           => $maybe(45, $makeAttachments) ?? [],
-						'reactions'             => $maybe(50, fn() => $makeReactions($userIds)) ?? [],
-						'metadata'              => $maybe(55, $makeMetadata) ?? [],
-					];
+							// Opcionais variados
+							'label'                 => $maybe(25, fn() => Arr::random([
+								'question',
+								'clarification',
+								'decision',
+								'ops',
+								'customer',
+								'internal'
+							])),
+							'attachments'           => $maybe(45, $makeAttachments) ?? [],
+							'reactions'             => $maybe(50, fn() => $makeReactions($userIds)) ?? [],
+							'metadata'              => $maybe(55, $makeMetadata) ?? [],
+						];
 
-					/** @var LeadDiscussion $row */
-					$row = LeadDiscussion::query()->create($payload);
+						/** @var LeadDiscussion $row */
+						$row = LeadDiscussion::query()->create($payload);
 
-					// Timestamps por atribuição direta (fora de mass assignment)
-					$row->created_at = $created;
-					$row->updated_at = $updated;
+						// Timestamps por atribuição direta (fora de mass assignment)
+						$row->created_at = $created;
+						$row->updated_at = $updated;
 
-					// Auditoria opcional, se as colunas existirem (e sem mass assignment)
-					if (Schema::hasColumn(DC::TABLE_LD_DSC, DC::COL_TABLE_CREATOR)) {
-						$row->{DC::COL_TABLE_CREATOR} = $userId;
+						// Auditoria opcional, se as colunas existirem (e sem mass assignment)
+						if (Schema::hasColumn(DC::TABLE_LD_DSC, DC::COL_TABLE_CREATOR)) {
+							$row->{DC::COL_TABLE_CREATOR} = $userId;
+						}
+						if (Schema::hasColumn(DC::TABLE_LD_DSC, DC::COL_TABLE_UPDATER)) {
+							$row->{DC::COL_TABLE_UPDATER} = $userId;
+						}
+						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Discussão de Lead {$leadId} para usuário {$userId}");
+						$row->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-					if (Schema::hasColumn(DC::TABLE_LD_DSC, DC::COL_TABLE_UPDATER)) {
-						$row->{DC::COL_TABLE_UPDATER} = $userId;
-					}
-
-					$row->save();
 				}
 			});
 

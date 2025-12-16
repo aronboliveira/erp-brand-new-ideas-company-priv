@@ -57,66 +57,72 @@ final class ChartOfAccountSeeder extends Seeder
 					$n = $faker->numberBetween(2, 4);
 
 					for ($i = 0; $i < $n; $i++) {
-						// Código determinístico por (type, subtype, i) para idempotência do updateOrCreate
-						$codeBase = hexdec(substr(md5($typeId . $subtype->id), 0, 6)) % 900000 + 100000;
-						$code     = (int) ($codeBase + $i);
+						try {
+							// Código determinístico por (type, subtype, i) para idempotência do updateOrCreate
+							$codeBase = hexdec(substr(md5($typeId . $subtype->id), 0, 6)) % 900000 + 100000;
+							$code     = (int) ($codeBase + $i);
 
-						// Saldos realistas
-						$initBalance = $faker->randomFloat(2, 0, 250_000);
-						// ±20% de variação sobre o saldo inicial
-						$currentBalance = round($initBalance * $faker->randomFloat(2, 0.8, 1.2), 2);
-						$expectedNext   = round($currentBalance * $faker->randomFloat(2, 0.95, 1.15), 2);
+							// Saldos realistas
+							$initBalance = $faker->randomFloat(2, 0, 250_000);
+							// ±20% de variação sobre o saldo inicial
+							$currentBalance = round($initBalance * $faker->randomFloat(2, 0.8, 1.2), 2);
+							$expectedNext   = round($currentBalance * $faker->randomFloat(2, 0.95, 1.15), 2);
 
-						// Profundidade aproximada por subtipo (0..2)
-						$depth = min(2, (int) floor($subIdx / 3));
+							// Profundidade aproximada por subtipo (0..2)
+							$depth = min(2, (int) floor($subIdx / 3));
 
-						$name = sprintf(
-							'%s - %s %d',
-							(string) ($type->{CHTC::COL_NM} ?? 'Conta'),
-							(string) ($subtype->{CHTC::COL_NM} ?? 'Subtipo'),
-							$i + 1
-						);
+							$name = sprintf(
+								'%s - %s %d',
+								(string) ($type->{CHTC::COL_NM} ?? 'Conta'),
+								(string) ($subtype->{CHTC::COL_NM} ?? 'Subtipo'),
+								$i + 1
+							);
+							(new \Symfony\Component\Console\Output\ConsoleOutput
+							)->writeln("Criando Gráfico de Conta: {$name}");
+							$payload = [
+								CHTC::COL_NM         => $name,
+								CHTC::COL_CD         => $code,
+								'depth'              => $depth,
+								CHTC::CUR_BL         => $currentBalance,
+								CHTC::INIT_BL        => $initBalance,
+								CHTC::EXP_NXT_MN_BL  => $expectedNext,
+								'currency_id'        => SC::DEF_SITE_CURRENCY_ID, // e.g. 'BRL'
+								'rules'         => [
+									'tags'        => $faker->randomElements(['fixo', 'operacional', 'financeiro', 'impostos', 'cloud', 'folha'], $faker->numberBetween(1, 3)),
+									'reconciled'  => $faker->boolean(65),
+									'visibility'  => $faker->randomElement(['public', 'internal']),
+								],
+								'restrictions'       => [
+									// regra de segurança padrão; regras específicas podem vir do tipo/subtipo
+									'allow_negative_balances' => false,
+								],
+								UC::COL_RSP_ID       => null, // será herdado de user_id se vazio (ver ::saving)
+								UC::COL_PD_UPD       => false,
+								UC::COL_IS_SYS       => true,
+								CHTC::COL_TP         => $typeId,
+								CHTC::COL_SUBTP      => $subtype->id,
+								CHTC::COL_ENB        => 1,
+								CHTC::COL_DESC       => $faker->sentence(12),
+								UC::COL_USER_ID      => $systemUserId,
+								DC::COL_TABLE_CREATOR    => $systemUserId,
+							];
 
-						$payload = [
-							CHTC::COL_NM         => $name,
-							CHTC::COL_CD         => $code,
-							'depth'              => $depth,
-							CHTC::CUR_BL         => $currentBalance,
-							CHTC::INIT_BL        => $initBalance,
-							CHTC::EXP_NXT_MN_BL  => $expectedNext,
-							'currency_id'        => SC::DEF_SITE_CURRENCY_ID, // e.g. 'BRL'
-							'rules'         => [
-								'tags'        => $faker->randomElements(['fixo', 'operacional', 'financeiro', 'impostos', 'cloud', 'folha'], $faker->numberBetween(1, 3)),
-								'reconciled'  => $faker->boolean(65),
-								'visibility'  => $faker->randomElement(['public', 'internal']),
-							],
-							'restrictions'       => [
-								// regra de segurança padrão; regras específicas podem vir do tipo/subtipo
-								'allow_negative_balances' => false,
-							],
-							UC::COL_RSP_ID       => null, // será herdado de user_id se vazio (ver ::saving)
-							UC::COL_PD_UPD       => false,
-							UC::COL_IS_SYS       => true,
-							CHTC::COL_TP         => $typeId,
-							CHTC::COL_SUBTP      => $subtype->id,
-							CHTC::COL_ENB        => 1,
-							CHTC::COL_DESC       => $faker->sentence(12),
-							UC::COL_USER_ID      => $systemUserId,
-							DC::COL_TABLE_CREATOR    => $systemUserId,
-						];
+							/** @var ChartOfAccount $model */
+							$model = ChartOfAccount::query()
+								->where(CHTC::COL_CD, $code)
+								->where(CHTC::COL_SUBTP, $subtype->id)
+								->first();
 
-						/** @var ChartOfAccount $model */
-						$model = ChartOfAccount::query()
-							->where(CHTC::COL_CD, $code)
-							->where(CHTC::COL_SUBTP, $subtype->id)
-							->first();
-
-						if ($model) {
-							$model->fill($payload)->save();
-							$updated++;
-						} else {
-							ChartOfAccount::create($payload);
-							$created++;
+							if ($model) {
+								$model->fill($payload)->save();
+								$updated++;
+							} else {
+								ChartOfAccount::create($payload);
+								$created++;
+							}
+						} catch (\Exception $e) {
+							Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+							continue;
 						}
 					}
 				}

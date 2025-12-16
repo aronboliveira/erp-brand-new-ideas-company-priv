@@ -7,11 +7,11 @@ use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\PermissionsConstants as PMC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Enums\AttendanceStatus;
-use App\Models\EmployeeAttendance;
+use App\Models\{Employee, EmployeeAttendance};
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -19,7 +19,7 @@ class EmployeeAttendanceSeeder extends Seeder
 {
 	// Parâmetros fixos (sem env)
 	private const OPTIONALITY   = 0.65;
-	private const BACK_DAYS     = 30;
+	private const BACK_DAYS     = 31;
 	private const PER_EMP_MIN   = 8;
 	private const PER_EMP_MAX   = 18;
 
@@ -102,101 +102,108 @@ class EmployeeAttendanceSeeder extends Seeder
 					$dates[] = $d->toDateString();
 				}
 				$dates = array_values(array_unique($dates));
-
+				$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+				(new \Symfony\Component\Console\Output\ConsoleOutput
+				)->writeln("Criando Atendimento para funcionário: {$ref}");
 				foreach ($dates as $date) {
-					if ($target > 0 && $inserted >= $target) break;
+					try {
+						if ($target > 0 && $inserted >= $target) break;
 
-					// Status distribuído
-					$status = Arr::random([
-						AttendanceStatus::Present->value,
-						AttendanceStatus::Present->value,
-						AttendanceStatus::Present->value,
-						AttendanceStatus::Remote->value,
-						AttendanceStatus::Leave->value,
-						AttendanceStatus::Absent->value,
-					]);
+						// Status distribuído
+						$status = Arr::random([
+							AttendanceStatus::Present->value,
+							AttendanceStatus::Present->value,
+							AttendanceStatus::Present->value,
+							AttendanceStatus::Remote->value,
+							AttendanceStatus::Leave->value,
+							AttendanceStatus::Absent->value,
+						]);
 
-					// Jornada base (9h–18h)
-					$clkInBase  = $t(9, 0);
-					$clkOutBase = $t(18, 0);
+						// Jornada base (9h–18h)
+						$clkInBase  = $t(9, 0);
+						$clkOutBase = $t(18, 0);
 
-					// Variações
-					$clkIn  = $addMin($clkInBase, fake()->numberBetween(-20, 45));
-					$clkOut = $addMin($clkOutBase, fake()->numberBetween(-60, 150));
+						// Variações
+						$clkIn  = $addMin($clkInBase, fake()->numberBetween(-20, 45));
+						$clkOut = $addMin($clkOutBase, fake()->numberBetween(-60, 150));
 
-					if (in_array($status, [AttendanceStatus::Absent->value, AttendanceStatus::Leave->value], true)) {
-						$clkIn  = $zero;
-						$clkOut = $zero;
+						if (in_array($status, [AttendanceStatus::Absent->value, AttendanceStatus::Leave->value], true)) {
+							$clkIn  = $zero;
+							$clkOut = $zero;
+						}
+
+						$erlArr = $maybe(function () use ($clkIn, $addMin, $zero) {
+							if ($clkIn === $zero) return null;
+							$min = fake()->numberBetween(5, 30);
+							return $addMin($clkIn, -$min);
+						});
+
+						$late = in_array($status, [AttendanceStatus::Present->value, AttendanceStatus::Remote->value], true)
+							? (fake()->boolean(35) && $clkIn !== '00:00:00'
+								? $addMin($clkIn, fake()->numberBetween(3, 30))
+								: $zero)
+							: $zero;
+
+						$erlLeave = $maybe(function () use ($clkOut, $addMin, $zero) {
+							if ($clkOut === $zero) return null;
+							return fake()->boolean(25) ? $addMin($clkOut, -fake()->numberBetween(5, 45)) : $zero;
+						});
+
+						$overtime = ($clkOut !== $zero && fake()->boolean(30))
+							? $addMin($clkOut, fake()->numberBetween(15, 120))
+							: $zero;
+
+						$erlArrCount = $maybe(fn() => $erlArr && $erlArr !== $zero ? fake()->numberBetween(1, 3) : 0);
+						$lateCount   = $maybe(fn() => $late !== $zero ? fake()->numberBetween(1, 4) : 0);
+						$erlLvCount  = $maybe(fn() => $erlLeave && $erlLeave !== $zero ? fake()->numberBetween(1, 2) : 0);
+						$ovtCount    = $maybe(fn() => $overtime !== $zero ? fake()->numberBetween(1, 3) : 0);
+
+						$ttRest = $maybe(function () use ($t) {
+							$mins = Arr::random([0, 15, 30, 45, 60, 90]);
+							return $t(intdiv($mins, 60), $mins % 60, 0);
+						});
+
+						$ttWork = fake()->boolean(40) ? null : null;
+
+						$ovtId = $maybe(fn() => $overtimes ? Arr::random($overtimes) : null);
+
+						$row = new EmployeeAttendance([
+							'id'                   => (string) Str::uuid(),
+							UC::COL_EMP_ID         => $empId,
+							'date'                 => $date,
+							'status'               => $status,
+							AC::COL_CLK_IN         => $clkIn,
+							AC::COL_CLK_OUT        => $clkOut,
+
+							AC::COL_ERL_ARV        => $erlArr ?? null,
+							AC::COL_ERL_AV_CT      => $erlArrCount,
+							'late'                 => $late,
+							AC::COL_LT_CT          => $lateCount,
+							AC::COL_ERL_LV         => $erlLeave ?? $zero,
+							AC::COL_ERL_LV_CT      => $erlLvCount,
+							'overtime'             => $overtime,
+							AC::COL_OVT_CT         => $ovtCount,
+							AC::COL_OVT_ID         => $ovtId,
+
+							AC::COL_TT_RST         => $ttRest,
+							AC::COL_TT_WRK         => $ttWork,
+						]);
+
+						if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_CREATOR)) {
+							$row->{DC::COL_TABLE_CREATOR} = $maybe(fn() => Arr::random($editors));
+						}
+						if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_UPDATER)) {
+							$row->{DC::COL_TABLE_UPDATER} = $maybe(fn() => Arr::random($editors));
+						}
+
+						$row->save();
+						$inserted++;
+
+						if ($target > 0 && $inserted >= $target) break;
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
-
-					$erlArr = $maybe(function () use ($clkIn, $addMin, $zero) {
-						if ($clkIn === $zero) return null;
-						$min = fake()->numberBetween(5, 30);
-						return $addMin($clkIn, -$min);
-					});
-
-					$late = in_array($status, [AttendanceStatus::Present->value, AttendanceStatus::Remote->value], true)
-						? (fake()->boolean(35) && $clkIn !== '00:00:00'
-							? $addMin($clkIn, fake()->numberBetween(3, 30))
-							: $zero)
-						: $zero;
-
-					$erlLeave = $maybe(function () use ($clkOut, $addMin, $zero) {
-						if ($clkOut === $zero) return null;
-						return fake()->boolean(25) ? $addMin($clkOut, -fake()->numberBetween(5, 45)) : $zero;
-					});
-
-					$overtime = ($clkOut !== $zero && fake()->boolean(30))
-						? $addMin($clkOut, fake()->numberBetween(15, 120))
-						: $zero;
-
-					$erlArrCount = $maybe(fn() => $erlArr && $erlArr !== $zero ? fake()->numberBetween(1, 3) : 0);
-					$lateCount   = $maybe(fn() => $late !== $zero ? fake()->numberBetween(1, 4) : 0);
-					$erlLvCount  = $maybe(fn() => $erlLeave && $erlLeave !== $zero ? fake()->numberBetween(1, 2) : 0);
-					$ovtCount    = $maybe(fn() => $overtime !== $zero ? fake()->numberBetween(1, 3) : 0);
-
-					$ttRest = $maybe(function () use ($t) {
-						$mins = Arr::random([0, 15, 30, 45, 60, 90]);
-						return $t(intdiv($mins, 60), $mins % 60, 0);
-					});
-
-					$ttWork = fake()->boolean(40) ? null : null;
-
-					$ovtId = $maybe(fn() => $overtimes ? Arr::random($overtimes) : null);
-
-					$row = new EmployeeAttendance([
-						'id'                   => (string) Str::uuid(),
-						UC::COL_EMP_ID         => $empId,
-						'date'                 => $date,
-						'status'               => $status,
-						AC::COL_CLK_IN         => $clkIn,
-						AC::COL_CLK_OUT        => $clkOut,
-
-						AC::COL_ERL_ARV        => $erlArr ?? null,
-						AC::COL_ERL_AV_CT      => $erlArrCount,
-						'late'                 => $late,
-						AC::COL_LT_CT          => $lateCount,
-						AC::COL_ERL_LV         => $erlLeave ?? $zero,
-						AC::COL_ERL_LV_CT      => $erlLvCount,
-						'overtime'             => $overtime,
-						AC::COL_OVT_CT         => $ovtCount,
-						AC::COL_OVT_ID         => $ovtId,
-
-						AC::COL_TT_RST         => $ttRest,
-						AC::COL_TT_WRK         => $ttWork,
-					]);
-
-					if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_CREATOR)) {
-						$row->{DC::COL_TABLE_CREATOR} = $maybe(fn() => Arr::random($editors));
-					}
-					if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_UPDATER)) {
-						$row->{DC::COL_TABLE_UPDATER} = $maybe(fn() => Arr::random($editors));
-					}
-
-					$row->save();
-					$inserted++;
-
-					if ($target > 0 && $inserted >= $target) break;
 				}
 			}
 		});

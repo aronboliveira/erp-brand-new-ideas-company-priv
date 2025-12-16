@@ -36,7 +36,7 @@ abstract class Rateable extends Model
   {
     parent::booted();
     static::creating(function (self $model): void {
-      $model->{$model->getKeyName()} = (string) Str::uuid();
+      $model->setAttribute($model->getKeyName(), (string) Str::uuid());
     });
   }
 }

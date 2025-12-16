@@ -47,7 +47,7 @@ class CreateCouponsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            Schema::hasColumn($table, CC::COL_GIVEN_BY) && $table->dropForeign([CC::COL_GIVEN_BY]);
+            Schema::hasColumn(self::TABLE, CC::COL_GIVEN_BY) && $table->dropForeign([CC::COL_GIVEN_BY]);
         });
         Schema::dropIfExists(self::TABLE);
     }

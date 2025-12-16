@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str as Str;
+use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Str;
 
 use App\Config\Constants\DatabaseConstants as DC;
 
@@ -68,64 +68,69 @@ final class DocumentSeeder extends Seeder
 			];
 
 			foreach ($samples as $i => [$name, $ext]) {
-				do $docId = Str::uuid()->toString();
-				while (Doc::where('id', $docId)->exists());
+				try {
+					do $docId = Str::uuid()->toString();
+					while (Doc::where('id', $docId)->exists());
 
-				$slug     = Str::slug($name);
-				$filePath = "/storage/docs/{$slug}." . strtolower($ext);
+					$slug     = Str::slug($name);
+					$filePath = "/storage/docs/{$slug}." . strtolower($ext);
 
-				$mime = Mime::fromExtension($ext);
-				$kind = $mime ? Kind::fromMime($mime) : Kind::fromExtension($ext);
+					$mime = Mime::fromExtension($ext);
+					$kind = $mime ? Kind::fromMime($mime) : Kind::fromExtension($ext);
 
-				$sizeBytes = match (strtolower($ext)) {
-					'pdf'    => random_int(200_000, 5_000_000),
-					'xlsx'   => random_int(80_000, 2_000_000),
-					'pptx'   => random_int(200_000, 8_000_000),
-					'docx'   => random_int(60_000, 2_000_000),
-					'csv'    => random_int(10_000, 800_000),
-					'sql'    => random_int(50_000, 4_000_000),
-					'sqlite' => random_int(1_000_000, 50_000_000),
-					'md'     => random_int(3_000, 60_000),
-					'txt'    => random_int(2_000, 40_000),
-					'png'    => random_int(40_000, 6_000_000),
-					'jpg'    => random_int(40_000, 6_000_000),
-					'svg'    => random_int(4_000, 400_000),
-					'html'   => random_int(5_000, 200_000),
-					'css'    => random_int(3_000, 120_000),
-					'json'   => random_int(5_000, 500_000),
-					'xml'    => random_int(5_000, 500_000),
-					'mp4'    => random_int(5_000_000, 120_000_000),
-					'zip'    => random_int(500_000, 80_000_000),
-					'php'    => random_int(2_000, 100_000),
-					default  => random_int(10_000, 5_000_000),
-				};
+					$sizeBytes = match (strtolower($ext)) {
+						'pdf'    => random_int(200_000, 5_000_000),
+						'xlsx'   => random_int(80_000, 2_000_000),
+						'pptx'   => random_int(200_000, 8_000_000),
+						'docx'   => random_int(60_000, 2_000_000),
+						'csv'    => random_int(10_000, 800_000),
+						'sql'    => random_int(50_000, 4_000_000),
+						'sqlite' => random_int(1_000_000, 50_000_000),
+						'md'     => random_int(3_000, 60_000),
+						'txt'    => random_int(2_000, 40_000),
+						'png'    => random_int(40_000, 6_000_000),
+						'jpg'    => random_int(40_000, 6_000_000),
+						'svg'    => random_int(4_000, 400_000),
+						'html'   => random_int(5_000, 200_000),
+						'css'    => random_int(3_000, 120_000),
+						'json'   => random_int(5_000, 500_000),
+						'xml'    => random_int(5_000, 500_000),
+						'mp4'    => random_int(5_000_000, 120_000_000),
+						'zip'    => random_int(500_000, 80_000_000),
+						'php'    => random_int(2_000, 100_000),
+						default  => random_int(10_000, 5_000_000),
+					};
 
-				$rules = $permPresets[$i % count($permPresets)];
-				$viewers   = $pickIds(2, 10);
-				$editors   = $pickIds(0, 5);
-				$executors = $pickIds(0, 3);
+					$rules = $permPresets[$i % count($permPresets)];
+					$viewers   = $pickIds(2, 10);
+					$editors   = $pickIds(0, 5);
+					$executors = $pickIds(0, 3);
 
-				$d = new Doc();
-				$d->id                   = $docId;
-				$d->name                 = $name;
-				$d->{DC::COL_IR}          = $faker->boolean(35) ? 'true' : 'false';
-				$d->{DC::COL_IPV}           = $faker->boolean(55);
-				$d->{DC::COL_FL_PT}            = $filePath;
-				$d->extension            = strtolower($ext);
-				if ($mime) $d->{DC::COL_MM_TP} = $mime;
-				if ($kind) $d->type      = $kind;
-				$d->size                 = $sizeBytes;
-				$d->description          = $faker->boolean(60) ? $faker->sentence(12) : null;
-				$d->notes                = $faker->boolean(40) ? $faker->sentence(10) : null;
-				$d->{DC::COL_EXP_DT}      = $faker->boolean(30) ? $faker->dateTimeBetween('+10 days', '+18 months') : null;
-				$d->{DC::COL_LA}        = $faker->boolean(70) ? $faker->dateTimeBetween('-6 months', 'now') : null;
-				$d->{DC::COL_PERM_RLS}     = $rules;
-				$d->viewers              = $viewers;
-				$d->editors              = $editors;
-				$d->executors            = $executors;
-				$d->{DC::COL_TABLE_CREATOR}  = $creatorId;
-				$d->setAttribute(DC::COL_TABLE_UPDATER, null);
-				$d->save();
+					$d = new Doc();
+					$d->id                   = $docId;
+					$d->name                 = $name;
+					$d->{DC::COL_IR}          = $faker->boolean(35) ? 'true' : 'false';
+					$d->{DC::COL_IPV}           = $faker->boolean(55);
+					$d->{DC::COL_FL_PT}            = $filePath;
+					$d->extension            = strtolower($ext);
+					if ($mime) $d->{DC::COL_MM_TP} = $mime;
+					if ($kind) $d->type      = $kind;
+					$d->size                 = $sizeBytes;
+					$d->description          = $faker->boolean(60) ? $faker->sentence(12) : null;
+					$d->notes                = $faker->boolean(40) ? $faker->sentence(10) : null;
+					$d->{DC::COL_EXP_DT}      = $faker->boolean(30) ? $faker->dateTimeBetween('+10 days', '+18 months') : null;
+					$d->{DC::COL_LA}        = $faker->boolean(70) ? $faker->dateTimeBetween('-6 months', 'now') : null;
+					$d->{DC::COL_PERM_RLS}     = $rules;
+					$d->viewers              = $viewers;
+					$d->editors              = $editors;
+					$d->executors            = $executors;
+					$d->{DC::COL_TABLE_CREATOR}  = $creatorId;
+					$d->setAttribute(DC::COL_TABLE_UPDATER, null);
+					$d->save();
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 		}, 3);
 	}

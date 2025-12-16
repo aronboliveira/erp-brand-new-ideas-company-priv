@@ -228,11 +228,18 @@ final class ContractTypeSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $data) {
-				$model = ContractType::updateOrCreate(
-					['name' => $data['name']],
-					$data + [DC::COL_TABLE_CREATOR => $systemUserId]
-				);
-				$model->wasRecentlyCreated ? $created++ : $updated++;
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Contrato: {$data['name']}");
+					$model = ContractType::updateOrCreate(
+						['name' => $data['name']],
+						$data + [DC::COL_TABLE_CREATOR => $systemUserId]
+					);
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			Log::info("ContractTypeSeeder: created={$created}, updated={$updated}");

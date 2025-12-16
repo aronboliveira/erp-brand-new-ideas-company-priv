@@ -16,7 +16,7 @@ class CreateLeadsTable extends Migration
             $table->string('phone')->nullable();
             $table->string('subject');
             $table->boolean(PJC::COL_CRT)->default(false)->nullable();
-            $table->uuid(UC::COL_USER_ID)->index()->nullable(); // ? not every lead is assigned to a user
+            $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? not every lead is assigned to a user
             $this->addPipelineColumns($table, nullable: true, cascade: false);
             $table->uuid(PJC::COL_STG_ID)->nullable();
             $table->string('sources')->nullable(); // ? list of uuids, keys or names for querying into Source

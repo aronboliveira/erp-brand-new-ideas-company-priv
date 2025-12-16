@@ -68,33 +68,40 @@ final class SetSalarySeeder extends Seeder
 			$updated = 0;
 
 			foreach ($employees as $emp) {
-				$empId = $emp->id;
+				try {
+					$empId = $emp->id;
+					$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Salário para {$ref}");
+					// Escolhe uma frequência randômica dentre as válidas
+					$freq = $frequencies[array_rand($frequencies)];
 
-				// Escolhe uma frequência randômica dentre as válidas
-				$freq = $frequencies[array_rand($frequencies)];
+					// Define um salário-base realista (>= salário mínimo), com variabilidade
+					// DC::MININUM_WAGE_BR foi usado como default na migration
+					$base   = (float) (DC::MININUM_WAGE_BR ?? 1412.00); // fallback defensivo
+					$factor = [1.0, 1.25, 1.5, 2.0, 2.5, 3.0][array_rand([1.0, 1.25, 1.5, 2.0, 2.5, 3.0])];
+					$salary = round($base * $factor + mt_rand(0, 700) /* variação */, 2);
 
-				// Define um salário-base realista (>= salário mínimo), com variabilidade
-				// DC::MININUM_WAGE_BR foi usado como default na migration
-				$base   = (float) (DC::MININUM_WAGE_BR ?? 1412.00); // fallback defensivo
-				$factor = [1.0, 1.25, 1.5, 2.0, 2.5, 3.0][array_rand([1.0, 1.25, 1.5, 2.0, 2.5, 3.0])];
-				$salary = round($base * $factor + mt_rand(0, 700) /* variação */, 2);
+					$payload = [
+						UC::COL_EMP_ID      => $empId,
+						UC::COL_SLR_TP      => $defaultPayslipTypeId, // pode ser null sem problemas
+						'salary'            => $salary,
+						'frequency'         => $freq,
+						BC::COL_MDAY_LMT    => $pickPayDay($freq),
+						DC::COL_TABLE_CREATOR   => $systemUserId,
+					];
 
-				$payload = [
-					UC::COL_EMP_ID      => $empId,
-					UC::COL_SLR_TP      => $defaultPayslipTypeId, // pode ser null sem problemas
-					'salary'            => $salary,
-					'frequency'         => $freq,
-					BC::COL_MDAY_LMT    => $pickPayDay($freq),
-					DC::COL_TABLE_CREATOR   => $systemUserId,
-				];
+					// Cria ou atualiza por employee_id (único)
+					$model = SetSalary::updateOrCreate(
+						[UC::COL_EMP_ID => $empId],
+						$payload
+					);
 
-				// Cria ou atualiza por employee_id (único)
-				$model = SetSalary::updateOrCreate(
-					[UC::COL_EMP_ID => $empId],
-					$payload
-				);
-
-				$model->wasRecentlyCreated ? $created++ : $updated++;
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
+				}
 			}
 
 			Log::info("SetSalarySeeder: created={$created}, updated={$updated}");

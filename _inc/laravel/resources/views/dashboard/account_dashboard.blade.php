@@ -110,8 +110,8 @@
                     if (!el || !window.ApexCharts) throw new Error();
                     const options = {
                         series: [
-                        { name: "{{__('Income')}}", data: {!! json_encode($incExpLineChartData['income']) !!} },
-                        { name: "{{__('Expense')}}", data: {!! json_encode($incExpLineChartData['expense']) !!} }
+                        { name: "{{__('Income')}}", data: {!! !empty($incExpLineChartData['income']) ? json_encode($incExpLineChartData['income']) : '[]' !!} },
+                        { name: "{{__('Expense')}}", data: {!! !empty($incExpLineChartData['expense']) ? json_encode($incExpLineChartData['expense']) : '[]' !!} }
                         ],
                         chart: {
                         height: 250,
@@ -143,8 +143,8 @@
                         dataLabels: { enabled: false },
                         stroke: { width: 2, curve: "smooth" },
                         series: [
-                        { name: "{{__('Income')}}", data: {!! json_encode($incExpBarChartData['income']) !!} },
-                        { name: "{{__('Expense')}}", data: {!! json_encode($incExpBarChartData['expense']) !!} }
+                        { name: "{{__('Income')}}", data: {!! !empty($incExpBarChartData['income']) ? json_encode($incExpBarChartData['income']) : '[]' !!} },
+                        { name: "{{__('Expense')}}", data: {!! !empty($incExpBarChartData['expense']) ? json_encode($incExpBarChartData['expense']) : '[]' !!} }
                         ],
                         xaxis: { categories: {!! json_encode($incExpBarChartData['month']) !!} },
                         colors: ["#3ec9d6", "#FF3A6E"],
@@ -185,9 +185,9 @@
                         chart: { height: 140, type: "donut" },
                         dataLabels: { enabled: false },
                         plotOptions: { pie: { donut: { size: "70%" } } },
-                        series: {!! json_encode($incomeCatAmount) !!},
-                        colors: {!! json_encode($incomeCategoryColor) !!},
-                        labels: {!! json_encode($incomeCategory) !!},
+                        series: {!! !empty($incomeCatAmount) ? json_encode($incomeCatAmount) : '[]' !!},
+                        colors: {!! !empty($incomeCategoryColor) ? json_encode($incomeCategoryColor) : '[]' !!},
+                        labels: {!! !empty($incomeCategory) ? json_encode($incomeCategory) : '[]' !!},
                         legend: { show: true }
                     };
                     new ApexCharts(el, options).render();
@@ -527,10 +527,10 @@
                                         <tbody>
                                             @forelse($latestIncome as $income)
                                                 @php
-                                                    $incDate = $fmtDate(data_get($income, 'date'));
-                                                    $incCust = $asString(data_get($income, 'customer.name'),
+                                                    $incDate = $fmtDate(data_get($income, 'date') ?? '01/01/1970');
+                                                    $incCust = $asString(data_get($income, 'customer.name') ?? '#NO_NAME',
                                                         'customer name');
-                                                    $incAmt = $fmtPrice(data_get($income, 'amount'));
+                                                    $incAmt = $fmtPrice(data_get($income, 'amount') ?? '9999999999999999999');
                                                 @endphp
                                                 <tr>
                                                     <td>{{ $incDate }}</td>

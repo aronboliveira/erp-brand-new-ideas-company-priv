@@ -80,7 +80,7 @@ class Lead extends Model
             $attributes = $lead->getAttributes();
 
             $involved = $lead->normalizeInvolved(
-                is_array($lead->involved) ? $lead->involved : ($lead->involved ?? [])
+                is_array($lead->getAttribute('involved')) ? $lead->getAttribute('involved') : ($lead->getAttribute('involved') ?? [])
             );
 
             $userId = $attributes[UC::COL_USER_ID] ?? null;
@@ -94,23 +94,23 @@ class Lead extends Model
             if ($creatorId)
                 $involved['users'][] = $creatorId;
 
-            $lead->involved = $lead->uniqueInvolved($involved);
+            $lead->setAttribute('involved', $lead->uniqueInvolved($involved));
 
-            if ($lead->email)
-                $lead->email = self::normalizeEmail($lead->email, 'Lead email', $lead->id ?? null) ?: null;
+            if ($lead->getAttribute('email'))
+                $lead->setAttribute('email', self::normalizeEmail($lead->getAttribute('email'), 'Lead email', $lead->getAttribute('id') ?? null) ?: null);
 
-            $lead->phone = static::normalizePhone(
-                $lead->phone ?? null,
+            $lead->setAttribute('phone', static::normalizePhone(
+                $lead->getAttribute('phone') ?? null,
                 'pos_billing',
-                $lead->id
-            );
+                $lead->getAttribute('id') ?? null
+            ));
 
-            $lead->involved = self::normalizeArrayField($lead->involved ?? null);
+            $lead->setAttribute('involved', self::normalizeArrayField($lead->getAttribute('involved') ?? null));
 
-            if ($lead->{PJC::COL_CNV} === null)
-                $lead->{PJC::COL_CNV} = false;
-            if ($lead->{PJC::COL_CRT} === null)
-                $lead->{PJC::COL_CRT} = false;
+            if ($lead->getAttribute(PJC::COL_CNV) === null)
+                $lead->setAttribute(PJC::COL_CNV, false);
+            if ($lead->getAttribute(PJC::COL_CRT) === null)
+                $lead->setAttribute(PJC::COL_CRT, false);
         });
     }
 

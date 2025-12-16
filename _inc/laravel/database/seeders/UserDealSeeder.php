@@ -31,24 +31,30 @@ final class UserDealSeeder extends Seeder
 			}
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(0, 3);
+				$count = random_int(0, 8);
 				if ($count === 0) continue;
 
 				$picked = collect($userIds)->shuffle()->take($count)->all();
 
 				foreach ($picked as $uid) {
-					if (Ud::where('deal_id', $dealId)->where('user_id', $uid)->exists()) continue;
+					try {
+						if (Ud::where('deal_id', $dealId)->where('user_id', $uid)->exists()) continue;
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Associação de Usuário para Acordo de Negócios: {$dealId} - Usuário: {$uid}");
+						do $pivotId = Str::uuid()->toString();
+						while (Ud::where('id', $pivotId)->exists());
 
-					do $pivotId = Str::uuid()->toString();
-					while (Ud::where('id', $pivotId)->exists());
-
-					$ud = new Ud();
-					$ud->id        = $pivotId;
-					$ud->deal_id   = $dealId;
-					$ud->user_id   = $uid;
-					$ud->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$ud->setAttribute(DC::COL_TABLE_UPDATER, null);
-					$ud->save();
+						$ud = new Ud();
+						$ud->id        = $pivotId;
+						$ud->deal_id   = $dealId;
+						$ud->user_id   = $uid;
+						$ud->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$ud->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$ud->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

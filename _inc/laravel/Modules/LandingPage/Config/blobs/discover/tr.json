@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "AI Destekli Otomasyon",
+    "discover_description": "<p>Tekrarlayan görevleri otomatikleştirmek, trendleri tahmin etmek ve iş akışlarınızı akıllı analizlerle optimize etmek için en son yapay zekadan yararlanın.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Gerçek Zamanlı Analiz Panosu",
+    "discover_description": "<p>Etkileşimli panolar, özel raporlar ve tüm departmanlarda gerçek zamanlı KPI takibi ile iş performansınızı anında görünür kılın.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Çok Para Birimli Muhasebe",
+    "discover_description": "<p>Otomatik para birimi dönüşümü, vergi uyumu ve gerçek zamanlı döviz kuru entegrasyonu ile uluslararası işlemleri sorunsuz bir şekilde yönetin.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Akıllı Stok Yönetimi",
+    "discover_description": "<p>Tahmine dayalı analizler, otomatik sipariş yenileme ve barkod tarama ile stok seviyelerini optimize ederek verimli depo operasyonları sağlayın.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° Müşteri İlişkileri Yönetimi",
+    "discover_description": "<p>Satışları artırmak ve elde tutma oranlarını iyileştirmek için her müşteri etkileşimini takip edin, takipleri otomatikleştirin ve müşteri davranışını analiz edin.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Gelişmiş Proje Yönetimi",
+    "discover_description": "<p>Gantt şemaları, kaynak tahsisi, zaman takibi ve kilometre taşı yönetim araçları ile projeleri planlayın, yürütün ve izleyin.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "İK & Bordro Otomasyonu",
+    "discover_description": "<p>Otomatik bordro işleme, devam takibi, performans değerlendirmeleri ve yan hak yönetimi ile çalışan yönetimini kolaylaştırın.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobil POS & E-ticaret",
+    "discover_description": "<p>Çevrimiçi mağaza yönetimi ve stok senkronizasyonu ile entegre mobil satış noktası sistemimizle her yerde ödeme kabul edin.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "İş Zekası Raporlama",
+    "discover_description": "<p>Stratejik karar alma için özelleştirilebilir raporlar, veri görselleştirme ve yönetici panoları ile ham verileri harekete geçirilebilir içgörülere dönüştürün.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Özel İş Akışı Oluşturucu",
+    "discover_description": "<p>Sürükle ve bırak iş akışı oluşturucumuzla karmaşık iş süreçlerini tasarlayın ve otomatikleştirin, manuel hataları azaltın ve verimliliği artırın.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Sorunsuz Üçüncü Taraf Entegrasyonu",
+    "discover_description": "<p>Birleşik bir iş ekosistemi için Salesforce, QuickBooks, Shopify ve Zapier dahil 500'den fazla popüler iş uygulamasına bağlanın.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Kurumsal Sınıf Güvenlik",
+    "discover_description": "<p>Askeri düzeyde şifreleme, rol tabanlı erişim kontrolleri, denetim izleri ve küresel güvenlik standartlarına uyumla iş verilerinizi koruyun.</p>"
+  }
+]

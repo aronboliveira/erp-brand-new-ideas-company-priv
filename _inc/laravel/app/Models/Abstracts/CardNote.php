@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\{
 	Model,
 	Relations\BelongsTo
 };
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 abstract class CardNote extends Model
@@ -18,11 +19,8 @@ abstract class CardNote extends Model
 	use HasFactory;
 	use UsesUuids;
 
-
 	protected const BASE_FILLABLE = [
 		BC::COL_CST_ID,
-		BC::COL_INV_ID,
-		BC::COL_BL_ID,
 		'amount',
 		'discount',
 		BC::COL_CUR_ID,
@@ -90,28 +88,31 @@ abstract class CardNote extends Model
 
 	protected const BASE_WITH = [
 		'customer',
-		'invoice',
-		'bill',
 		'bankAccount',
-		'category',
+		'productServiceCategory',
 	];
 
 	protected $with = self::BASE_WITH;
 
 	protected static function booted(): void
 	{
+		parent::booted();
 		static::creating(function (self $model): void {
-			$model->{BC::COL_CURR_N_INTR} = $model->normalizedCurrentInstallment();
+			$model->setAttribute(BC::COL_CURR_N_INTR, $model->normalizedCurrentInstallment());
 		});
-
 		static::saving(function (self $model): void {
-			$model->status = PaymentStatus::normalize($model->status ?? null)->value;
-
-			if (!$model->{BC::COL_BL_ID} && !$model->{BC::COL_INV_ID})
+			$model->setAttribute('status', PaymentStatus::normalize($model->getAttribute('status') ?? null)->value);
+			$billColumn    = Schema::hasColumn($model->getTable(), BC::COL_BL_ID)
+				? BC::COL_BL_ID
+				: 'bill';
+			$invoiceColumn = Schema::hasColumn($model->getTable(), BC::COL_INV_ID)
+				? BC::COL_INV_ID
+				: 'invoice';
+			$billId    = $model->getAttribute($billColumn);
+			$invoiceId = $model->getAttribute($invoiceColumn);
+			if (!$billId && !$invoiceId)
 				throw new RuntimeException('Card notes must be linked to a bill or an invoice.');
-
-			$model->{BC::COL_CURR_N_INTR} = $model->normalizedCurrentInstallment();
-
+			$model->setAttribute(BC::COL_CURR_N_INTR, $model->normalizedCurrentInstallment());
 			$model->normalizeCardExpiration();
 			$model->normalizeCardDigits();
 		});
@@ -126,12 +127,12 @@ abstract class CardNote extends Model
 
 	public function invoice(): ?BelongsTo
 	{
-		return $this->belongsTo(Invoice::class, BC::COL_INV_ID, 'id');
+		return $this->belongsTo(Invoice::class, Schema::hasColumn($this->getTable(), BC::COL_INV_ID) ? BC::COL_INV_ID : 'invoice', 'id');
 	}
 
 	public function bill(): ?BelongsTo
 	{
-		return $this->belongsTo(Bill::class, BC::COL_BL_ID);
+		return $this->belongsTo(Bill::class, Schema::hasColumn($this->getTable(), BC::COL_BL_ID) ? BC::COL_BL_ID : 'bill', 'id');
 	}
 
 	public function bankAccount(): ?BelongsTo
@@ -139,9 +140,14 @@ abstract class CardNote extends Model
 		return $this->belongsTo(BankAccount::class, BC::COL_BACC_ID);
 	}
 
-	public function category(): ?BelongsTo
+	public function productServiceCategory(): ?BelongsTo
 	{
 		return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID);
+	}
+
+	public function category(): ?BelongsTo // * legacy method
+	{
+		return $this->productServiceCategory();
 	}
 
 	public function paymentStatus(): PaymentStatus
@@ -168,14 +174,29 @@ abstract class CardNote extends Model
 		);
 	}
 
+	protected function billColumn(): string
+	{
+		return Schema::hasColumn($this->getTable(), BC::COL_BL_ID)
+			? BC::COL_BL_ID
+			: 'bill';
+	}
+
+	protected function invoiceColumn(): string
+	{
+		return Schema::hasColumn($this->getTable(), BC::COL_INV_ID)
+			? BC::COL_INV_ID
+			: 'invoice';
+	}
+
+
 	public function isLinkedToInvoice(): bool
 	{
-		return (bool) $this->{BC::COL_INV_ID};
+		return (bool) $this->getAttribute($this->invoiceColumn());
 	}
 
 	public function isLinkedToBill(): bool
 	{
-		return (bool) $this->{BC::COL_BL_ID};
+		return (bool) $this->getAttribute($this->billColumn());
 	}
 
 	public function getEffectiveDocumentType(): string
@@ -188,9 +209,10 @@ abstract class CardNote extends Model
 
 	public function getEffectiveDocumentId(): ?string
 	{
-		if ($this->isLinkedToInvoice()) return $this->{BC::COL_INV_ID};
-		if ($this->isLinkedToBill()) return $this->{BC::COL_BL_ID};
-
+		if ($this->isLinkedToInvoice())
+			return (string) $this->getAttribute($this->invoiceColumn());
+		if ($this->isLinkedToBill())
+			return (string) $this->getAttribute($this->billColumn());
 		return null;
 	}
 
@@ -241,36 +263,33 @@ abstract class CardNote extends Model
 
 	protected function normalizedCurrentInstallment(): int
 	{
-		$current = (int) ($this->{BC::COL_CURR_N_INTR} ?? 1);
-		if ($current < 1) $current = 1;
-
+		$current = (int) ($this->getAttribute(BC::COL_CURR_N_INTR) ?? 1);
+		if ($current < 1)
+			$current = 1;
 		return $current;
 	}
 
 	protected function normalizeCardExpiration(): void
 	{
-		$year = (int) ($this->{BC::COL_CD_EX_Y} ?? 0);
+		$rawYear = $this->getAttribute(BC::COL_CD_EX_Y);
+		$year    = (int) ($rawYear ?? 0);
 		if ($year <= 0) {
-			$this->{BC::COL_CD_EX_Y} = null;
-			$this->{BC::COL_CD_EX_M} = null;
-
+			$this->setAttribute(BC::COL_CD_EX_Y, null);
+			$this->setAttribute(BC::COL_CD_EX_M, null);
 			return;
 		}
-
 		$now          = now();
 		$currentYear  = (int) $now->format('Y');
 		$currentMonth = (int) $now->format('n');
-
-		if ($year < $currentYear) $year = $currentYear;
-		$this->{BC::COL_CD_EX_Y} = (string) $year;
-
-		$rawMonth = $this->{BC::COL_CD_EX_M};
-		if (!$rawMonth) return;
-
+		if ($year < $currentYear)
+			$year = $currentYear;
+		$this->setAttribute(BC::COL_CD_EX_Y, (string) $year);
+		$rawMonth = $this->getAttribute(BC::COL_CD_EX_M);
+		if (!$rawMonth)
+			return;
 		$monthName = $rawMonth instanceof MonthName
 			? strtolower($rawMonth->value)
 			: strtolower((string) $rawMonth);
-
 		$map = [
 			'january'   => 1,
 			'february'  => 2,
@@ -285,19 +304,17 @@ abstract class CardNote extends Model
 			'november'  => 11,
 			'december'  => 12,
 		];
-
 		$month = $map[$monthName] ?? null;
-		if ($month === null) return;
-
-		if ($year === $currentYear && $month < $currentMonth) {
+		if ($month === null)
+			return;
+		if ($year === $currentYear && $month < $currentMonth)
 			foreach ($map as $name => $num)
 				if ($num === $currentMonth) {
-					$this->{BC::COL_CD_EX_M} = $name;
-
+					$this->setAttribute(BC::COL_CD_EX_M, $name);
 					break;
 				}
-		}
 	}
+
 
 	protected function normalizeCardDigits(): void
 	{

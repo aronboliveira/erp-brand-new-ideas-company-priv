@@ -73,35 +73,27 @@ class LeadDiscussion extends Model
     protected static function booted(): void
     {
         static::saving(function (LeadDiscussion $discussion) {
-            if ($discussion->{AC::COL_CAN_NADM_DL} === null)
-                $discussion->{AC::COL_CAN_NADM_DL} = false;
-
-            if ($discussion->{AC::COL_IS_FLAG} === null)
-                $discussion->{AC::COL_IS_FLAG} = false;
-
-            if ($discussion->{AC::COL_IS_RPL} === null)
-                $discussion->{AC::COL_IS_RPL} = false;
-
-            if ($discussion->{AC::COL_IS_RPLD} === null)
-                $discussion->{AC::COL_IS_RPLD} = false;
-
-            $type = UserType::normalize($discussion->{UC::COL_U_TP} ?? null);
-            $discussion->{UC::COL_U_TP} = ($type?->value) ?? UserType::Client->value;
-
+            if ($discussion->getAttribute(AC::COL_CAN_NADM_DL) === null)
+                $discussion->setAttribute(AC::COL_CAN_NADM_DL, false);
+            if ($discussion->getAttribute(AC::COL_IS_FLAG) === null)
+                $discussion->setAttribute(AC::COL_IS_FLAG, false);
+            if ($discussion->getAttribute(AC::COL_IS_RPL) === null)
+                $discussion->setAttribute(AC::COL_IS_RPL, false);
+            if ($discussion->getAttribute(AC::COL_IS_RPLD) === null)
+                $discussion->setAttribute(AC::COL_IS_RPLD, false);
+            $type = UserType::normalize($discussion->getAttribute(UC::COL_U_TP) ?? null);
+            $discussion->setAttribute(UC::COL_U_TP, ($type?->value) ?? UserType::Client->value);
             foreach (['attachments', 'reactions', 'metadata'] as $field) {
-                if (is_array($discussion->{$field}))
+                if (is_array($discussion->getAttribute($field)))
                     continue;
-                $discussion->{$field} = self::normalizeArrayField($discussion->{$field});
+                $discussion->setAttribute($field, self::normalizeArrayField($discussion->getAttribute($field) ?? null));
             }
-
-            if (!is_array($discussion->attachments) && $discussion->attachments !== null)
-                $discussion->attachments = (array) $discussion->attachments;
-
-            if (!is_array($discussion->reactions) && $discussion->reactions !== null)
-                $discussion->reactions = (array) $discussion->reactions;
-
-            if (!is_array($discussion->metadata) && $discussion->metadata !== null)
-                $discussion->metadata = (array) $discussion->metadata;
+            if (!is_array($discussion->getAttribute('attachments')) && $discussion->getAttribute('attachments') !== null)
+                $discussion->setAttribute('attachments', (array) $discussion->getAttribute('attachments'));
+            if (!is_array($discussion->getAttribute('reactions')) && $discussion->getAttribute('reactions') !== null)
+                $discussion->setAttribute('reactions', (array) $discussion->getAttribute('reactions'));
+            if (!is_array($discussion->getAttribute('metadata')) && $discussion->getAttribute('metadata') !== null)
+                $discussion->setAttribute('metadata', (array) $discussion->getAttribute('metadata'));
         });
     }
 

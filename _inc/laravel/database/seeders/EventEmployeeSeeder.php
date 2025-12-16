@@ -6,11 +6,12 @@ use App\Config\Constants\ActivitiesConstants as AC;
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Enums\EventRole;
+use App\Models\Employee;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -96,120 +97,128 @@ final class EventEmployeeSeeder extends Seeder
 
 		// Geração: passa por eventos enquanto houver necessidade
 		while ($totalPlanned < $targetCount) {
-			$madeProgress = false;
+			try {
+				$madeProgress = false;
 
-			foreach ($eventsShuffled as $evId) {
-				if ($totalPlanned >= $targetCount) {
-					break;
-				}
-
-				// Conjunto de empregados ainda não vinculados a este evento
-				$already = $existingPairs[$evId] ?? [];
-				$availableEmpIds = array_values(array_diff($empIds, array_keys($already)));
-				if (!$availableEmpIds) {
-					continue; // este evento esgotou combinações possíveis
-				}
-
-				$desired = fake()->numberBetween(self::PER_EVENT_MIN, self::PER_EVENT_MAX);
-				$remainingGlobal = $targetCount - $totalPlanned;
-				$desired = min($desired, $remainingGlobal, count($availableEmpIds));
-
-				// Garante no máximo 1 responsável por evento nesta rodada
-				$hasResponsible = false;
-
-				// Escolhe N empregados distintos para este evento
-				$picked = (array) Arr::random($availableEmpIds, $desired);
-
-				foreach ($picked as $empId) {
-					// Papel (fallback para Attendee para manter consistência)
-					$role = $maybe(fn() => Arr::random($roleBag)) ?? EventRole::Attendee->value;
-
-					if ($role === EventRole::Responsible->value) {
-						if ($hasResponsible) {
-							// troque por outro papel se já houver responsável
-							$role = Arr::random(array_values(array_filter(
-								$roleBag,
-								fn($r) => $r !== EventRole::Responsible->value
-							)));
-						} else {
-							$hasResponsible = true;
-						}
+				foreach ($eventsShuffled as $evId) {
+					if ($totalPlanned >= $targetCount) {
+						break;
 					}
 
-					// Metadata específica por papel
-					$metadata = $maybe(function () use ($role) {
-						$base = [
-							'note' => fake()->boolean(60) ? fake()->realText(80) : null,
-							'tags' => fake()->boolean(40)
-								? Arr::random(
-									['vip', 'remote', 'onsite', 'priority', 'backup', 'press', 'guest'],
-									fake()->numberBetween(1, 3)
-								)
-								: null,
+					// Conjunto de empregados ainda não vinculados a este evento
+					$already = $existingPairs[$evId] ?? [];
+					$availableEmpIds = array_values(array_diff($empIds, array_keys($already)));
+					if (!$availableEmpIds) {
+						continue; // este evento esgotou combinações possíveis
+					}
+
+					$desired = fake()->numberBetween(self::PER_EVENT_MIN, self::PER_EVENT_MAX);
+					$remainingGlobal = $targetCount - $totalPlanned;
+					$desired = min($desired, $remainingGlobal, count($availableEmpIds));
+
+					// Garante no máximo 1 responsável por evento nesta rodada
+					$hasResponsible = false;
+
+					// Escolhe N empregados distintos para este evento
+					$picked = (array) Arr::random($availableEmpIds, $desired);
+
+					foreach ($picked as $empId) {
+						// Papel (fallback para Attendee para manter consistência)
+						$role = $maybe(fn() => Arr::random($roleBag)) ?? EventRole::Attendee->value;
+
+						if ($role === EventRole::Responsible->value) {
+							if ($hasResponsible) {
+								// troque por outro papel se já houver responsável
+								$role = Arr::random(array_values(array_filter(
+									$roleBag,
+									fn($r) => $r !== EventRole::Responsible->value
+								)));
+							} else {
+								$hasResponsible = true;
+							}
+						}
+
+						// Metadata específica por papel
+						$metadata = $maybe(function () use ($role) {
+							$base = [
+								'note' => fake()->boolean(60) ? fake()->realText(80) : null,
+								'tags' => fake()->boolean(40)
+									? Arr::random(
+										['vip', 'remote', 'onsite', 'priority', 'backup', 'press', 'guest'],
+										fake()->numberBetween(1, 3)
+									)
+									: null,
+							];
+
+							$roleExtras = match ($role) {
+								EventRole::Speaker->value => [
+									'topics'   => Arr::random(['SRE', 'DevOps', 'SecOps', 'FinOps', 'UX', 'DBA'], fake()->numberBetween(1, 3)),
+									'slides'   => fake()->boolean(40) ? fake()->url() : null,
+									'duration' => fake()->numberBetween(15, 50),
+								],
+								EventRole::Organizer->value, EventRole::Responsible->value => [
+									'permissions' => Arr::random(['full', 'edit', 'view']),
+									'channel'     => Arr::random(['email', 'chat', 'phone']),
+								],
+								EventRole::Sponsor->value => [
+									'tier'    => Arr::random(['gold', 'silver', 'bronze']),
+									'company' => fake()->company(),
+								],
+								EventRole::Volunteer->value => [
+									'duty'  => Arr::random(['registration', 'AV', 'logistics', 'guidance']),
+									'shift' => Arr::random(['morning', 'afternoon', 'evening']),
+								],
+								default => [
+									'seat' => fake()->boolean(30) ? fake()->numberBetween(1, 200) : null,
+								],
+							};
+
+							return array_filter($base + $roleExtras, fn($v) => $v !== null && $v !== []);
+						});
+
+						// Auditoria (sempre com chaves presentes; valores podem ser null)
+						$creator   = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
+						$updater   = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
+						$createdAt = $now
+							->subDays(fake()->numberBetween(0, 20))
+							->subMinutes(fake()->numberBetween(0, 1440));
+						$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 1440));
+
+						// Linha CONSISTENTE: mesmas colunas em todas as linhas
+						$rows[] = [
+							'id'                  => (string) Str::uuid(),
+							AC::COL_EV_ID         => $evId,
+							UC::COL_EMP_ID        => $empId,
+							'role'                => $role,
+							'metadata'            => $encode($metadata),
+							DC::COL_TABLE_CREATOR => $creator,
+							DC::COL_TABLE_UPDATER => $updater,
+							'created_at'          => $createdAt->toDateTimeString(),
+							'updated_at'          => $updatedAt->toDateTimeString(),
 						];
 
-						$roleExtras = match ($role) {
-							EventRole::Speaker->value => [
-								'topics'   => Arr::random(['SRE', 'DevOps', 'SecOps', 'FinOps', 'UX', 'DBA'], fake()->numberBetween(1, 3)),
-								'slides'   => fake()->boolean(40) ? fake()->url() : null,
-								'duration' => fake()->numberBetween(15, 50),
-							],
-							EventRole::Organizer->value, EventRole::Responsible->value => [
-								'permissions' => Arr::random(['full', 'edit', 'view']),
-								'channel'     => Arr::random(['email', 'chat', 'phone']),
-							],
-							EventRole::Sponsor->value => [
-								'tier'    => Arr::random(['gold', 'silver', 'bronze']),
-								'company' => fake()->company(),
-							],
-							EventRole::Volunteer->value => [
-								'duty'  => Arr::random(['registration', 'AV', 'logistics', 'guidance']),
-								'shift' => Arr::random(['morning', 'afternoon', 'evening']),
-							],
-							default => [
-								'seat' => fake()->boolean(30) ? fake()->numberBetween(1, 200) : null,
-							],
-						};
+						// Marcar par como usado
+						$existingPairs[$evId][$empId] = true;
+						$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Funcionário em Chamada para event={$evId} employee={$ref} como " . $role);
+						$totalPlanned++;
+						$madeProgress = true;
 
-						return array_filter($base + $roleExtras, fn($v) => $v !== null && $v !== []);
-					});
-
-					// Auditoria (sempre com chaves presentes; valores podem ser null)
-					$creator   = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
-					$updater   = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
-					$createdAt = $now
-						->subDays(fake()->numberBetween(0, 20))
-						->subMinutes(fake()->numberBetween(0, 1440));
-					$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 1440));
-
-					// Linha CONSISTENTE: mesmas colunas em todas as linhas
-					$rows[] = [
-						'id'                  => (string) Str::uuid(),
-						AC::COL_EV_ID         => $evId,
-						UC::COL_EMP_ID        => $empId,
-						'role'                => $role,
-						'metadata'            => $encode($metadata),
-						DC::COL_TABLE_CREATOR => $creator,
-						DC::COL_TABLE_UPDATER => $updater,
-						'created_at'          => $createdAt->toDateTimeString(),
-						'updated_at'          => $updatedAt->toDateTimeString(),
-					];
-
-					// Marcar par como usado
-					$existingPairs[$evId][$empId] = true;
-
-					$totalPlanned++;
-					$madeProgress = true;
-
-					if ($totalPlanned >= $targetCount) {
-						break 2;
+						if ($totalPlanned >= $targetCount) {
+							break 2;
+						}
 					}
 				}
-			}
 
-			// Não há mais combinações possíveis para atender ao alvo
-			if (!$madeProgress) {
-				break;
+				// Não há mais combinações possíveis para atender ao alvo
+				if (!$madeProgress) {
+					break;
+				}
+			} catch (\Exception $e) {
+				$totalPlanned++;
+				Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+				continue;
 			}
 		}
 

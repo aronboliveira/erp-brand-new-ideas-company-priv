@@ -30,6 +30,7 @@ class ActivitiesConstants
 	public const COL_ITV_TIME = 'interval_time';
 	public const COL_SCHD_TP = 'schedule_type';
 	public const COL_IA = 'is_active';
+	public const COL_DSB = 'is_disabled';
 	public const COL_PW = 'password';
 	public const COL_CPT = 'complete';
 	public const COL_MUNIT = 'measurement_unit';

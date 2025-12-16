@@ -130,96 +130,104 @@ final class DealSeeder extends Seeder
 			$evalValues = array_map(fn($c) => $c->value, EvaluationStatus::cases());
 
 			for ($i = 0; $i < $count; $i++) {
-				$pipelineId = $pipelineIds[array_rand($pipelineIds)];
-				$stagePool  = $stagesByPipeline[$pipelineId] ?? [];
-				if (!$stagePool) {
-					// Sem estágio para o pipeline: pula registro para manter integridade
+				try {
+					$nm = $faker->sentence(3);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Acordo de Negócios: {$nm}");
+					$pipelineId = $pipelineIds[array_rand($pipelineIds)];
+					$stagePool  = $stagesByPipeline[$pipelineId] ?? [];
+					if (!$stagePool) {
+						// Sem estágio para o pipeline: pula registro para manter integridade
+						continue;
+					}
+
+					$now = Carbon::now()->subDays($faker->numberBetween(0, 120))->subMinutes($faker->numberBetween(0, 1440));
+
+					do $dealId = Str::uuid()->toString();
+					while (Dl::where('id', $dealId)->exists());
+
+					$responsible = $users[array_rand($users)];
+					$supervisor  = $users[array_rand($users)];
+					$customer    = $faker->boolean(60) ? $faker->company() : $faker->name();
+
+					// involded: JSON com contatos normalizados (e-mail/telefone/contato)
+					$invCount  = $faker->numberBetween(1, 5);
+					$involded  = [];
+					for ($j = 0; $j < $invCount; $j++) {
+						$involded[] = [
+							'name'    => $faker->name(),
+							'email'   => $faker->safeEmail(),
+							'phone'   => $faker->e164PhoneNumber(),
+							'contact' => $faker->boolean(50) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
+							'role'    => $faker->randomElement(['buyer', 'influencer', 'decision_maker', 'technical']),
+						];
+					}
+
+					// Permissões como string (JSON simples) — campo é TEXT
+					$abilities = [];
+					foreach ($permResources as $res) {
+						foreach ($permActions as $act) {
+							$abilities[] = "{$act}:{$res}";
+						}
+					}
+					$role = $faker->randomElement($permHierarchy);
+					$permPayload = [
+						'role'       => $role,
+						'granted'    => $abilities,
+						'created_by' => $responsible,
+					];
+					$permissionsStr = json_encode($permPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+					DB::table(DC::TABLE_DEALS)->insert([
+						'id'                     => $dealId,
+						'name'                   => $nm,
+						'phone'                  => $faker->e164PhoneNumber(),
+						'email'                  => $maybe(fn() => $faker->safeEmail()),
+
+						'price'                  => $faker->randomFloat(2, 300, 25000),
+
+						// Pipeline + Stage coerentes
+						'pipeline_id'            => $pipelineId,
+						PJC::COL_STG_ID          => $stagePool[array_rand($stagePool)],
+
+						// Grupo numérico simples
+						PJC::COL_GRP_ID          => $faker->numberBetween(1, 8),
+
+						// Campos textuais (CSV)
+						'sources'                => $pickCsv($sources, 1, 3) ?? $faker->words(2, true),
+						'products'               => $pickCsv($products, 1, 3) ?? $faker->words(2, true),
+						'description'            => $faker->paragraphs($faker->numberBetween(1, 2), true),
+						'customer'               => $customer,
+						'notes'                  => $faker->sentences($faker->numberBetween(1, 3), true),
+						'labels'                 => $pickCsv($labels, 1, 3) ?? null,
+						'permissions'            => $permissionsStr,
+
+						// Status do funil legada e status de avaliação (enum)
+						'status'                 => $faker->randomElement($statusKeys),
+						BC::COL_STT_LB           => $faker->randomElement($evalValues),
+
+						'order'                  => $i,
+
+						// Responsáveis
+						'responsible'            => $responsible,
+						'supervisor'             => $supervisor,
+
+						// JSON
+						'involded'               => json_encode($involded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+
+						// Ativo (inteiro)
+						AC::COL_IA               => $faker->boolean(90) ? 1 : 0,
+
+						// Auditoria
+						DC::COL_TABLE_CREATOR    => $systemUserId,
+						DC::COL_TABLE_UPDATER    => null,
+						'created_at'             => $now->toDateTimeString(),
+						'updated_at'             => $now->addMinutes($faker->numberBetween(1, 60))->toDateTimeString(),
+					]);
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
-
-				$now = Carbon::now()->subDays($faker->numberBetween(0, 120))->subMinutes($faker->numberBetween(0, 1440));
-
-				do $dealId = Str::uuid()->toString();
-				while (Dl::where('id', $dealId)->exists());
-
-				$responsible = $users[array_rand($users)];
-				$supervisor  = $users[array_rand($users)];
-				$customer    = $faker->boolean(60) ? $faker->company() : $faker->name();
-
-				// involded: JSON com contatos normalizados (e-mail/telefone/contato)
-				$invCount  = $faker->numberBetween(1, 5);
-				$involded  = [];
-				for ($j = 0; $j < $invCount; $j++) {
-					$involded[] = [
-						'name'    => $faker->name(),
-						'email'   => $faker->safeEmail(),
-						'phone'   => $faker->e164PhoneNumber(),
-						'contact' => $faker->boolean(50) ? $faker->safeEmail() : $faker->e164PhoneNumber(),
-						'role'    => $faker->randomElement(['buyer', 'influencer', 'decision_maker', 'technical']),
-					];
-				}
-
-				// Permissões como string (JSON simples) — campo é TEXT
-				$abilities = [];
-				foreach ($permResources as $res) {
-					foreach ($permActions as $act) {
-						$abilities[] = "{$act}:{$res}";
-					}
-				}
-				$role = $faker->randomElement($permHierarchy);
-				$permPayload = [
-					'role'       => $role,
-					'granted'    => $abilities,
-					'created_by' => $responsible,
-				];
-				$permissionsStr = json_encode($permPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-				DB::table(DC::TABLE_DEALS)->insert([
-					'id'                     => $dealId,
-					'name'                   => $faker->sentence(3),
-					'phone'                  => $faker->e164PhoneNumber(),
-					'email'                  => $maybe(fn() => $faker->safeEmail()),
-
-					'price'                  => $faker->randomFloat(2, 300, 25000),
-
-					// Pipeline + Stage coerentes
-					'pipeline_id'            => $pipelineId,
-					PJC::COL_STG_ID          => $stagePool[array_rand($stagePool)],
-
-					// Grupo numérico simples
-					PJC::COL_GRP_ID          => $faker->numberBetween(1, 8),
-
-					// Campos textuais (CSV)
-					'sources'                => $pickCsv($sources, 1, 3) ?? $faker->words(2, true),
-					'products'               => $pickCsv($products, 1, 3) ?? $faker->words(2, true),
-					'description'            => $faker->paragraphs($faker->numberBetween(1, 2), true),
-					'customer'               => $customer,
-					'notes'                  => $faker->sentences($faker->numberBetween(1, 3), true),
-					'labels'                 => $pickCsv($labels, 1, 3) ?? null,
-					'permissions'            => $permissionsStr,
-
-					// Status do funil legada e status de avaliação (enum)
-					'status'                 => $faker->randomElement($statusKeys),
-					BC::COL_STT_LB           => $faker->randomElement($evalValues),
-
-					'order'                  => $i,
-
-					// Responsáveis
-					'responsible'            => $responsible,
-					'supervisor'             => $supervisor,
-
-					// JSON
-					'involded'               => json_encode($involded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-
-					// Ativo (inteiro)
-					AC::COL_IA               => $faker->boolean(90) ? 1 : 0,
-
-					// Auditoria
-					DC::COL_TABLE_CREATOR    => $systemUserId,
-					DC::COL_TABLE_UPDATER    => null,
-					'created_at'             => $now->toDateTimeString(),
-					'updated_at'             => $now->addMinutes($faker->numberBetween(1, 60))->toDateTimeString(),
-				]);
 			}
 		}, 3);
 	}

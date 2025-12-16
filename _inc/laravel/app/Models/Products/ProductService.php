@@ -104,70 +104,59 @@ class ProductService extends Model
     {
         parent::booted();
         static::creating(function ($model) {
-            if (empty($model->{BC::COL_AC_CUR}))
-                $model->{BC::COL_AC_CUR} = [SC::DEF_SITE_CURRENCY_ID];
-            if (empty($model->{BC::COL_AC_MUNITS}))
-                $model->{BC::COL_AC_MUNITS} = ['other'];
+            if (empty($model->getAttribute(BC::COL_AC_CUR)))
+                $model->setAttribute(BC::COL_AC_CUR, [SC::DEF_SITE_CURRENCY_ID]);
+            if (empty($model->getAttribute(BC::COL_AC_MUNITS)))
+                $model->setAttribute(BC::COL_AC_MUNITS, ['other']);
         });
         static::saving(function (self $m): void {
             foreach (['name', 'sku', 'type', 'icon', DC::COL_PRO_IMG] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-
-            if (isset($m->sku) && is_string($m->sku))
-                $m->sku = strtoupper($m->sku);
-
+                if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                    $m->setAttribute($field, trim($m->getAttribute($field)));
+            if (!empty($m->getAttribute('sku')) && is_string($m->getAttribute('sku')))
+                $m->setAttribute('sku', strtoupper($m->getAttribute('sku')));
             foreach ([BC::COL_SL_PRC, BC::COL_PC_PRC] as $priceField)
-                if ($m->{$priceField} === null || $m->{$priceField} < 0)
-                    $m->{$priceField} = 0.0000;
-
-            if ($m->quantity === null || $m->quantity < 0)
-                $m->quantity = 0.0;
-
+                if ($m->getAttribute($priceField) === null || $m->getAttribute($priceField) < 0)
+                    $m->setAttribute($priceField, 0.0000);
+            if ($m->getAttribute('quantity') === null || $m->getAttribute('quantity') < 0)
+                $m->setAttribute('quantity', 0.0);
             foreach ([BC::COL_UNITS_SOLD, BC::COL_UNITS_CNC, BC::COL_UNITS_RTRN] as $cField)
-                if ($m->{$cField} === null || $m->{$cField} < 0)
-                    $m->{$cField} = 0;
-
-            $from  = $m->{AC::COL_AV_FROM};
-            $until = $m->{AC::COL_AV_UNTIL};
+                if ($m->getAttribute($cField) === null || $m->getAttribute($cField) < 0)
+                    $m->setAttribute($cField, 0);
+            $from  = $m->getAttribute(AC::COL_AV_FROM);
+            $until = $m->getAttribute(AC::COL_AV_UNTIL);
             if ($from && $until && $until < $from)
-                $m->{AC::COL_AV_UNTIL} = $from;
-
+                $m->setAttribute(AC::COL_AV_UNTIL, $from);
             foreach ([AC::COL_IA, BC::COL_ON_SALE, BC::COL_IS_LK, BC::COL_IS_TRS] as $boolField)
-                if ($m->{$boolField} === null)
-                    $m->{$boolField} = false;
-
+                if ($m->getAttribute($boolField) === null)
+                    $m->setAttribute($boolField, false);
             try {
-                $m->{BC::COL_AC_CUR} = self::sanitizeCurrencies($m->{BC::COL_AC_CUR} ?? null);
+                $m->setAttribute(BC::COL_AC_CUR, self::sanitizeCurrencies($m->getAttribute(BC::COL_AC_CUR) ?? null));
             } catch (\Throwable $e) {
                 Log::warning(
                     'Failed to normalize accepted currencies for ProductService ' . ($m->id ?? 'new'),
                     ['error' => $e->getMessage()]
                 );
-                $m->{BC::COL_AC_CUR} = [strtoupper(SC::DEF_SITE_CURRENCY_ID)];
+                $m->setAttribute(BC::COL_AC_CUR, [strtoupper(SC::DEF_SITE_CURRENCY_ID)]);
             }
-
-            $m->{BC::COL_AC_MUNITS} = self::sanitizeMeasurementUnits($m->{BC::COL_AC_MUNITS} ?? null);
-
+            $m->setAttribute(BC::COL_AC_MUNITS, self::sanitizeMeasurementUnits($m->getAttribute(BC::COL_AC_MUNITS) ?? null));
             foreach (['attributes', 'tags'] as $jsonField)
-                $m->{$jsonField} = self::normalizeArrayField($m->{$jsonField} ?? null);
-
+                $m->setAttribute($jsonField, self::normalizeArrayField($m->getAttribute($jsonField) ?? null));
             try {
-                $m->categories        = self::sanitizeCategoriesArray($m->categories ?? null);
-                $m->{DC::COL_RL_CAT}  = self::sanitizeCategoriesArray($m->{DC::COL_RL_CAT} ?? null);
+                $m->setAttribute('categories', self::sanitizeCategoriesArray($m->getAttribute('categories') ?? null));
+                $m->setAttribute(DC::COL_RL_CAT, self::sanitizeCategoriesArray($m->getAttribute(DC::COL_RL_CAT) ?? null));
             } catch (\Throwable $e) {
                 Log::warning(
                     'Failed to normalize categories for ProductService ' . ($m->id ?? 'new'),
                     ['error' => $e->getMessage()]
                 );
             }
-
-            if ($m->{BC::COL_UNIT_ID}) {
+            if ($m->getAttribute(BC::COL_UNIT_ID)) {
                 $exists = ProductServiceUnit::query()
-                    ->where('id', $m->{BC::COL_UNIT_ID})
+                    ->where('id', $m->getAttribute(BC::COL_UNIT_ID))
                     ->exists();
                 if (!$exists)
-                    $m->{BC::COL_UNIT_ID} = null;
+                    $m->setAttribute(BC::COL_UNIT_ID, null);
             }
         });
     }
@@ -176,7 +165,6 @@ class ProductService extends Model
     {
         $items = self::normalizeArrayField($raw);
         $normalized = [];
-
         foreach ($items as $item) {
             if (!is_string($item))
                 continue;
@@ -185,11 +173,9 @@ class ProductService extends Model
                 continue;
             $normalized[$code] = $code;
         }
-
         $default = strtoupper(SC::DEF_SITE_CURRENCY_ID);
         if (!isset($normalized[$default]))
             $normalized[$default] = $default;
-
         return array_values($normalized);
     }
 
@@ -197,7 +183,6 @@ class ProductService extends Model
     {
         $items = self::normalizeArrayField($raw);
         $normalized = [];
-
         foreach ($items as $item) {
             if (!is_string($item))
                 continue;
@@ -206,10 +191,8 @@ class ProductService extends Model
                 continue;
             $normalized[strtolower($v)] = $v;
         }
-
         if (!$normalized)
             $normalized['other'] = 'other';
-
         return array_values($normalized);
     }
 
@@ -218,13 +201,10 @@ class ProductService extends Model
         $items = self::normalizeArrayField($raw);
         if (!$items)
             return [];
-
         $valid = [];
-
         foreach ($items as $item) {
             if (!is_array($item))
                 continue;
-
             $id = null;
             foreach (['id', 'category_id'] as $key) {
                 if (!array_key_exists($key, $item))
@@ -238,19 +218,14 @@ class ProductService extends Model
                 $id = $value;
                 break;
             }
-
             if (!$id)
                 continue;
-
             if (!ProductServiceCategory::query()->where('id', $id)->exists())
                 continue;
-
             $item['id'] = $id;
             unset($item['category_id']);
-
             $valid[$id] = $item;
         }
-
         return array_values($valid);
     }
 
@@ -377,9 +352,7 @@ class ProductService extends Model
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
             return $userOrRedirect;
-
         $user = $userOrRedirect;
-
         return DB::table(self::TABLE)
             ->where('id', $productId)
             ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
@@ -391,7 +364,6 @@ class ProductService extends Model
         $wp = WarehouseProduct::where('warehouse_id', $warehouseId)
             ->where('product_id', $productId)
             ->first();
-
         return $wp->quantity ?? 0;
     }
 }

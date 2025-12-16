@@ -46,4 +46,6 @@ class CompaniesConstants
 	public const COL_HAS_SCR_ENB = 'has_screen_sharing_enabled_by_default';
 	public const COL_INV_CD = 'invitation_code';
 	public const COL_GIVEN_BY = 'given_by';
+	public const COL_PRC_DT = 'purchase_date';
+	public const COL_SPT_DT = 'supported_date';
 }

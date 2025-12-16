@@ -33,24 +33,30 @@ final class DealDiscussionSeeder extends Seeder
 			}
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(1, 6);
+				$count = random_int(4, 64);
 
 				for ($i = 0; $i < $count; $i++) {
-					do $discussionId = Str::uuid()->toString();
-					while (Dds::where('id', $discussionId)->exists());
+					try {
+						do $discussionId = Str::uuid()->toString();
+						while (Dds::where('id', $discussionId)->exists());
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Discussão para Acordo de Negócios: {$discussionId}");
+						$body = $faker->realText($faker->numberBetween(120, 600));
+						$ts   = $faker->dateTimeBetween('-30 days', 'now');
 
-					$body = $faker->realText($faker->numberBetween(120, 600));
-					$ts   = $faker->dateTimeBetween('-30 days', 'now');
-
-					$d = new Dds();
-					$d->id                     = $discussionId;
-					$d->{AC::COL_DL}           = $dealId;
-					$d->comment                = $body;
-					$d->{DC::COL_TABLE_CREATOR}    = $systemUserId;
-					$d->setAttribute(DC::COL_TABLE_UPDATER, null);
-					$d->setAttribute('created_at', $ts);
-					$d->setAttribute('updated_at', $ts);
-					$d->save();
+						$d = new Dds();
+						$d->id                     = $discussionId;
+						$d->{AC::COL_DL}           = $dealId;
+						$d->comment                = $body;
+						$d->{DC::COL_TABLE_CREATOR}    = $systemUserId;
+						$d->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$d->setAttribute('created_at', $ts);
+						$d->setAttribute('updated_at', $ts);
+						$d->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

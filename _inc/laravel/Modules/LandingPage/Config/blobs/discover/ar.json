@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "الأتمتة المدعومة بالذكاء الاصطناعي",
+    "discover_description": "<p>استفد من الذكاء الاصطناعي المتقدم لأتمتة المهام المتكررة، والتنبؤ بالاتجاهات، وتحسين سير عمل أعمالك مع رؤى ذكية.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "لوحة تحليل في الوقت الفعلي",
+    "discover_description": "<p>احصل على رؤية فورية لأداء عملك مع لوحات تحكم تفاعلية، تقارير مخصصة، وتتبع مؤشرات الأداء الرئيسية في الوقت الفعلي عبر جميع الأقسام.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "محاسبة متعددة العملات",
+    "discover_description": "<p>أدر المعاملات الدولية بسلاسة مع التحويل الآلي للعملات، والامتثال الضريبي، ودمج أسعار الصرف في الوقت الفعلي.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "إدارة المخزون الذكية",
+    "discover_description": "<p>حسن مستويات المخزون مع التحليلات التنبؤية، وإعادة الطلب الآلي، ومسح الرموز الشريطية لعمليات مستودع فعالة.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "إدارة علاقات العملاء 360°",
+    "discover_description": "<p>تتبع كل تفاعل مع العميل، وأتمت المتابعات، وحلل سلوك العميل لزيادة المبيعات وتحسين معدلات الاحتفاظ.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "إدارة المشاريع المتقدمة",
+    "discover_description": "<p>خطط، ونفذ، وراقب المشاريع مع مخططات جانت، وتخصيص الموارد، وتتبع الوقت، وأدوات إدارة المعالم.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "أتمتة الموارد البشرية والرواتب",
+    "discover_description": "<p>بسط إدارة الموظفين مع معالجة الرواتب الآلية، وتتبع الحضور، وتقييمات الأداء، وإدارة المزايا.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "نقاط البيع المحمولة والتجارة الإلكترونية",
+    "discover_description": "<p>اقبل المدفوعات في أي مكان مع نظام نقاط البيع المحمول لدينا، المتكامل مع إدارة المتجر عبر الإنترنت ومزامنة المخزون.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "تقارير ذكاء الأعمال",
+    "discover_description": "<p>حول البيانات الأولية إلى رؤى قابلة للتنفيذ مع تقارير قابلة للتخصيص، وتصور البيانات، ولوحات التحكم التنفيذية لصنع القرار الاستراتيجي.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "منشئ سير العمل المخصص",
+    "discover_description": "<p>صمم وأتمت العمليات التجارية المعقدة مع منشئ سير العمل بالسحب والإفلات لدينا، مما يقلل الأخطاء اليدوية ويزيد الكفاءة.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "تكامل سلس مع الأطراف الثالثة",
+    "discover_description": "<p>اتصل بـ 500+ تطبيق أعمال شائع بما في ذلك Salesforce وQuickBooks وShopify وZapier لنظام بيئي تجاري موحد.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "أمان بمستوى المؤسسات",
+    "discover_description": "<p>احمِ بيانات عملك مع تشفير عسكري المستوى، وضوابط وصول قائمة على الأدوار، ومسارات تدقيق، والامتثال لمعايير الأمان العالمية.</p>"
+  }
+]

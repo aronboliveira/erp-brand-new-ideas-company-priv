@@ -24,15 +24,15 @@ class CreateDealsTable extends Migration
             $table->text('sources')->nullable(); // * boot/save should filter to explode and search for ids/name/title/label (check if name/title/label exists)
             $table->text('products')->nullable(); // * boot/save should wait for the ProductService to be migrated and then filter to explode and search for ids/name/title/label (check if name/title/label exists)
             $table->text('description')->nullable();
-            $table->string('customer')->index()->nullable(); // ? nullable for now
+            $table->string('customer')->nullable()->index(); // ? nullable for now
             $table->text('notes')->nullable();
             $table->text('labels')->nullable();
             $table->text('permissions')->nullable();
             $table->string('status')->nullable();
             $table->enum(BC::COL_STT_LB, array_column(EvaluationStatus::cases(), 'value'))->default(EvaluationStatus::Draft)->nullable();
             $table->integer('order')->default(0);
-            $table->uuid('responsible')->index()->nullable(); // ? nullable for now
-            $table->uuid('supervisor')->index()->nullable(); // ? nullable for now
+            $table->uuid('responsible')->nullable()->index(); // ? nullable for now
+            $table->uuid('supervisor')->nullable()->index(); // ? nullable for now
             $table->json('involded')->nullable();
             $table->integer(AC::COL_IA)->default(1);
             foreach (

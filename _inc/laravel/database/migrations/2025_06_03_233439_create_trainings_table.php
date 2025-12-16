@@ -4,6 +4,7 @@ use App\Config\Constants\DatabaseConstants;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
+// todo checkgpt
 class CreateTrainingsTable extends Migration
 {
     private const ENTITY = 'training';

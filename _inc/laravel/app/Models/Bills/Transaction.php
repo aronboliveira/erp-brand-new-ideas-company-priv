@@ -220,22 +220,17 @@ class Transaction extends Model
                 foreach ($trx->getFillable() as $field) {
                     $value = $source instanceof Request
                         ? $source->input($field)
-                        : ($source->{$field} ?? null);
-
-                    if ($value !== null) {
-                        $trx->{$field} = $value;
-                    }
+                        : ($source->getAttribute($field) ?? null);
+                    if ($value !== null)
+                        $trx->setAttribute($field, $value);
                 }
-
                 $trx->save();
-
                 return $trx;
             } catch (\Throwable $e) {
                 Log::error(
                     self::class . '::addTransaction failed: ' . $e->getMessage(),
                     ['exception' => $e]
                 );
-
                 return null;
             }
         });
@@ -247,26 +242,19 @@ class Transaction extends Model
             try {
                 $paymentId = $source instanceof Request
                     ? $source->input(BC::COL_PAY_ID)
-                    : ($source->{BC::COL_PAY_ID} ?? null);
-
+                    : ($source->getAttribute(BC::COL_PAY_ID) ?? null);
                 $paymentType = $source instanceof Request
                     ? $source->input(BC::COL_PAY_TP)
-                    : ($source->{BC::COL_PAY_TP} ?? null);
-
-                if (!$paymentId || !$paymentType) {
+                    : ($source->getAttribute(BC::COL_PAY_TP) ?? null);
+                if (!$paymentId || !$paymentType)
                     return;
-                }
-
                 /** @var self|null $trx */
                 $trx = self::query()
                     ->where(BC::COL_PAY_ID, $paymentId)
                     ->where(BC::COL_PAY_TP, $paymentType)
                     ->first();
-
-                if (!$trx) {
+                if (!$trx)
                     return;
-                }
-
                 $editable = [
                     'account',
                     'amount',
@@ -274,17 +262,13 @@ class Transaction extends Model
                     'date',
                     'category',
                 ];
-
                 foreach ($editable as $field) {
                     $value = $source instanceof Request
                         ? $source->input($field)
-                        : ($source->{$field} ?? $trx->{$field});
-
-                    if ($value !== null) {
-                        $trx->{$field} = $value;
-                    }
+                        : ($source->getAttribute($field) ?? $trx->getAttribute($field));
+                    if ($value !== null)
+                        $trx->setAttribute($field, $value);
                 }
-
                 $trx->save();
             } catch (\Throwable $e) {
                 Log::error(
@@ -314,36 +298,27 @@ class Transaction extends Model
     public static function accounts(string $accountIds): string
     {
         $names = '';
-
         foreach (explode(',', $accountIds) as $acctId) {
             $acctId = trim($acctId);
-            if ($acctId === '') {
+            if ($acctId === '')
                 continue;
-            }
-
             /** @var BankAccount|null $acct */
             $acct = BankAccount::find($acctId);
-            if (!$acct) {
+            if (!$acct)
                 continue;
-            }
-
             $names = ($acct->bank_name ?? '') . '  ' . ($acct->holder_name ?? '');
         }
-
         return $names;
     }
 
     protected static function normalizePaymentType(self $transaction): void
     {
-        $raw = $transaction->{BC::COL_PAY_TP} ?? null;
-
+        $raw = $transaction->getAttribute(BC::COL_PAY_TP) ?? null;
         if ($raw === null || $raw === '') {
-            $transaction->{BC::COL_PAY_TP} = TransactionType::Other->value;
+            $transaction->setAttribute(BC::COL_PAY_TP, TransactionType::Other->value);
             return;
         }
-
         $type = TransactionType::tryFrom((string)$raw);
-
         if (!$type) {
             Log::warning(
                 self::class . '::normalizePaymentType invalid payment type',
@@ -351,12 +326,9 @@ class Transaction extends Model
             );
             $type = TransactionType::Other;
         }
-
-        $transaction->{BC::COL_PAY_TP} = $type->value;
-
-        if (empty($transaction->category)) {
-            $transaction->category = $type->value;
-        }
+        $transaction->setAttribute(BC::COL_PAY_TP, $type->value);
+        if (empty($transaction->category))
+            $transaction->setAttribute('category', $type->value);
     }
 
     protected static function sanitizeNumericFields(self $transaction): void
@@ -378,62 +350,45 @@ class Transaction extends Model
         ];
 
         foreach ($floatFields as $field) {
-            if (!array_key_exists($field, $transaction->attributes)) {
+            if (!array_key_exists($field, $transaction->attributes))
                 continue;
-            }
-
-            $value = $transaction->{$field};
-
+            $value = $transaction->getAttribute($field);
             if ($value === null || $value === '' || !is_numeric($value)) {
-                $transaction->{$field} = 0.0;
+                $transaction->setAttribute($field, 0.0);
                 continue;
             }
-
             $numeric = (float) $value;
-            if ($numeric < 0) {
+            if ($numeric < 0)
                 $numeric = 0.0;
-            }
-
-            $transaction->{$field} = $numeric;
+            $transaction->setAttribute($field, $numeric);
         }
-
         foreach ($intFields as $field) {
-            if (!array_key_exists($field, $transaction->attributes)) {
+            if (!array_key_exists($field, $transaction->attributes))
                 continue;
-            }
-
-            $value = $transaction->{$field};
-
+            $value = $transaction->getAttribute($field);
             if ($value === null || $value === '' || !is_numeric($value)) {
-                $transaction->{$field} = 0;
+                $transaction->setAttribute($field, 0);
                 continue;
             }
-
             $numeric = (int) $value;
-            if ($numeric < 0) {
+            if ($numeric < 0)
                 $numeric = 0;
-            }
-
-            $transaction->{$field} = $numeric;
+            $transaction->setAttribute($field, $numeric);
         }
 
         foreach ($codeFields as $field) {
-            if (!array_key_exists($field, $transaction->attributes)) {
+            if (!array_key_exists($field, $transaction->attributes))
                 continue;
-            }
-
-            $value = $transaction->{$field};
+            $value = $transaction->getAttribute($field);
             if ($value === null || $value === '') {
-                $transaction->{$field} = '0';
+                $transaction->setAttribute($field, '0');
                 continue;
             }
-
             if (is_numeric($value)) {
                 $numeric = (int) $value;
-                if ($numeric < 0) {
+                if ($numeric < 0)
                     $numeric = 0;
-                }
-                $transaction->{$field} = (string) $numeric;
+                $transaction->setAttribute($field, (string) $numeric);
             }
         }
     }
@@ -441,9 +396,8 @@ class Transaction extends Model
     protected static function normalizeDates(self $transaction): void
     {
         $now = now();
-
-        if (empty($transaction->date))
-            $transaction->date = $now->format('Y-m-d');
+        if (empty($transaction->getAttribute('date')))
+            $transaction->setAttribute('date', $now->format('Y-m-d'));
         $dateFields = [
             BC::COL_SCHD_TRF_TS,
             BC::COL_EXC_AT,
@@ -451,48 +405,36 @@ class Transaction extends Model
             DC::COL_FL_AT,
             BC::COL_CMP_AT,
         ];
-
         foreach ($dateFields as $field) {
-            if (!array_key_exists($field, $transaction->attributes)) {
+            if (!array_key_exists($field, $transaction->attributes))
                 continue;
-            }
-
-            $value = $transaction->{$field};
-            if (!$value) {
+            $value = $transaction->getAttribute($field);
+            if (!$value)
                 continue;
-            }
-
             try {
                 $dt = $value instanceof Carbon ? $value : Carbon::parse($value);
-
-                if ($dt->lt($now)) {
-                    $transaction->{$field} = $now;
-                }
+                if ($dt->lt($now))
+                    $transaction->setAttribute($field, $now);
             } catch (\Throwable $e) {
                 Log::warning(
                     self::class . '::normalizeDates invalid datetime',
                     ['field' => $field, 'value' => $value, 'error' => $e->getMessage()]
                 );
-                $transaction->{$field} = null;
+                $transaction->setAttribute($field, null);
             }
         }
     }
 
     protected static function normalizePaymentMethodLabel(self $transaction): void
     {
-        if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes)) {
+        if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes))
             return;
-        }
-
-        $raw = $transaction->{BC::COL_PAY_MTD_LB};
-
+        $raw = $transaction->getAttribute(BC::COL_PAY_MTD_LB);
         if ($raw === null || $raw === '') {
-            $transaction->{BC::COL_PAY_MTD_LB} = PaymentMethod::Other->value;
+            $transaction->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::Other->value);
             return;
         }
-
         $normalized = strtolower(trim((string) $raw));
-
         $channel = match ($normalized) {
             'debit', 'card_debit', 'debit_card'       => PaymentMethod::CardDebit,
             'credit', 'card_credit', 'credit_card'    => PaymentMethod::CardCredit,
@@ -503,16 +445,21 @@ class Transaction extends Model
             'cash', 'dinheiro'                        => PaymentMethod::Cash,
             default                                   => PaymentMethod::Other,
         };
-
-        $dbLabel = match ($channel) {
-            PaymentMethod::CardDebit  => 'debit',
-            PaymentMethod::CardCredit => 'credit',
-            default                    => $channel->value,
-        };
-
+        $labelMap = [
+            PaymentMethod::CardDebit->value   => 'debit',
+            PaymentMethod::CardCredit->value  => 'credit',
+            PaymentMethod::Pix->value         => 'pix',
+            PaymentMethod::Ted->value         => 'ted',
+            PaymentMethod::Doc->value         => 'doc',
+            PaymentMethod::WireTransfer->value => BC::VL_WR_TRF,
+            PaymentMethod::Cash->value        => 'cash',
+            PaymentMethod::Other->value       => 'other',
+        ];
+        $enumValue = $channel->value;
+        $dbLabel   = $labelMap[$enumValue] ?? 'other';
         if (!in_array(
             $dbLabel,
-            ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'other'],
+            ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'cash', 'other'],
             true
         )) {
             Log::warning(
@@ -521,8 +468,7 @@ class Transaction extends Model
             );
             $dbLabel = 'other';
         }
-
-        $transaction->{BC::COL_PAY_MTD_LB} = $dbLabel;
+        $transaction->setAttribute(BC::COL_PAY_MTD_LB, $dbLabel);
     }
 
     protected static function sanitizeAttachments(self $transaction): void

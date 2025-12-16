@@ -137,37 +137,44 @@ final class PerformanceTypeSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($rows as $r) {
-				$cat = $r['category'];
-				$pool = $catalog[$cat] ?? $catalog['Operacoes'];
+				try {
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Tipo de Contrato: {$r['name']}");
+					$cat = $r['category'];
+					$pool = $catalog[$cat] ?? $catalog['Operacoes'];
 
-				// escolhe 3 a 6 métricas do catálogo e garante a principal
-				$pick = $faker->randomElements($pool, $faker->numberBetween(3, 6));
-				if (!in_array($r[PJC::COL_M_METRIC], $pick, true)) {
-					$pick[] = $r[PJC::COL_M_METRIC];
+					// escolhe 3 a 6 métricas do catálogo e garante a principal
+					$pick = $faker->randomElements($pool, $faker->numberBetween(3, 6));
+					if (!in_array($r[PJC::COL_M_METRIC], $pick, true)) {
+						$pick[] = $r[PJC::COL_M_METRIC];
+					}
+					// remove duplicatas e embaralha levemente
+					$metrics = array_values(array_unique($pick));
+					shuffle($metrics);
+
+					/** @var \App\Models\PerformanceType $model */
+					$model = PerformanceType::query()->updateOrCreate(
+						['name' => $r['name']],
+						[
+							'description'         => $r['description'],
+							'category'            => $cat,
+							PJC::COL_M_METRIC     => $r[PJC::COL_M_METRIC],
+							'metrics'             => $metrics,
+							PJC::COL_CRT          => (bool) $r[PJC::COL_CRT],
+						]
+					);
+
+					// Força o criador (pois HasAuditFields depende de auth())
+					if (empty($model->{DC::COL_TABLE_CREATOR})) {
+						$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$model->save();
+					}
+
+					$model->wasRecentlyCreated ? $created++ : $updated++;
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
-				// remove duplicatas e embaralha levemente
-				$metrics = array_values(array_unique($pick));
-				shuffle($metrics);
-
-				/** @var \App\Models\PerformanceType $model */
-				$model = PerformanceType::query()->updateOrCreate(
-					['name' => $r['name']],
-					[
-						'description'         => $r['description'],
-						'category'            => $cat,
-						PJC::COL_M_METRIC     => $r[PJC::COL_M_METRIC],
-						'metrics'             => $metrics,
-						PJC::COL_CRT          => (bool) $r[PJC::COL_CRT],
-					]
-				);
-
-				// Força o criador (pois HasAuditFields depende de auth())
-				if (empty($model->{DC::COL_TABLE_CREATOR})) {
-					$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$model->save();
-				}
-
-				$model->wasRecentlyCreated ? $created++ : $updated++;
 			}
 
 			Log::info("PerformanceTypeSeeder: created={$created}, updated={$updated}");

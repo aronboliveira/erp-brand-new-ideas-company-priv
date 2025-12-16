@@ -66,53 +66,45 @@ class Announcement extends Model
 
         static::saving(function (self $m): void {
             foreach (['title', 'description'] as $field)
-                if (isset($m->{$field}) && is_string($m->{$field}))
-                    $m->{$field} = trim($m->{$field});
-
+                if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
+                    $m->setAttribute($field, trim($m->getAttribute($field)));
             foreach (['requirements', 'tags', 'steps'] as $field) {
                 try {
-                    $m->{$field} = self::normalizeArrayField($m->{$field} ?? []);
+                    $m->setAttribute($field, self::normalizeArrayField($m->getAttribute($field) ?? []));
                 } catch (\Throwable $e) {
                     Log::warning(self::class . " failed to normalize {$field}", [
                         'announcement_id' => $m->id ?? null,
                         'error'           => $e->getMessage(),
                     ]);
-                    $m->{$field} = [];
+                    $m->setAttribute($field, []);
                 }
             }
-
-            if ($m->{UC::COL_IA} === null)
-                $m->{UC::COL_IA} = true;
-
-            if ($m->{UC::COL_IS_RD} === null)
-                $m->{UC::COL_IS_RD} = true;
-
+            if ($m->getAttribute(UC::COL_IA) === null)
+                $m->setAttribute(UC::COL_IA, true);
+            if ($m->getAttribute(UC::COL_IS_RD) === null)
+                $m->setAttribute(UC::COL_IS_RD, true);
             $today = today();
-
-            if (!$m->{PJC::COL_S_DT})
-                $m->{PJC::COL_S_DT} = $today;
+            if (!$m->getAttribute(PJC::COL_S_DT))
+                $m->setAttribute(PJC::COL_S_DT, $today);
             else {
-                $start = $m->{PJC::COL_S_DT} instanceof \DateTimeInterface ? Carbon::instance($m->{PJC::COL_S_DT}) : Carbon::parse($m->{PJC::COL_S_DT});
+                $start = $m->getAttribute(PJC::COL_S_DT) instanceof \DateTimeInterface ? Carbon::instance($m->getAttribute(PJC::COL_S_DT)) : Carbon::parse($m->getAttribute(PJC::COL_S_DT));
                 if ($start->lt($today)) $start = $today;
-                $m->{PJC::COL_S_DT} = $start;
+                $m->setAttribute(PJC::COL_S_DT, $start);
             }
-
-            if ($m->{PJC::COL_PLN_ST} === null)
-                $m->{PJC::COL_PLN_ST} = (clone $m->{PJC::COL_S_DT})->addDays(14);
+            if ($m->getAttribute(PJC::COL_PLN_ST) === null)
+                $m->setAttribute(PJC::COL_PLN_ST, (clone $m->getAttribute(PJC::COL_S_DT))->addDays(14));
             else {
-                $planned = $m->{PJC::COL_PLN_ST} instanceof \DateTimeInterface ? Carbon::instance($m->{PJC::COL_PLN_ST}) : Carbon::parse($m->{PJC::COL_PLN_ST});
-                if ($planned->lt($m->{PJC::COL_S_DT})) $planned = (clone $m->{PJC::COL_S_DT})->addDays(14);
-                $m->{PJC::COL_PLN_ST} = $planned;
+                $planned = $m->getAttribute(PJC::COL_PLN_ST) instanceof \DateTimeInterface ? Carbon::instance($m->getAttribute(PJC::COL_PLN_ST)) : Carbon::parse($m->getAttribute(PJC::COL_PLN_ST));
+                if ($planned->lt($m->getAttribute(PJC::COL_S_DT))) $planned = (clone $m->getAttribute(PJC::COL_S_DT))->addDays(14);
+                $m->setAttribute(PJC::COL_PLN_ST, $planned);
             }
-
-            if ($m->{PJC::COL_E_DT}) {
-                $end = $m->{PJC::COL_E_DT} instanceof \DateTimeInterface ? Carbon::instance($m->{PJC::COL_E_DT}) : Carbon::parse($m->{PJC::COL_E_DT});
-                if ($end->lt($m->{PJC::COL_S_DT})) $end = $m->{PJC::COL_S_DT};
-                $m->{PJC::COL_E_DT} = $end;
+            if ($m->getAttribute(PJC::COL_E_DT)) {
+                $end = $m->getAttribute(PJC::COL_E_DT) instanceof \DateTimeInterface ? Carbon::instance($m->getAttribute(PJC::COL_E_DT)) : Carbon::parse($m->getAttribute(PJC::COL_E_DT));
+                if ($end->lt($m->getAttribute(PJC::COL_S_DT))) $end = $m->getAttribute(PJC::COL_S_DT);
+                $m->setAttribute(PJC::COL_E_DT, $end);
             }
-
-            if ($m->{PJC::COL_PLN_ST} === null)
-                $m->{PJC::COL_PLN_ST} = (clone $today)->addDays(14);
+            if ($m->getAttribute(PJC::COL_PLN_ST) === null)
+                $m->setAttribute(PJC::COL_PLN_ST, (clone $today)->addDays(14));
         });
     }
 

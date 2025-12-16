@@ -87,76 +87,84 @@ final class LeaveSeeder extends Seeder
 				$count = random_int(1, 3);
 
 				for ($i = 0; $i < $count; $i++) {
-					/** @var LeaveType $lt */
-					$lt = $leaveTypes->random();
+					try {
+						/** @var LeaveType $lt */
+						$lt = $leaveTypes->random();
+						$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Licença de {$lt->title} para {$ref}");
 
-					$baseDays = max(0, (int) ($lt->days ?? 0));
-					$extDays  = max(0, (int) ($lt->{PJC::COL_EXT_DY} ?? 0));
-					$allowed  = max(1, $baseDays + $extDays);
+						$baseDays = max(0, (int) ($lt->days ?? 0));
+						$extDays  = max(0, (int) ($lt->{PJC::COL_EXT_DY} ?? 0));
+						$allowed  = max(1, $baseDays + $extDays);
 
-					// janelas futuras realistas
-					$start = $today->addDays(random_int(0, 30));
-					$span  = random_int(1, $allowed); // respeita limite
-					$end   = $start->addDays($span - 1);
+						// janelas futuras realistas
+						$start = $today->addDays(random_int(0, 30));
+						$span  = random_int(1, $allowed); // respeita limite
+						$end   = $start->addDays($span - 1);
 
-					// desconto conforme política do tipo
-					$minPct = (int) ($lt->{PJC::COL_SL_MIN_DD_PCT} ?? 0);
-					$maxPct = (int) ($lt->{PJC::COL_SL_MAX_DD_PCT} ?? ($lt->paid ? 0 : 100));
-					$minPct = max(0, min(100, $minPct));
-					$maxPct = max(0, min(100, $maxPct));
-					if ($minPct > $maxPct) $minPct = $maxPct;
+						// desconto conforme política do tipo
+						$minPct = (int) ($lt->{PJC::COL_SL_MIN_DD_PCT} ?? 0);
+						$maxPct = (int) ($lt->{PJC::COL_SL_MAX_DD_PCT} ?? ($lt->paid ? 0 : 100));
+						$minPct = max(0, min(100, $minPct));
+						$maxPct = max(0, min(100, $maxPct));
+						if ($minPct > $maxPct) $minPct = $maxPct;
 
-					$discount = $lt->paid ? 0 : random_int($minPct, $maxPct);
+						$discount = $lt->paid ? 0 : random_int($minPct, $maxPct);
 
-					// status coerente com datas (afastamentos futuros raramente "complete")
-					$status = $validStatuses[random_int(0, count($validStatuses) - 1)];
-					if ($start->greaterThan($today) && $status === PJC::STT_CPT_K) {
-						$status = PJC::STT_INP_K;
-					}
+						// status coerente com datas (afastamentos futuros raramente "complete")
+						$status = $validStatuses[random_int(0, count($validStatuses) - 1)];
+						if ($start->greaterThan($today) && $status === PJC::STT_CPT_K) {
+							$status = PJC::STT_INP_K;
+						}
 
-					$reason = $faker->randomElement([
-						'Motivos pessoais',
-						'Acompanhamento médico',
-						'Compromissos legais',
-						'Treinamento interno',
-						'Mudança de residência',
-						'Convalescença',
-					]);
+						$reason = $faker->randomElement([
+							'Motivos pessoais',
+							'Acompanhamento médico',
+							'Compromissos legais',
+							'Treinamento interno',
+							'Mudança de residência',
+							'Convalescença',
+						]);
 
-					$uniqueKey = [
-						'employee_id'             => $emp->id,
-						CC::COL_LV_TP_ID          => $lt->id,
-						PJC::COL_S_DT             => $start->toDateString(),
-					];
+						$uniqueKey = [
+							'employee_id'             => $emp->id,
+							CC::COL_LV_TP_ID          => $lt->id,
+							PJC::COL_S_DT             => $start->toDateString(),
+						];
 
-					$payload = [
-						PJC::COL_APL_ON           => $today->toDateString(),
-						PJC::COL_E_DT             => $end->toDateString(),
-						PJC::COL_TT_LV_DY         => (string) $span,
-						PJC::COL_LV_RS            => $reason,
-						'remark'                  => $faker->optional(0.5)->sentence(),
-						PJC::COL_STATUS           => $status,
-						'discount'                => $discount,
-						'attachments'             => [
-							// exemplo de metadado de anexo; o Model normaliza arrays
-							['type' => 'pdf', 'label' => 'Comprovante', 'required' => false],
-						],
-						'conditions'              => [
-							'aceite_do_gestor' => $faker->boolean(80),
-							'pode_ser_remoto'  => $faker->boolean(40),
-						],
-						DC::COL_TABLE_CREATOR         => $systemUserId,
-					];
+						$payload = [
+							PJC::COL_APL_ON           => $today->toDateString(),
+							PJC::COL_E_DT             => $end->toDateString(),
+							PJC::COL_TT_LV_DY         => (string) $span,
+							PJC::COL_LV_RS            => $reason,
+							'remark'                  => $faker->optional(0.5)->sentence(),
+							PJC::COL_STATUS           => $status,
+							'discount'                => $discount,
+							'attachments'             => [
+								// exemplo de metadado de anexo; o Model normaliza arrays
+								['type' => 'pdf', 'label' => 'Comprovante', 'required' => false],
+							],
+							'conditions'              => [
+								'aceite_do_gestor' => $faker->boolean(80),
+								'pode_ser_remoto'  => $faker->boolean(40),
+							],
+							DC::COL_TABLE_CREATOR         => $systemUserId,
+						];
 
-					// Upsert reexecutável
-					$instance = Leave::query()->where($uniqueKey)->first();
+						// Upsert reexecutável
+						$instance = Leave::query()->where($uniqueKey)->first();
 
-					if ($instance) {
-						$instance->fill($payload)->save();
-						$updated++;
-					} else {
-						Leave::create($uniqueKey + $payload);
-						$created++;
+						if ($instance) {
+							$instance->fill($payload)->save();
+							$updated++;
+						} else {
+							Leave::create($uniqueKey + $payload);
+							$created++;
+						}
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
 					}
 				}
 			}

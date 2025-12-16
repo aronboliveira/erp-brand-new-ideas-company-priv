@@ -104,53 +104,59 @@ final class EmployeeDocumentSeeder extends Seeder
 				$pickedDocs = collect($documentIds)->shuffle()->take($take)->all();
 
 				foreach ($pickedDocs as $docId) {
+					try {
+						// evita duplicidade employee_id + document_id
+						$exists = EDoc::query()
+							->where(UC::COL_EMP_ID, $empId)
+							->where(TC::COL_DC_ID, $docId)
+							->exists();
+						if ($exists) {
+							continue;
+						}
 
-					// evita duplicidade employee_id + document_id
-					$exists = EDoc::query()
-						->where(UC::COL_EMP_ID, $empId)
-						->where(TC::COL_DC_ID, $docId)
-						->exists();
-					if ($exists) {
+						// id com do/while para garantir unicidade
+						do {
+							$id = (string) Str::uuid();
+						} while (EDoc::where('id', $id)->exists());
+
+						$ext  = $faker->randomElement($extPool);
+						$mime = MimeType::fromExtension($ext)?->value ?? 'application/octet-stream';
+						$kind = DocumentKind::fromExtension($ext)?->value ?? 'unknown';
+
+						// viewers/editors/executors opcionais
+						$viewers   = $makeCsvFromPool($userIds, 0, 4);
+						$editors   = $makeCsvFromPool($userIds, 0, 2);
+						$executors = $makeCsvFromPool($userIds, 0, 1);
+
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
+						$m = new EDoc();
+						$m->id                       = $id;
+						$m->{UC::COL_EMP_ID}         = $empId;
+						$m->{TC::COL_DC_ID}          = $docId;
+						$m->{TC::COL_DC_V}           = $faker->bothify(strtoupper('??#####-###'));
+						$m->file_path                = '/storage/docs/' . $id . '.' . $ext;
+						$m->extension                = $ext;
+						// ? gravar como string (evita problemas caso o cast enum não esteja aplicado aqui)
+						$m->mime_type                = $mime;
+						$m->type                     = $kind;
+						$m->size                     = (string) random_int(2_048, 12_582_912); // 2KB..12MB
+						$m->description              = $faker->optional()->sentence();
+						$m->notes                    = $faker->optional()->sentence();
+						$m->expiration_date          = $faker->optional(0.25)->dateTimeBetween('now', '+2 years');
+						$m->last_accessed            = $faker->optional(0.5)->dateTimeBetween('-3 months', 'now');
+						$m->permission_rules         = $makePermissionRules();
+						$m->viewers                  = $viewers;
+						$m->editors                  = $editors;
+						$m->executors                = $executors;
+						$m->{DC::COL_TABLE_CREATOR}      = DC::DEFAULT_UUID;
+						$m->setAttribute(DC::COL_TABLE_UPDATER, null);
+
+						$m->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;
 					}
-
-					// id com do/while para garantir unicidade
-					do {
-						$id = (string) Str::uuid();
-					} while (EDoc::where('id', $id)->exists());
-
-					$ext  = $faker->randomElement($extPool);
-					$mime = MimeType::fromExtension($ext)?->value ?? 'application/octet-stream';
-					$kind = DocumentKind::fromExtension($ext)?->value ?? 'unknown';
-
-					// viewers/editors/executors opcionais
-					$viewers   = $makeCsvFromPool($userIds, 0, 4);
-					$editors   = $makeCsvFromPool($userIds, 0, 2);
-					$executors = $makeCsvFromPool($userIds, 0, 1);
-
-					$m = new EDoc();
-					$m->id                       = $id;
-					$m->{UC::COL_EMP_ID}         = $empId;
-					$m->{TC::COL_DC_ID}          = $docId;
-					$m->{TC::COL_DC_V}           = $faker->bothify(strtoupper('??#####-###'));
-					$m->file_path                = '/storage/docs/' . $id . '.' . $ext;
-					$m->extension                = $ext;
-					// ? gravar como string (evita problemas caso o cast enum não esteja aplicado aqui)
-					$m->mime_type                = $mime;
-					$m->type                     = $kind;
-					$m->size                     = (string) random_int(2_048, 12_582_912); // 2KB..12MB
-					$m->description              = $faker->optional()->sentence();
-					$m->notes                    = $faker->optional()->sentence();
-					$m->expiration_date          = $faker->optional(0.25)->dateTimeBetween('now', '+2 years');
-					$m->last_accessed            = $faker->optional(0.5)->dateTimeBetween('-3 months', 'now');
-					$m->permission_rules         = $makePermissionRules();
-					$m->viewers                  = $viewers;
-					$m->editors                  = $editors;
-					$m->executors                = $executors;
-					$m->{DC::COL_TABLE_CREATOR}      = DC::DEFAULT_UUID;
-					$m->setAttribute(DC::COL_TABLE_UPDATER, null);
-
-					$m->save();
 				}
 			}
 		}, 3);

@@ -9,191 +9,307 @@ use App\Config\Constants\{
 	UsersConstants as UC
 };
 use App\Enums\{PaymentMethod, PaymentStatus, TransferType};
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 final class PaymentSeeder extends Seeder
 {
-	private const TOTAL = 40;
+	private const PER_BANK_ACCOUNT = 64;
 
 	public function run(): void
 	{
+		if (!Schema::hasTable(DC::TABLE_PAY)) {
+			$this->command?->warn('Tabela de pagamentos ausente. Seeder abortado.');
+			return;
+		}
+
 		$faker = \Faker\Factory::create('pt_BR');
 
-		DB::transaction(function () use ($faker) {
-			$bankAccIds = $this->idPool(DC::TABLE_BANK_ACC);
-			$coaIds     = $this->idPool(DC::TABLE_COAS);
-			$vendorIds  = $this->idPool(DC::TABLE_VENDORS);
-			$catIds     = $this->idPool(DC::TABLE_PROD_SERV_CATS);
-			$userIds    = $this->idPool(DC::TABLE_USERS);
+		$bankAccIds   = $this->idPool(DC::TABLE_BANK_ACC);
+		$coaIds       = $this->idPool(DC::TABLE_COAS);
+		$vendorIds    = $this->idPool(DC::TABLE_VENDORS);
+		$catIds       = $this->idPool(DC::TABLE_PROD_SERV_CATS);
+		$userIds      = $this->idPool(DC::TABLE_USERS);
+		$contractIds  = $this->idPool(DC::TABLE_CONTRACTS);
+		$loanIds      = $this->idPool(DC::TABLE_LN);
+		$unitIds      = $this->idPool(DC::TABLE_PROD_SERV_UNITS);
+		$invoiceIds   = $this->idPool(DC::TABLE_INVS);
+		$payslipIds   = $this->idPool(DC::TABLE_PAY_SLP);
 
-			$created = 0;
-			$failed = 0;
+		$base   = max(1, count($bankAccIds) ?: count($vendorIds) ?: 1);
+		$target = self::PER_BANK_ACCOUNT * $base;
 
-			for ($i = 0; $i < self::TOTAL; $i++) {
-				// Datas coerentes
-				$createdAt  = Carbon::now()->subDays(random_int(0, 90))->setTime(random_int(8, 20), random_int(0, 59));
-				$date       = $createdAt->toDateString();
+		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
+			$opt = (int) $this->command->option('count');
+			if ($opt > 0) {
+				$target = $opt;
+			}
+		}
 
-				// Método, status e tipo de transferência
-				$method  = $this->pick(PaymentMethod::values());
-				$status  = $this->pick(PaymentStatus::values());
-				$trfType = $this->pick(TransferType::values());
+		$created = 0;
+		$failed  = 0;
 
-				// Montantes
-				$principal = $this->money(random_int(10_00, 9_000_00)); // R$10–R$9.000
-				$interest  = $this->money(random_int(0, 400_00));      // R$0–R$400
-				$discount  = $this->money(random_int(0, 300_00));      // R$0–R$300
-				$svcFee    = $this->money(random_int(0, 150_00));      // R$0–R$150
-				$taxFee    = $this->money(random_int(0, 200_00));      // R$0–R$200
+		DB::transaction(function () use (
+			$faker,
+			$bankAccIds,
+			$coaIds,
+			$vendorIds,
+			$catIds,
+			$userIds,
+			$contractIds,
+			$loanIds,
+			$unitIds,
+			$invoiceIds,
+			$payslipIds,
+			$target,
+			&$created,
+			&$failed
+		) {
+			$taxUniverse = [
+				['ISS', 5.0],
+				['ICMS', 12.0],
+				['PIS', 1.65],
+				['COFINS', 7.6],
+			];
 
-				// Parcelas (apenas quando fizer sentido)
-				$nInstallments   = in_array($method, [PaymentMethod::CardCredit->value], true)
-					? $this->pick([1, 2, 3, 4, 6, 8, 10, 12])
-					: 1;
-				$currInstallment = $nInstallments > 1 ? random_int(1, $nInstallments) : 1;
+			$statusCol = Schema::hasColumn(DC::TABLE_PAY, BC::COL_PAY_STT)
+				? BC::COL_PAY_STT
+				: 'status';
 
-				// Contas origem/destino (evita repetir a mesma)
-				$fromAcc = $this->maybe($bankAccIds);
-				$toAcc   = $this->maybe($bankAccIds);
-				if ($fromAcc !== null && $toAcc === $fromAcc && count($bankAccIds) > 1) {
-					// escolhe outra conta diferente
-					do {
-						$toAcc = $this->maybe($bankAccIds);
-					} while ($toAcc === $fromAcc);
-				}
-
-				// Rótulos legíveis
-				$methodLabel = (PaymentMethod::tryFrom($method) ?? PaymentMethod::Other)->label();
-				$statusLabel = (PaymentStatus::tryFrom($status) ?? PaymentStatus::Undefined)->labels();
-
-				// Recorrência e agendamentos
-				$recurring   = $this->pick([null, 'monthly', 'weekly', 'bimonthly', null, null]);
-				$scheduledTs = $recurring ? (clone $createdAt)->addDays($this->pick([7, 15, 30])) : null;
-
-				// Flags de segurança/chargeback
-				$isSecured      = $this->pick([true, false, false]); // maioria false
-				$canChargeBack  = in_array($method, [PaymentMethod::CardCredit->value, PaymentMethod::CardDebit->value], true);
-
-				// Impostos detalhados (JSON)
-				$taxList = [];
-				foreach ($this->pickMany([['ISS', 5], ['ICMS', 12], ['PIS', 1.65], ['COFINS', 7.6]], random_int(1, 3)) as [$taxName, $rate]) {
-					$amount = round(($rate / 100) * ($principal / 100), 2);
-					$taxList[] = ['name' => $taxName, 'rate' => $rate, 'amount' => $amount];
-				}
-
-				// Metadados de comprovante (JSON)
-				$rcpMeta = [
-					'gateway'         => $this->pick(['internal', 'stripe', 'pagarme', 'cielo', 'stone']),
-					'transaction_id'  => strtoupper(Str::random(12)),
-					'receipt_url'     => 'https://example.test/r/' . Str::random(10),
-				];
-
-				// Datas por status
-				$executedAt  = in_array($status, [PaymentStatus::Processing->value, PaymentStatus::Completed->value, PaymentStatus::Authorized->value], true)
-					? (clone $createdAt)->addMinutes(random_int(1, 120)) : null;
-				$cancelledAt = in_array($status, [PaymentStatus::Cancelled->value], true)
-					? (clone $createdAt)->addMinutes(random_int(5, 240)) : null;
-				$completedAt = in_array($status, [PaymentStatus::Completed->value], true)
-					? (clone $createdAt)->addMinutes(random_int(3, 180)) : null;
-
-				// Billing (normalizável no modelo)
-				$blName  = $faker->company();
-				$blMail  = $faker->companyEmail();
-				$blTel   = '+55 ' . $faker->areaCode . ' ' . $faker->cellphone(false);
-				$blZip   = $faker->postcode();
-				$blAddr  = $faker->streetAddress();
-				$blCity  = $faker->city();
-				$blState = $faker->stateAbbr();
-				$blCtr   = 'BR';
-				$blDtl   = $faker->optional(0.3)->sentence();
-
-				$data = [
-					'id'             => (string) Str::uuid(),
-					'date'           => $date,
-					'discount'       => $discount / 100,
-					'recurring'      => $recurring,
-
-					// FKs opcionais
-					BC::COL_BACC_ID  => $this->maybe($bankAccIds), // conta "principal" relacionada
-					BC::COL_ACC_TO   => $toAcc,
-					BKC::COL_COA     => $this->maybe($coaIds),
-					UC::COL_VD_ID    => $this->maybe($vendorIds),
-					BC::COL_CAT_ID   => $this->maybe($catIds),
-
-					// Colunas de pagamento (trait HasPaymentColumns)
-					BC::COL_PAY_MTD      => $method,
-					BC::COL_PAY_STT      => $status,
-					BC::COL_STT_LB       => $statusLabel,
-					BC::COL_PAY_MTD_LB   => $methodLabel,
-					BC::COL_ACC_FROM     => $fromAcc,
-					BC::COL_SVC_FEE      => $svcFee / 100,
-					BC::COL_TXS_FEE      => $taxFee / 100,
-					BC::COL_TXS_LST      => $taxList,
-					BC::COL_SCHD_TRF_TS  => $scheduledTs,
-					BC::COL_IS_SCD       => $isSecured,
-					BC::COL_CAN_CHG_BK   => $canChargeBack,
-					BC::COL_EXC_AT       => $executedAt,
-					BC::COL_CNC_AT       => $cancelledAt,
-					BC::COL_CMP_AT       => $completedAt,
-					BC::COL_CNC_RS       => $cancelledAt ? $this->pick(['user_request', 'fraud_suspected', 'insufficient_funds']) : null,
-					BC::COL_PPS_CD       => $this->pick(['SRV', 'PRC', 'INV', 'SAL', 'TAX']),
-					BC::COL_TRF_TP       => $trfType,
-					BC::COL_PPS_DS       => $this->pick(['Service fee', 'Product purchase', 'Invoice payment', 'Salary', 'Taxes', 'Transfer']),
-
-					BC::COL_PRC_AMT      => $principal / 100,
-					BC::COL_INTR_AMT     => $interest / 100,
-					BC::COL_N_INTR       => $nInstallments,
-					BC::COL_CURR_N_INTR  => $currInstallment,
-					BC::COL_SL_PRC       => $this->maybeMoney(),
-					BC::COL_PC_PRC       => $this->maybeMoney(),
-
-					// Comprovante
-					BC::COL_ADD_RCP      => null,     // string livre (mantido nulo)
-					BC::COL_RCP_MD       => $rcpMeta, // JSON
-
-					// Status "externo" (coluna 'status' do modelo)
-					'status'             => $status,
-
-					// Billing
-					BC::COL_BL_NAME  => $blName,
-					BC::COL_BL_EMAIL => $blMail,
-					BC::COL_BL_TEL   => $blTel,
-					BC::COL_BL_ZIP   => $blZip,
-					BC::COL_BL_ADR   => $blAddr,
-					BC::COL_BL_ST    => $blState,
-					BC::COL_BL_CTY   => $blCity,
-					BC::COL_BL_CTR   => $blCtr,
-					BC::COL_BL_DTL   => $blDtl,
-
-					// Rastreamento de falhas (preenche apenas em estados problemáticos)
-					DC::COL_FL_AT      => in_array($status, [PaymentStatus::Failed->value, PaymentStatus::Declined->value], true) ? (clone $createdAt)->addMinutes(random_int(1, 60)) : null,
-					DC::COL_FLD_RS     => in_array($status, [PaymentStatus::Failed->value, PaymentStatus::Declined->value, PaymentStatus::Disputed->value], true) ? $this->pick(['timeout', 'insufficient_funds', 'gateway_error', 'dispute']) : null,
-					DC::COL_RTR_CT     => in_array($status, [PaymentStatus::Failed->value, PaymentStatus::Processing->value], true) ? random_int(0, 3) : 0,
-					DC::COL_LST_RTR_AT => in_array($status, [PaymentStatus::Failed->value, PaymentStatus::Processing->value], true) ? (clone $createdAt)->addMinutes(random_int(2, 180)) : null,
-					DC::COL_ER_LG      => in_array($status, [PaymentStatus::Failed->value], true) ? [['code' => 'GW-' . random_int(100, 999), 'msg' => 'Gateway error']] : null,
-
-					// Auditoria mínima
-					DC::COL_TABLE_CREATOR => $this->maybe($userIds),
-					DC::COL_TABLE_UPDATER => $this->maybe($userIds),
-					DC::COL_C_AT      => $createdAt,
-					DC::COL_U_AT      => $createdAt->copy()->addMinutes(random_int(5, 400)),
-				];
-
+			for ($i = 0; $i < $target; $i++) {
 				try {
-					DB::table(DC::TABLE_PAY)->insert($data);
-					$created++;
-				} catch (\Throwable $e) {
-					$failed++;
-					Log::warning(self::class . ' failed to insert Payment row', [
-						'error'   => $e->getMessage(),
-						'method'  => $method,
-						'status'  => $status,
-						'trfType' => $trfType,
-					]);
+					$createdAt = Carbon::now()
+						->subDays(random_int(0, 90))
+						->setTime(random_int(8, 20), random_int(0, 59));
+
+					$date = $faker->dateTimeBetween(
+						$createdAt->copy()->subDays(730),
+						$createdAt->copy()->addDays(730)
+					)->format('Y-m-d');
+
+					$methodEnum = $this->randomEnum(PaymentMethod::cases());
+					$statusEnum = $this->randomEnum(PaymentStatus::cases());
+					$trfEnum    = $this->randomEnum(TransferType::cases());
+
+					$amount   = $this->money(random_int(1_000, 900_000));
+					$discount = $this->money(random_int(0, 30_000));
+					if ($discount > $amount) {
+						$discount = $amount;
+					}
+
+					$svcFee = $this->money(random_int(0, 15_000));
+					$taxFee = $this->money(random_int(0, 20_000));
+
+					$nInstallments = $methodEnum->isCard()
+						? $this->pick([1, 2, 3, 4, 6, 8, 10, 12])
+						: 1;
+					$currInstallment = $nInstallments > 1
+						? random_int(1, $nInstallments)
+						: 1;
+
+					$fromAcc = $this->maybe($bankAccIds);
+					$toAcc   = $this->maybe($bankAccIds);
+
+					if ($fromAcc !== null && $toAcc === $fromAcc && count($bankAccIds) > 1) {
+						do {
+							$toAcc = $this->maybe($bankAccIds);
+						} while ($toAcc === $fromAcc);
+					}
+
+					$recurring   = $this->pick([null, 'monthly', 'weekly', 'bimonthly', null]);
+					$scheduledTs = $recurring
+						? $createdAt->copy()->addDays($this->pick([7, 15, 30]))
+						: null;
+
+					$isSecured     = $this->pick([true, false, false]);
+					$canChargeBack = $methodEnum->isCard();
+
+					$taxList = [];
+					foreach ($this->pickMany($taxUniverse, random_int(1, 3)) as [$taxName, $rate]) {
+						$tAmount   = round(($rate / 100) * $amount, 2);
+						$taxList[] = [
+							'name'   => $taxName,
+							'rate'   => $rate,
+							'amount' => $tAmount,
+						];
+					}
+
+					$rcpMeta = [
+						'gateway'        => $this->pick(['internal', 'stripe', 'pagarme', 'cielo', 'stone']),
+						'transaction_id' => strtoupper(Str::random(12)),
+						'receipt_url'    => 'https://example.test/r/' . Str::random(10),
+					];
+
+					$executedAt = in_array(
+						$statusEnum->value,
+						[
+							PaymentStatus::Processing->value,
+							PaymentStatus::Completed->value,
+							PaymentStatus::Authorized->value,
+						],
+						true
+					) ? $createdAt->copy()->addMinutes(random_int(1, 120)) : null;
+
+					$cancelledAt = $statusEnum === PaymentStatus::Cancelled
+						? $createdAt->copy()->addMinutes(random_int(5, 240))
+						: null;
+
+					$completedAt = $statusEnum === PaymentStatus::Completed
+						? $createdAt->copy()->addMinutes(random_int(3, 180))
+						: null;
+
+					$reconciledAt = $this->pick([null, $createdAt->copy()->addDays(random_int(1, 10))]);
+
+					$blName  = $faker->company();
+					$blMail  = $faker->companyEmail();
+					$blTel   = '+55 ' . $faker->areaCode . ' ' . $faker->cellphone(false);
+					$blZip   = $faker->postcode();
+					$blAddr  = $faker->streetAddress();
+					$blCity  = $faker->city();
+					$blState = $faker->stateAbbr();
+					$blCtr   = 'BR';
+					$blDtl   = $faker->optional(0.3)->sentence();
+
+					$failureStatusValues = [
+						PaymentStatus::Failed->value,
+						PaymentStatus::Declined->value,
+						PaymentStatus::Disputed->value,
+					];
+
+					$failedLikeStatusValues = [
+						PaymentStatus::Failed->value,
+						PaymentStatus::Processing->value,
+					];
+
+					$failedAt = in_array($statusEnum->value, [
+						PaymentStatus::Failed->value,
+						PaymentStatus::Declined->value,
+					], true)
+						? $createdAt->copy()->addMinutes(random_int(1, 60))
+						: null;
+
+					$failureReason = in_array($statusEnum->value, $failureStatusValues, true)
+						? $this->pick(['timeout', 'insufficient_funds', 'gateway_error', 'dispute'])
+						: null;
+
+					$retryCount = in_array($statusEnum->value, $failedLikeStatusValues, true)
+						? random_int(0, 3)
+						: 0;
+
+					$lastRetryAt = in_array($statusEnum->value, $failedLikeStatusValues, true)
+						? $createdAt->copy()->addMinutes(random_int(2, 180))
+						: null;
+
+					$errorLog = $statusEnum === PaymentStatus::Failed
+						? [['code' => 'GW-' . random_int(100, 999), 'msg' => 'Gateway error']]
+						: null;
+
+					$reconcileRules = $this->pick([null, ['rule' => 'auto', 'strategy' => 'basic']]);
+
+					$data = [
+						'date'     => $date,
+						'amount'   => $amount,
+						'discount' => $discount,
+						'recurring' => $recurring,
+
+						BC::COL_CUR_ID  => 'BRL',
+
+						BC::COL_BACC_ID => $fromAcc,
+						BC::COL_ACC_TO  => $toAcc,
+						BKC::COL_COA    => $this->maybe($coaIds),
+						UC::COL_VD_ID   => $this->maybe($vendorIds),
+						BC::COL_CAT_ID  => $this->maybe($catIds),
+
+						BC::COL_SVC_FEE => $svcFee,
+						BC::COL_TXS_FEE => $taxFee,
+						'reference'     => $faker->optional(0.4)->bothify('REF-####-????'),
+						'description'   => $faker->sentence(8),
+						'notes'         => $faker->optional(0.3)->paragraph(),
+						'attachments'   => $this->encodeJson([]),
+						BC::COL_TC      => $this->encodeJson([]),
+
+						BC::COL_AUTORCC => $this->pick([false, false, true]),
+						BC::COL_RCC_RL  => $this->encodeJson($reconcileRules),
+						BC::COL_RCC_AT  => $reconciledAt,
+						BC::COL_RCC_BY  => $this->maybe($userIds),
+
+						'contract'         => $this->maybe($contractIds),
+						'loan'             => $this->maybe($loanIds),
+						BC::COL_PRD_SV_UNT => $this->maybe($unitIds),
+
+						BC::COL_IS_SCD      => $isSecured,
+						BC::COL_CAN_CHG_BK  => $canChargeBack,
+						BC::COL_PPS_CD      => $this->pick(['SRV', 'PRC', 'INV', 'SAL', 'TAX']),
+						BC::COL_TRF_TP      => $trfEnum->value,
+						BC::COL_PPS_DS      => $this->pick(['Service fee', 'Product purchase', 'Invoice payment', 'Salary', 'Taxes', 'Transfer']),
+						BC::COL_TXS_LST     => $this->encodeJson($taxList),
+
+						// tinyint "opaco"
+						BC::COL_PAY_MTD     => random_int(0, 1),
+						// enum real
+						BC::COL_PAY_MTD_LB  => $methodEnum->value,
+
+						BC::COL_N_INTR      => $nInstallments,
+						BC::COL_CURR_N_INTR => $currInstallment,
+
+						BC::COL_ADD_RCP     => null,
+						BC::COL_RCP_MD      => $this->encodeJson($rcpMeta),
+
+						$statusCol          => $statusEnum->value,
+						BC::COL_SCHD_TRF_TS => $scheduledTs,
+						BC::COL_EXC_AT      => $executedAt,
+						BC::COL_CNC_AT      => $cancelledAt,
+						BC::COL_CMP_AT      => $completedAt,
+						BC::COL_CNC_RS      => $cancelledAt
+							? $this->pick(['user_request', 'fraud_suspected', 'insufficient_funds'])
+							: null,
+
+						BC::COL_BL_NAME  => $blName,
+						BC::COL_BL_EMAIL => $blMail,
+						BC::COL_BL_TEL   => $blTel,
+						BC::COL_BL_ZIP   => $blZip,
+						BC::COL_BL_ADR   => $blAddr,
+						BC::COL_BL_ST    => $blState,
+						BC::COL_BL_CTY   => $blCity,
+						BC::COL_BL_CTR   => $blCtr,
+						BC::COL_BL_DTL   => $blDtl,
+
+						DC::COL_FL_AT      => $failedAt,
+						DC::COL_FLD_RS     => $failureReason,
+						DC::COL_RTR_CT     => $retryCount,
+						DC::COL_LST_RTR_AT => $lastRetryAt,
+						DC::COL_ER_LG      => $this->encodeJson($errorLog),
+
+						'invoice'          => $this->maybe($invoiceIds),
+						'payslip'          => $this->maybe($payslipIds),
+
+						DC::COL_TABLE_CREATOR => $this->maybe($userIds),
+						DC::COL_TABLE_UPDATER => $this->maybe($userIds),
+						DC::COL_C_AT          => $createdAt,
+						DC::COL_U_AT          => $createdAt->copy()->addMinutes(random_int(5, 400)),
+					];
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Pagamento de {$fromAcc} para {$toAcc} com método {$methodEnum->value} no valor de {$amount}");
+					try {
+						Payment::query()->create($data);
+						$created++;
+					} catch (\Throwable $e) {
+						$failed++;
+						Log::warning(self::class . ' failed to insert Payment row', [
+							'error'   => $e->getMessage(),
+							'method'  => $methodEnum->value,
+							'status'  => $statusEnum->value,
+							'trfType' => $trfEnum->value,
+						]);
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 
@@ -204,44 +320,59 @@ final class PaymentSeeder extends Seeder
 	/** @return array<int,string> */
 	private function idPool(string $table): array
 	{
+		if (!Schema::hasTable($table)) {
+			return [];
+		}
+
 		return array_values(array_map('strval', DB::table($table)->pluck('id')->all()));
 	}
 
-	/** Escolhe um item de um array não-vazio. */
 	private function pick(array $options)
 	{
 		return $options[array_rand($options)];
 	}
 
-	/** Retorna item aleatório ou null se pool vazio. */
 	private function maybe(array $pool): ?string
 	{
 		if (!$pool) return null;
 		return $pool[array_rand($pool)];
 	}
 
-	/** Montante em centavos, como float com 2 casas. */
-	private function money(int $cents): int
+	private function money(int $cents): float
 	{
-		return max(0, $cents);
-	}
-
-	/** Valor monetário opcional, como float de 2 casas ou null. */
-	private function maybeMoney(): ?float
-	{
-		return $this->pick([null, null, round($this->money(random_int(500, 20_000)) / 100, 2)]);
+		return round(max(0, $cents) / 100, 2);
 	}
 
 	/**
-	 * Retorna N itens distintos aleatórios de um array base.
-	 * @param array<int, mixed> $base
-	 * @return array<int, mixed>
+	 * @template T of \BackedEnum
+	 * @param array<int,T> $cases
+	 * @return T
+	 */
+	private function randomEnum(array $cases)
+	{
+		return $cases[array_rand($cases)];
+	}
+
+	/**
+	 * @param array<int, array{0:string,1:float}> $base
+	 * @return array<int, array{0:string,1:float}>
 	 */
 	private function pickMany(array $base, int $n): array
 	{
 		$n = max(1, min($n, count($base)));
 		$keys = array_rand($base, $n);
-		if (!is_array($keys)) $keys = [$keys];
+		if (!is_array($keys)) {
+			$keys = [$keys];
+		}
 		return array_values(array_intersect_key($base, array_flip($keys)));
+	}
+
+	private function encodeJson(mixed $value): ?string
+	{
+		if ($value === null) {
+			return null;
+		}
+
+		return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 	}
 }

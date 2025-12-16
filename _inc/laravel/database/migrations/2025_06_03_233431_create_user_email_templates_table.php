@@ -1,50 +1,53 @@
 <?php
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    EmailsConstants,
-    UsersConstants
+    DatabaseConstants as DC,
+    EmailsConstants as EC,
+    ProjectsConstants as PC,
+    UsersConstants as UC
 };
+use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateUserEmailTemplatesTable extends Migration
 {
-    private const TABLE = 'user_email_templates';
-    private const COL_TEMPLATE = EmailsConstants::COL_TMP;
-    private const COL_USER = UsersConstants::COL_USER_ID;
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_USER_EML_TMPS;
     public function up(): void
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary();                 // ! CHANGED
-                $table->uuid(self::COL_TEMPLATE);                   // ! CHANGED
-                $table->uuid(self::COL_USER);                       // ! CHANGED
-                $table->boolean(EmailsConstants::COL_IA)->default(true);   // ! CHANGED
-                $table->timestamps();
-                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+                $table->uuid('id')->primary();
+                $table->uuid(EC::COL_TMP);
+                $table->uuid(UC::COL_USER_ID);
+                $table->boolean(UC::COL_IA)->default(true); // * this is redundant if we have audit or FK columns, but can useful for quick checks...
+                $table->unsignedInteger('counter')->default(0)->nullable(); // ? how many times this user used this template // ? nullable for testing, enforced in boot/save
+                $table->boolean(PC::COL_IS_FV)->default(false)->nullable(); // is_favorite // ? nullable for testing, enforced in boot/save
+                $table->boolean(DC::COL_IS_DEF)->default(false)->nullable(); // is_default // ? nullable for testing, enforced in boot/save
                 foreach (
                     [
-                        self::COL_TEMPLATE                 => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
-                        self::COL_USER                     => DatabaseConstants::TABLE_USERS,
-                        DatabaseConstants::COL_TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
+                        EC::COL_TMP     => DC::TABLE_EMAIL_TEMPLATES,
+                        UC::COL_USER_ID => DC::TABLE_USERS,
                     ] as $col => $tbl
                 )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
                         ->cascadeOnDelete(); // * ADDED
+                $this->addAuditColumns($table);
+                $table->json('clients')->nullable(); // ? list of email clients the user wants to use this template with
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_TEMPLATE,
-                    self::COL_USER,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    EC::COL_TMP,
+                    UC::COL_USER_ID,
                 ] as $col
             ) {
                 try {

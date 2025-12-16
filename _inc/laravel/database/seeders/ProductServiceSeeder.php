@@ -98,92 +98,98 @@ final class ProductServiceSeeder extends Seeder
 			$updated = 0;
 
 			foreach ($catalog as [$name, $mainUnit, $catCode, $sell, $cost]) {
-				$primaryCat = $catIds[$catCode] ?? null;
-				if (!$primaryCat) {
-					// Se por algum motivo a categoria não existir, ignora o item com log (defensivo)
-					Log::warning("ProductServiceSeeder: categoria ausente para {$name} ({$catCode}), item ignorado.");
-					continue;
-				}
+				try {
+					$primaryCat = $catIds[$catCode] ?? null;
+					if (!$primaryCat) {
+						// Se por algum motivo a categoria não existir, ignora o item com log (defensivo)
+						Log::warning("ProductServiceSeeder: categoria ausente para {$name} ({$catCode}), item ignorado.");
+						continue;
+					}
 
-				$sku  = strtoupper(Str::slug(mb_substr($name, 0, 24), '-')) . '-' . Str::upper(Str::random(6));
-				$from = now($tz)->subDays(random_int(0, 120));
-				$until = (clone $from)->addDays(random_int(200, 900));
+					$sku  = strtoupper(Str::slug(mb_substr($name, 0, 24), '-')) . '-' . Str::upper(Str::random(6));
+					$from = now($tz)->subDays(random_int(0, 120));
+					$until = (clone $from)->addDays(random_int(200, 900));
 
-				$isRetail = in_array($mainUnit, ['item', 'license', 'seat', 'GB', 'meter', 'point'], true);
-				$tags     = $isRetail ? ['revenda', 'estoque', 'hardware'] : ['serviço', 'SLA', 'projeto'];
+					$isRetail = in_array($mainUnit, ['item', 'license', 'seat', 'GB', 'meter', 'point'], true);
+					$tags     = $isRetail ? ['revenda', 'estoque', 'hardware'] : ['serviço', 'SLA', 'projeto'];
 
-				// accepted units
-				$accepted = $isRetail ? $unitSets['retail'] : (str_contains(mb_strtolower($name), 'desenvolvimento') || str_contains(mb_strtolower($name), 'next.js')
-					? $unitSets['dev'] : $unitSets['infra']);
+					// accepted units
+					$accepted = $isRetail ? $unitSets['retail'] : (str_contains(mb_strtolower($name), 'desenvolvimento') || str_contains(mb_strtolower($name), 'next.js')
+						? $unitSets['dev'] : $unitSets['infra']);
 
-				// Currencies aceitas (sempre inclui a default)
-				$curr = ['BRL'];
-				if ($isRetail && random_int(0, 1)) $curr[] = 'USD';
+					// Currencies aceitas (sempre inclui a default)
+					$curr = ['BRL'];
+					if ($isRetail && random_int(0, 1)) $curr[] = 'USD';
 
-				// Tentativa de vincular a uma ProductServiceUnit coerente (por nome ou unidade)
-				$unitId = ProductServiceUnit::query()
-					->where('name', $name)->value('id');
-
-				if (!$unitId) {
+					// Tentativa de vincular a uma ProductServiceUnit coerente (por nome ou unidade)
 					$unitId = ProductServiceUnit::query()
-						->where(AC::COL_MUNIT, $mainUnit)
-						->inRandomOrder()
-						->value('id');
-				}
+						->where('name', $name)->value('id');
 
-				$imgName = Str::slug($name) . '.png';
-				$payload = [
-					'name'                 => $name,
-					'sku'                  => $sku,
-					BC::COL_SL_PRC         => $this->money4($sell),
-					BC::COL_PC_PRC         => $this->money4($cost),
-					BC::COL_AC_CUR         => $curr,
-					BC::COL_AC_MUNITS      => $accepted,
-					'description'          => $faker->sentence(random_int(10, 20)),
-					'attributes'           => [
-						'tax_included'     => (bool) random_int(0, 1),
-						'warranty_months'  => $isRetail ? [6, 12, 24][array_rand([6, 12, 24])] : null,
-						'bundle'           => $isRetail && random_int(0, 1) ? $faker->word() : null,
-						'service_level'    => !$isRetail ? [4, 8, 24][array_rand([4, 8, 24])] : null,
-					],
-					'tags'                 => $tags,
-					DC::COL_PRO_IMG        => "images/products/{$imgName}",
-					'icon'                 => $isRetail ? 'lucide-cpu' : 'lucide-server-cog',
-					'quantity'             => $isRetail ? (float) random_int(5, 80) : 0.0,
-					BC::COL_TAX_ID         => $anyTaxId,      // se não houver taxa, o model manterá null sem quebrar
-					BC::COL_CAT_ID         => $primaryCat,
-					'categories'           => [['id' => $primaryCat]],
-					DC::COL_RL_CAT         => $this->relatedCats($primaryCat, $catIds),
-					BC::COL_UNIT_ID        => $unitId,        // se não existir, model normaliza para null
-					BC::COL_UNITS_SOLD     => $isRetail ? random_int(0, 500) : 0,
-					BC::COL_UNITS_CNC      => $isRetail ? random_int(0, 30) : 0,
-					BC::COL_UNITS_RTRN     => $isRetail ? random_int(0, 15) : 0,
-					'type'                 => '0',            // campo livre legado (0..9)
-					BKC::COL_SL_COA        => $anySaleCoa,
-					BKC::COL_EXP_COA       => $anyExpCoa,
-					AC::COL_AV_FROM        => $from,
-					AC::COL_AV_UNTIL       => $until,
-					AC::COL_IA             => true,
-					BC::COL_ON_SALE        => (bool) random_int(0, 1),
-					BC::COL_IS_LK          => false,
-					BC::COL_IS_TRS         => false,
-					DC::COL_TABLE_CREATOR      => $creator,
-					DC::COL_TABLE_UPDATER      => $creator,
-				];
+					if (!$unitId) {
+						$unitId = ProductServiceUnit::query()
+							->where(AC::COL_MUNIT, $mainUnit)
+							->inRandomOrder()
+							->value('id');
+					}
 
-				// Limpa nulls residuais de attributes
-				$payload['attributes'] = array_filter(
-					$payload['attributes'],
-					fn($v) => $v !== null
-				);
+					$imgName = Str::slug($name) . '.png';
+					$payload = [
+						'name'                 => $name,
+						'sku'                  => $sku,
+						BC::COL_SL_PRC         => $this->money4($sell),
+						BC::COL_PC_PRC         => $this->money4($cost),
+						BC::COL_AC_CUR         => $curr,
+						BC::COL_AC_MUNITS      => $accepted,
+						'description'          => $faker->sentence(random_int(10, 20)),
+						'attributes'           => [
+							'tax_included'     => (bool) random_int(0, 1),
+							'warranty_months'  => $isRetail ? [6, 12, 24][array_rand([6, 12, 24])] : null,
+							'bundle'           => $isRetail && random_int(0, 1) ? $faker->word() : null,
+							'service_level'    => !$isRetail ? [4, 8, 24][array_rand([4, 8, 24])] : null,
+						],
+						'tags'                 => $tags,
+						DC::COL_PRO_IMG        => "images/products/{$imgName}",
+						'icon'                 => $isRetail ? 'lucide-cpu' : 'lucide-server-cog',
+						'quantity'             => $isRetail ? (float) random_int(5, 80) : 0.0,
+						BC::COL_TAX_ID         => $anyTaxId,      // se não houver taxa, o model manterá null sem quebrar
+						BC::COL_CAT_ID         => $primaryCat,
+						'categories'           => [['id' => $primaryCat]],
+						DC::COL_RL_CAT         => $this->relatedCats($primaryCat, $catIds),
+						BC::COL_UNIT_ID        => $unitId,        // se não existir, model normaliza para null
+						BC::COL_UNITS_SOLD     => $isRetail ? random_int(0, 500) : 0,
+						BC::COL_UNITS_CNC      => $isRetail ? random_int(0, 30) : 0,
+						BC::COL_UNITS_RTRN     => $isRetail ? random_int(0, 15) : 0,
+						'type'                 => '0',            // campo livre legado (0..9)
+						BKC::COL_SL_COA        => $anySaleCoa,
+						BKC::COL_EXP_COA       => $anyExpCoa,
+						AC::COL_AV_FROM        => $from,
+						AC::COL_AV_UNTIL       => $until,
+						AC::COL_IA             => true,
+						BC::COL_ON_SALE        => (bool) random_int(0, 1),
+						BC::COL_IS_LK          => false,
+						BC::COL_IS_TRS         => false,
+						DC::COL_TABLE_CREATOR      => $creator,
+						DC::COL_TABLE_UPDATER      => $creator,
+					];
 
-				$existing = ProductService::query()->where('name', $name)->first();
-				if ($existing) {
-					$existing->fill($payload)->save();
-					$updated++;
-				} else {
-					ProductService::create($payload);
-					$created++;
+					// Limpa nulls residuais de attributes
+					$payload['attributes'] = array_filter(
+						$payload['attributes'],
+						fn($v) => $v !== null
+					);
+					(new \Symfony\Component\Console\Output\ConsoleOutput
+					)->writeln("Criando Produto/Serviço: {$payload['name']}, SKU: {$payload['sku']}");
+					$existing = ProductService::query()->where('name', $name)->first();
+					if ($existing) {
+						$existing->fill($payload)->save();
+						$updated++;
+					} else {
+						ProductService::create($payload);
+						$created++;
+					}
+				} catch (\Exception $e) {
+					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					continue;
 				}
 			}
 

@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "AI-Powered Automation",
+    "discover_description": "<p>Leverage cutting-edge artificial intelligence to automate repetitive tasks, predict trends, and optimize your business workflows with intelligent insights.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Real-Time Analytics Dashboard",
+    "discover_description": "<p>Gain instant visibility into your business performance with interactive dashboards, custom reports, and real-time KPI tracking across all departments.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Multi-Currency Accounting",
+    "discover_description": "<p>Seamlessly manage international transactions with automatic currency conversion, tax compliance, and real-time exchange rate integration.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Smart Inventory Management",
+    "discover_description": "<p>Optimize stock levels with predictive analytics, automated reordering, and barcode scanning for efficient warehouse operations.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° Customer Relationship Management",
+    "discover_description": "<p>Track every customer interaction, automate follow-ups, and analyze customer behavior to boost sales and improve retention rates.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Advanced Project Management",
+    "discover_description": "<p>Plan, execute, and monitor projects with Gantt charts, resource allocation, time tracking, and milestone management tools.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "HR & Payroll Automation",
+    "discover_description": "<p>Streamline employee management with automated payroll processing, attendance tracking, performance reviews, and benefits administration.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobile POS & E-commerce",
+    "discover_description": "<p>Accept payments anywhere with our mobile point-of-sale system, integrated with online store management and inventory synchronization.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Business Intelligence Reporting",
+    "discover_description": "<p>Transform raw data into actionable insights with customizable reports, data visualization, and executive dashboards for strategic decision-making.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Custom Workflow Builder",
+    "discover_description": "<p>Design and automate complex business processes with our drag-and-drop workflow builder, reducing manual errors and increasing efficiency.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Seamless Third-Party Integration",
+    "discover_description": "<p>Connect with 500+ popular business apps including Salesforce, QuickBooks, Shopify, and Zapier for a unified business ecosystem.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Enterprise-Grade Security",
+    "discover_description": "<p>Protect your business data with military-grade encryption, role-based access controls, audit trails, and compliance with global security standards.</p>"
+  }
+]

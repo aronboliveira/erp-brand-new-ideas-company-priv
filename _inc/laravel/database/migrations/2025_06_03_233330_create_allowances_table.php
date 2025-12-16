@@ -16,7 +16,7 @@ class CreateAllowancesTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $this->addEmployeeColumns($table, unique: false, nullable: false);
-            $table->uuid(BC::COL_ALW_OPT)->index()->nullable();
+            $table->uuid(BC::COL_ALW_OPT)->nullable()->index();
             $table->string('title')->nullable()->index();
             $table->decimal('amount', 15, 2)->default(0.00);
             $table->string('type')

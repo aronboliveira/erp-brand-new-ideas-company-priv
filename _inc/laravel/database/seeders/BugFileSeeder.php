@@ -78,32 +78,38 @@ final class BugFileSeeder extends Seeder
 				$count = random_int(1, 5);
 
 				for ($i = 0; $i < $count; $i++) {
-					do $bugFileId = Str::uuid()->toString();
-					while (Bf::where('id', $bugFileId)->exists());
+					try {
+						do $bugFileId = Str::uuid()->toString();
+						while (Bf::where('id', $bugFileId)->exists());
 
-					$ext = $exts[array_rand($exts)];
-					$base = Str::slug($faker->words(random_int(1, 4), true), '-');
-					if ($base === '') $base = 'file';
+						$ext = $exts[array_rand($exts)];
+						$base = Str::slug($faker->words(random_int(1, 4), true), '-');
+						if ($base === '') $base = 'file';
 
-					$suffix   = substr(Str::uuid()->toString(), 0, 8);
-					$fileName = substr($base, 0, 160) . '-' . $suffix . '.' . $ext;
-					$filePath = 'uploads/bugs/' . $bugId . '/' . $fileName;
+						$suffix   = substr(Str::uuid()->toString(), 0, 8);
+						$fileName = substr($base, 0, 160) . '-' . $suffix . '.' . $ext;
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Arquivo para Tarefa: {$fileName}");
+						$filePath = 'uploads/bugs/' . $bugId . '/' . $fileName;
+						$ts = $faker->dateTimeBetween('-45 days', 'now');
 
-					$ts = $faker->dateTimeBetween('-45 days', 'now');
-
-					$bf = new Bf();
-					$bf->id                  = $bugFileId;
-					$bf->bug_id              = $bugId;
-					$bf->file                = $filePath;                 // caminho/armazenamento
-					$bf->name                = $fileName;                 // nome original exibível
-					$bf->extension           = mb_strtolower($ext);
-					$bf->file_size           = $pickSize($ext);
-					$bf->{UC::COL_U_TP}      = $typePool[array_rand($typePool)]; // enum (cast/normalização no model)
-					$bf->{DC::COL_TABLE_CREATOR} = $systemUserId;
-					$bf->setAttribute(DC::COL_TABLE_UPDATER, null);
-					$bf->setAttribute('created_at', $ts);
-					$bf->setAttribute('updated_at', $ts);
-					$bf->save();
+						$bf = new Bf();
+						$bf->id                  = $bugFileId;
+						$bf->bug_id              = $bugId;
+						$bf->file                = $filePath;                 // caminho/armazenamento
+						$bf->name                = $fileName;                 // nome original exibível
+						$bf->extension           = mb_strtolower($ext);
+						$bf->file_size           = $pickSize($ext);
+						$bf->{UC::COL_U_TP}      = $typePool[array_rand($typePool)]; // enum (cast/normalização no model)
+						$bf->{DC::COL_TABLE_CREATOR} = $systemUserId;
+						$bf->setAttribute(DC::COL_TABLE_UPDATER, null);
+						$bf->setAttribute('created_at', $ts);
+						$bf->setAttribute('updated_at', $ts);
+						$bf->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
 				}
 			}
 		}, 3);

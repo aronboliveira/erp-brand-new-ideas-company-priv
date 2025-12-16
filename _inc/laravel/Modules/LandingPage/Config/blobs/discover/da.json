@@ -1,0 +1,62 @@
+[
+  {
+    "discover_logo": "ai-automation-icon.png",
+    "discover_heading": "AI-drevet automatisering",
+    "discover_description": "<p>Udnyt banebrydende kunstig intelligens til at automatisere gentagne opgaver, forudsige tendenser og optimere dine arbejdsgange med intelligente indsigter.</p>"
+  },
+  {
+    "discover_logo": "real-time-analytics-icon.png",
+    "discover_heading": "Dashboard for realtidsanalyser",
+    "discover_description": "<p>Få øjeblikkelig indsigt i din forretningsydelse med interaktive dashboards, brugerdefinerede rapporter og realtids KPI-sporing på tværs af alle afdelinger.</p>"
+  },
+  {
+    "discover_logo": "multi-currency-icon.png",
+    "discover_heading": "Flervaluta regnskab",
+    "discover_description": "<p>Administrer internationale transaktioner problemfrit med automatisk valutakonvertering, skatteoverholdelse og integration af realtids vekselkurser.</p>"
+  },
+  {
+    "discover_logo": "inventory-optimization-icon.png",
+    "discover_heading": "Smart lagerstyring",
+    "discover_description": "<p>Optimer lagerniveauer med prædiktiv analyse, automatisk genbestilling og stregkodeskanning til effektive lageroperationer.</p>"
+  },
+  {
+    "discover_logo": "crm-pipeline-icon.png",
+    "discover_heading": "360° kundestyring",
+    "discover_description": "<p>Spoor hver kundeinteraktion, automatiser opfølgninger og analyser kundeadfærd for at øge salget og forbedre tilbageholdelsesrater.</p>"
+  },
+  {
+    "discover_logo": "project-management-icon.png",
+    "discover_heading": "Avanceret projektstyring",
+    "discover_description": "<p>Planlæg, udfør og overvåg projekter med Gantt-diagrammer, ressourceallokering, tidssporing og milepælsstyringsværktøjer.</p>"
+  },
+  {
+    "discover_logo": "hr-workflow-icon.png",
+    "discover_heading": "HR & Lønautomatisering",
+    "discover_description": "<p>Strømlin medarbejderstyring med automatisk lønbehandling, fremmødesporing, performancevurderinger og administration af personalegoder.</p>"
+  },
+  {
+    "discover_logo": "mobile-pos-icon.png",
+    "discover_heading": "Mobil POS & E-handel",
+    "discover_description": "<p>Accepter betalinger overalt med vores mobile point-of-sale system, integreret med online butiksstyring og lagersynkronisering.</p>"
+  },
+  {
+    "discover_logo": "bi-reporting-icon.png",
+    "discover_heading": "Business Intelligence rapportering",
+    "discover_description": "<p>Transformer rådata til handlingbare indsigter med tilpasselige rapporter, datavisualisering og ledelsesdashboards til strategisk beslutningstagning.</p>"
+  },
+  {
+    "discover_logo": "workflow-automation-icon.png",
+    "discover_heading": "Brugerdefineret arbejdsgangsbygger",
+    "discover_description": "<p>Design og automatisér komplekse forretningsprocesser med vores drag-and-drop arbejdsgangsbygger, der reducerer manuelle fejl og øger effektiviteten.</p>"
+  },
+  {
+    "discover_logo": "api-integration-icon.png",
+    "discover_heading": "Sømløs tredjepartsintegration",
+    "discover_description": "<p>Forbind til 500+ populære forretningsapps inklusive Salesforce, QuickBooks, Shopify og Zapier for et forenet forretningsøkosystem.</p>"
+  },
+  {
+    "discover_logo": "data-security-icon.png",
+    "discover_heading": "Virksomhedsklassesikkerhed",
+    "discover_description": "<p>Beskyt dine forretningsdata med militærgrads kryptering, rollebaserede adgangskontroller, revisionsspor og overholdelse af globale sikkerhedsstandarder.</p>"
+  }
+]

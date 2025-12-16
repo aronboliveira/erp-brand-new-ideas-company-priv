@@ -118,6 +118,7 @@ class UsersTableSeeder extends Seeder
                 $user?->userDefaultData();
                 $user?->defaultEmail($user?->id ?? DC::DEFAULT_UUID);
                 $user?->userDefaultWarehouse();
+                // todo this needs to be on the employeeseeder as well
                 GeneratedOfferLetter::defaultOfferLetter($user?->id ?? DC::DEFAULT_UUID);
                 ExperienceCertificate::defaultExpCertificate($user?->id ?? DC::DEFAULT_UUID);
                 JoiningLetter::defaultJoiningLetter($user?->id ?? DC::DEFAULT_UUID);
@@ -249,7 +250,7 @@ class UsersTableSeeder extends Seeder
         $client = null;
         $company = null;
         $pipeline = null;
-        $faker = \Faker\Factory::create();
+        $faker = fake('pt_BR');
         $uuids = [];
         $output->writeln('');
         $output->writeln('<question>------------- ### Users Seeding ### ------------- </question>');
