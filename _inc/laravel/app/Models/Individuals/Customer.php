@@ -149,40 +149,48 @@ class Customer extends Authenticatable
             )
                 if (!empty($customer->getAttribute($field)) && is_string($customer->getAttribute($field)))
                     $customer->setAttribute($field, trim($customer->getAttribute($field)));
-            if ($customer->getAttribute(UC::COL_EM) ?? null)
-                $customer->setAttribute(UC::COL_EM, self::normalizeEmail(
-                    $customer->getAttribute(UC::COL_EM),
-                    'main',
-                    $customer->getAttribute('id') ?? null
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            if ($isNormalizeEmailCallable) {
+                if ($customer->getAttribute(UC::COL_EM) ?? null)
+                    $customer->setAttribute(UC::COL_EM, self::normalizeEmail(
+                        $customer->getAttribute(UC::COL_EM),
+                        'main',
+                        $customer->getAttribute('id') ?? null
+                    ));
+                if ($customer->getAttribute(BC::COL_BL_EMAIL) ?? null)
+                    $customer->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
+                        $customer->getAttribute(BC::COL_BL_EMAIL),
+                        'billing',
+                        $customer->getAttribute('id') ?? null
+                    ));
+            }
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if ($isNormalizePhoneCallable) {
+                $customer->setAttribute('contact', self::normalizePhone(
+                    $customer->getAttribute('contact') ?? null,
+                    'contact',
+                    $customer->getAttribute('id') ?? null,
+                    true // todo remove after tests
                 ));
-            if ($customer->getAttribute(BC::COL_BL_EMAIL) ?? null)
-                $customer->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
-                    $customer->getAttribute(BC::COL_BL_EMAIL),
+
+                $customer->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
+                    $customer->getAttribute(BC::COL_BL_TEL) ?? null,
                     'billing',
-                    $customer->getAttribute('id') ?? null
+                    $customer->getAttribute('id') ?? null,
+                    true
                 ));
-            $customer->setAttribute('contact', self::normalizePhone(
-                $customer->getAttribute('contact') ?? null,
-                'contact',
-                $customer->getAttribute('id') ?? null,
-                true // todo remove after tests
-            ));
 
-            $customer->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
-                $customer->getAttribute(BC::COL_BL_TEL) ?? null,
-                'billing',
-                $customer->getAttribute('id') ?? null,
-                true
-            ));
-
-            $customer->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
-                $customer->getAttribute(BC::COL_SHIP_TEL) ?? null,
-                'shipping',
-                $customer->getAttribute('id') ?? null,
-                true
-            ));
-            self::normalizeBillingCountry($customer);
-            self::normalizeShippingCountry($customer);
+                $customer->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
+                    $customer->getAttribute(BC::COL_SHIP_TEL) ?? null,
+                    'shipping',
+                    $customer->getAttribute('id') ?? null,
+                    true
+                ));
+            }
+            $isNormalizeBillingCountryCallable = is_callable([self::class, 'normalizeBillingCountry']);
+            $isNormalizeBillingCountryCallable && self::normalizeBillingCountry($customer);
+            $isNormalizeShippingCountryCallable = is_callable([self::class, 'normalizeShippingCountry']);
+            $isNormalizeShippingCountryCallable && self::normalizeShippingCountry($customer);
             if ($customer->getAttribute(BC::COL_TX_N)) {
                 if (!is_string($customer->getAttribute(BC::COL_TX_N))) {
                     if (is_numeric($customer->getAttribute(BC::COL_TX_N)))

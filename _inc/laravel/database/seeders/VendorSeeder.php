@@ -110,15 +110,22 @@ class VendorSeeder extends Seeder
 
 			$created = 0;
 			$updated = 0;
-
+			$usersAsVendors = User::query()
+				->where('type', 'vendor')
+				->pluck('id')
+				->all();
+			$remainingUsers = $usersAsVendors;
 			foreach ($seed as [$name, $email, $ctr, $uf]) {
 				try {
 					(new \Symfony\Component\Console\Output\ConsoleOutput
 					)->writeln("Criando Fornecedor: {$name}, Email: {$email}");
 					$offers = $this->buildOffers($productIds);
+					$chosenUser = $usersAsVendors[array_rand($usersAsVendors)] ?? null;
+					$remainingUsers = array_filter($remainingUsers, fn($u) => $u !== $chosenUser);
 					$mainTaxId = $this->requireAnyId(DC::TABLE_TAXES, 'tributário');
 					$payload = [
 						UC::COL_NM          => $name,
+						UC::COL_USER_ID     => $chosenUser,
 						UC::COL_EM          => $email,
 						UC::COL_PW          => Hash::make('secret123!'),
 						'contact'           => $faker->cellphoneNumber(),

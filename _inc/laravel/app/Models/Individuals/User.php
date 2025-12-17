@@ -112,13 +112,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         parent::booted();
         static::saving(function (User $user): void {
-            if ($user->getAttribute('phone'))
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if ($user->getAttribute('phone') && $isNormalizePhoneCallable)
                 $user->setAttribute('phone', self::normalizePhone(
                     $user->getAttribute('phone'),
                     'user.phone',
                     $user->getAttribute('id') ?? null
                 ));
-            if ($user->getAttribute(UC::COL_EM)) $user->setAttribute(UC::COL_EM, self::normalizeEmail(
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            if ($user->getAttribute(UC::COL_EM) && $isNormalizeEmailCallable) $user->setAttribute(UC::COL_EM, self::normalizeEmail(
                 $user->getAttribute(UC::COL_EM) ?? null,
                 'user.email',
                 $user->getAttribute('id') ?? null

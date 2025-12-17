@@ -33,7 +33,7 @@ final class DealDiscussionSeeder extends Seeder
 			}
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(4, 64);
+				$count = random_int(4, 16);
 
 				for ($i = 0; $i < $count; $i++) {
 					try {

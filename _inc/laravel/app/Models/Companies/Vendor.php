@@ -45,6 +45,7 @@ class Vendor extends Authenticatable
         UC::COL_VD_ID,
 
         UC::COL_NM,
+        UC::COL_USER_ID,
         UC::COL_EM,
         UC::COL_PW,
         'contact',
@@ -135,29 +136,33 @@ class Vendor extends Authenticatable
             )
                 if (!empty($vendor->getAttribute($field)) && is_string($vendor->getAttribute($field)))
                     $vendor->setAttribute($field, trim($vendor->getAttribute($field)));
-            if ($vendor->getAttribute(UC::COL_EM) ?? null)
-                $vendor->setAttribute(UC::COL_EM, self::normalizeEmail(
-                    $vendor->getAttribute(UC::COL_EM),
-                    'main',
-                    $vendor->id ?? null
-                ));
-            if ($vendor->getAttribute(BC::COL_BL_EMAIL) ?? null)
-                $vendor->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
-                    $vendor->getAttribute(BC::COL_BL_EMAIL),
-                    'billing',
-                    $vendor->id ?? null
-                ));
-            $vendor->setAttribute('contact', self::normalizePhone(
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            if ($isNormalizeEmailCallable) {
+                if ($vendor->getAttribute(UC::COL_EM) ?? null)
+                    $vendor->setAttribute(UC::COL_EM, self::normalizeEmail(
+                        $vendor->getAttribute(UC::COL_EM),
+                        'main',
+                        $vendor->id ?? null
+                    ));
+                if ($vendor->getAttribute(BC::COL_BL_EMAIL) ?? null)
+                    $vendor->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail(
+                        $vendor->getAttribute(BC::COL_BL_EMAIL),
+                        'billing',
+                        $vendor->id ?? null
+                    ));
+            }
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $vendor->setAttribute('contact', self::normalizePhone(
                 $vendor->getAttribute('contact') ?? null,
                 'contact',
                 $vendor->id ?? null
             ));
-            $vendor->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
+            $isNormalizePhoneCallable && $vendor->setAttribute(BC::COL_BL_TEL, self::normalizePhone(
                 $vendor->getAttribute(BC::COL_BL_TEL) ?? null,
                 'billing',
                 $vendor->id ?? null
             ));
-            $vendor->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
+            $isNormalizePhoneCallable && $vendor->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone(
                 $vendor->getAttribute(BC::COL_SHIP_TEL) ?? null,
                 'shipping',
                 $vendor->id ?? null
@@ -226,6 +231,18 @@ class Vendor extends Authenticatable
                     'error'     => $e->getMessage(),
                 ]);
                 $vendor->setAttribute('offers', []);
+            }
+            try {
+                if ($vendor->getAttribute(UC::COL_USER_ID) ?? null) {
+                    $user = User::find($vendor->getAttribute(UC::COL_USER_ID));
+                    if ($user === null || $user->type !== PermissionsConstants::VD)
+                        $vendor->setAttribute(UC::COL_USER_ID, null);
+                }
+            } catch (\Throwable $e) {
+                Log::warning(self::class . ' failed during saving hook', [
+                    UC::COL_VD_ID => $vendor->id ?? null,
+                    'error'     => $e->getMessage(),
+                ]);
             }
         });
     }

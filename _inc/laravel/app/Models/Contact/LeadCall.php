@@ -63,8 +63,8 @@ class LeadCall extends Model
             $model->normalizeEndpoints();
             $model->normalizeCallType();
             $model->normalizeDurations();
-            if ($model->getAttribute('phone'))
-                $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'Lead Call Phone', $model->getAttribute('id') ?? null));
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'Lead Call Phone', $model->getAttribute('id') ?? null));
         });
     }
 

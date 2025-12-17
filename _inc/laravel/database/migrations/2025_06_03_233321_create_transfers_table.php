@@ -15,7 +15,7 @@ class CreateTransfersTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(UC::COL_BRC_ID)->nullable();
             $table->uuid(UC::COL_DEP_ID)->nullable();
-            $this->addEmployeeColumns($table, false, false);
+            $this->addEmployeeColumns($table, unique: false, nullable: false, cascade: false);
             $table->date(UC::COL_TRF_DT)->index();
             $table->string('description')->nullable();
             $table->string('notes')->nullable();

@@ -45,7 +45,7 @@ class EmailTemplatesSeeder extends Seeder
 			$typeValue = $typeEnum->value;
 			$langsAvailable = empty($langs) ? [DC::DEFAULT_LANG] : $langs;
 
-			$typeCount = fake()->numberBetween(1, count(AvailableLang::cases()));
+			$typeCount = fake()->numberBetween(1, count(AvailableLang::cases()) * 0.2 + 1);
 
 			for ($i = 0; $i < $typeCount; $i++) {
 				foreach ($langsAvailable as $lang) {

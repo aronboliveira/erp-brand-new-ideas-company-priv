@@ -13,14 +13,14 @@ class CreateClientsTable extends Migration
 	{
 		Schema::create(self::TABLE, function (Blueprint $table): void {
 			$table->uuid('id')->primary();
-			$table->string(UC::COL_NM)->nullable();
-			$table->string(UC::COL_EM)->nullable()->unique();
+			$table->string(UC::COL_NM)->nullable()->index();
+			$table->string(UC::COL_EM)->nullable()->unique(); // * normalized at model level
 			$table->timestamp(UC::COL_EM_V_AT)->nullable();
 			$table->string(UC::COL_PW)->nullable();
 			$table->string(UC::COL_LG, 100)->default(DC::DEFAULT_LANG);
 			$table->integer(UC::COL_IA)->default(1);
-			$table->uuid(UC::COL_USER_ID)->nullable();
-			$table->string(UC::COL_TEL)->nullable();
+			$table->uuid(UC::COL_USER_ID)->nullable(); // * must be ensured at boot level to be a user where type === 'client'
+			$table->string(UC::COL_TEL)->nullable()->index(); // * normalized at model level
 			$table->string(UC::COL_ADR)->nullable();
 			$table->boolean(UC::COL_IU)->default(false);
 			$table->string(UC::COL_AV)->default(config('chatify.user_avatar.default'));

@@ -96,6 +96,8 @@ class DatabaseSeeder extends Seeder
             }
             foreach (
                 [
+                    BranchSeeder::class,
+                    DepartmentSeeder::class,
                     ClientSeeder::class,
                     PasswordResetsSeeder::class,
                     DocumentSeeder::class,
@@ -116,6 +118,7 @@ class DatabaseSeeder extends Seeder
                     LabelSeeder::class,
                     AppraisalSeeder::class,
                     IndicatorSeeder::class,
+                    CompanyPolicySeeder::class,
                     GoalTypesSeeder::class,
                     GoalsSeeder::class,
                     GoalTrackingsSeeder::class,
@@ -133,6 +136,12 @@ class DatabaseSeeder extends Seeder
                     PayslipTypeSeeder::class,
                     EmployeeSeeder::class,
                     EmployeeDocumentSeeder::class,
+                    MilestoneSeeder::class,
+                    TaskSeeder::class,
+                    TaskStageSeeder::class,
+                    TrainingTypeSeeder::class,
+                    TrainerSeeder::class,
+                    TrainingSeeder::class,
                     AwardTypeSeeder::class,
                     AwardSeeder::class,
                     TerminationTypeSeeder::class,

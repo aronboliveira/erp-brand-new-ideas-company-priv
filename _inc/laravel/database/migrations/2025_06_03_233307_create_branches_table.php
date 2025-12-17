@@ -18,6 +18,7 @@ class CreateBranchesTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
+                $table->uuid('company')->nullable()->index(); // ? nullable for tests
                 $table->string(CPC::COL_BRC_NM)->unique();
                 $table->string('address', 252)->nullable()->index(); // todo normalize on model
                 $table->string('phone', 32)->nullable();
@@ -30,7 +31,7 @@ class CreateBranchesTable extends Migration
                 $table->decimal('expenses', 15, 2)->default(0.00);
                 $table->decimal('profit', 15, 2)->default(0.00);
                 $this->addAuditColumns($table);
-                foreach ([CPC::COL_ADM, CPC::COL_MNG] as $col)
+                foreach (['company', CPC::COL_ADM, CPC::COL_MNG] as $col)
                     $table->foreign($col)
                         ->references('id')
                         ->on(DC::TABLE_USERS)
@@ -43,7 +44,7 @@ class CreateBranchesTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
             try {
-                foreach ([CPC::COL_ADM, CPC::COL_MNG] as $col) {
+                foreach (['company', CPC::COL_ADM, CPC::COL_MNG] as $col) {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
                 }

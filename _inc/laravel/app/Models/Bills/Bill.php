@@ -257,22 +257,25 @@ class Bill extends Model
                 $bill->setAttribute('attachments', self::normalizeArrayField($bill->getAttribute('attachments') ?? null));
                 self::normalizeBillingCountry($bill);
                 self::normalizeShippingCountry($bill);
-                if (!empty($bill->getAttribute(BC::COL_BL_EMAIL)))
+                $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+                if (!empty($bill->getAttribute(BC::COL_BL_EMAIL)) && $isNormalizeEmailCallable)
                     $bill->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail($bill->getAttribute(BC::COL_BL_EMAIL), $bill->getAttribute(BC::COL_BL_NAME) ?? null, $bill->getAttribute('id') ?? null));
-                if (!empty($bill->getAttribute(BC::COL_SHIP_EMAIL)))
+                if (!empty($bill->getAttribute(BC::COL_SHIP_EMAIL)) && $isNormalizeEmailCallable)
                     $bill->setAttribute(BC::COL_SHIP_EMAIL, self::normalizeEmail($bill->getAttribute(BC::COL_SHIP_EMAIL), $bill->getAttribute(BC::COL_SHIP_NAME) ?? null, $bill->getAttribute('id') ?? null));
-                if (!empty($bill->getAttribute(BC::COL_BL_TEL)))
+                $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+                if (!empty($bill->getAttribute(BC::COL_BL_TEL)) && $isNormalizePhoneCallable)
                     $bill->setAttribute(BC::COL_BL_TEL, self::normalizePhone($bill->getAttribute(BC::COL_BL_TEL), $bill->getAttribute(BC::COL_BL_NAME) ?? null, $bill->getAttribute('id') ?? null));
-                if (!empty($bill->getAttribute(BC::COL_SHIP_TEL)))
+                if (!empty($bill->getAttribute(BC::COL_SHIP_TEL)) && $isNormalizePhoneCallable)
                     $bill->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone($bill->getAttribute(BC::COL_SHIP_TEL), $bill->getAttribute(BC::COL_SHIP_NAME) ?? null, $bill->getAttribute('id') ?? null));
-                if (!empty($bill->getAttribute(BC::COL_BL_ZIP)) && !empty($bill->getAttribute(BC::COL_BL_CTR)))
+                $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+                if (!empty($bill->getAttribute(BC::COL_BL_ZIP)) && !empty($bill->getAttribute(BC::COL_BL_CTR)) && $isNormalizeZipCallable)
                     $bill->setAttribute(BC::COL_BL_ZIP, self::normalizeZip(
                         $bill->getAttribute(BC::COL_BL_ZIP),
                         $bill->getAttribute(BC::COL_BL_CTR),
                         'Bill billing',
                         $bill->getAttribute('id') ?? null
                     ));
-                if (!empty($bill->getAttribute(BC::COL_SHIP_ZIP)) && !empty($bill->getAttribute(BC::COL_SHIP_CTR)))
+                if (!empty($bill->getAttribute(BC::COL_SHIP_ZIP)) && !empty($bill->getAttribute(BC::COL_SHIP_CTR)) && $isNormalizeZipCallable)
                     $bill->setAttribute(BC::COL_SHIP_ZIP, self::normalizeZip(
                         $bill->getAttribute(BC::COL_SHIP_ZIP),
                         $bill->getAttribute(BC::COL_SHIP_CTR),

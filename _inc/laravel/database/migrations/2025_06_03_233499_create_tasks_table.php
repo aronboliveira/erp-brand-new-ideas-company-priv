@@ -1,58 +1,65 @@
 <?php
 
 use App\Config\Constants\{
-	ActivitiesConstants,
-	DatabaseConstants,
-	ProjectsConstants
+	ActivitiesConstants as AC,
+	DatabaseConstants as DC,
+	ProjectsConstants as PJC
 };
+use App\Enums\{AppModuleType};
+use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateTasksTable extends Migration
 {
-	private const TABLE = DatabaseConstants::TABLE_TASKS;
-	private const COL_PROJ = ProjectsConstants::COL_PJ_ID;
-	private const COL_MS = ProjectsConstants::COL_ML_ID;
+	use HasNullableAuditColumns;
+	private const TABLE = DC::TABLE_TASKS;
 	public function up(): void
 	{
 		Schema::create(self::TABLE, function (Blueprint $table) {
-			$table->uuid('id')->primary();               // ! CHANGED
-			$table->string(ActivitiesConstants::COL_TT);
-			$table->string(ActivitiesConstants::COL_A_O_M);
-			$table->date(ActivitiesConstants::COL_TSK_DATE);
-			$table->time(ActivitiesConstants::COL_TSK_TIME);
-			$table->text(ActivitiesConstants::COL_DESC)->nullable();
-			$table->string(ActivitiesConstants::COL_MT);
-			$table->uuid(ActivitiesConstants::COL_MI);                    // ! CHANGED
-			$table->uuid(ProjectsConstants::COL_ASGN)->nullable();        // ! CHANGED
-			$table->uuid(self::COL_PROJ)->nullable();       // ! CHANGED
-			$table->uuid(self::COL_MS)->nullable();     // ! CHANGED
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                   // ! CHANGED
-			$table->timestamps();
+			$table->uuid('id')->primary();
+			$table->string('title', 254)->index();
+			$table->string(AC::COL_A_O_M)->index(); // ? agent_or_manager // * this is probably the name of the agent or manager... keeping for compatibility
+			$table->uuid(PJC::COL_AOM_ID)->nullable()->index(); // * agent_or_manager_id, reference to DC::TABLE_EMPLOYEES where the 'manager' == true
+			$table->date('date')->index();
+			$table->time('time');
+			$table->text('description')->nullable();
+			$table->enum(AC::COL_MT, AppModuleType::values())->default(AppModuleType::Other->value)->nullable()->index(); // ? module_type, should be clamped at model level to the existing module types defined in the system
+			$table->string(AC::COL_MI)->nullable()->index(); // ? the module_id, reference to the id of the module defined by module_type, just the case index stringified for now
+			$table->uuid(PJC::COL_ASGN)->nullable();
+			$table->uuid(PJC::COL_PJ_ID)->nullable();
+			$table->uuid(PJC::COL_ML_ID)->nullable(); // ? if found to be not null in model, through querying in the Milestone model, then merge all the involded users/employees from there into this task's involved list, ensuring uniqueness
+			$table->json('stages')->nullable(); // ? list of ids for TaskStage instances, filtered as such, and where the priority, status, etc. is defined
+			$table->json('attachments')->nullable();
+			$table->json('involved')->nullable(); // ? list of user id/names or employee id/names involved in this task
+			$table->json('tags')->nullable();
+			$table->json('metadata')->nullable();
 			foreach (
 				[
-					self::COL_PROJ                  => DatabaseConstants::TABLE_PROJECTS,
-					self::COL_MS                    => DatabaseConstants::TABLE_MSS,
-					ProjectsConstants::COL_ASGN			=> DatabaseConstants::TABLE_USERS,
-					DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+					PJC::COL_ML_ID    => DC::TABLE_MSS,
+					PJC::COL_PJ_ID    => DC::TABLE_PROJECTS,
+					PJC::COL_ASGN			=> DC::TABLE_USERS,
+					PJC::COL_AOM_ID   => DC::TABLE_EMPLOYEES,
 				] as $col => $tbl
 			)
 				$table->foreign($col)
 					->references('id')
 					->on($tbl)
-					->cascadeOnDelete(); // * ADDED
+					->nullOnDelete(); // * ADDED
+			$this->addAuditColumns($table);
 		});
 	}
 
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
+			$this->dropAuditColumnForeigns($table, self::TABLE);
 			foreach (
 				[
-					self::COL_PROJ,
-					self::COL_MS,
-					ProjectsConstants::COL_ASGN,
-					DatabaseConstants::COL_TABLE_CREATOR,
+					PJC::COL_PJ_ID,
+					PJC::COL_ML_ID,
+					PJC::COL_ASGN,
+					PJC::COL_AOM_ID
 				] as $col
 			) {
 				try {

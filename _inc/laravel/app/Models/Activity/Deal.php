@@ -90,8 +90,10 @@ class Deal extends Model
         );
 
         static::saving(function (Deal $model): void {
-            if (!empty($model->getAttribute('phone'))) $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'deal.phone', $model->id));
-            if (!empty($model->getAttribute('email'))) $model->setAttribute('email', self::normalizeEmail($model->getAttribute('email'), 'deal.email', $model->id));
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            if (!empty($model->getAttribute('phone')) && $isNormalizePhoneCallable) $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'deal.phone', $model->id));
+            if (!empty($model->getAttribute('email')) && $isNormalizeEmailCallable) $model->setAttribute('email', self::normalizeEmail($model->getAttribute('email'), 'deal.email', $model->id));
             foreach (['sources', 'products', 'labels'] as $csvField) {
                 $raw = $model->getAttribute($csvField);
                 if (is_array($raw))

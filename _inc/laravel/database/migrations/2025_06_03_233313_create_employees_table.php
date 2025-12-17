@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\HasNullableAuditColumns;
+use App\Traits\{BranchConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateEmployeesTable extends Migration
 {
-    use HasNullableAuditColumns;
+    use BranchConnected, HasNullableAuditColumns;
     private const TABLE = DC::TABLE_EMPLOYEES;
     public function up(): void
     {
@@ -16,6 +16,7 @@ class CreateEmployeesTable extends Migration
             $table->uuid(UC::COL_EMP_ID)->unique(); // ? This is a secondary identifier for employees, used for querying
             $table->uuid(UC::COL_USER_ID)->unique()->nullable(); // ? A employee may not have a user account
             $table->string('name')->nullable()->index();
+            $table->boolean('manager')->default(false)->nullable()->index();
             $table->string('phone')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
             $table->string('email')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
             $table->string('gender')->nullable(); // ? This is check by a enum when creating and updating
@@ -23,7 +24,7 @@ class CreateEmployeesTable extends Migration
             $table->string('password')->nullable();
             $table->string('address')->nullable();
             $table->date('dob')->nullable();
-            $table->uuid(CPC::COL_BRC_ID);
+            $this->addBranchColumns($table, unique: false, nullable: false);
             $table->string(CPC::COL_BRC_LC)->nullable(); // ? This is queried on creating and updating to be not null when there is a branch, using branch->address
             $table->uuid(CPC::COL_DEP_ID)->nullable();
             $table->uuid(UC::COL_DSG_ID)->nullable();
@@ -37,11 +38,6 @@ class CreateEmployeesTable extends Migration
             $table->decimal('salary', 10, 2)->nullable()->default(0.00);
             $table->uuid(UC::COL_SLR_TP)->nullable();
             $table->integer(UC::COL_IA)->default(1);
-            $this->addAuditColumns($table);
-            $table->foreign(CPC::COL_BRC_ID)
-                ->references('id')
-                ->on(DC::TABLE_BRANCHES)
-                ->cascadeOnDelete();
             foreach (
                 [
                     UC::COL_USER_ID    => DC::TABLE_USERS,
@@ -55,6 +51,7 @@ class CreateEmployeesTable extends Migration
                     ->references('id')
                     ->on($referencedTable)
                     ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
@@ -62,11 +59,11 @@ class CreateEmployeesTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropBranchColumnForeign($table, self::TABLE);
             foreach (
                 [
                     UC::COL_USER_ID,
                     UC::COL_DSG_ID,
-                    CPC::COL_BRC_ID,
                     CPC::COL_DEP_ID,
                     UC::COL_TAX_ID,
                     UC::COL_SLR_TP,

@@ -152,6 +152,8 @@ class DatabaseConstants
 	public const TABLE_USER_EML_TMPS = 'user_email_templates';
 	public const TABLE_IND = 'indicators';
 	public const TABLE_APR = 'appraisals';
+	public const TABLE_CPN_POL = 'company_policies';
+	public const TABLE_TRAINING = 'trainings';
 
 	// * FIELD NAMES
 	// invoice
@@ -201,6 +203,7 @@ class DatabaseConstants
 	public const COL_PLT_AV = 'platforms_available';
 	public const COL_IS_DEF = 'is_default';
 	public const COL_CRT_USR = 'created_user';
+	public const COL_LEGAL_REP = 'legal_representants';
 
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';

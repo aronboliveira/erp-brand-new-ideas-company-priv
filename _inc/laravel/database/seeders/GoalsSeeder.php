@@ -44,9 +44,9 @@ class GoalsSeeder extends Seeder
 			}
 		}
 
-		// Regra: TOTAL = 64 x N (N = baseTypeCount * multiplier)
+		// Regra: TOTAL = 8 x N (N = baseTypeCount * multiplier)
 		$totalTypes   = $baseTypeCount * $multiplier;
-		$targetTotal  = 64 * $totalTypes;
+		$targetTotal  = 8 * $totalTypes;
 
 		// Dados auxiliares de FKs (somente leitura => DB::table)
 		$employeesIds = Schema::hasTable(DC::TABLE_EMPLOYEES)

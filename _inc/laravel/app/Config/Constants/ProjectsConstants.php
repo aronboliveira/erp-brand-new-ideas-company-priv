@@ -72,8 +72,8 @@ class ProjectsConstants
 	public const COL_TT_LV_DY = 'total_leave_days';
 	public const COL_LV_RS = 'leave_reason';
 	public const COL_MIN_DR = 'minimum_duration';
-	public const COL_EXP_DR = 'expected_duration';
 	public const COL_MAX_DR = 'maximum_duration';
+	public const COL_EXP_DR = 'expected_duration';
 	public const COL_EST_CC = 'estimated_chance_of_continuation';
 	public const COL_STG_ID = 'stage_id';
 	public const COL_LD_ID = 'lead_id';
@@ -85,6 +85,7 @@ class ProjectsConstants
 	public const COL_TRG_ACHV = 'target_achievement';
 	public const COL_CST_EXP = 'customer_experience';
 	public const COL_APR_DT = 'appraisal_date';
+	public const COL_AOM_ID = 'agent_or_manager_id';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

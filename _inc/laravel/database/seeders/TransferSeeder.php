@@ -9,118 +9,256 @@ use App\Config\Constants\{
 };
 use App\Models\{Branch, Department, Employee, Transfer};
 use App\Traits\EnsuresSystemUser;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\{Seeder};
 use Illuminate\Support\Facades\{DB, Log};
+use Symfony\Component\Console\Output\{ConsoleOutput};
 
 final class TransferSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
+	private const MAX_PICK_ATTEMPTS = 24;
+	private const MAX_DATE_SHIFT_ATTEMPTS = 7;
+
 	public function run(): void
 	{
 		$faker = fake('pt_BR');
+		$out = new ConsoleOutput();
 
-		DB::transaction(function () use ($faker) {
+		DB::transaction(function () use ($faker, $out): void {
 			$systemUserId = $this->ensureSystemUser();
 
-			$employeeIds = Employee::query()->pluck('id')->all();
-			if (!$employeeIds) {
+			$employees = Employee::query()
+				->select(['id', CPC::COL_BRC_ID, CPC::COL_DEP_ID])
+				->get()
+				->values();
+
+			if ($employees->isEmpty()) {
 				Log::notice('No employees found. Skipping transfer seeding.');
 				return;
 			}
 
-			$branchIds = Branch::query()->pluck('id')->all();
-			$deptIds   = Department::query()->pluck('id')->all();
+			$branchIds = Branch::query()
+				->pluck('id')
+				->filter(fn($v) => is_string($v) && trim($v) !== '')
+				->values()
+				->all();
 
-			if (!$branchIds || !$deptIds) {
-				Log::notice('Branches or Departments not found. Skipping transfer seeding.');
+			if (!$branchIds) {
+				Log::notice('No branches found. Skipping transfer seeding.');
 				return;
 			}
 
-			// ~35% dos colaboradores receberão 1 transferência simulada (mín. 3).
-			$targets = collect($employeeIds)
-				->shuffle()
-				->take(max(3, (int) floor(count($employeeIds) * 0.75)));
+			$departments = Department::query()
+				->select(['id', CPC::COL_BRC_ID])
+				->get();
 
-			foreach ($targets as $empId) {
+			$deptIdsAll = $departments
+				->pluck('id')
+				->filter(fn($v) => is_string($v) && trim($v) !== '')
+				->values()
+				->all();
+
+			if (!$deptIdsAll) {
+				Log::notice('No departments found. Skipping transfer seeding.');
+				return;
+			}
+
+			$deptIdsByBranch = $departments
+				->groupBy(CPC::COL_BRC_ID)
+				->map(fn($rows) => $rows->pluck('id')->filter(fn($v) => is_string($v) && trim($v) !== '')->values()->all())
+				->all();
+
+			$branchAddressMap = Branch::query()
+				->pluck('address', 'id')
+				->all();
+
+			$nEmployees = $employees->count();
+			$countOpt = null;
+
+			try {
+				if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
+					$raw = $this->command->option('count');
+					if (is_numeric($raw) && (int) $raw > 0) $countOpt = (int) $raw;
+				}
+			} catch (\Throwable) {
+			}
+
+			// Regra do projeto (mocking): default >= 64 * n (n = base entities: employees)
+			$total = $countOpt ?? max(64 * max(1, $nEmployees), 3);
+
+			$out->writeln("Seeding Transfers: total={$total}, employees={$nEmployees}");
+
+			$employeeArr = $employees->all();
+			$seenEmpDate = [];
+
+			for ($i = 1; $i <= $total; $i++) {
 				try {
 					/** @var Employee $emp */
-					$emp = Employee::query()
-						->select(['id', CPC::COL_BRC_ID, CPC::COL_DEP_ID])
-						->find($empId);
+					$emp = $employeeArr[random_int(0, count($employeeArr) - 1)];
+					$empId = (string) ($emp->getAttribute('id') ?? '');
 
-					if (!$emp) {
+					if ($empId === '') {
+						Log::warning('TransferSeeder: employee without id encountered, skipping.');
 						continue;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Transferência para funcionário ID: {$empId}");
-					// Escolhe filial de destino, priorizando troca real (≠ filial atual) se possível.
-					$destBranchId = collect($branchIds)->reject(fn($b) => $b === $emp->{CPC::COL_BRC_ID})
-						->whenEmpty(fn($c) => collect($branchIds))
-						->shuffle()
-						->first();
 
-					// Tenta departamento compatível com a filial escolhida; cai para qualquer um se não houver.
-					$deptPoolForBranch = Department::query()
-						->where(CPC::COL_BRC_ID, $destBranchId)
-						->pluck('id')
-						->all();
+					$srcBranchId = (string) ($emp->getAttribute(CPC::COL_BRC_ID) ?? '');
+					$srcDeptId   = (string) ($emp->getAttribute(CPC::COL_DEP_ID) ?? '');
 
-					$destDeptId = collect($deptPoolForBranch ?: $deptIds)
-						->shuffle()
-						->first();
+					[$destBranchId, $destDeptId] = $this->pickDestination(
+						$srcBranchId,
+						$srcDeptId,
+						$branchIds,
+						$deptIdsAll,
+						$deptIdsByBranch
+					);
 
-					// Data da transferência: nos últimos ~18 meses.
-					$transferDate = now('America/Sao_Paulo')->subDays(random_int(0, 540))->format('Y-m-d');
+					// Data da transferência: últimos ~18 meses (0..540 dias)
+					$dt = now('America/Sao_Paulo')->subDays(random_int(0, 540))->toDateString();
 
-					// Evita duplicidade do par (employee_id, transfer_date) por prudência.
-					$existsSameDay = Transfer::query()
-						->where(UC::COL_EMP_ID, $empId)
-						->whereDate(UC::COL_TRF_DT, $transferDate)
-						->exists();
-
-					if ($existsSameDay) {
-						$transferDate = now('America/Sao_Paulo')->subDays(random_int(0, 540))->addDay()->format('Y-m-d');
+					// Evita colisão "employee_id + date" nesta execução (sem query no BD).
+					for ($k = 0; $k < self::MAX_DATE_SHIFT_ATTEMPTS; $k++) {
+						$key = $empId . '|' . $dt;
+						if (!isset($seenEmpDate[$key])) {
+							$seenEmpDate[$key] = true;
+							break;
+						}
+						$dt = now('America/Sao_Paulo')->subDays(random_int(0, 540))->addDays($k + 1)->toDateString();
 					}
 
 					$t = new Transfer();
-					$t->{UC::COL_EMP_ID} = $empId;
-					$t->{UC::COL_BRC_ID} = $destBranchId;
-					$t->{UC::COL_DEP_ID} = $destDeptId;
-					$t->{UC::COL_TRF_DT} = $transferDate;
-					$t->description      = $faker->boolean(60) ? $faker->sentence(8) : null;
-					$t->notes            = $faker->boolean(35) ? $faker->sentence(10) : null;
+					$t->setAttribute(UC::COL_EMP_ID, $empId);
+					$t->setAttribute(UC::COL_BRC_ID, $destBranchId);
+					$t->setAttribute(UC::COL_DEP_ID, $destDeptId);
+					$t->setAttribute(UC::COL_TRF_DT, $dt);
+					$t->setAttribute('description', $faker->boolean(60) ? $faker->sentence(8) : null);
+					$t->setAttribute('notes', $faker->boolean(35) ? $faker->sentence(10) : null);
 
-					// Auditoria explícita (sem auth() no seeding).
-					$t->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					// Auditoria explícita (sem auth()).
+					$t->setAttribute(DC::COL_TABLE_CREATOR, $systemUserId);
+					$t->setAttribute(DC::COL_TABLE_UPDATER, $systemUserId);
 
-					try {
-						$t->save();
+					$t->save();
 
-						// Atualiza o empregado para refletir a nova lotação (e endereço da filial, se houver).
-						$emp->{CPC::COL_BRC_ID} = $destBranchId;
-						$emp->{CPC::COL_DEP_ID} = $destDeptId;
+					// IMPORTANTÍSSIMO:
+					// Atualiza APENAS lotação via query builder para não disparar boot/mutators do Employee
+					// (evita re-associação indevida de user_id e violação de UNIQUE).
+					$payload = [
+						CPC::COL_BRC_ID => $destBranchId,
+						CPC::COL_DEP_ID => $destDeptId,
+						DC::COL_TABLE_UPDATER => $systemUserId,
+						DC::COL_U_AT => now('America/Sao_Paulo'),
+					];
 
-						$branchAddress = Branch::query()
-							->where('id', $destBranchId)
-							->value('address');
-
-						if ($branchAddress) {
-							$emp->{CPC::COL_BRC_LC} = $branchAddress;
-						}
-
-						$emp->save();
-					} catch (\Throwable $e) {
-						Log::warning('Failed to seed transfer', [
-							'employee_id' => $empId,
-							'error'       => $e->getMessage(),
-						]);
+					$addr = $branchAddressMap[$destBranchId] ?? null;
+					if (is_string($addr) && trim($addr) !== '') {
+						$payload[CPC::COL_BRC_LC] = $addr;
 					}
-				} catch (\Exception $e) {
-					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+
+					DB::table(DC::TABLE_EMPLOYEES)
+						->where('id', $empId)
+						->update($payload);
+
+					// Mantém o array local coerente para próximas iterações
+					$emp->setAttribute(CPC::COL_BRC_ID, $destBranchId);
+					$emp->setAttribute(CPC::COL_DEP_ID, $destDeptId);
+
+					$out->writeln(sprintf(
+						'[%d/%d] emp=%s | %s/%s -> %s/%s | %s',
+						$i,
+						$total,
+						$empId,
+						$srcBranchId !== '' ? $srcBranchId : '-',
+						$srcDeptId !== '' ? $srcDeptId : '-',
+						$destBranchId !== '' ? $destBranchId : '-',
+						is_string($destDeptId) && $destDeptId !== '' ? $destDeptId : '-',
+						$dt
+					));
+				} catch (\Throwable $e) {
+					Log::warning('TransferSeeder: failed record', [
+						'i' => $i,
+						'error' => $e->getMessage(),
+					]);
 					continue;
 				}
 			}
 		}, 3);
+	}
+
+	/**
+	 * Regra:
+	 * - Branch pode permanecer igual se (e somente se) Dept mudar.
+	 * - Dept pode permanecer igual se (e somente se) Branch mudar.
+	 * - Não pode ficar "sem mudança" (branch e dept iguais aos do employee).
+	 * - Mantém o snippet-base de branch selection (reject current, whenEmpty fallback).
+	 */
+	private function pickDestination(
+		string $srcBranchId,
+		string $srcDeptId,
+		array $branchIds,
+		array $deptIdsAll,
+		array $deptIdsByBranch
+	): array {
+		$branchIds = array_values(array_filter($branchIds, fn($v) => is_string($v) && trim($v) !== ''));
+		$deptIdsAll = array_values(array_filter($deptIdsAll, fn($v) => is_string($v) && trim($v) !== ''));
+
+		if (!$branchIds) {
+			throw new \RuntimeException('No branches available for transfer destination.');
+		}
+		if (!$deptIdsAll) {
+			throw new \RuntimeException('No departments available for transfer destination.');
+		}
+
+		for ($attempt = 0; $attempt < self::MAX_PICK_ATTEMPTS; $attempt++) {
+			// === MANTÉM A REGRA (snippet) ===
+			$destBranchId = collect($branchIds)
+				->reject(fn($b) => $srcBranchId !== '' && $b === $srcBranchId)
+				->whenEmpty(fn($c) => collect($branchIds))
+				->shuffle()
+				->first();
+
+			if (!is_string($destBranchId) || trim($destBranchId) === '') {
+				$destBranchId = $srcBranchId !== '' ? $srcBranchId : $branchIds[array_rand($branchIds)];
+			}
+
+			// Tenta dept compatível com a filial escolhida; cai para qualquer um se não houver.
+			$deptPoolForBranch = $deptIdsByBranch[$destBranchId] ?? [];
+			$pool = $deptPoolForBranch ?: $deptIdsAll;
+
+			// Se a branch ficou igual, tenta forçar trocar dept (quando houver dept atual).
+			if ($destBranchId === $srcBranchId && $srcDeptId !== '' && count($pool) > 1) {
+				$pool = array_values(array_filter($pool, fn($d) => $d !== $srcDeptId));
+			}
+
+			$destDeptId = $pool ? $pool[array_rand($pool)] : null;
+
+			$branchDiff = ($srcBranchId === '') ? ($destBranchId !== '') : ($destBranchId !== $srcBranchId);
+			$deptDiff   = ($srcDeptId === '') ? (is_string($destDeptId) && $destDeptId !== '') : ((string) $destDeptId !== $srcDeptId);
+
+			if ($destBranchId !== '' && ($branchDiff || $deptDiff)) {
+				return [$destBranchId, $destDeptId];
+			}
+
+			// fallback estruturado (sem while infinito):
+			// 1) tenta trocar dept na mesma branch
+			if ($destBranchId === $srcBranchId && $srcDeptId !== '') {
+				$altPool = $deptPoolForBranch ?: $deptIdsAll;
+				$altPool = array_values(array_filter($altPool, fn($d) => $d !== $srcDeptId));
+				if ($altPool) {
+					return [$destBranchId, $altPool[array_rand($altPool)]];
+				}
+			}
+
+			// 2) tenta trocar branch e pegar um dept (qualquer)
+			$altBranches = array_values(array_filter($branchIds, fn($b) => $srcBranchId === '' ? true : $b !== $srcBranchId));
+			if ($altBranches) {
+				$b = $altBranches[array_rand($altBranches)];
+				$p = ($deptIdsByBranch[$b] ?? []) ?: $deptIdsAll;
+				return [$b, $p ? $p[array_rand($p)] : null];
+			}
+		}
+
+		throw new \RuntimeException('Cannot pick a valid destination for Transfer after max attempts.');
 	}
 }

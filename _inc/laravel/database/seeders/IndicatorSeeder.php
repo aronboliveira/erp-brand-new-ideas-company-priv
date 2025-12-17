@@ -22,6 +22,7 @@ class IndicatorSeeder extends Seeder
 	protected function seedIndicators(): void
 	{
 		try {
+			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			$userIds = DB::table(DC::TABLE_USERS)->pluck('id')->all();
 			if (empty($userIds)) {
 				Log::warning(static::class . ' skipping: no users found for indicators');
@@ -131,8 +132,8 @@ class IndicatorSeeder extends Seeder
 							DC::COL_TABLE_UPDATER => $creatorId,
 						];
 
+						$output->writeln("Created indicator: Level {$levelEnum->value}, Branch {$branchId}");
 						$created++;
-
 						if (count($buffer) >= 500) {
 							DB::table(DC::TABLE_IND)->insert($buffer);
 							$buffer = [];
@@ -142,6 +143,7 @@ class IndicatorSeeder extends Seeder
 			}
 
 			if (!empty($buffer)) {
+				$output->writeln("Inserting remaining " . count($buffer) . " indicators...");
 				DB::table(DC::TABLE_IND)->insert($buffer);
 			}
 

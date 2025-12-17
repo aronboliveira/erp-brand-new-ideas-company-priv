@@ -42,12 +42,13 @@ class UserSeeder extends Seeder
 		$deptIds   = Dep::query()->pluck('id')->all();
 		$dsgIds    = Dsg::query()->pluck('id')->all();
 		$minLate = min(1, count($deptIds) * 2, count($branchIds) * DepartmentSeeder::MIN_DEPTS_PER_BRANCH) * DepartmentSeeder::MIN_DSG_PER_DEPT;
-		$maxLate = max(2, count($deptIds) * count($branchIds), count($branchIds) * (new DepartmentSeeder())->max_depts_per_branch) * DepartmentSeeder::MAX_DSG_PER_DEPT;
+		$maxLate = max(2, count($deptIds) * count($branchIds), count($branchIds) * DepartmentSeeder::MAX_DEPTS_PER_BRANCH) * DepartmentSeeder::MAX_DSG_PER_DEPT;
 		$target = max((min(160 * (floor(log10(count($deptIds) ?: 1)) + 1), random_int($minLate, $maxLate)) + VendorSeeder::MIN_VENDORS + CustomerSeeder::MIN_CUSTOMER + ClientSeeder::MIN_CLIENTS) * (count(array_filter(UserType::cases(), fn($c) => $c !== UserType::SuperAdmin && $c !== UserType::Vendor && $c !== UserType::Customer && $c !== UserType::Client)) ?: 1), count($deptIds) * max(3, count(array_filter(UserType::cases(), fn($c) => $c !== UserType::SuperAdmin && $c !== UserType::Vendor && $c !== UserType::Customer && $c !== UserType::Client)) ?: 3));
 		$phase === 'initial' ? Log::warning($target . ' Usuários iniciais criados') : Log::warning(
 			'UserSeeder tardio definido para ' . $target . ' usuários.',
 			['branch_count' => count($branchIds), 'dept_count' => count($deptIds), 'dsg_count' => count($dsgIds), 'calculated_n' => $n]
 		);
+		$target = min(6400, $target); // hard cap
 		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
 			$opt = (int) $this->command->option('count');
 			if ($opt > 0) {

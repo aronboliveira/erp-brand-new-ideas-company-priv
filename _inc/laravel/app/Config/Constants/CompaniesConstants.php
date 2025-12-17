@@ -48,4 +48,8 @@ class CompaniesConstants
 	public const COL_GIVEN_BY = 'given_by';
 	public const COL_PRC_DT = 'purchase_date';
 	public const COL_SPT_DT = 'supported_date';
+	public const COL_TRN_TP = 'training_type';
+	public const COL_TRN_CST = 'training_cost';
+	public const COL_TRAINER_OPT = 'trainer_option';
+	public const COL_RQ_CERT = 'required_certificates';
 }

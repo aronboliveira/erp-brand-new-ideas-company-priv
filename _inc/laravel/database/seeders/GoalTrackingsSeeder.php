@@ -155,7 +155,7 @@ class GoalTrackingsSeeder extends Seeder
 		$created = 0;
 		$round   = 0;
 		foreach ($goalRows as $goalRow) {
-			$perGoal   = fake()->numberBetween(1, 16);
+			$perGoal   = fake()->numberBetween(1, 8);
 
 			$goalId   = (string) $goalRow->id;
 			$goalName = (string) ($goalRow->name ?? ('Goal ' . $goalId));

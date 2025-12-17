@@ -4,13 +4,13 @@ namespace App\Enums;
 
 use App\Config\Constants\DatabaseConstants;
 
-enum IndicatorTechnicalLevel: int
+enum IndicatorTechnicalLevel: string
 {
-	case None = 0;
-	case Beginner = 1;
-	case Intermediate = 2;
-	case Advanced = 3;
-	case Expert = 4;
+	case None = '0';
+	case Beginner = '1';
+	case Intermediate = '2';
+	case Advanced = '3';
+	case Expert = '4';
 
 	public static function normalize(string|int|null|self $value = null): self
 	{
@@ -243,107 +243,6 @@ enum IndicatorTechnicalLevel: int
 		}
 		return $label;
 	}
-
-	/**
-	 * Get the icon for UI representation
-	 */
-	public function getIcon(): string
-	{
-		return match ($this) {
-			self::None => 'circle-slash',
-			self::Beginner => 'graduation-cap',
-			self::Intermediate => 'book-open',
-			self::Advanced => 'award',
-			self::Expert => 'crown',
-		};
-	}
-
-	/**
-	 * Get the color for UI display
-	 */
-	public function getColor(): string
-	{
-		return match ($this) {
-			self::None => '#6b7280', // gray
-			self::Beginner => '#3b82f6', // blue
-			self::Intermediate => '#10b981', // green
-			self::Advanced => '#8b5cf6', // purple
-			self::Expert => '#f59e0b', // amber
-		};
-	}
-
-	/**
-	 * Get the proficiency percentage (0-100)
-	 */
-	public function getProficiency(): int
-	{
-		return match ($this) {
-			self::None => 0,
-			self::Beginner => 25,
-			self::Intermediate => 50,
-			self::Advanced => 75,
-			self::Expert => 100,
-		};
-	}
-
-	/**
-	 * Get the next higher level (or null if already highest)
-	 */
-	public function getNextHigher(): ?self
-	{
-		return match ($this) {
-			self::None => self::Beginner,
-			self::Beginner => self::Intermediate,
-			self::Intermediate => self::Advanced,
-			self::Advanced => self::Expert,
-			self::Expert => null,
-		};
-	}
-
-	/**
-	 * Get the previous lower level (or null if already lowest)
-	 */
-	public function getPreviousLower(): ?self
-	{
-		return match ($this) {
-			self::Expert => self::Advanced,
-			self::Advanced => self::Intermediate,
-			self::Intermediate => self::Beginner,
-			self::Beginner => self::None,
-			self::None => null,
-		};
-	}
-
-	/**
-	 * Check if this level is considered skilled (Intermediate or above)
-	 */
-	public function isSkilled(): bool
-	{
-		return $this->value >= self::Intermediate->value;
-	}
-
-	/**
-	 * Check if this level is considered expert level
-	 */
-	public function isExpertLevel(): bool
-	{
-		return $this->value >= self::Advanced->value;
-	}
-
-	/**
-	 * Get the typical years of experience range for this level
-	 */
-	public function getExperienceRange(): string
-	{
-		return match ($this) {
-			self::None => '0 years',
-			self::Beginner => '0-2 years',
-			self::Intermediate => '2-5 years',
-			self::Advanced => '5-10 years',
-			self::Expert => '10+ years',
-		};
-	}
-
 	/**
 	 * Get the description of what this level typically means
 	 */
@@ -538,6 +437,106 @@ enum IndicatorTechnicalLevel: int
 			self::Advanced->value => '深入的专业知识，可以解决复杂问题并指导他人',
 			self::Expert->value => '行业领导者，创造新知识并设定标准',
 		];
+	}
+
+	/**
+	 * Get the icon for UI representation
+	 */
+	public function getIcon(): string
+	{
+		return match ($this) {
+			self::None => 'circle-slash',
+			self::Beginner => 'graduation-cap',
+			self::Intermediate => 'book-open',
+			self::Advanced => 'award',
+			self::Expert => 'crown',
+		};
+	}
+
+	/**
+	 * Get the color for UI display
+	 */
+	public function getColor(): string
+	{
+		return match ($this) {
+			self::None => '#6b7280', // gray
+			self::Beginner => '#3b82f6', // blue
+			self::Intermediate => '#10b981', // green
+			self::Advanced => '#8b5cf6', // purple
+			self::Expert => '#f59e0b', // amber
+		};
+	}
+
+	/**
+	 * Get the proficiency percentage (0-100)
+	 */
+	public function getProficiency(): int
+	{
+		return match ($this) {
+			self::None => 0,
+			self::Beginner => 25,
+			self::Intermediate => 50,
+			self::Advanced => 75,
+			self::Expert => 100,
+		};
+	}
+
+	/**
+	 * Get the next higher level (or null if already highest)
+	 */
+	public function getNextHigher(): ?self
+	{
+		return match ($this) {
+			self::None => self::Beginner,
+			self::Beginner => self::Intermediate,
+			self::Intermediate => self::Advanced,
+			self::Advanced => self::Expert,
+			self::Expert => null,
+		};
+	}
+
+	/**
+	 * Get the previous lower level (or null if already lowest)
+	 */
+	public function getPreviousLower(): ?self
+	{
+		return match ($this) {
+			self::Expert => self::Advanced,
+			self::Advanced => self::Intermediate,
+			self::Intermediate => self::Beginner,
+			self::Beginner => self::None,
+			self::None => null,
+		};
+	}
+
+	/**
+	 * Check if this level is considered skilled (Intermediate or above)
+	 */
+	public function isSkilled(): bool
+	{
+		return $this->value >= self::Intermediate->value;
+	}
+
+	/**
+	 * Check if this level is considered expert level
+	 */
+	public function isExpertLevel(): bool
+	{
+		return $this->value >= self::Advanced->value;
+	}
+
+	/**
+	 * Get the typical years of experience range for this level
+	 */
+	public function getExperienceRange(): string
+	{
+		return match ($this) {
+			self::None => '0 years',
+			self::Beginner => '0-2 years',
+			self::Intermediate => '2-5 years',
+			self::Advanced => '5-10 years',
+			self::Expert => '10+ years',
+		};
 	}
 
 	/**

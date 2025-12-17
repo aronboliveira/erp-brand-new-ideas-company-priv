@@ -142,33 +142,39 @@ class Pos extends Model
                 'pos_billing',
                 $ownerId
             ));
-            $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
-                $m->getAttribute(BC::COL_BL_TEL) ?? null,
-                'pos_billing',
-                $ownerId
-            ));
-            $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
-                $m->getAttribute(BC::COL_BL_ZIP) ?? null,
-                $m->getAttribute(BC::COL_BL_CTR) ?? null,
-                'pos_billing',
-                $ownerId
-            ));
-            self::normalizeBillingCountry($m);
-            foreach ([BC::COL_TRS_CNT, DC::COL_RTR_CT] as $intField) {
-                if ($m->getAttribute($intField) !== null) {
-                    $val = (int) $m->getAttribute($intField);
-                    if ($val < 0)
-                        $val = 0;
-                    $m->setAttribute($intField, $val);
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+            if ($isNormalizePhoneCallable)
+                $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
+                    $m->getAttribute(BC::COL_BL_TEL) ?? null,
+                    'pos_billing',
+                    $ownerId
+                ));
+            if ($isNormalizeZipCallable) {
+                $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
+                    $m->getAttribute(BC::COL_BL_ZIP) ?? null,
+                    $m->getAttribute(BC::COL_BL_CTR) ?? null,
+                    'pos_billing',
+                    $ownerId
+                ));
+                $isNormalizeBillingCountryCallable = is_callable([self::class, 'normalizeBillingCountry']);
+                if ($isNormalizeBillingCountryCallable)
+                    self::normalizeBillingCountry($m);
+                foreach ([BC::COL_TRS_CNT, DC::COL_RTR_CT] as $intField) {
+                    if ($m->getAttribute($intField) !== null) {
+                        $val = (int) $m->getAttribute($intField);
+                        if ($val < 0)
+                            $val = 0;
+                        $m->setAttribute($intField, $val);
+                    }
                 }
-            }
-
-            foreach ([BC::COL_ACC_TTL, BC::COL_SVC_FEE] as $decField) {
-                if ($m->getAttribute($decField) !== null) {
-                    $val = (float) $m->getAttribute($decField);
-                    if ($val < 0.0)
-                        $val = 0.0;
-                    $m->setAttribute($decField, $val);
+                foreach ([BC::COL_ACC_TTL, BC::COL_SVC_FEE] as $decField) {
+                    if ($m->getAttribute($decField) !== null) {
+                        $val = (float) $m->getAttribute($decField);
+                        if ($val < 0.0)
+                            $val = 0.0;
+                        $m->setAttribute($decField, $val);
+                    }
                 }
             }
         });

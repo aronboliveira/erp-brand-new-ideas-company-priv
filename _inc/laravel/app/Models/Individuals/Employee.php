@@ -18,7 +18,7 @@ use App\Models\{
     PayslipType,
     SaturationDeduction
 };
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Collection,
     Model,
@@ -27,10 +27,11 @@ use Illuminate\Database\Eloquent\{
     Relations\HasOne
 };
 use Illuminate\Support\{Str, Facades\Hash};
+use Illuminate\Support\Facades\Log;
 
 class Employee extends Model
 {
-    use UsesUuids, HasAuditFields;
+    use HasAuditFields, NormalizesAddresses, UsesUuids;
 
     protected $table = DC::TABLE_EMPLOYEES;
     protected $guarded = ['id', DC::COL_TABLE_CREATOR];
@@ -42,10 +43,12 @@ class Employee extends Model
         'gender' => Gender::class,
         'documents' => 'array',
         'password' => 'hashed',
+        'manager' => 'boolean',
     ];
     protected $fillable = [
         UC::COL_USER_ID,
         'name',
+        'manager',
         'phone',
         'email',
         'gender',
@@ -72,16 +75,6 @@ class Employee extends Model
     protected static function booted(): void
     {
         parent::booted();
-        $normalizePhone = static function (?string $v): ?string {
-            if ($v === null) return null;
-            $v = preg_replace('/\D+/', '', $v);
-            return $v !== '' ? $v : null;
-        };
-        $normalizeEmail = static function (?string $v): ?string {
-            if ($v === null) return null;
-            $v = strtolower(trim($v));
-            return $v !== '' ? $v : null;
-        };
         $normalizeAccNum = static function (?string $v): ?string {
             if ($v === null) return null;
             $v = preg_replace('/\s+/u', '', $v);
@@ -96,61 +89,195 @@ class Employee extends Model
                 throw new \DomainException("Valor já utilizado para {$col}");
         };
 
-        static::creating(function (self $m) use ($normalizePhone, $normalizeEmail, $normalizeAccNum, $ensureUnique) {
-            if (empty($m->{UC::COL_EMP_ID})) {
-                do $publicId = (string) \Illuminate\Support\Str::uuid();
+        static::creating(function (self $m) use ($normalizeAccNum, $ensureUnique) {
+            self::ensureValidAge($m);
+            if (empty($m->getAttribute('manager')))
+                $m->setAttribute('manager', false);
+            if (empty($m->getAttribute(UC::COL_EMP_ID))) {
+                do $publicId = (string) Str::uuid();
                 while (self::where(UC::COL_EMP_ID, $publicId)->exists());
-                $m->{UC::COL_EMP_ID} = $publicId;
+                $m->setAttribute(UC::COL_EMP_ID, $publicId);
             }
-
-            $m->phone = $normalizePhone($m->phone ?? null);
-            $m->email = $normalizeEmail($m->email ?? null);
-            $m->{UC::COL_ACC_NM}
-                = $normalizeAccNum($m->{UC::COL_ACC_NM} ?? null);
-
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $m->setAttribute('phone', self::normalizePhone($m->getAttribute('phone'), 'Employee phone', $m->getAttribute('id')));
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            $isNormalizeEmailCallable && $m->setAttribute('email', self::normalizeEmail($m->getAttribute('email') ?? null));
+            $m->setAttribute(UC::COL_ACC_NM, $normalizeAccNum($m->getAttribute(UC::COL_ACC_NM) ?? null));
             $ensureUnique($m, 'phone');
             $ensureUnique($m, 'email');
             $ensureUnique($m, UC::COL_ACC_NM);
-
             if (empty($m->{CPC::COL_BRC_LC}) && $m->{CPC::COL_BRC_ID}) {
                 $addr = $m->branch()->value('address');
-                if ($addr) $m->{CPC::COL_BRC_LC} = $addr;
+                if ($addr) $m->setAttribute(CPC::COL_BRC_LC, $addr);
             }
-            if (!empty($m->password) && !str_starts_with((string) $m->password, '$2y$'))
-                $m->password = Hash::make($m->password);
-            if (empty($m->{CPC::COL_DOJ}))
-                $m->{CPC::COL_DOJ} = now('America/Sao_Paulo')->format('Y-m-d');
+            if ($m->isDirty('gender')) {
+                $rawGender = $m->getAttribute('gender');
+                $normalized = Gender::normalize($rawGender);
+                $m->setAttribute('gender', $normalized?->value ?? Gender::Other->value);
+            }
+            if (!empty($m->getAttribute('password')) && !str_starts_with((string) $m->getAttribute('password'), '$2y$'))
+                $m->setAttribute('password', Hash::make($m->getAttribute('password')));
+            if (empty($m->getAttribute(CPC::COL_DOJ)))
+                $m->setAttribute(CPC::COL_DOJ, now('America/Sao_Paulo')->format('Y-m-d'));
+            try {
+                $userId = $m->getAttribute(UC::COL_USER_ID);
+                $empName = $m->getAttribute('name');
+                $empEmail = $m->getAttribute('email');
+                $empPhone = $m->getAttribute('phone');
+                $empAsUser = null;
+                if (!empty($userId))
+                    $empAsUser = User::query()->find($userId);
+                if (!$empAsUser) {
+                    $empAsUser = User::query()
+                        ->where(function ($query) use ($empName, $empEmail, $empPhone) {
+                            if (!empty($empEmail))
+                                $query->orWhere('email', $empEmail);
+                            if (!empty($empPhone))
+                                $query->orWhere('phone', $empPhone);
+                            if (!empty($empName))
+                                $query->orWhere('name', $empName);
+                        })
+                        ->first();
+                }
+                if ($empAsUser) {
+                    if (empty($m->getAttribute(UC::COL_USER_ID)))
+                        $m->user()->associate($empAsUser);
+                    foreach (['name', 'gender'] as $col) {
+                        $userValue = $empAsUser->getAttribute($col) ?? null;
+                        if (!empty($userValue))
+                            $m->setAttribute($col, $userValue);
+                    }
+                    foreach (['phone', 'email'] as $col) {
+                        $userValue = $empAsUser->getAttribute($col) ?? null;
+                        $empValue = $m->getAttribute($col) ?? null;
+                        if ($userValue !== null && $empValue === null)
+                            $m->setAttribute($col, $userValue);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning(
+                    static::class . ' failed to sync employee with user',
+                    [
+                        'employee_id' => $m->getAttribute('id'),
+                        'user_id' => $m->getAttribute(UC::COL_USER_ID),
+                        'error' => $e->getMessage(),
+                    ]
+                );
+            }
         });
 
-        static::updating(function (self $m) use ($normalizePhone, $normalizeEmail, $normalizeAccNum, $ensureUnique) {
-            if ($m->isDirty('phone')) {
-                $m->phone = $normalizePhone($m->phone ?? null);
-                $ensureUnique($m, 'phone');
-            }
-            if ($m->isDirty('email')) {
-                $m->email = $normalizeEmail($m->email ?? null);
-                $ensureUnique($m, 'email');
-            }
+        static::updating(function (self $m) use ($normalizeAccNum, $ensureUnique) {
+            self::ensureValidAge($m);
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $m->setAttribute('phone', self::normalizePhone($m->getAttribute('phone'), 'Employee phone', $m->getAttribute('id')));
+            $ensureUnique($m, 'phone');
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            $isNormalizeEmailCallable && $m->setAttribute('email', self::normalizeEmail($m->getAttribute('email') ?? null));
+            $ensureUnique($m, 'email');
             if ($m->isDirty(UC::COL_ACC_NM)) {
                 $m->{UC::COL_ACC_NM}
                     = $normalizeAccNum($m->{UC::COL_ACC_NM} ?? null);
                 $ensureUnique($m, UC::COL_ACC_NM);
             }
-
             if (
                 $m->isDirty(CPC::COL_BRC_ID)
-                && empty($m->{CPC::COL_BRC_LC})
+                && empty($m->getAttribute(CPC::COL_BRC_LC))
             ) {
                 $addr = $m->branch()->value('address');
-                if ($addr) $m->{CPC::COL_BRC_LC} = $addr;
+                if ($addr) $m->setAttribute(CPC::COL_BRC_LC, $addr);
             }
-            if ($m->isDirty('password') && !empty($m->password) && !str_starts_with((string) $m->password, '$2y$'))
-                $m->password = Hash::make($m->password);
-            if ($m->isDirty('gender'))
-                $m->gender = $m->gender;
+            if ($m->isDirty('password') && !empty($m->getAttribute('password')) && !str_starts_with((string) $m->getAttribute('password'), '$2y$'))
+                $m->setAttribute('password', Hash::make($m->getAttribute('password')));
+            if ($m->isDirty('gender')) {
+                $rawGender = $m->getAttribute('gender');
+                $normalized = Gender::normalize($rawGender);
+                $m->setAttribute('gender', $normalized?->value ?? Gender::Other->value);
+            }
+            try {
+                if ($m->isDirty('gender')) {
+                    $rawGender = $m->getAttribute('gender');
+                    $normalized = Gender::normalize($rawGender);
+                    $m->setAttribute('gender', $normalized?->value ?? Gender::Other->value);
+                }
+
+                $userId = $m->getAttribute(UC::COL_USER_ID);
+                $empName = $m->getAttribute('name');
+                $empEmail = $m->getAttribute('email');
+                $empPhone = $m->getAttribute('phone');
+
+                $empAsUser = null;
+
+                if (!empty($userId))
+                    $empAsUser = User::query()->find($userId);
+
+                if (!$empAsUser)
+                    $empAsUser = User::query()
+                        ->where(function ($query) use ($empName, $empEmail, $empPhone) {
+                            if (!empty($empEmail))
+                                $query->orWhere('email', $empEmail);
+                            if (!empty($empPhone))
+                                $query->orWhere('phone', $empPhone);
+                            if (!empty($empName))
+                                $query->orWhere('name', $empName);
+                        })
+                        ->first();
+
+                if ($empAsUser) {
+                    if (empty($m->getAttribute(UC::COL_USER_ID)))
+                        $m->user()->associate($empAsUser);
+
+                    foreach (['name', 'gender'] as $col) {
+                        $userValue = $empAsUser->{$col} ?? null;
+
+                        if (!empty($userValue)) {
+                            if ($col === 'gender') {
+                                $normalizedGender = Gender::normalize($userValue);
+                                $m->setAttribute($col, $normalizedGender?->value ?? Gender::Other->value);
+                            } else {
+                                $m->setAttribute($col, $userValue);
+                            }
+                        }
+                    }
+
+                    foreach (['phone', 'email'] as $col) {
+                        $userValue = $empAsUser->{$col} ?? null;
+                        $empValue = $m->getAttribute($col) ?? null;
+
+                        if ($userValue !== null && $empValue === null)
+                            $m->setAttribute($col, $userValue);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning(
+                    static::class . ' failed to sync employee with user',
+                    [
+                        'employee_id' => $m->getAttribute('id'),
+                        'user_id' => $m->getAttribute(UC::COL_USER_ID),
+                        'error' => $e->getMessage(),
+                    ]
+                );
+            }
         });
     }
 
+    protected static function ensureValidAge(self $m): void
+    {
+        $dob = $m->getAttribute('dob');
+        if ($dob instanceof Carbon) {
+            $age = $dob->age;
+
+            if ($age < 18) {
+                Log::warning('Attempted to save employee under 18', [
+                    'employee_id' => $m->id,
+                    'date_of_birth' => $dob->format('Y-m-d'),
+                    'age' => $age,
+                ]);
+                throw new \InvalidArgumentException(
+                    "Employee must be 18 or older. Current age: {$age}"
+                );
+            }
+        }
+    }
 
     public function branch(): BelongsTo
     {

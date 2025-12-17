@@ -168,28 +168,27 @@ class Payment extends Model
 
         static::saving(function (self $m): void {
             $ownerId = $m->getAttribute(UC::COL_VD_ID) ?? null;
-
-            $m->setAttribute(BC::COL_BL_EMAIL, static::normalizeEmail(
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            $isNormalizeEmailCallable && $m->setAttribute(BC::COL_BL_EMAIL, static::normalizeEmail(
                 $m->getAttribute(BC::COL_BL_EMAIL) ?? null,
                 'payment_billing',
                 $ownerId
             ));
-
-            $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
                 $m->getAttribute(BC::COL_BL_TEL) ?? null,
                 'payment_billing',
                 $ownerId
             ));
-
-            $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
+            $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+            $isNormalizeZipCallable && $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
                 $m->getAttribute(BC::COL_BL_ZIP) ?? null,
                 $m->getAttribute(BC::COL_BL_CTR) ?? null,
                 'payment_billing',
                 $ownerId
             ));
-
-            self::normalizeBillingCountry($m);
-
+            $isNormalizeBillingCallable = is_callable([self::class, 'normalizeBillingCountry']);
+            $isNormalizeBillingCallable && self::normalizeBillingCountry($m);
             if ($m->getAttribute('discount') !== null) {
                 $disc = (float) $m->getAttribute('discount');
                 if ($disc < 0.0) $disc = 0.0;

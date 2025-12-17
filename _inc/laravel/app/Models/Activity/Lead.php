@@ -98,12 +98,14 @@ class Lead extends Model
 
             if ($lead->getAttribute('email'))
                 $lead->setAttribute('email', self::normalizeEmail($lead->getAttribute('email'), 'Lead email', $lead->getAttribute('id') ?? null) ?: null);
-
-            $lead->setAttribute('phone', static::normalizePhone(
-                $lead->getAttribute('phone') ?? null,
-                'pos_billing',
-                $lead->getAttribute('id') ?? null
-            ));
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if ($lead->getAttribute('phone') && $isNormalizePhoneCallable) {
+                $lead->setAttribute('phone', static::normalizePhone(
+                    $lead->getAttribute('phone') ?? null,
+                    'pos_billing',
+                    $lead->getAttribute('id') ?? null
+                ));
+            }
 
             $lead->setAttribute('involved', self::normalizeArrayField($lead->getAttribute('involved') ?? null));
 

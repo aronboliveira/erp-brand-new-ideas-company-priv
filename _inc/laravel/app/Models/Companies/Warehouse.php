@@ -120,17 +120,20 @@ class Warehouse extends Model
             )
                 $m->setAttribute($field, static::normalizeArrayField($m->getAttribute($field) ?? null));
             $ownerId = $m->getAttribute(DC::COL_TABLE_CREATOR) ?? $m->getAttribute(CC::COL_CP_ID) ?? $m->getAttribute(CC::COL_OWN_ID) ?? null;
-            $m->setAttribute('email', static::normalizeEmail(
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            $isNormalizeEmailCallable && $m->setAttribute('email', static::normalizeEmail(
                 $m->getAttribute('email') ?? null,
                 'warehouse',
                 $ownerId
             ));
-            $m->setAttribute('phone', static::normalizePhone(
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            $isNormalizePhoneCallable && $m->setAttribute('phone', static::normalizePhone(
                 $m->getAttribute('phone') ?? null,
                 'warehouse',
                 $ownerId
             ));
-            $m->setAttribute('zip', static::normalizeZip(
+            $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+            $isNormalizeZipCallable && $m->setAttribute('zip', static::normalizeZip(
                 $m->getAttribute('zip') ?? null,
                 $m->getAttribute('country') ?? null,
                 'warehouse',

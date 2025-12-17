@@ -64,7 +64,8 @@ class DealCall extends Model
             $model->normalizeEndpoints();
             $model->normalizeCallType();
             $model->normalizeDurations();
-            if ($model->getAttribute('phone'))
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if ($model->getAttribute('phone') && $isNormalizePhoneCallable)
                 $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'Deal Call Phone', $model->id ?? null));
         });
     }

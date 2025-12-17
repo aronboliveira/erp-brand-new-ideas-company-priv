@@ -31,7 +31,7 @@ final class ClientDealSeeder extends Seeder
 			}
 
 			foreach ($dealIds as $dealId) {
-				$count = random_int(64, 128);
+				$count = random_int(2, 32);
 				if ($count === 0) continue;
 
 				$picked = collect($clientIds)->shuffle()->take($count)->all();

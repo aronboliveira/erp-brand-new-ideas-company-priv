@@ -53,7 +53,7 @@ final class EmployeeSeeder extends Seeder
 
 			$genders = array_map(fn($e) => $e->value, Gender::cases());
 			$minLate = min(1, count($deptIds) * 2, count($branchIds) * DepartmentSeeder::MIN_DEPTS_PER_BRANCH) * DepartmentSeeder::MIN_DSG_PER_DEPT;
-			$maxLate = max(2, count($deptIds) * count($branchIds), count($branchIds) * (new DepartmentSeeder())->max_depts_per_branch) * DepartmentSeeder::MAX_DSG_PER_DEPT;
+			$maxLate = max(2, count($deptIds) * count($branchIds), count($branchIds) * DepartmentSeeder::MAX_DEPTS_PER_BRANCH) * DepartmentSeeder::MAX_DSG_PER_DEPT;
 			$quantity = min(160 * (floor(log10(count($deptIds) ?: 1)) + 1), random_int($minLate, $maxLate));
 			$employeedUsers = 0;
 			for ($i = 0; $i < $quantity; $i++) {
@@ -120,14 +120,30 @@ final class EmployeeSeeder extends Seeder
 					$employeeAsUser = DB::table(DC::TABLE_USERS)
 						->where('id', $maybeUserId)
 						->exists();
-					if ($employeeAsUser) DB::table(DC::TABLE_USERS)
-						->where('id', $maybeUserId)
-						->update([UC::COL_EMP_ID => $publicId]);
+					$isManager = $faker->boolean(10);
+					if ($employeeAsUser) {
+						DB::table(DC::TABLE_USERS)
+							->where('id', $maybeUserId)
+							->update([UC::COL_EMP_ID => $publicId]);
+						if (DB::table(DC::TABLE_USERS)
+							->where('id', $maybeUserId)
+							->whereIn('type', ['admin', 'company', 'super admin'])
+							->exists()
+						)
+							$isManager = $faker->boolean(50);
+						else if (DB::table(DC::TABLE_USERS)
+							->where('id', $maybeUserId)
+							->whereIn('type', ['vendor', 'client', 'customer'])
+							->exists()
+						)
+							$isManager = false;
+					}
 					$emp = new Emp();
 					$emp->id                     = $id;
 					$emp->{UC::COL_EMP_ID}       = $publicId;
 					$emp->{UC::COL_USER_ID}      = $maybeUserId;
 					$emp->name                   = $name;
+					$emp->manager                = $isManager;
 					$emp->email                  = $email;
 					$emp->phone                  = $phone;
 					$emp->gender                 = $faker->randomElement($genders);

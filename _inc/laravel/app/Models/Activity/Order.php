@@ -391,7 +391,8 @@ class Order extends Model
         if ($digits !== '' && (strlen($digits) === 11 || strlen($digits) === 14))
             return $digits;
         // Telefone
-        if ($digits !== '' && strlen($digits) >= 8 && strlen($digits) <= 15)
+        $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+        if ($digits !== '' && strlen($digits) >= 8 && strlen($digits) <= 15 && $isNormalizePhoneCallable)
             return self::normalizePhone($digits, 'Pix key', null) ?? $digits;
         // Chave aleatória (máx. 36 caracteres)
         if (strlen($key) > 36)

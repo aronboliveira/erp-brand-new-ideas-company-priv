@@ -11,8 +11,8 @@ class ActivitiesConstants
 	public const COL_TSK = 'task_id';
 	public const COL_DL = 'deal_id';
 	public const COL_BUG = 'bug_id';
-	public const COL_MI = self::COL_MD . '_id';
-	public const COL_MT = self::COL_MD . '_type';
+	public const COL_MI = 'module_id';
+	public const COL_MT = 'module_type';
 	public const COL_LT = 'log_type';
 	public const COL_NT = 'note';
 	public const COL_A_O_M = 'agent_or_manager';

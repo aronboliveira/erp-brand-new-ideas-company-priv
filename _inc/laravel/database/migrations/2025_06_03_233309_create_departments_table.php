@@ -14,6 +14,7 @@ class CreateDepartmentsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('company')->nullable()->index(); // ? nullable for tests
             $table->string(CPC::COL_DEP_NM)->index();
             $this->addBranchColumns($table, unique: false, nullable: false);
             $table->text('description')->nullable();
@@ -21,8 +22,8 @@ class CreateDepartmentsTable extends Migration
             $table->string('email')->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
             $table->decimal('budget', 15, 2)->default(0.00);
-            $table->decimal('expenses', 15, 2)->default(0.00);
-            $table->decimal('profit', 15, 2)->default(0.00);
+            $table->unsignedDecimal('expenses', 15, 2)->default(0.00);
+            $table->unsignedDecimal('profit', 15, 2)->default(0.00);
             $table->unique([CPC::COL_BRC_ID, CPC::COL_DEP_NM], self::UNQ_BDEP);
             foreach (
                 [

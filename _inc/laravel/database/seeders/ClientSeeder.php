@@ -25,7 +25,7 @@ class ClientSeeder extends Seeder
 		DB::transaction(function () use ($faker) {
 			$creatorId = DC::DEFAULT_UUID;
 			$clientsAsUsers = User::where('type', 'client')->pluck('id')->all();
-			$quantity = max(self::MIN_CLIENTS, count($clientsAsUsers) * 2);
+			$quantity = max(self::MIN_CLIENTS, count($clientsAsUsers));
 			Log::warning(get_class($this) . ' seeding ' . $quantity . ' clients (' . count($clientsAsUsers) . ' linked to users).');
 			for ($i = 0; $i < $quantity; $i++) {
 				try {

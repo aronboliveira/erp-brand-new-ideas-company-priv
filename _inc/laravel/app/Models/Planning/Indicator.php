@@ -59,7 +59,6 @@ class Indicator extends Model
     protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [

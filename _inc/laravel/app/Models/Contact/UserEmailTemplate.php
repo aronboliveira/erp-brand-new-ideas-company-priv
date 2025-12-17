@@ -75,11 +75,6 @@ class UserEmailTemplate extends Model
         DC::COL_U_AT     => 'datetime',
     ];
 
-    protected $with = [
-        'template',
-        'user',
-    ];
-
     protected $appends = [
         'clients_list',
         'clients_count',

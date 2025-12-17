@@ -149,18 +149,23 @@ class Invoice extends Model
                 $discount = $amount;
             $m->setAttribute('amount', $amount);
             $m->setAttribute('discount', $discount);
-            self::normalizeBillingCountry($m);
-            if (!empty($m->getAttribute(BC::COL_BL_EMAIL)))
+            $isNormalizeCountryCallable = is_callable([self::class, 'normalizeBillingCountry']);
+            if ($isNormalizeCountryCallable)
+                self::normalizeBillingCountry($m);
+            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+            if (!empty($m->getAttribute(BC::COL_BL_EMAIL)) && $isNormalizeEmailCallable)
                 $m->setAttribute(BC::COL_BL_EMAIL, self::normalizeEmail($m->getAttribute(BC::COL_BL_EMAIL), $m->getAttribute(BC::COL_BL_NAME) ?? null, $m->getAttribute('id') ?? null));
-            if (!empty($m->getAttribute(BC::COL_SHIP_EMAIL)))
+            if (!empty($m->getAttribute(BC::COL_SHIP_EMAIL)) && $isNormalizeEmailCallable)
                 $m->setAttribute(BC::COL_SHIP_EMAIL, self::normalizeEmail($m->getAttribute(BC::COL_SHIP_EMAIL), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
-            if (!empty($m->getAttribute(BC::COL_BL_TEL)))
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if (!empty($m->getAttribute(BC::COL_BL_TEL)) && $isNormalizePhoneCallable)
                 $m->setAttribute(BC::COL_BL_TEL, self::normalizePhone($m->getAttribute(BC::COL_BL_TEL), $m->getAttribute(BC::COL_BL_NAME) ?? null, $m->getAttribute('id') ?? null));
-            if (!empty($m->getAttribute(BC::COL_SHIP_TEL)))
+            if (!empty($m->getAttribute(BC::COL_SHIP_TEL)) && $isNormalizePhoneCallable)
                 $m->setAttribute(BC::COL_SHIP_TEL, self::normalizePhone($m->getAttribute(BC::COL_SHIP_TEL), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
-            if (!empty($m->getAttribute(BC::COL_BL_ZIP)) && !empty($m->getAttribute(BC::COL_BL_CTR)))
+            $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+            if (!empty($m->getAttribute(BC::COL_BL_ZIP)) && !empty($m->getAttribute(BC::COL_BL_CTR)) && $isNormalizeZipCallable)
                 $m->setAttribute(BC::COL_BL_ZIP, self::normalizeZip($m->getAttribute(BC::COL_BL_ZIP), $m->getAttribute(BC::COL_BL_CTR), $m->getAttribute(BC::COL_BL_CTR) ?? null, $m->getAttribute('id') ?? null));
-            if (!empty($m->getAttribute(BC::COL_SHIP_ZIP)) && !empty($m->getAttribute(BC::COL_SHIP_CTR)))
+            if (!empty($m->getAttribute(BC::COL_SHIP_ZIP)) && !empty($m->getAttribute(BC::COL_SHIP_CTR)) && $isNormalizeZipCallable)
                 $m->setAttribute(BC::COL_SHIP_ZIP, self::normalizeZip($m->getAttribute(BC::COL_SHIP_ZIP), $m->getAttribute(BC::COL_SHIP_CTR), $m->getAttribute(BC::COL_SHIP_NAME) ?? null, $m->getAttribute('id') ?? null));
             $m->setAttribute('attachments', static::normalizeArrayField($m->getAttribute('attachments') ?? null));
             $m->setAttribute('taxes', static::normalizeArrayField($m->getAttribute('taxes') ?? null));
