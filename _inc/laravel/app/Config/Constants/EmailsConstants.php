@@ -8,6 +8,8 @@ class EmailsConstants
 	public const COL_TMP	= 'template_id';
 	public const COL_SLG 	= 'slug';
 	public const COL_FROM	= 'from';
+	public const COL_FROM_ID = 'from_id';
+	public const COL_TO_ID = 'to_id';
 	public const COL_D_URL = 'document_url';
 	public const COL_EM  = 'email';
 	public const COL_ATC = 'attachments';

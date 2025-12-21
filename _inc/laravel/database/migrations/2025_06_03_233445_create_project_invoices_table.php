@@ -1,44 +1,50 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateProjectInvoicesTable extends Migration
 {
-    private const ENTITY = 'project';
-    private const TABLE = self::ENTITY . '_invoices';
-    private const COL_INVOICE = 'invoice_id';
-    private const COL_PROJECT = self::ENTITY . '_id';
-    private const COL_CLIENT = 'client_id';
-    private const COL_TAX    = 'tax_id';
+    // ? this is just a "bridge" table to link projects and invoices, as a project can have multiple invoices and an invoice can be linked to multiple projects in some cases (though rare)
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_PRJ_INV;
     public function up(): void
     {
         Schema::create(
             self::TABLE,
             function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->uuid(self::COL_INVOICE)->index();
-                $table->uuid(self::COL_PROJECT)->index();
-                $table->uuid(self::COL_CLIENT)->index();
-                $table->uuid(self::COL_TAX)->index();
-                $table->date('due_date');
-                $table->smallInteger('status')->default(1);
-                $table->timestamps();
-                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
+                $table->uuid(BC::COL_INV_ID)->index();
+                $table->uuid(PJC::COL_PJ_ID)->index();
+                $table->unique([BC::COL_INV_ID, PJC::COL_PJ_ID], 'uniq_inv_prj');
+                $table->uuid(BC::COL_BL_ID)->nullable()->index(); // * if the invoice is linked to a bill (through BC::COL_BL_ID), then it's the source of truth for that link
+                $table->uuid(BC::COL_TAX_ID)->nullable();
+                $table->date(BC::COL_DUE_DT)->index(); // * if the invoice has a BC::COL_DUE_DT, it is the source of truth for that due date
+                $table->unsignedTinyInteger('status')->default(1); // ? constrained with the PaymentStatus::getAllIndexes ints at model level
                 foreach (
                     [
-                        self::COL_INVOICE                => DatabaseConstants::TABLE_INVS,
-                        self::COL_PROJECT                => DatabaseConstants::TABLE_PROJECTS,
-                        self::COL_CLIENT                 => DatabaseConstants::TABLE_CLIENTS,
-                        self::COL_TAX                    => DatabaseConstants::TABLE_TAXES,
-                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                        BC::COL_BL_ID => DC::TABLE_BILLS,
+                        BC::COL_TAX_ID => DC::TABLE_TAXES,
                     ] as $column => $referencedTable
                 )
                     $table->foreign($column)
                         ->references('id')
                         ->on($referencedTable)
-                        ->cascadeOnDelete();
+                        ->nullOnDelete();
+                foreach (
+                    [
+                        BC::COL_INV_ID                => DC::TABLE_INVS,
+                        PJC::COL_PJ_ID                => DC::TABLE_PROJECTS,
+                    ] as $column => $referencedTable
+                )
+                    $table->foreign($column)
+                        ->references('id')
+                        ->on($referencedTable)
+                        ->restrictOnDelete();
+                $this->addAuditColumns($table);
+                $table->softDeletes();
             }
         );
     }
@@ -46,13 +52,13 @@ class CreateProjectInvoicesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_INVOICE,
-                    self::COL_PROJECT,
-                    self::COL_CLIENT,
-                    self::COL_TAX,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    BC::COL_INV_ID,
+                    PJC::COL_PJ_ID,
+                    BC::COL_BL_ID,
+                    BC::COL_TAX_ID,
                 ] as $column
             ) {
                 try {

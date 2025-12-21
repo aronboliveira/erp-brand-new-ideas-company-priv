@@ -16,7 +16,7 @@ trait HasPaymentRequestColumns
 		// * it is not clear why the amount wasn't listed in the old implementation, so its added here as nullable for now
 		$issues && $table->date(BC::COL_ISS_DT)->default(now()->addDays($addIssueDays)->format('Y-m-d'))->index(); // ? nullable para testes 
 		$table->date(BC::COL_SD_DT)->nullable()->index(); // ? nullable para testes 
-		$table->date(PJC::COL_D_DATE)->index();
+		$table->date(BC::COL_DUE_DT)->index();
 		$table->uuid(BC::COL_CAT_ID)->nullable()->index();
 		!$isProjection && $table->unsignedTinyInteger(PJC::COL_STATUS)->default(0)->index();
 		$table->enum($prioritizesBillStatus ? BC::COL_STT_LB : BC::COL_BILL_STATUS, BillStatus::values())->default(BillStatus::Draft)->nullable()->index(); // ? nullable para testes

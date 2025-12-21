@@ -86,6 +86,9 @@ class ProjectsConstants
 	public const COL_CST_EXP = 'customer_experience';
 	public const COL_APR_DT = 'appraisal_date';
 	public const COL_AOM_ID = 'agent_or_manager_id';
+	public const COL_CMP_AT = 'completed_at';
+	public const COL_ASG_BY = 'assigned_by';
+	public const COL_ASG_AT = 'assigned_at';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

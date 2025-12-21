@@ -57,7 +57,7 @@ class UserLeadSeeder extends Seeder
 
 		if ($target <= 0) {
 			// Base: nº de leads
-			$target = max(64 * count($leadIds), 64);
+			$target = max(8 * count($leadIds), 64);
 		}
 
 		// 4) Evitar duplicatas (par lead_id + user_id)

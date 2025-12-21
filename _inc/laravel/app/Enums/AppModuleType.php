@@ -313,6 +313,113 @@ enum AppModuleType: string
 		};
 	}
 
+
+	public function isBusinessModule(): bool
+	{
+		return match ($this) {
+			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
+			self::Management, self::Inventory, self::Marketing,
+			self::User, self::Customer, self::Vendor, self::Product,
+			self::Proposal, self::Invoice, self::Bill, self::Account => true,
+			default => false,
+		};
+	}
+
+	public function isTechnicalModule(): bool
+	{
+		return match ($this) {
+			self::Database, self::Infrastructure, self::Support => true,
+			default => false,
+		};
+	}
+
+	public function isCoreModule(): bool
+	{
+		return match ($this) {
+			self::Financial, self::Sales, self::CRM, self::HRM, self::Database,
+			self::User, self::Customer, self::Product, self::Invoice, self::Account => true,
+			default => false,
+		};
+	}
+
+	public function isOptionalModule(): bool
+	{
+		return match ($this) {
+			self::Custom, self::LandingPage, self::Other,
+			self::Proposal, self::Bill, self::Vendor => true,
+			default => false,
+		};
+	}
+
+	public function getCategory(): string
+	{
+		return match ($this) {
+			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
+			self::Management, self::Inventory, self::Marketing,
+			self::User, self::Customer, self::Vendor, self::Product,
+			self::Proposal, self::Invoice, self::Bill, self::Account => 'business',
+			self::Database, self::Infrastructure, self::Support => 'technical',
+			self::Custom, self::LandingPage => 'custom',
+			self::Other => 'other',
+		};
+	}
+
+	public function getIcon(): string
+	{
+		return match ($this) {
+			self::Financial      => 'dollar-sign',
+			self::Sales          => 'shopping-cart',
+			self::CRM            => 'users',
+			self::HRM            => 'briefcase',
+			self::Projects       => 'folder',
+			self::Management     => 'settings',
+			self::Inventory      => 'package',
+			self::Support        => 'headphones',
+			self::Database       => 'database',
+			self::Infrastructure => 'server',
+			self::Marketing      => 'megaphone',
+			self::Custom         => 'tool',
+			self::LandingPage    => 'layout',
+			self::User           => 'user',
+			self::Customer       => 'users',
+			self::Vendor         => 'truck',
+			self::Product        => 'box',
+			self::Proposal       => 'file-text',
+			self::Invoice        => 'file-invoice-dollar',
+			self::Bill           => 'receipt',
+			self::Account        => 'wallet',
+			self::Other          => 'box',
+		};
+	}
+
+	public function getColor(): string
+	{
+		return match ($this) {
+			self::Financial      => 'green',
+			self::Sales          => 'blue',
+			self::CRM            => 'indigo',
+			self::HRM            => 'purple',
+			self::Projects       => 'yellow',
+			self::Management     => 'gray',
+			self::Inventory      => 'orange',
+			self::Support        => 'red',
+			self::Database       => 'cyan',
+			self::Infrastructure => 'teal',
+			self::Marketing      => 'pink',
+			self::Custom         => 'lime',
+			self::LandingPage    => 'amber',
+			self::User           => 'violet',
+			self::Customer       => 'sky',
+			self::Vendor         => 'emerald',
+			self::Product        => 'rose',
+			self::Proposal       => 'fuchsia',
+			self::Invoice        => 'green',
+			self::Bill           => 'red',
+			self::Account        => 'blue',
+			self::Other          => 'slate',
+		};
+	}
+
 	public static function labelsPtBr(): array
 	{
 		return [
@@ -731,111 +838,5 @@ enum AppModuleType: string
 			self::Account->value        => '账户',
 			self::Other->value          => '其他',
 		];
-	}
-
-	public function isBusinessModule(): bool
-	{
-		return match ($this) {
-			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
-			self::Management, self::Inventory, self::Marketing,
-			self::User, self::Customer, self::Vendor, self::Product,
-			self::Proposal, self::Invoice, self::Bill, self::Account => true,
-			default => false,
-		};
-	}
-
-	public function isTechnicalModule(): bool
-	{
-		return match ($this) {
-			self::Database, self::Infrastructure, self::Support => true,
-			default => false,
-		};
-	}
-
-	public function isCoreModule(): bool
-	{
-		return match ($this) {
-			self::Financial, self::Sales, self::CRM, self::HRM, self::Database,
-			self::User, self::Customer, self::Product, self::Invoice, self::Account => true,
-			default => false,
-		};
-	}
-
-	public function isOptionalModule(): bool
-	{
-		return match ($this) {
-			self::Custom, self::LandingPage, self::Other,
-			self::Proposal, self::Bill, self::Vendor => true,
-			default => false,
-		};
-	}
-
-	public function getCategory(): string
-	{
-		return match ($this) {
-			self::Financial, self::Sales, self::CRM, self::HRM, self::Projects,
-			self::Management, self::Inventory, self::Marketing,
-			self::User, self::Customer, self::Vendor, self::Product,
-			self::Proposal, self::Invoice, self::Bill, self::Account => 'business',
-			self::Database, self::Infrastructure, self::Support => 'technical',
-			self::Custom, self::LandingPage => 'custom',
-			self::Other => 'other',
-		};
-	}
-
-	public function getIcon(): string
-	{
-		return match ($this) {
-			self::Financial      => 'dollar-sign',
-			self::Sales          => 'shopping-cart',
-			self::CRM            => 'users',
-			self::HRM            => 'briefcase',
-			self::Projects       => 'folder',
-			self::Management     => 'settings',
-			self::Inventory      => 'package',
-			self::Support        => 'headphones',
-			self::Database       => 'database',
-			self::Infrastructure => 'server',
-			self::Marketing      => 'megaphone',
-			self::Custom         => 'tool',
-			self::LandingPage    => 'layout',
-			self::User           => 'user',
-			self::Customer       => 'users',
-			self::Vendor         => 'truck',
-			self::Product        => 'box',
-			self::Proposal       => 'file-text',
-			self::Invoice        => 'file-invoice-dollar',
-			self::Bill           => 'receipt',
-			self::Account        => 'wallet',
-			self::Other          => 'box',
-		};
-	}
-
-	public function getColor(): string
-	{
-		return match ($this) {
-			self::Financial      => 'green',
-			self::Sales          => 'blue',
-			self::CRM            => 'indigo',
-			self::HRM            => 'purple',
-			self::Projects       => 'yellow',
-			self::Management     => 'gray',
-			self::Inventory      => 'orange',
-			self::Support        => 'red',
-			self::Database       => 'cyan',
-			self::Infrastructure => 'teal',
-			self::Marketing      => 'pink',
-			self::Custom         => 'lime',
-			self::LandingPage    => 'amber',
-			self::User           => 'violet',
-			self::Customer       => 'sky',
-			self::Vendor         => 'emerald',
-			self::Product        => 'rose',
-			self::Proposal       => 'fuchsia',
-			self::Invoice        => 'green',
-			self::Bill           => 'red',
-			self::Account        => 'blue',
-			self::Other          => 'slate',
-		};
 	}
 }

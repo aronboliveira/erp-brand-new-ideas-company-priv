@@ -64,4 +64,10 @@ class ActivitiesConstants
 	public const COL_CL_RS = 'call_result';
 	public const COL_FRM_ID = 'from_id';
 	public const COL_TO_ID = 'to_id';
+	public const COL_SC_MD = 'social_media';
+	public const COL_IS_BLK = 'is_blocked';
+	public const COL_IS_MT = 'is_muted';
+	public const COL_IS_FV = 'is_favorite';
+	public const COL_LST_CT = 'last_contacted_at';
+	public const COL_EM_ID = 'email_id';
 }

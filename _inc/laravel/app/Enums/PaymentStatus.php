@@ -62,6 +62,30 @@ enum PaymentStatus: string
 		return self::tryFrom($k) ?? self::Undefined;
 	}
 
+	public static function getIndex(?string $case): int
+	{
+		return match ($case) {
+			self::Pending->value => 0,
+			self::Authorized->value => 2,
+			self::Completed->value => 3,
+			self::Failed->value => 4,
+			self::Cancelled->value => 5,
+			self::Refunded->value => 6,
+			self::PartiallyRefunded->value => 7,
+			self::Expired->value => 8,
+			self::Declined->value => 9,
+			self::Disputed->value => 10,
+			self::Undefined->value => 11,
+			default => 1
+		};
+	}
+
+	public static function getAllIndexes(): array
+	{
+		return array_values(
+			array_map(fn($value) => self::getIndex($value), self::values())
+		);
+	}
 	public static function values(): array
 	{
 		return [

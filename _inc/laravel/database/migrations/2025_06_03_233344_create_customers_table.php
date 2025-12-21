@@ -1,6 +1,7 @@
 <?php
 
 use App\Config\Constants\{
+    ActivitiesConstants as AC,
     BillsConstants as BC,
     DatabaseConstants as DC,
     UsersConstants as UC
@@ -29,7 +30,7 @@ class CreateCustomersTable extends Migration
             $this->addUserLikeColumns($table);
             $table->string('phone', 64)->nullable()->index();
             $table->string('website', 255)->nullable();
-            $table->json('social_media')->nullable();
+            $table->json(AC::COL_SC_MD)->nullable(); // ? filtered as an array containing direct urls for a valid social media domains, or an associative array with the keys (normalized) as the names of a recognized social media and some value in a inner key that has a valid social media domain url, else filtered out
             $this->addSalesRepresentantColumns($table, 'customer');
             $table->integer(BC::COL_OD_C)->default(0)->nullable();
             $table->float(UC::COL_AVG_RT, 2, 2)->default(5.00)->nullable()->index(); // ? Nullable para testes; idealmente decimal(3,2) com range 0–5

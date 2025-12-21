@@ -154,6 +154,9 @@ class DatabaseConstants
 	public const TABLE_APR = 'appraisals';
 	public const TABLE_CPN_POL = 'company_policies';
 	public const TABLE_TRAINING = 'trainings';
+	public const TABLE_USR_TD = 'user_to_dos';
+	public const TABLE_USR_CTT = 'user_contacts';
+	public const TABLE_PRJ_INV = 'project_invoices';
 
 	// * FIELD NAMES
 	// invoice

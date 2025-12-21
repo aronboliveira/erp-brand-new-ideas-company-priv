@@ -185,6 +185,8 @@ class BillsConstants
 	public const COL_IS_CNV = 'is_convert';
 	public const COL_REJ_RS = 'rejection_reason';
 	public const COL_BILL_STATUS = 'bill_status';
+	public const COL_CLT_ID = 'client_id';
+	public const COL_DUE_DT = 'due_date';
 
 	// * VALORES
 

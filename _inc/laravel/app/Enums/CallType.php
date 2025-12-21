@@ -13,6 +13,7 @@ enum CallType: string
 	case MicrosoftTeams = 'microsoft_teams';
 	case Slack = 'slack';
 	case NextCloud = 'nextcloud';
+	case Zimbra = 'zimbra';
 	case Skype = 'skype';
 	case Telegram = 'telegram';
 	case Signal = 'signal';
@@ -139,6 +140,17 @@ enum CallType: string
 			'nextcloud_conference' => self::NextCloud,
 			'ネクストクラウド' => self::NextCloud,
 			'NextCloud通话' => self::NextCloud,
+
+			// ZIMBRA
+			'zimbra' => self::Zimbra,
+			'zimbra_meet' => self::Zimbra,
+			'zimbra_call' => self::Zimbra,
+			'zimbra_meeting' => self::Zimbra,
+			'zimbra_video' => self::Zimbra,
+			'zimbra_audio' => self::Zimbra,
+			'zimbra_conference' => self::Zimbra,
+			'ジンブラ' => self::Zimbra,
+			'Zimbra通话' => self::Zimbra,
 
 			// SKYPE
 			'skype' => self::Skype,
