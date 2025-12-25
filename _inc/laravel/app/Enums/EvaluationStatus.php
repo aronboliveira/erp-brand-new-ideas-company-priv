@@ -7,11 +7,12 @@ use App\Config\Constants\DatabaseConstants;
 
 enum EvaluationStatus: string
 {
-	case Draft     = 'draft';
-	case Pending   = 'pending';
+	case InProgress = 'in_progress';
+	case Completed = 'completed';
 	case Active    = 'active';
 	case Suspended = 'suspended';
-	case Completed = 'completed';
+	case Pending   = 'pending';
+	case Draft     = 'draft';
 	case Cancelled = 'cancelled';
 	case Expired   = 'expired';
 	case Archived  = 'archived';
@@ -19,7 +20,6 @@ enum EvaluationStatus: string
 	case Accept    = 'accept';
 	case Decline   = 'decline';
 	case NotStarted = 'not_started';
-	case InProgress = 'in_progress';
 
 	public static function normalize(null|string|BackedEnum $v): self
 	{
@@ -32,7 +32,7 @@ enum EvaluationStatus: string
 			'canceled'    => 'cancelled',
 			'complete'    => 'completed',
 			'finished'    => 'completed',
-			'in_progress' => 'active',
+			'on_going'    => 'in_progress',
 			'rascunho'    => 'draft',
 			'pendente'    => 'pending',
 			'ativo'       => 'active',

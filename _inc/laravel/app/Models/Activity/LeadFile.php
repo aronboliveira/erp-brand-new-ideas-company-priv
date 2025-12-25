@@ -2,98 +2,59 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{
-    DatabaseConstants as DC,
-    ProjectsConstants as PJC
-};
-use App\Enums\{
-    FileCategory,
-    MimeType
-};
-use App\Traits\{
-    HasAuditFields,
-    NormalizesArrays,
-    UsesUuids
-};
-use Illuminate\Database\Eloquent\{
-    Factories\HasFactory,
-    Model
-};
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Enums\{DocumentKind, FileCategory, MimeType};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
-final class LeadFile extends Model
+final class LeadFile extends AbstractFile
 {
     use HasFactory;
-    use HasAuditFields;
-    use NormalizesArrays;
-    use UsesUuids;
 
     protected $table = DC::TABLE_LD_FILES;
 
-    protected $fillable = [
-        PJC::COL_LD_ID,       // lead_id
-        DC::COL_FL_NM,        // file_name
-        DC::COL_FL_PT,        // file_path
-        'extension',
-        DC::COL_MM_TP,        // mime_type
-        DC::COL_LA,           // last_accessed_at
-        'type',               // FileCategory
-        'size',               // raw size if needed
-        'description',
-        'notes',
-        DC::COL_DL_CT,        // download_count
-        DC::COL_FL_SZ,        // file_size (bytes)
-        DC::COL_EXP_DT,       // expiration_date
-        DC::COL_PERM_RLS,     // permission_rules
-        'executors',
-        'editors',
-        'viewers',
-    ];
-
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
+    protected $with = ['lead'];
 
     protected $casts = [
-        DC::COL_MM_TP   => MimeType::class,
-        'type'          => FileCategory::class,
-        'size'          => 'integer',
-        DC::COL_DL_CT   => 'integer',
-        DC::COL_FL_SZ   => 'float',
-        DC::COL_LA      => 'datetime',
-        DC::COL_EXP_DT  => 'datetime',
-        'executors'     => 'array',
-        'editors'       => 'array',
-        'viewers'       => 'array',
-    ];
-
-    protected $with = [
-        'lead',
+        DC::COL_MM_TP  => MimeType::class,
+        'type'         => DocumentKind::class,
+        'size'         => 'integer',
+        DC::COL_DL_CT  => 'integer',
+        DC::COL_FL_SZ  => 'float',
+        DC::COL_LA     => 'datetime',
+        DC::COL_EXP_DT => 'datetime',
     ];
 
     protected $appends = [
         'category_label',
         'mime_type_value',
-        'is_expired',
         'is_media',
     ];
+
+    protected static function fillableFields(): array
+    {
+        return array_merge(parent::fillableFields(), [
+            PJC::COL_LD_ID,     // lead_id
+            DC::COL_FL_NM,      // file_name (legado)
+        ]);
+    }
 
     protected static function booted(): void
     {
         parent::booted();
 
-        static::saving(function (LeadFile $model): void {
-            $model->normalizeMimeAndCategory();
-            $model->normalizeActorLists();
-            $model->normalizePermissionRules();
-            $model->ensureJsonAttributesAreEncoded([
-                'executors',
-                'editors',
-                'viewers',
-            ]);
+        static::saving(function (self $m): void {
+            try {
+                $m->syncLegacyFileNameWithName();
+                $m->applyLeadMimeFallback();
+                $m->ensureDocumentKindWhenDocument();
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' saving hook failed', [
+                    'id' => $m->getAttribute('id'),
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
     }
 
@@ -102,49 +63,22 @@ final class LeadFile extends Model
         return $this->belongsTo(Lead::class, PJC::COL_LD_ID, 'id');
     }
 
-    public function getCategoryLabelAttribute(): string
-    {
-        $type = $this->getAttribute('type');
-        if ($type instanceof FileCategory)
-            return $type->label();
-        if (is_string($type) && $type !== '') {
-            $normalized = FileCategory::normalize($type);
-            return $normalized?->label() ?? $type;
-        }
-
-        return '';
-    }
-
     public function getMimeTypeValueAttribute(): ?string
     {
         $mime = $this->getAttribute(DC::COL_MM_TP);
-        if ($mime instanceof MimeType)
-            return $mime->value;
-        return is_string($mime) ? $mime : null;
+        return $mime instanceof MimeType ? $mime->value : (is_string($mime) ? $mime : null);
     }
 
-    public function getIsExpiredAttribute(): bool
+    public function getCategoryLabelAttribute(): string
     {
-        $expiresAt = $this->getAttribute(DC::COL_EXP_DT);
-        if ($expiresAt === null)
-            return false;
-        return $expiresAt->isPast();
+        $cat = $this->getDerivedCategory();
+        return $cat?->label() ?? '';
     }
 
     public function getIsMediaAttribute(): bool
     {
-        $type = $this->getAttribute('type');
-        if ($type instanceof FileCategory)
-            return $type->isMedia();
-        if (is_string($type) && $type !== '') {
-            $normalized = FileCategory::normalize($type);
-            if ($normalized !== null)
-                return $normalized->isMedia();
-        }
-        $mime = $this->getAttribute(DC::COL_MM_TP);
-        if ($mime instanceof MimeType)
-            return FileCategory::fromMimeType($mime)->isMedia();
-        return false;
+        $cat = $this->getDerivedCategory();
+        return (bool) ($cat?->isMedia());
     }
 
     public function isDownloadable(): bool
@@ -160,155 +94,75 @@ final class LeadFile extends Model
 
     public function touchLastAccessed(): void
     {
-        $this->{DC::COL_LA} = now();
+        $this->setAttribute(DC::COL_LA, now());
     }
 
-    private function normalizeMimeAndCategory(): void
+    private function getDerivedCategory(): ?FileCategory
     {
-        $mimeAttr = $this->getAttribute(DC::COL_MM_TP);
-        $mimeEnum = null;
-        if ($mimeAttr instanceof MimeType)
-            $mimeEnum = $mimeAttr;
-        elseif (is_string($mimeAttr) && $mimeAttr !== '')
-            $mimeEnum = MimeType::normalize($mimeAttr);
-        if (!$mimeEnum) {
-            $ext = $this->getAttribute('extension');
-            if (is_string($ext) && $ext !== '')
-                $mimeEnum = MimeType::fromExtension($ext);
-        }
+        $mime = $this->getAttribute(DC::COL_MM_TP);
+        $mimeEnum = $mime instanceof MimeType
+            ? $mime
+            : (is_string($mime) ? MimeType::normalize($mime) : null);
 
-        if (!$mimeEnum)
-            $mimeEnum = MimeType::APPLICATION_OCTET_STREAM;
-        $this->setAttribute(DC::COL_MM_TP, $mimeEnum);
-        $typeAttr = $this->getAttribute('type');
-        $category = null;
-        if ($typeAttr instanceof FileCategory)
-            $category = $typeAttr;
-        elseif (is_string($typeAttr) && $typeAttr !== '')
-            $category = FileCategory::normalize($typeAttr);
-        if (!$category && $mimeEnum instanceof MimeType)
-            $category = FileCategory::fromMimeType($mimeEnum);
-        if (!$category)
-            $category = FileCategory::Other;
-        $this->setAttribute('type', $category);
+        if (!$mimeEnum) return FileCategory::Other;
+
+        return FileCategory::fromMimeType($mimeEnum) ?? FileCategory::Other;
     }
 
-    /**
-     * Normaliza executors/editors/viewers:
-     * - aceita array, CSV, JSON etc.
-     * - extrai ID de 'id', '<singular>_id' (executor_id, editor_id, viewer_id) ou 'user_id'
-     * - filtra apenas usuários existentes na tabela users
-     */
-    private function normalizeActorLists(): void
+    private function syncLegacyFileNameWithName(): void
     {
-        $columns = ['executors', 'editors', 'viewers'];
-        $allIds = [];
-        $parsedByColumn = [];
-        foreach ($columns as $column) {
-            $raw = $this->getAttribute($column);
-            $items = $this->parseActorRawItems($raw, $column);
-            $ids = [];
-            foreach ($items as $item) {
-                $id = $this->extractActorId($item, $column);
-                if ($id !== null) {
-                    $ids[] = $id;
-                    $allIds[$id] = true;
-                }
-            }
+        $legacy = $this->getAttribute(DC::COL_FL_NM);
+        $name   = $this->getAttribute('name');
 
-            $parsedByColumn[$column] = $ids;
-        }
+        if (is_string($legacy)) $legacy = trim($legacy);
+        if (is_string($name)) $name = trim($name);
 
-        if ($allIds === []) {
-            foreach ($columns as $column)
-                $this->setAttribute($column, []);
+        if ($legacy && !$name) {
+            $this->setAttribute('name', $legacy);
             return;
         }
-        $validIds = User::query()
-            ->whereIn('id', array_keys($allIds))
-            ->pluck('id')
-            ->all();
-        $validSet = array_flip($validIds);
-        foreach ($columns as $column) {
-            $final = [];
-            foreach ($parsedByColumn[$column] as $id)
-                if (isset($validSet[$id]))
-                    $final[$id] = true;
-            $this->setAttribute($column, array_keys($final));
+
+        if ($name && !$legacy) {
+            $this->setAttribute(DC::COL_FL_NM, $name);
+            return;
+        }
+
+        if ($legacy && $name && $legacy !== $name) {
+            $this->setAttribute(DC::COL_FL_NM, $name);
         }
     }
 
-    /**
-     * Converte o valor cru vindo do atributo (array/string/null)
-     * em uma lista de "itens" (strings ou arrays) a serem analisados.
-     */
-    private function parseActorRawItems(mixed $raw, string $column): array
+    private function applyLeadMimeFallback(): void
     {
-        if ($raw === null)
-            return [];
-        if (is_array($raw))
-            return $raw;
-        if (is_string($raw)) {
-            $raw = trim($raw);
-            if ($raw === '')
-                return [];
-            if (str_starts_with($raw, '[') || str_starts_with($raw, '{')) {
-                $decoded = json_decode($raw, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    if (is_array($decoded))
-                        return array_keys($decoded) !== range(0, count($decoded) - 1) ? [$decoded] : $decoded;
-                    return [$decoded];
-                }
-            }
-            $parts = array_filter(array_map('trim', explode(',', $raw)));
-            return $parts;
-        }
-
-        return [];
+        $mime = $this->getAttribute(DC::COL_MM_TP);
+        $mimeEnum = $mime instanceof MimeType
+            ? $mime
+            : (is_string($mime) ? MimeType::normalize($mime) : null);
+        if (!$mimeEnum || $mimeEnum === MimeType::OTHER)
+            $this->setAttribute(DC::COL_MM_TP, MimeType::APPLICATION_OCTET_STREAM->value);
     }
 
-    private function extractActorId(mixed $item, string $column): ?string
+    private function ensureDocumentKindWhenDocument(): void
     {
-        if (is_string($item)) {
-            $id = trim($item);
-            return $id === '' ? null : $id;
-        }
-        if (is_array($item))
-            $data = $item;
-        elseif (is_object($item))
-            $data = (array) $item;
-        else
-            return null;
-        $candidates = ['id'];
-        $singular = rtrim($column, 's');
-        if ($singular !== '')
-            $candidates[] = $singular . '_id';
-        $candidates[] = 'user_id';
-        foreach ($candidates as $key)
-            if (!empty($data[$key]) && is_string($data[$key])) {
-                $id = trim($data[$key]);
-                if ($id !== '')
-                    return $id;
-            }
-        return null;
-    }
+        $mime = $this->getAttribute(DC::COL_MM_TP);
 
-    private function normalizePermissionRules(): void
-    {
-        $raw = $this->getAttribute(DC::COL_PERM_RLS);
-        if ($raw === null)
-            return;
-        $value = trim((string) $raw);
-        if ($value === '') {
-            $this->setAttribute(DC::COL_PERM_RLS, null);
+        $mimeEnum = $mime instanceof MimeType
+            ? $mime
+            : (is_string($mime) ? MimeType::normalize($mime) : null);
+
+        if (!$mimeEnum || !$mimeEnum->isDocument()) {
+            $this->setAttribute('type', null);
             return;
         }
-        if (!preg_match('/^[0-7]+$/', $value)) {
-            $this->setAttribute(DC::COL_PERM_RLS, $value);
-            return;
-        }
-        if (strlen($value) < 6)
-            $value = str_pad($value, 6, '0', STR_PAD_LEFT);
-        $this->setAttribute(DC::COL_PERM_RLS, $value);
+
+        $current = $this->getAttribute('type');
+        if ($current instanceof DocumentKind) return;
+
+        if (is_string($current) && DocumentKind::normalize($current)) return;
+
+        $ext = (string) ($this->getAttribute('extension') ?? '');
+        $kind = $ext !== '' ? DocumentKind::fromExtension($ext) : null;
+
+        $this->setAttribute('type', ($kind ?? DocumentKind::OTHER)->value);
     }
 }

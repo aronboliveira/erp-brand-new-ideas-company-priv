@@ -15,19 +15,19 @@ class CreateUsersTable extends Migration
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $this->addUserLikeColumns($table, defaultAvatar: 'chatify.user_avatar.default', hasPassword: true);
             $table->string('phone')->nullable()->unique();
-            $table->string(UC::COL_ADR)->nullable();
+            $table->text('address')->nullable();
             $table->uuid(UC::COL_EMP_ID)->nullable()->index();
             $table->enum(UC::COL_TP, UserType::values())->default(UserType::Client)->nullable();
             $table->float(UC::COL_SL)->default(1024.00);
-            $table->string(UC::COL_MC)->default('#2180f3'); // * NOT IN MODEL FILLABLE
-            $table->boolean(UC::COL_A_ST)->default(0);        // * NOT IN MODEL FILLABLE
+            $table->string(UC::COL_MC)->default('#2180f3');
+            $table->boolean(UC::COL_A_ST)->default(0);
             $table->integer(UC::COL_D_ST)->default(1);
             $table->string(UC::COL_MD, 10)->default('light');
-            $table->boolean(UC::COL_DM)->default(0);            // * NOT IN MODEL FILLABLE
+            $table->boolean(UC::COL_DM)->default(0);
             $table->integer(UC::COL_IB)->default(0);
             $table->datetime(UC::COL_LLA)->nullable();
             $table->uuid(UC::COL_DPL)->default(DC::DEFAULT_PIPELINE); // * TOO ABSTRACT
-            $table->uuid(UC::COL_RP)->default(DC::DEFAULT_PLAN);       // * ADDED
+            $table->uuid(UC::COL_RP)->default(DC::DEFAULT_PLAN);
             $table->uuid(UC::COL_PL)->default(DC::DEFAULT_PLAN);
             $table->date(UC::COL_PED)->nullable();
             $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID);

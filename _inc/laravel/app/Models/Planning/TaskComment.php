@@ -2,31 +2,30 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TaskComment extends Model
+class TaskComment extends Comment
 {
-    use UsesUuids;
+    protected $table = DC::TABLE_TSK_CMT;
 
-    private const COL_COMMENT   = 'comment';
-    private const COL_CREATED_BY = 'created_by';
-    private const COL_TASK_ID   = 'task_id';
-    private const COL_USER_ID   = 'user_id';
-    private const COL_USER_TYPE = 'user_type';
-
-    protected $fillable = [
-        self::COL_COMMENT,
-        self::COL_TASK_ID,
-        self::COL_USER_ID,
-        self::COL_USER_TYPE,
-        self::COL_CREATED_BY,
-    ];
-
-    public function user(): HasOne
+    protected static function fillableFields(): array
     {
-        return $this
-            ->hasOne(User::class, 'id', self::COL_CREATED_BY);
-        // * consider using belongsTo(User::class, self::COL_CREATED_BY)
+        return array_merge(parent::fillableFields(), [AC::COL_TSK_ID]);
+    }
+
+    protected static function withRelations(): array
+    {
+        return ['author', 'task'];
+    }
+
+    public function task(): BelongsTo
+    {
+        return $this->belongsTo(Task::class, AC::COL_TSK_ID, 'id');
+    }
+
+    public function scopeForTask($query, string $taskId)
+    {
+        return $query->where(AC::COL_TSK_ID, $taskId);
     }
 }

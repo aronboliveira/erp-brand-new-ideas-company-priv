@@ -20,6 +20,8 @@ class DatabaseConstants
 	public const TABLE_PIPELINES = 'pipelines';
 	public const TABLE_DEALS = 'deals';
 	public const TABLE_BUGS = 'bugs';
+	public const TABLE_BG_CMT = 'bug_comments';
+	public const TABLE_BG_FL = 'bug_files';
 	public const TABLE_EMPLOYEES = 'employees';
 	public const TABLE_DOCS = 'documents';
 	public const TABLE_EDOCS = 'employee_documents';
@@ -65,6 +67,7 @@ class DatabaseConstants
 	public const TABLE_SUPPORTS = 'supports';
 	public const TABLE_WHS = 'warehouses';
 	public const TABLE_CONTRACTS = 'contracts';
+	public const TABLE_CTC_CMT = 'contract_comments';
 	public const TABLE_PURCHASES = 'purchases';
 	public const TABLE_POS = 'pos';
 	public const TABLE_ORDERS = 'orders';
@@ -138,6 +141,7 @@ class DatabaseConstants
 	public const TABLE_LD_FILES = 'lead_files';
 	public const TABLE_LD_EMAILS = 'lead_emails';
 	public const TABLE_LD_CALLS = 'lead_calls';
+	public const TABLE_DL_FL = 'deal_files';
 	public const TABLE_DL_EMAILS = 'deal_emails';
 	public const TABLE_DL_CALLS = 'deal_calls';
 	public const TABLE_USR_CPNS = 'user_coupons';
@@ -157,6 +161,12 @@ class DatabaseConstants
 	public const TABLE_USR_TD = 'user_to_dos';
 	public const TABLE_USR_CTT = 'user_contacts';
 	public const TABLE_PRJ_INV = 'project_invoices';
+	public const TABLE_HLD = 'holidays';
+	public const TABLE_TM_TRK = 'time_trackers';
+	public const TABLE_TSK_CHKL = 'task_checklists';
+	public const TABLE_DL_TSK = 'deal_tasks';
+	public const TABLE_TSK_CMT = 'task_comments';
+	public const TABLE_TSK_FL = 'task_files';
 
 	// * FIELD NAMES
 	// invoice

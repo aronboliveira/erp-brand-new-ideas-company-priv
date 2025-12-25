@@ -66,7 +66,11 @@ final class BranchSeeder extends Seeder
 					do $branchName = $faker->company();
 					while (Br::where(CPC::COL_BRC_NM, $branchName)->exists());
 
-					do $branchAddress = $faker->address();
+					do $branchAddress = $faker->streetAddress() . ', ' .
+						$faker->city() . ', ' .
+						$faker->stateAbbr() . ' ' .
+						$faker->postcode() . ', ' .
+						$faker->country();
 					while (Br::where('address', $branchAddress)->exists());
 
 					do $branchPhone = $faker->cellphoneNumber();

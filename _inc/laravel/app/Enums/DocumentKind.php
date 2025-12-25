@@ -46,6 +46,8 @@ enum DocumentKind: string
 	case APPLICATION_SQLITE = 'banco SQLite';
 	case TEXT_PHP           = 'código PHP';
 
+	case OTHER = 'other';
+
 	public static function fromExtension(string $ext): ?self
 	{
 		$e = strtolower(ltrim($ext, '.'));

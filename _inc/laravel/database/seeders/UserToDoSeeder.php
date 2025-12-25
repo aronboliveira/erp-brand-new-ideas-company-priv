@@ -68,7 +68,7 @@ class UserToDoSeeder extends Seeder
 				return;
 			}
 
-			$ownerLoopCount = (int) floor(count($uniqueOwners) * 0.25);
+			$ownerLoopCount = (int) floor(count($uniqueOwners) * 0.2);
 			if ($ownerLoopCount <= 0) $ownerLoopCount = 1;
 
 			$ownersSample = $this->sampleArray($uniqueOwners, min($ownerLoopCount, count($uniqueOwners)));
@@ -89,7 +89,7 @@ class UserToDoSeeder extends Seeder
 					$taskIds = $this->fetchTaskIdsForProject($projectId);
 					$milestoneIds = $this->fetchMilestoneIdsForProject($projectId);
 
-					// foreach (task in the project); if none, then add more 2 to 16 iterations
+					// foreach (task in the project); if none, then add more 2 to 8 iterations
 					if (!empty($taskIds)) {
 						foreach ($taskIds as $taskId) {
 							if ($cap > 0 && $created >= $cap) break 3;
@@ -105,7 +105,7 @@ class UserToDoSeeder extends Seeder
 							$created++;
 						}
 					} else {
-						$iters = random_int(0, 8);
+						$iters = random_int(0, 4);
 						for ($i = 0; $i < $iters; $i++) {
 							if ($cap > 0 && $created >= $cap) break 3;
 							$this->createToDo(
@@ -121,7 +121,7 @@ class UserToDoSeeder extends Seeder
 						}
 					}
 
-					// foreach (milestone in the project); if none, then add more 2 to 8 iterations
+					// foreach (milestone in the project); if none, then add more 1 to 4 iterations
 					if (!empty($milestoneIds)) {
 						foreach ($milestoneIds as $milestoneId) {
 							if ($cap > 0 && $created >= $cap) break 3;
@@ -137,7 +137,7 @@ class UserToDoSeeder extends Seeder
 							$created++;
 						}
 					} else {
-						$iters = random_int(2, 8);
+						$iters = random_int(1, 4);
 						for ($i = 0; $i < $iters; $i++) {
 							if ($cap > 0 && $created >= $cap) break 3;
 							$this->createToDo(

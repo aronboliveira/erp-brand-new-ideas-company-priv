@@ -1,0 +1,384 @@
+<?php
+
+namespace App\Models;
+
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\{MimeType, UserType};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Throwable;
+
+abstract class AbstractFile extends Model
+{
+	use UsesUuids, HasAuditFields;
+
+	protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+
+	/**
+	 * Ordem e máscara de permissão (octal-like: 4=read, 2=write, 1=execute).
+	 * O default do schema é '776444' (6 dígitos), então a ordem aqui deve ser 6 roles.
+	 * Interpretação prática: COMPANY, ADMIN, ACCOUNTANT, CLIENT, VENDOR, CUSTOMER.
+	 */
+	protected const ROLES_ORDER = [
+		UserType::Company->value,
+		UserType::Admin->value,
+		UserType::Accountant->value,
+		UserType::Client->value,
+		UserType::Vendor->value,
+		UserType::Customer->value,
+	];
+
+	protected const DEFAULT_RULES = '776444';
+
+	protected static array $userRoleCache = [];
+
+	protected $casts = [
+		DC::COL_MM_TP  => MimeType::class,
+		DC::COL_EXP_DT => 'datetime',
+		DC::COL_LA     => 'datetime',
+		DC::COL_DL_CT  => 'integer',
+		DC::COL_FL_SZ  => 'float',
+		'size'         => 'integer',
+	];
+
+	protected $appends = [
+		'is_document',
+		'is_expired',
+	];
+
+	protected static function fillableFields(): array
+	{
+		return [
+			DC::COL_FL_PT,
+			'name',
+			'extension',
+			DC::COL_MM_TP,
+			DC::COL_LA,
+			'size',
+			'description',
+			'notes',
+			DC::COL_DL_CT,
+			DC::COL_FL_SZ,
+			DC::COL_PERM_RLS,
+			'executors',
+			'editors',
+			'viewers',
+			DC::COL_EXP_DT,
+			'type',
+		];
+	}
+
+	public function getFillable(): array
+	{
+		return static::fillableFields();
+	}
+
+	protected static function booted(): void
+	{
+		parent::booted();
+
+		static::saving(function (self $m): void {
+			try {
+				$m->normalizeFileFields();
+				$m->ensureMimeFromExtension();
+				$m->enforceTypeNullWhenNotDocument();
+				$m->normalizePermissionRules();
+				$m->normalizeActorListsIfDirty();
+			} catch (Throwable $e) {
+				Log::warning(static::class . ' saving normalization failed', [
+					'id'    => $m->getAttribute('id'),
+					'error' => $e->getMessage(),
+				]);
+			}
+		});
+	}
+
+	protected function normalizeFileFields(): void
+	{
+		$path = $this->getAttribute(DC::COL_FL_PT);
+		if (is_string($path)) {
+			$path = trim(str_replace("\0", '', $path));
+			$path = preg_replace('/[\x00-\x1F\x7F]/u', '', $path) ?? $path;
+			$path = str_replace(['..\\', '../', '..'], '', $path);
+			$this->setAttribute(DC::COL_FL_PT, $path === '' ? null : $path);
+		}
+
+		$name = $this->getAttribute('name');
+		if (is_string($name)) {
+			$name = trim($name);
+			$name = preg_replace('/[\x00-\x1F\x7F]/u', '', $name) ?? $name;
+			$name = mb_substr($name, 0, 1024);
+			$this->setAttribute('name', $name === '' ? null : $name);
+		}
+
+		if (!$this->getAttribute('name')) {
+			$this->setAttribute('name', 'FILE_' . (string) Str::uuid() . '_' . now()->timestamp);
+		}
+
+		$ext = $this->getAttribute('extension');
+		if (is_string($ext)) {
+			$ext = strtolower(ltrim(trim($ext), '.'));
+			$ext = preg_replace('/[^a-z0-9]+/', '', $ext) ?? $ext;
+			$this->setAttribute('extension', $ext === '' ? null : $ext);
+		}
+
+		foreach ([DC::COL_DL_CT, DC::COL_FL_SZ, 'size'] as $col) {
+			$v = $this->getAttribute($col);
+			if ($v === null || !is_numeric($v)) continue;
+
+			$n = (float) $v;
+			if ($n < 0) $n = 0;
+
+			$this->setAttribute($col, in_array($col, [DC::COL_DL_CT, 'size'], true) ? (int) $n : $n);
+		}
+	}
+
+	protected function ensureMimeFromExtension(): void
+	{
+		$ext = (string) ($this->getAttribute('extension') ?? '');
+		if ($ext === '') {
+			$path = (string) ($this->getAttribute(DC::COL_FL_PT) ?? '');
+			if ($path !== '') {
+				$pi = pathinfo($path);
+				$guess = strtolower((string) ($pi['extension'] ?? ''));
+				$guess = preg_replace('/[^a-z0-9]+/', '', $guess) ?? $guess;
+				if ($guess !== '') {
+					$this->setAttribute('extension', $guess);
+					$ext = $guess;
+				}
+			}
+		}
+
+		$raw = $this->getAttribute(DC::COL_MM_TP);
+		$mime = $raw instanceof MimeType
+			? $raw
+			: (is_string($raw) ? MimeType::normalize($raw) : null);
+
+		if (($mime === null || $mime === MimeType::OTHER) && $ext !== '') {
+			$fromExt = MimeType::fromExtension($ext) ?? MimeType::OTHER;
+			$this->setAttribute(DC::COL_MM_TP, $fromExt->value);
+			return;
+		}
+
+		if ($mime === null)
+			$this->setAttribute(DC::COL_MM_TP, MimeType::OTHER->value);
+		elseif ($mime instanceof MimeType)
+			$this->setAttribute(DC::COL_MM_TP, $mime->value);
+	}
+
+	protected function enforceTypeNullWhenNotDocument(): void
+	{
+		$raw = $this->getAttribute(DC::COL_MM_TP);
+
+		$mime = $raw instanceof MimeType
+			? $raw
+			: (is_string($raw) ? MimeType::normalize($raw) : null);
+
+		if (!$mime || !$mime->isDocument()) {
+			$this->setAttribute('type', null);
+			return;
+		}
+
+		// é documento: AbstractFile NÃO define o "type"; apenas preserva o que vier.
+		$type = $this->getAttribute('type');
+		if (is_string($type) && trim($type) === '')
+			$this->setAttribute('type', null);
+	}
+
+	protected function normalizePermissionRules(): void
+	{
+		$needed = count(static::ROLES_ORDER);
+
+		$raw = (string) ($this->getAttribute(DC::COL_PERM_RLS) ?? '');
+		$raw = preg_replace('/\D+/', '', $raw) ?? '';
+		$digits = str_split($raw);
+
+		if (count($digits) !== $needed)
+			$digits = str_split(static::DEFAULT_RULES);
+
+		for ($i = 0; $i < $needed; $i++) {
+			$d = (int) ($digits[$i] ?? 0);
+			if ($d < 0 || $d > 7) $digits[$i] = '0';
+		}
+
+		$this->setAttribute(DC::COL_PERM_RLS, implode('', $digits));
+	}
+
+	protected function normalizeActorListsIfDirty(): void
+	{
+		if (
+			!$this->isDirty('executors')
+			&& !$this->isDirty('editors')
+			&& !$this->isDirty('viewers')
+		) return;
+
+		$this->normalizeActorLists();
+	}
+
+	protected function normalizeActorLists(): void
+	{
+		$columns = ['executors', 'editors', 'viewers'];
+
+		$allIds = [];
+		$parsed = [];
+
+		foreach ($columns as $column) {
+			$items = $this->parseActorRawItems($this->getAttribute($column));
+			$ids = [];
+			foreach ($items as $item) {
+				$id = $this->extractActorIdFromMixed($item, $column);
+				if ($id === null) continue;
+				$ids[] = $id;
+				$allIds[$id] = true;
+			}
+			$parsed[$column] = $ids;
+		}
+
+		if ($allIds === []) {
+			foreach ($columns as $column)
+				$this->setAttribute($column, null);
+			return;
+		}
+
+		$validIds = User::query()
+			->whereIn('id', array_keys($allIds))
+			->pluck('id')
+			->all();
+
+		$validSet = array_flip($validIds);
+
+		foreach ($columns as $column) {
+			$final = [];
+			foreach ($parsed[$column] as $id)
+				if (isset($validSet[$id]))
+					$final[$id] = true;
+
+			$this->setAttribute($column, $final ? implode(',', array_keys($final)) : null);
+		}
+	}
+
+	protected function parseActorRawItems(mixed $raw): array
+	{
+		if ($raw === null) return [];
+		if (is_array($raw)) return $raw;
+
+		if (is_string($raw)) {
+			$raw = trim($raw);
+			if ($raw === '') return [];
+
+			if (str_starts_with($raw, '[') || str_starts_with($raw, '{')) {
+				$decoded = json_decode($raw, true);
+				if (json_last_error() === JSON_ERROR_NONE) {
+					if (is_array($decoded)) {
+						$isAssoc = array_keys($decoded) !== range(0, count($decoded) - 1);
+						return $isAssoc ? [$decoded] : $decoded;
+					}
+					return [$decoded];
+				}
+			}
+
+			return array_filter(array_map('trim', explode(',', $raw)));
+		}
+
+		return [];
+	}
+
+	protected function extractActorIdFromMixed(mixed $item, string $column): ?string
+	{
+		if (is_string($item)) {
+			$id = trim($item);
+			return $id === '' ? null : $id;
+		}
+
+		if (is_array($item))
+			return $this->extractActorIdFromArray($item, $column);
+
+		if (is_object($item))
+			return $this->extractActorIdFromArray((array) $item, $column);
+
+		return null;
+	}
+
+	protected function extractActorIdFromArray(array $data, string $column): ?string
+	{
+		$candidates = ['id'];
+
+		$singular = rtrim($column, 's');
+		if ($singular !== '')
+			$candidates[] = $singular . '_id';
+
+		$candidates[] = 'user_id';
+
+		foreach ($candidates as $key) {
+			if (empty($data[$key]) || !is_string($data[$key])) continue;
+			$id = trim($data[$key]);
+			if ($id !== '') return $id;
+		}
+
+		return null;
+	}
+
+	public function getIsDocumentAttribute(): bool
+	{
+		$raw = $this->getAttribute(DC::COL_MM_TP);
+
+		$mime = $raw instanceof MimeType
+			? $raw
+			: (is_string($raw) ? MimeType::normalize($raw) : null);
+
+		return (bool) ($mime && $mime->isDocument());
+	}
+
+	public function getIsExpiredAttribute(): bool
+	{
+		$exp = $this->getAttribute(DC::COL_EXP_DT);
+		if (!$exp) return false;
+
+		try {
+			$dt = $exp instanceof \DateTimeInterface
+				? $exp
+				: \Illuminate\Support\Carbon::parse((string) $exp);
+
+			return $dt->isPast();
+		} catch (Throwable) {
+			return false;
+		}
+	}
+
+	public function userRoleHasPermission(?string $id, string|int $type): bool
+	{
+		if (!is_numeric($type)) return false;
+
+		$mask = (int) $type;
+		if ($mask < 0 || $mask > 7) return false;
+
+		$uid = $id ?? auth()->id();
+		if (!$uid) return false;
+
+		$role = $this->getCachedUserRole($uid);
+		if ($role === null) return false;
+
+		$index = array_search($role, static::ROLES_ORDER, true);
+		if ($index === false) return false;
+
+		$rules = str_split((string) ($this->getAttribute(DC::COL_PERM_RLS) ?? static::DEFAULT_RULES));
+		if (count($rules) !== count(static::ROLES_ORDER))
+			$rules = str_split(static::DEFAULT_RULES);
+
+		$digit = (int) ($rules[$index] ?? '0');
+		return (($digit & $mask) === $mask);
+	}
+
+	protected function getCachedUserRole(string $userId): ?string
+	{
+		if (array_key_exists($userId, self::$userRoleCache))
+			return self::$userRoleCache[$userId];
+
+		$u = User::query()->select(['id', UC::COL_TP])->find($userId);
+		if (!$u) return self::$userRoleCache[$userId] = null;
+
+		return self::$userRoleCache[$userId] = (string) $u->getAttribute(UC::COL_TP);
+	}
+}

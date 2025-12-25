@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\{DatabaseConstants as DC};
-use App\Traits\{HasDocumentColumns, HasNullableAuditColumns, LeadConnected};
+use App\Traits\{HasFileColumns, HasNullableAuditColumns, LeadConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLeadFilesTable extends Migration
 {
-    use HasDocumentColumns, HasNullableAuditColumns, LeadConnected;
+    use HasFileColumns, HasNullableAuditColumns, LeadConnected;
     private const TABLE = DC::TABLE_LD_FILES;
     public function up(): void
     {
@@ -15,7 +15,7 @@ class CreateLeadFilesTable extends Migration
             $table->uuid('id')->primary();
             $this->addLeadColumns($table);
             $table->string(DC::COL_FL_NM)->nullable();
-            $this->addDocumentColumns($table);
+            $this->addFileColumns($table);
             $this->addAuditColumns($table);
         });
     }

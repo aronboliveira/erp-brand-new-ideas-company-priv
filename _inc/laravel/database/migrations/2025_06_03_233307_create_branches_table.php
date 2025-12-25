@@ -6,7 +6,7 @@ use App\Config\Constants\{
 };
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class CreateBranchesTable extends Migration
 {
@@ -19,8 +19,8 @@ class CreateBranchesTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid('company')->nullable()->index(); // ? nullable for tests
-                $table->string(CPC::COL_BRC_NM)->unique();
-                $table->string('address', 252)->nullable()->index(); // todo normalize on model
+                $table->string('name')->unique();
+                $table->text('address')->nullable(); // todo normalize on model
                 $table->string('phone', 32)->nullable();
                 $table->string(CPC::COL_FND)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_MNG)->nullable()->default(DC::DEFAULT_UUID);
@@ -37,6 +37,7 @@ class CreateBranchesTable extends Migration
                         ->on(DC::TABLE_USERS)
                         ->nullOnDelete();
             });
+        DB::statement('ALTER TABLE ' . self::TABLE . ' ADD INDEX idx_address (address(255))');
     }
 
     public function down(): void

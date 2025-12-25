@@ -15,8 +15,9 @@ class CreateDepartmentsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('company')->nullable()->index(); // ? nullable for tests
-            $table->string(CPC::COL_DEP_NM)->index();
+            $table->string('name')->index();
             $this->addBranchColumns($table, unique: false, nullable: false);
+            $table->text('address')->nullable();
             $table->text('description')->nullable();
             $table->string('phone', 32)->nullable()->index();
             $table->string('email')->nullable();

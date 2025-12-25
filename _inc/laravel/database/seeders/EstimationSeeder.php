@@ -65,8 +65,8 @@ final class EstimationSeeder extends Seeder
 		) {
 			// For each client, create a random number of estimations
 			foreach ($clientIds as $clientId) {
-				$cubicRange = (self::MAX_MULTIPLIER - self::BASE_MULTIPLIER + 1) ** 2;
-				$estimationsForClient = self::MAX_MULTIPLIER - ((int)sqrt(random_int(1, $cubicRange)) - 1);
+				$quadraticRange = (self::MAX_MULTIPLIER - self::BASE_MULTIPLIER + 1) ** 2;
+				$estimationsForClient = self::MAX_MULTIPLIER - ((int)sqrt(random_int(1, $quadraticRange)) - 1);
 				for ($i = 0; $i < $estimationsForClient; $i++) {
 					try {
 						$projectId = $this->maybe($projectIds);

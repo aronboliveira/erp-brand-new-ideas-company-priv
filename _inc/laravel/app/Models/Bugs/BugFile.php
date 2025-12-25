@@ -2,56 +2,59 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\UserType;
-use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BugFile extends Model
+final class BugFile extends AbstractFile
 {
-    use UsesUuids, HasAuditFields;
+    protected $table = DC::TABLE_BG_FL;
+
+    protected $with = ['bug'];
+
     protected $fillable = [
+        AC::COL_BUG,
+        UC::COL_U_TP,
+        // legado:
         'file',
+        // HasFileColumns:
+        DC::COL_FL_PT,
         'name',
         'extension',
-        'file_size',
-        'bug_id',
-        'user_type'
+        DC::COL_MM_TP,
+        DC::COL_LA,
+        'size',
+        'description',
+        'notes',
+        DC::COL_DL_CT,
+        DC::COL_FL_SZ,
+        DC::COL_PERM_RLS,
+        'executors',
+        'editors',
+        'viewers',
+        DC::COL_EXP_DT,
+        'type',
     ];
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-    ];
+
     protected $casts = [
         UC::COL_U_TP => UserType::class,
     ];
-    protected $with = ['bug'];
 
     protected static function booted(): void
     {
         parent::booted();
-        static::creating(function ($model) {
-            try {
-                $stringValue = $model->{UC::COL_U_TP} instanceof UserType
-                    ? $model->{UC::COL_U_TP}->value
-                    : (string) $model->{UC::COL_U_TP};
-                $model->{UC::COL_U_TP} = UserType::normalize($stringValue) ?? throw new \InvalidArgumentException(
-                    'Invalid user type: ' . $stringValue
-                );
-            } catch (\InvalidArgumentException $e) {
-                $model->{UC::COL_U_TP} = UserType::Client;
-            }
-        });
-        static::updating(function ($model) {
-            if ($model->isDirty(UC::COL_U_TP)) {
-                $model->{UC::COL_U_TP} = UserType::normalize((string) $model->{UC::COL_U_TP})
-                    ?? throw new \InvalidArgumentException('Invalid user_type');
-            }
+
+        static::saving(function (self $m): void {
+            $raw = $m->getAttribute(UC::COL_U_TP);
+            $normalized = $raw instanceof UserType
+                ? $raw
+                : UserType::normalize(is_string($raw) ? $raw : (string) $raw);
+            $m->setAttribute(UC::COL_U_TP, $normalized ?? UserType::Client);
         });
     }
+
     public function bug(): BelongsTo
     {
-        return $this->belongsTo(Bug::class, 'bug_id', 'id');
+        return $this->belongsTo(Bug::class, AC::COL_BUG, 'id');
     }
 }

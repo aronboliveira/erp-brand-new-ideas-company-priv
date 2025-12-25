@@ -70,4 +70,9 @@ class ActivitiesConstants
 	public const COL_IS_FV = 'is_favorite';
 	public const COL_LST_CT = 'last_contacted_at';
 	public const COL_EM_ID = 'email_id';
+	public const COL_IS_EDT = 'is_edited';
+	public const COL_EDT_CNT = 'edit_count';
+	public const COL_RPL_CNT = 'reply_count';
+	public const COL_IS_DEL = 'is_deleted';
+	public const COL_DEL_AT = 'deleted_at';
 }

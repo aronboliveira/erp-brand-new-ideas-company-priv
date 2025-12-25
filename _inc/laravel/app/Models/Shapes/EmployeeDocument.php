@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, TemplatesConstants as TC, UsersConstants as UC};
-use Illuminate\Database\Eloquent\{Relations\BelongsTo};
+use Illuminate\Database\Eloquent\{Relations\BelongsTo, SoftDeletes};
 
 class EmployeeDocument extends AbstractDocument
 {
-
+    use SoftDeletes;
     protected $table = DC::TABLE_EDOCS;
     public function __construct(array $attributes = [])
     {

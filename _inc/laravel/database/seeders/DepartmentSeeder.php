@@ -165,6 +165,11 @@ final class DepartmentSeeder extends Seeder
 							'company' => $branchCompany,
 							CPC::COL_BRC_ID => $branch->id,
 							CPC::COL_DEP_NM => $nm,
+							'address' => $faker->boolean(50) ? $faker->streetAddress() . ', ' .
+								$faker->city() . ', ' .
+								$faker->stateAbbr() . ' ' .
+								$faker->postcode() . ', ' .
+								$faker->country() : $faker->address(),
 							'description' => $faker->boolean(50) ? $faker->sentence(10) : null,
 							'phone' => $faker->boolean(60) ? $faker->cellphoneNumber() : null,
 							'email' => $faker->boolean(60) ? $faker->unique()->safeEmail() : null,

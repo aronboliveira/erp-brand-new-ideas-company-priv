@@ -252,11 +252,18 @@ class UserContactSeeder extends Seeder
 	): array {
 		$isBlocked = $this->randBool(0.04);
 		$isMuted = $this->randBool(0.10);
-		$isFav = $isBlocked ? false : $this->randBool(0.12);
+		$isFav = $isBlocked ? false : $this->randBool(0.05);
 
 		$name = $this->makeUniqueName($ownerId, $contactUserId, $role);
 		$email = $this->makeUniqueEmail();
-		$phone = null;
+		$phoneAttemps = 0;
+		do $phone = fake()->boolean(75) ? Utility::generateBrazilianPhone() : fake()->phoneNumber();
+		while (
+			DC::TABLE_USR_CTT
+			&& $phone !== null
+			&& $this->rawExists(DC::TABLE_USR_CTT, 'phone', $phone)
+			&& ++$phoneAttemps < self::MAX_UNIQUE_ATTEMPTS
+		);
 
 		$birthday = $this->randomAdultBirthday();
 

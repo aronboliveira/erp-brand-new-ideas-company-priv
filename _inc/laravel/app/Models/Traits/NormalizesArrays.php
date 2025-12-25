@@ -88,4 +88,18 @@ trait NormalizesArrays
 			}
 		}
 	}
+
+	protected function normalizeStringList(mixed $value): ?array
+	{
+		$arr = self::normalizeArrayField($value);
+		$out = [];
+		foreach ($arr as $v) {
+			if (!is_scalar($v)) continue;
+			$s = trim((string) $v);
+			if ($s === '') continue;
+			$out[] = $s;
+		}
+		$out = array_values(array_unique($out));
+		return $out ?: null;
+	}
 }

@@ -27,7 +27,7 @@ class AppraisalSeeder extends Seeder
 				Log::warning(static::class . ' skipping: users or employees table missing');
 				return;
 			}
-
+			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			$users = DB::table(DC::TABLE_USERS)
 				->select('id', UC::COL_TP, UC::COL_EMP_ID, UC::COL_NM)
 				->get();
@@ -196,6 +196,8 @@ class AppraisalSeeder extends Seeder
 							DC::COL_C_AT          => now(),
 							DC::COL_U_AT          => now(),
 						];
+
+						$output->writeln('Prepared appraisal for employee ' . ($emp->name ?? $emp->id ?? 'unknown') . ' by appraiser ' . ($appraiser->{UC::COL_NM} ?? $appraiserId) . ' with status ' . $statusEnum->value);
 
 						$created++;
 

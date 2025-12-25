@@ -40,10 +40,14 @@ trait NormalizesAddresses
 				return null;
 			}
 		}
+
 		$phone = trim((string) $phone);
 		if (empty($context)) $context = '#NO_CONTEXT';
 		if (empty($ownerId)) $ownerId = '#NO_OWNER_ID';
-		if (!preg_match('/^\+?[0-9 ()\-]{7,20}$/', $phone)) {
+
+		$digitsOnly = preg_replace('/[^0-9+]/', '', $phone);
+
+		if (!preg_match('/^\+?\d{7,15}$/', $digitsOnly)) {
 			if ($isMock)
 				return Utility::generateBrazilianPhone();
 			else {
@@ -54,7 +58,8 @@ trait NormalizesAddresses
 				return null;
 			}
 		}
-		return $phone;
+
+		return $phone; // Return original formatted phone
 	}
 
 	public static function normalizeZip(?string $zip, ?string $country, ?string $context, string|int|null $ownerId): ?string

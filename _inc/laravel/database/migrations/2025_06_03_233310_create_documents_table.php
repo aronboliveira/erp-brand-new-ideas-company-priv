@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\DatabaseConstants as DC;
-use App\Traits\{HasDocumentColumns, HasNullableAuditColumns};
+use App\Traits\{HasFileColumns, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use Illuminate\Support\Facades\{Schema};
 
 class CreateDocumentsTable extends Migration
 {
-    use HasNullableAuditColumns, HasDocumentColumns;
+    use HasNullableAuditColumns, HasFileColumns;
 
     private const TABLE = DC::TABLE_DOCS;
 
@@ -16,10 +16,9 @@ class CreateDocumentsTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->string('name');
                 $table->string(DC::COL_IR)->default('false'); // todo must be changed to bool later
                 $table->boolean(DC::COL_IPV)->default(false)->nullable();
-                $this->addDocumentColumns($table);
+                $this->addFileColumns($table);
                 $this->addAuditColumns($table);
             });
     }

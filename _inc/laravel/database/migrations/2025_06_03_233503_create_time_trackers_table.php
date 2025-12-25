@@ -1,51 +1,73 @@
+
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{ActivitiesConstants as AC, CompaniesConstants as CC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateTimeTrackersTable extends Migration
 {
-    private const TABLE = 'time_trackers';
-    private const COL_PROJECT = 'project_id';
-    private const COL_TASK = 'task_id';
-    private const COL_CREATOR = 'created_by';
-    private const T = 'time';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_TM_TRK;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
-            $table->uuid('id')->primary();                     // ! CHANGED
-            $table->uuid(self::COL_PROJECT)->nullable();            // ! CHANGED
-            $table->uuid(self::COL_TASK)->nullable();               // ! CHANGED
-            $table->text('tag_id')->nullable();
-            $table->string('name')->nullable();
-            $table->integer('is_billable')->default(0);
-            $table->dateTime('start_' . self::T)->nullable();
-            $table->dateTime('end_' . self::T)->nullable();
-            $table->string('total_' . self::T)->default('0');
-            $table->string('is_active')->default('1');
-            $table->uuid(self::COL_CREATOR)->nullable();            // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_PROJECT  => DatabaseConstants::TABLE_PROJECTS,
-                self::COL_TASK     => DatabaseConstants::TABLE_PROJ_TSKS,
-                self::COL_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $col => $tbl)
+            $table->uuid('id')->primary();
+            $table->string('name', 254)->nullable()->index();
+            $table->text('description')->nullable();
+            $table->uuid(PJC::COL_PJ_ID)->nullable();
+            $table->uuid(AC::COL_TSK_ID)->nullable();
+            $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? it can be linked to a user as the task doer or a team leader
+            $table->uuid(CC::COL_DEP_ID)->nullable()->index(); // ? it can be linked to a department
+            $table->text(PJC::COL_TAG_ID)->nullable(); // * not clear yet
+            $table->unsignedTinyInteger(PJC::COL_IS_BLB)->default(0)->index();
+            $table->unsignedDecimal(PJC::COL_BLB_HRS, 10, 2)->default(0);
+            $table->unsignedDecimal(PJC::COL_HRS_WTT_TIMER, 10, 2)->nullable()->comment('Manually entered hours'); // ? enforce at boot/saving to never be more than AC::COL_TTL_TIME
+            $table->unsignedDecimal(PJC::COL_HR_PRC, 10, 2)->default(0)->nullable()->index(); // ? if is_billable is false, then this is nullified
+            $table->string('currency', 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? this CANNOT be null when col_hr_prc is defined 
+            $table->dateTime(AC::COL_ST_TIME)->nullable();
+            $table->dateTime(AC::COL_E_TIME)->nullable(); // * it's kind of redundant to have AC::COL_TTL_TIME too, but keeping for legacy reasons. If the difference from COL_ST_TIME to COL_E_TIME is more than COL_TTL_TIME, then the extra time is added to COL_TTL_TIME;
+            $table->string(AC::COL_TTL_TIME)->default('0'); // * it's not clear what format to use here, so string for now, aligned with legacy code
+            $table->string(AC::COL_IA)->default('1')->index(); // * it's not clear why this was not a boolean or a unsignedTinyInt on legacy code, but keeping for legacy
+            $this->addAuditColumns($table);
+            foreach (
+                [
+                    PJC::COL_PJ_ID => DC::TABLE_PROJECTS,
+                    UC::COL_USER_ID => DC::TABLE_USERS,
+                ] as $col => $tableName
+            )
                 $table->foreign($col)
                     ->references('id')
-                    ->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->on($tableName)
+                    ->cascadeOnDelete();
+            foreach (
+                [
+                    AC::COL_TSK_ID => DC::TABLE_PROJ_TSKS,
+                    CC::COL_DEP_ID => DC::TABLE_DEPARTMENTS,
+                ] as $col => $tableName
+            )
+                $table->foreign($col)
+                    ->references('id')
+                    ->on($tableName)
+                    ->nullOnDelete();
+            $table->json('tags')->nullable();
+            $table->json('attachments')->nullable();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PROJECT,
-                self::COL_TASK,
-                self::COL_CREATOR,
-            ] as $col) {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            foreach (
+                [
+                    PJC::COL_PJ_ID,
+                    AC::COL_TSK_ID,
+                    CC::COL_DEP_ID,
+                    UC::COL_USER_ID,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

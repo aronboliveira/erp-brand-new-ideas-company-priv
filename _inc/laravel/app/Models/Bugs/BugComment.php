@@ -2,64 +2,40 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\UserType;
-use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BugComment extends Model
+class BugComment extends Comment
 {
-    use UsesUuids, HasAuditFields;
+    protected $table = DC::TABLE_BG_CMT;
 
-    protected $fillable = [
-        'bug_id',
-        'comment',
-        UC::COL_U_TP,
-    ];
-    protected $guarded  = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-    ];
-    protected $with = ['bug'];
     protected $casts = [
         UC::COL_U_TP => UserType::class,
     ];
 
-    protected static function booted(): void
+    protected static function defaultUserType(): UserType
     {
-        parent::booted();
-        static::creating(function ($model) {
-            try {
-                $stringValue = $model->{UC::COL_U_TP} instanceof UserType
-                    ? $model->{UC::COL_U_TP}->value
-                    : (string) $model->{UC::COL_U_TP};
-                $model->{UC::COL_U_TP} = UserType::normalize($stringValue) ?? throw new \InvalidArgumentException(
-                    'Invalid user type: ' . $stringValue
-                );
-            } catch (\InvalidArgumentException $e) {
-                $model->{UC::COL_U_TP} = UserType::Client;
-            }
-        });
-        static::updating(function ($model) {
-            if ($model->isDirty(UC::COL_U_TP)) {
-                $model->{UC::COL_U_TP} = UserType::normalize((string) $model->{UC::COL_U_TP})
-                    ?? throw new \InvalidArgumentException('Invalid user_type');
-            }
-        });
+        return UserType::Client;
+    }
+
+    protected static function fillableFields(): array
+    {
+        return array_merge(parent::fillableFields(), [AC::COL_BUG]);
+    }
+
+    protected static function withRelations(): array
+    {
+        return ['author', 'bug'];
     }
 
     public function bug(): BelongsTo
     {
-        return $this->belongsTo(Bug::class, 'bug_id', 'id');
+        return $this->belongsTo(Bug::class, AC::COL_BUG, 'id');
     }
 
-    public function commentUser(): ?User
+    public function scopeForBug($query, string $bugId)
     {
-        return User::where('id', $this->created_by)->first();
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
+        return $query->where(AC::COL_BUG, $bugId);
     }
 }

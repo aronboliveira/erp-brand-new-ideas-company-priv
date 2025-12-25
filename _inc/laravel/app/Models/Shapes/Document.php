@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Enums\{DocumentKind, MimeType};
-use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\Model;
 
 class Document extends AbstractDocument
 {

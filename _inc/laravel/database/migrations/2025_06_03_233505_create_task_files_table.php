@@ -1,58 +1,33 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\UserType;
+use App\Traits\{HasFileColumns, HasNullableAuditColumns, TaskConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use Illuminate\Support\Facades\Schema;
 
 class CreateTaskFilesTable extends Migration
 {
-    private const TABLE = 'task_files';
-    private const COL_TASK = 'task_id';
-    private const COL_CREATOR = 'created_by';
-    private const F = 'file';
+    use HasNullableAuditColumns, HasFileColumns, TaskConnected;
+    private const TABLE = DC::TABLE_TSK_FL;
     public function up(): void
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table): void {
-                $table->uuid('id')->primary();               // ! CHANGED
-                $table->string('name');
-                $table->string('extension');
-                $table->string(self::F);
-                $table->string(self::F . '_size');
-                $table->uuid(self::COL_TASK);                     // ! CHANGED
-                $table->string('user_type');
-                $table->uuid(self::COL_CREATOR);                  // ! CHANGED
-                $table->timestamps();
-                foreach ([
-                    self::COL_TASK    => DatabaseConstants::TABLE_TASKS,
-                    self::COL_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
-                    $table->foreign($col)
-                        ->references('id')
-                        ->on($tbl)
-                        ->cascadeOnDelete(); // * ADDED
+                $table->uuid('id')->primary();
+                $table->string('file')->nullable()->index(); // * redundant column, but keeping it for legacy compatibility
+                $this->addFileColumns($table);
+                $this->addTaskColumns($table, false, false, true);
+                $table->enum(UC::COL_U_TP, UserType::values())->default(UserType::Customer->value)->index(); // ? enforced at boot/saving
+                $this->addAuditColumns($table);
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_TASK,
-                self::COL_CREATOR,
-            ] as $col) {
-                try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropTaskColumnForeign($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

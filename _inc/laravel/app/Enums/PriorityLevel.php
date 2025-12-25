@@ -79,6 +79,90 @@ enum PriorityLevel: string
 		};
 	}
 
+	/**
+	 * Get CSS color classes for each priority level (for UI implementation)
+	 */
+	public static function colorClasses(): array
+	{
+		return [
+			self::None->value      => 'priority-none',
+			self::Low->value       => 'priority-low',
+			self::Medium->value    => 'priority-medium',
+			self::High->value      => 'priority-high',
+			self::Critical->value  => 'priority-critical',
+			self::Urgent->value    => 'priority-urgent',
+			self::Blocker->value   => 'priority-blocker',
+			self::Immediate->value => 'priority-immediate',
+		];
+	}
+
+	/**
+	 * Get icon names for each priority level (for UI implementation)
+	 */
+	public static function icons(): array
+	{
+		return [
+			self::None->value      => 'flag-outline',
+			self::Low->value       => 'flag',
+			self::Medium->value    => 'flag',
+			self::High->value      => 'flag',
+			self::Critical->value  => 'alert-circle',
+			self::Urgent->value    => 'alert',
+			self::Blocker->value   => 'block-helper',
+			self::Immediate->value => 'flash',
+		];
+	}
+
+	/**
+	 * Get numerical weight for sorting/comparison purposes
+	 */
+	public function weight(): int
+	{
+		return match ($this) {
+			self::None      => 0,
+			self::Low       => 1,
+			self::Medium    => 2,
+			self::High      => 3,
+			self::Urgent    => 4,
+			self::Critical  => 5,
+			self::Blocker   => 6,
+			self::Immediate => 7,
+		};
+	}
+
+	/**
+	 * Check if priority is above a certain threshold
+	 */
+	public function isAtLeast(self $threshold): bool
+	{
+		return $this->weight() >= $threshold->weight();
+	}
+
+	/**
+	 * Get priorities grouped by severity for UI selection
+	 */
+	public static function groupedOptions(): array
+	{
+		return [
+			'standard' => [
+				self::Low,
+				self::Medium,
+				self::High,
+			],
+			'elevated' => [
+				self::Critical,
+				self::Urgent,
+			],
+			'exceptional' => [
+				self::Blocker,
+				self::Immediate,
+			],
+			'unprioritized' => [
+				self::None,
+			],
+		];
+	}
+
 	public static function labelsPtBr(): array
 	{
 		return [
@@ -286,90 +370,6 @@ enum PriorityLevel: string
 			self::Urgent->value    => '紧急',
 			self::Blocker->value   => '阻碍',
 			self::Immediate->value => '立即',
-		];
-	}
-
-	/**
-	 * Get CSS color classes for each priority level (for UI implementation)
-	 */
-	public static function colorClasses(): array
-	{
-		return [
-			self::None->value      => 'priority-none',
-			self::Low->value       => 'priority-low',
-			self::Medium->value    => 'priority-medium',
-			self::High->value      => 'priority-high',
-			self::Critical->value  => 'priority-critical',
-			self::Urgent->value    => 'priority-urgent',
-			self::Blocker->value   => 'priority-blocker',
-			self::Immediate->value => 'priority-immediate',
-		];
-	}
-
-	/**
-	 * Get icon names for each priority level (for UI implementation)
-	 */
-	public static function icons(): array
-	{
-		return [
-			self::None->value      => 'flag-outline',
-			self::Low->value       => 'flag',
-			self::Medium->value    => 'flag',
-			self::High->value      => 'flag',
-			self::Critical->value  => 'alert-circle',
-			self::Urgent->value    => 'alert',
-			self::Blocker->value   => 'block-helper',
-			self::Immediate->value => 'flash',
-		];
-	}
-
-	/**
-	 * Get numerical weight for sorting/comparison purposes
-	 */
-	public function weight(): int
-	{
-		return match ($this) {
-			self::None      => 0,
-			self::Low       => 1,
-			self::Medium    => 2,
-			self::High      => 3,
-			self::Urgent    => 4,
-			self::Critical  => 5,
-			self::Blocker   => 6,
-			self::Immediate => 7,
-		};
-	}
-
-	/**
-	 * Check if priority is above a certain threshold
-	 */
-	public function isAtLeast(self $threshold): bool
-	{
-		return $this->weight() >= $threshold->weight();
-	}
-
-	/**
-	 * Get priorities grouped by severity for UI selection
-	 */
-	public static function groupedOptions(): array
-	{
-		return [
-			'standard' => [
-				self::Low,
-				self::Medium,
-				self::High,
-			],
-			'elevated' => [
-				self::Critical,
-				self::Urgent,
-			],
-			'exceptional' => [
-				self::Blocker,
-				self::Immediate,
-			],
-			'unprioritized' => [
-				self::None,
-			],
 		];
 	}
 }

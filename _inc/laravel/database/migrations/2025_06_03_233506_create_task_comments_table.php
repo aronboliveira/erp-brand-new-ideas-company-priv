@@ -1,59 +1,38 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
-use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\UserType;
+use App\Traits\{HasCommentColumns, HasNullableAuditColumns, TaskConnected};
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateTaskCommentsTable extends Migration
 {
-    private const TABLE         = 'task_comments';
-    private const COL_COMMENT   = 'comment';
-    private const COL_CREATED_BY = 'created_by';
-    private const COL_TASK_ID   = 'task_id';
-    private const COL_USER_ID   = 'user_id';
-    private const COL_USER_TYPE = 'user_type';
+    use HasNullableAuditColumns, TaskConnected, HasCommentColumns;
+
+    private const TABLE = DC::TABLE_TSK_CMT;
 
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                  // ! CHANGED
-            $table->text(self::COL_COMMENT);
-            $table->uuid(self::COL_TASK_ID);                // ! CHANGED
-            $table->uuid(self::COL_USER_ID);                // ! CHANGED
-            $table->string(self::COL_USER_TYPE);            // ! CHANGED
-            $table->uuid(self::COL_CREATED_BY);             // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_TASK_ID => DatabaseConstants::TABLE_TASKS,
-                self::COL_USER_ID => DatabaseConstants::TABLE_USERS,
-                self::COL_CREATED_BY => DatabaseConstants::TABLE_USERS
-            ] as $col => $tbl)
-                $table->foreign($col)
-                    ->references('id')->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+            $table->uuid('id')->primary();
+            $this->addCommentColumns(
+                $table,
+                unnullify: [UC::COL_USER_ID, UC::COL_U_TP],
+                userTypeValues: array_column(UserType::cases(), 'value'),
+            );
+            $this->addTaskColumns($table, unique: false, nullable: false, cascade: true);
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_TASK_ID,
-                self::COL_USER_ID,
-                self::COL_CREATED_BY,
-            ] as $col) {
-                try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropTaskColumnForeign($table, self::TABLE);
+            $this->dropCommentColumnForeigns($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

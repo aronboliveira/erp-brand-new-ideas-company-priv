@@ -7,7 +7,7 @@ use App\Config\Constants\UsersConstants as UC;
 use App\Config\Constants\PermissionsConstants as PMC;
 use App\Config\Constants\SettingsConstants as SC;
 use App\Enums\UserType;
-use App\Models\{Branch as Br, Department as Dep, Designation as Dsg, User};
+use App\Models\{Branch as Br, Department as Dep, Designation as Dsg, User, Utility};
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
@@ -32,6 +32,23 @@ class UserSeeder extends Seeder
 			return;
 		}
 
+		$languageMappings = [
+			'pt-br' => 'Português brasileiro',
+			'pt' => 'Português',
+			'es' => 'Espanhol',
+			'fr' => 'Francês',
+			'de' => 'Alemão',
+			'it' => 'Italiano',
+			'zh' => 'Chinês',
+			'ja' => 'Japonês',
+			'ru' => 'Russo',
+			'pl' => 'Polonês',
+			'da' => 'Dinamarquês',
+			'nl' => 'Holandês',
+			'ar' => 'Árabe',
+			'tr' => 'Turco',
+			'he' => 'Hebraico',
+		];
 		// Tipos permitidos (exclui SuperAdmin para mock)
 		$allowedCases       = array_values(array_filter(UserType::cases(), fn($c) => $c !== UserType::SuperAdmin));
 		$allowedTypeValues  = array_filter(array_map(fn(UserType $c) => $c->value, $allowedCases), fn($v) => $v !== PMC::SA);
@@ -59,36 +76,43 @@ class UserSeeder extends Seeder
 		$maybe = fn(callable $fn) => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? $fn() : null;
 
 		DB::beginTransaction();
+		$faker = fake(locale: config('app.locale', 'pt_BR'));
 		try {
 			// ------------------- Fixtures determinísticas (1 por tipo) -------------------
 			$fixtures = [];
+			$lang = $faker->boolean(80) ? config('app.locale', DC::DEFAULT_LANG) : array_rand(array_unique(['pt-br', 'pt', 'es', 'fr', 'de', 'it', 'zh', 'ja', 'ru', 'pl', 'da', 'nl', 'ar', 'tr', 'he']), 1);
 			foreach ($allowedTypeValues as $type) {
 				$name = in_array($type, [UserType::Vendor->value, UserType::Company->value], true)
-					? fake()->company()
+					? $faker->company()
 					: (in_array($type, [UserType::Client->value], true)
-						? (fake()->boolean(50) ? fake()->company() : fake()->name())
-						: fake()->name());
+						? ($faker->boolean(50) ? $faker->company() : $faker->name())
+						: $faker->name());
 				$fixtures[] = [
 					UC::COL_NM  => "{$name} — System Fixture for {$type}",
-					'phone' => fake()->unique()->phoneNumber(),
-					UC::COL_EM  => fake()->unique()->safeEmail(),
+					'phone' => $faker->boolean(50) ? Utility::generateBrazilianPhone() : $faker->unique()->phoneNumber(),
+					'address' => $faker->streetAddress() . ', ' .
+						$faker->city() . ', ' .
+						$faker->stateAbbr() . ' ' .
+						$faker->postcode() . ', ' .
+						$faker->country(),
+					UC::COL_EM  => $faker->unique()->safeEmail(),
 					UC::COL_PW  => Hash::make('Password123!'),
 					UC::COL_TP  => $type,
 					UC::COL_SL  => Arr::random([1024.00, 2048.00, 5120.00, 10240.00]),
-					UC::COL_LG  => config('app.locale', DC::DEFAULT_LANG),
+					UC::COL_LG  => $lang,
 					UC::COL_MD  => Arr::random(['light', 'dark']),
 					UC::COL_D_ST => fake()->boolean(20) ? 0 : 1,
 					UC::COL_A_ST => fake()->boolean(30) ? 1 : 0,
 					UC::COL_DM  => Arr::random([0, 1]),
 					UC::COL_IB  => fake()->boolean(10) ? 1 : 0,
-					UC::COL_MC  => '#2180f3',
+					UC::COL_MC  => Arr::random(['#2180f3', '#f3214d', '#21f38c', '#f3e021', '#8c21f3', '#f38c21', '#21d4f3', '#ffffff', '#000000', '#777777']),
 					// JSON será normalizado/codificado pelo Model (NormalizesArrays)
 					'preferences' => [
-						'theme'      => 'light',
-						'lang'       => config('app.locale', DC::DEFAULT_LANG),
+						'theme'      => Arr::random(['light', 'dark']),
+						'lang'       => $lang,
 						'notify'     => ['email' => true, 'sms' => false],
 						'timezone'   => config('app.timezone', 'America/Sao_Paulo'),
-						'language'	 => DC::DEFAULT_LANG_LONG,
+						'language'	 => $faker->boolean(80) ? DC::DEFAULT_LANG_LONG : ($languageMappings[$lang] ?? DC::DEFAULT_LANG_LONG),
 					],
 				];
 			}
@@ -105,17 +129,18 @@ class UserSeeder extends Seeder
 
 			// ------------------- Massa aleatória até atingir $target -------------------
 			$targAcc = 0;
+			$faker = fake(locale: config('app.locale', 'pt_BR'));
 			while ($created < $target) {
 				try {
 					$type = Arr::random($allowedTypeValues);
 
 					$name = in_array($type, [UserType::Vendor->value, UserType::Company->value], true)
-						? fake()->company()
+						? $faker->company()
 						: (in_array($type, [UserType::Client->value], true)
-							? (fake()->boolean(50) ? fake()->company() : fake()->name())
-							: fake()->name());
-					$mode = fake()->randomElement(['light', 'dark']);
-					$lang = fake()->randomElement([config('app.locale', DC::DEFAULT_LANG), 'pt-br', DC::DEFAULT_LANG, 'es']);
+							? ($faker->boolean(50) ? $faker->company() : $faker->name())
+							: $faker->name());
+					$mode = $faker->randomElement(['light', 'dark']);
+					$lang = $faker->boolean(80) ? config('app.locale', DC::DEFAULT_LANG) : array_rand(array_unique(['pt-br', 'pt', 'es', 'fr', 'de', 'it', 'zh', 'ja', 'ru', 'pl', 'da', 'nl', 'ar', 'tr', 'he']), 1);
 
 					// E-mail único e estável para evitar colisão com UNIQUE
 					$emailLocal = Str::slug($name, '.') . '.' . Str::lower(Str::random(6));
@@ -123,6 +148,12 @@ class UserSeeder extends Seeder
 
 					$payload = [
 						UC::COL_NM   => $name,
+						'phone' 	=> fake()->boolean(75) ? Utility::generateBrazilianPhone() : $faker->unique()->phoneNumber(),
+						'address' 	=> $faker->streetAddress() . ', ' .
+							$faker->city() . ', ' .
+							$faker->stateAbbr() . ' ' .
+							$faker->postcode() . ', ' .
+							$faker->country(),
 						UC::COL_EM   => $email, // normalizado em saving()
 						UC::COL_PW   => Hash::make('Password123!'),
 						UC::COL_TP   => $type,
@@ -144,6 +175,7 @@ class UserSeeder extends Seeder
 							'timezone'   => config('app.timezone', 'America/Sao_Paulo'),
 							'notify'     => ['email' => fake()->boolean(80), 'sms' => fake()->boolean(15)],
 							'shortcuts'  => ['open_cmd' => 'Ctrl+K', 'toggle_theme' => 'Ctrl+D'],
+							'language'	 => $faker->boolean(80) ? DC::DEFAULT_LANG_LONG : ($languageMappings[$lang] ?? DC::DEFAULT_LANG_LONG),
 						],
 					];
 

@@ -35,6 +35,7 @@ class ProjectsConstants
 	public const COL_PASSWORD       = 'password';
 	public const COL_COPYLINK       = 'copylinksetting';
 	public const COL_TAGS           = 'tags';
+	public const COL_CTC_ID = 'contract_id';
 	public const COL_CN = 'contract_number';
 	public const COL_CDESC = 'contract_description';
 	public const COL_ARNW = 'auto_renew';
@@ -89,6 +90,12 @@ class ProjectsConstants
 	public const COL_CMP_AT = 'completed_at';
 	public const COL_ASG_BY = 'assigned_by';
 	public const COL_ASG_AT = 'assigned_at';
+	public const COL_RDC_SHFT_BY = 'reduced_shift_by';
+	public const COL_TAG_ID = 'tag_id';
+	public const COL_IS_BLB = 'is_billable';
+	public const COL_BLB_HRS = 'billable_hours';
+	public const COL_HRS_WTT_TIMER = 'hours_without_timer';
+	public const COL_HR_PRC = 'hourly_price';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';
