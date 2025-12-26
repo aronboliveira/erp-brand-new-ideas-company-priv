@@ -57,6 +57,12 @@ class BillPayment extends Model
         'notes',
         'attachments',
         BC::COL_TC,
+        BC::COL_NFE_KEY,
+        BC::COL_NFE_NUMBER,
+        BC::COL_NFE_SERIES,
+        BC::COL_NFE_XML_PATH,
+        BC::COL_NFE_PROTOCOL,
+        BC::COL_NFE_AUTH_AT,
     ];
 
     protected $guarded = [

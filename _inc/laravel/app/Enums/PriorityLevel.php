@@ -96,6 +96,20 @@ enum PriorityLevel: string
 		];
 	}
 
+	public static function colorCodes(): array
+	{
+		return [
+			self::None->value      => '#6c757d', // Gray
+			self::Low->value       => '#198754', // Green
+			self::Medium->value    => '#0d6efd', // Blue
+			self::High->value      => '#ffc107', // Yellow
+			self::Critical->value  => '#fd7e14', // Orange
+			self::Urgent->value    => '#dc3545', // Red
+			self::Blocker->value   => '#842029', // Dark Red
+			self::Immediate->value => '#6f42c1', // Purple
+		];
+	}
+
 	/**
 	 * Get icon names for each priority level (for UI implementation)
 	 */

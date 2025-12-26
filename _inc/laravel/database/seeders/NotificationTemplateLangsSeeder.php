@@ -102,7 +102,7 @@ final class NotificationTemplateLangsSeeder extends Seeder
 			? max(1, (int) $this->command->option('count'))
 			: max(1, $templateCount);
 
-		$targetTotal = 64 * $multiplier;
+		$targetTotal = 16 * $multiplier;
 		// Não podemos criar mais que as combinações únicas disponíveis
 		$targetTotal = min($targetTotal, $totalAvailableCombos);
 

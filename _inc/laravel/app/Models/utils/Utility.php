@@ -2792,6 +2792,120 @@ class Utility extends Model
         return '+55 00000-0000';
     }
 
+    public static function generateRandomCpf(bool $formatted = true): string
+    {
+        $cpf = '';
+        for ($i = 0; $i < 9; $i++)
+            $cpf .= random_int(0, 9);
+        $sum = 0;
+        $weight = 10;
+        for ($i = 0; $i < 9; $i++) {
+            $sum += (int) $cpf[$i] * $weight;
+            $weight--;
+        }
+        $remainder = $sum % 11;
+        $cpf .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+        $sum = 0;
+        $weight = 11;
+        for ($i = 0; $i < 10; $i++) {
+            $sum += (int) $cpf[$i] * $weight;
+            $weight--;
+        }
+        $remainder = $sum % 11;
+        $cpf .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+        if ($formatted)
+            return sprintf(
+                '%s.%s.%s-%s',
+                substr($cpf, 0, 3),
+                substr($cpf, 3, 3),
+                substr($cpf, 6, 3),
+                substr($cpf, 9, 2)
+            );
+        return $cpf;
+    }
+
+public static function generateRandomCnpj(bool $formatted = true): string
+{
+    $cnpj = '';
+    for ($i = 0; $i < 8; $i++)
+        $cnpj .= random_int(0, 9);
+    $cnpj .= '0001';
+    $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    $sum = 0;
+    for ($i = 0; $i < 12; $i++)
+        $sum += (int) $cnpj[$i] * $weights1[$i];
+    $remainder = $sum % 11;
+    $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+    $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    $sum = 0;
+    for ($i = 0; $i < 13; $i++)
+        $sum += (int) $cnpj[$i] * $weights2[$i];
+    $remainder = $sum % 11;
+    $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+    if ($formatted)
+        return sprintf('%s.%s.%s/%s-%s',
+            substr($cnpj, 0, 2),
+            substr($cnpj, 2, 3),
+            substr($cnpj, 5, 3),
+            substr($cnpj, 8, 4),
+            substr($cnpj, 12, 2)
+        );
+    return $cnpj;
+}
+
+public static function isValidCpf(?string $cpf): bool
+{
+    if (!$cpf) return false;
+    $cpf = preg_replace('/[^0-9]/', '', $cpf);
+    if (!preg_match('/^[0-9]{11}$/', $cpf))
+        return false;
+    if (preg_match('/^(\d)\1{10}$/', $cpf))
+        return false;
+    $sum = 0;
+    for ($i = 0; $i < 9; $i++)
+        $sum += (int) $cpf[$i] * (10 - $i);
+    $remainder = $sum % 11;
+    $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
+    if ($digit1 !== (int) $cpf[9])
+        return false;
+    $sum = 0;
+    for ($i = 0; $i < 10; $i++)
+        $sum += (int) $cpf[$i] * (11 - $i);
+    $remainder = $sum % 11;
+    $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
+    if ($digit2 !== (int) $cpf[10])
+        return false;
+    return true;
+}
+
+public static function isValidCnpj(?string $cnpj): bool
+{
+    if (!$cnpj) return false;
+    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+    if (!preg_match('/^[0-9]{14}$/', $cnpj))
+        return false;
+    if (preg_match('/^(\d)\1{13}$/', $cnpj))
+        return false;
+    $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    $sum = 0;
+    for ($i = 0; $i < 12; $i++)
+        $sum += (int) $cnpj[$i] * $weights1[$i];
+    $remainder = $sum % 11;
+    $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
+    if ($digit1 !== (int) $cnpj[12])
+        return false;
+    $sum = 0;
+    for ($i = 0; $i < 13; $i++)
+        $sum += (int) $cnpj[$i] * $weights2[$i];
+    $remainder = $sum % 11;
+    $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
+    if ($digit2 !== (int) $cnpj[13])
+        return false;
+    return true;
+}
+
+
     public static function updateStorageLimit(int $companyId, float $imageSize): string|int
     {
         try {

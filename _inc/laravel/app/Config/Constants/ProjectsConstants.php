@@ -19,6 +19,8 @@ class ProjectsConstants
 	public const COL_PLN_ST = 'planned_start';
 	public const COL_D_DATE = 'due_date';
 	public const COL_E_HRS = 'estimated_hrs';
+	public const COL_ACT_HRS = 'actual_hrs';
+	public const COL_LAST_ACT_AT = 'last_activity_at';
 	public const COL_PRT = 'priority';
 	public const COL_IS_CP = 'is_complete';
 	public const COL_IS_FV = 'is_favorite';
@@ -36,6 +38,8 @@ class ProjectsConstants
 	public const COL_COPYLINK       = 'copylinksetting';
 	public const COL_TAGS           = 'tags';
 	public const COL_CTC_ID = 'contract_id';
+	public const COL_JRN_ID = 'journal_id';
+	public const COL_RVS_DT = 'reversal_date';
 	public const COL_CN = 'contract_number';
 	public const COL_CDESC = 'contract_description';
 	public const COL_ARNW = 'auto_renew';
@@ -96,6 +100,28 @@ class ProjectsConstants
 	public const COL_BLB_HRS = 'billable_hours';
 	public const COL_HRS_WTT_TIMER = 'hours_without_timer';
 	public const COL_HR_PRC = 'hourly_price';
+	public const COL_INV_BY = 'invited_by';
+	public const COL_INV_AT = 'invited_at';
+	public const COL_INV_STT = 'invite_status';
+	public const COL_INV_URL = 'invite_url';
+	public const COL_INV_CD = 'invite_code';
+	public const COL_JND_AT = 'joined_at';
+	public const COL_ACC_AT = 'accepted_at';
+	public const COL_ACC_BY = 'accepted_by';
+	public const COL_LFT_AT = 'left_at';
+	public const COL_RMV_BY = 'removed_by';
+	public const COL_IS_TMP = 'is_temporary';
+	public const COL_EXP_AT = 'expires_at';
+	public const COL_LST_EDT_AT = 'last_edited_at';
+	public const COL_CAN_WRT_OWN = 'can_write_own_files';
+	public const COL_CAN_WRT_OTH = 'can_write_others_files';
+	public const COL_CAN_RD_OTH = 'can_read_others_files';
+	public const COL_IS_PRJ_LD = 'is_project_leader';
+	public const COL_ALW_EML_NTF = 'allow_email_notifications';
+	public const COL_ALW_PSH_NTF = 'allow_push_notifications';
+	public const COL_ALW_MNT_NTF = 'allow_mention_notifications';
+	public const COL_ALW_STT_UPD_NTF = 'allow_status_update_notifications';
+	public const COL_TTL_HRS = 'total_hours';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

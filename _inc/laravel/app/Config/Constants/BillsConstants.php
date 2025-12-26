@@ -111,7 +111,15 @@ class BillsConstants
 	public const COL_PRD_SV_ID = 'product_service_id';
 	public const COL_OD_ID = 'order_id';
 	public const COL_PAY_ID = 'payment_id';
+	public const COL_EXP_ID = 'expense_id';
+	public const COL_TRS_ID = 'transaction_id';
+	public const COL_CRD_NT_ID = 'credit_note_id';
+	public const COL_DBT_NT_ID = 'debit_note_id';
+	public const COL_LN_ID = 'loan_id';
+	public const COL_ALW_ID = 'allowance_id';
+	public const COL_POS_PAY_ID = 'pos_payment_id';
 	public const COL_PAY_TP = 'payment_type';
+	public const COL_TRS_TP = 'transaction_type';
 	public const COL_PSLP_ID = 'payslip_id';
 	public const COL_PRC_IDX = 'purchase_index';
 	public const COL_TAX_ID = 'tax_id';
@@ -187,6 +195,31 @@ class BillsConstants
 	public const COL_BILL_STATUS = 'bill_status';
 	public const COL_CLT_ID = 'client_id';
 	public const COL_DUE_DT = 'due_date';
+	public const COL_TTL_DBT = 'total_debit';
+	public const COL_TTL_CRT = 'total_credit';
+	public const COL_EXC_RT = 'exchange_rate';
+	public const COL_IS_RVS = 'is_reversal';
+	public const COL_RVSED_ID = 'reversed_id';
+	public const COL_RVSING_ID = 'reversing_id';
+	public const COL_IS_RCC = 'is_reconciled';
+	public const COL_RCC_DT = 'reconciled_date';
+	public const COL_RCC_DOC = 'reconciliation_document';
+	public const COL_BK_TP = 'book_type';
+	public const COL_HSH_ECD = 'hash_ecd';
+	public const COL_ECD_TRS = 'ecd_transmitted';
+	public const COL_ECD_AT = 'ecd_transmitted_at';
+	public const COL_NFE_KEY = 'nfe_key';
+	public const COL_NFE_NUMBER = 'nfe_number';
+	public const COL_NFE_SERIES = 'nfe_series';
+	public const COL_NFE_XML_PATH = 'nfe_xml_path';
+	public const COL_NFE_PROTOCOL = 'nfe_protocol';
+	public const COL_NFE_AUTH_AT = 'nfe_authorized_at';
+	public const COL_BNK_ACC = 'bank_account';
+	public const COL_BNK_EXT_DT = 'bank_extract_date';
+	public const COL_CHK_NM = 'check_number';
+	public const COL_TED_DOC_N = 'ted_doc_number';
+	public const COL_ORG_USER_ID = 'origin_user_id';
+	public const COL_USR_AGT = 'user_agent';
 
 	// * VALORES
 

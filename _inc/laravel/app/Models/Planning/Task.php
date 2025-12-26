@@ -7,7 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
-use App\Enums\AppModuleType;
+use App\Enums\{AppModuleType, PriorityLevel};
 use App\Traits\{
     HasAuditFields,
     NormalizesArrays,
@@ -59,8 +59,7 @@ class Task extends Model
         'date' => 'date',
         'time' => 'string',
         'description' => 'string',
-
-        // ✅ enum direto (backed enum cast)
+        'priority' => PriorityLevel::class,
         AC::COL_MT => AppModuleType::class,
 
         AC::COL_MI => 'string',
@@ -132,6 +131,9 @@ class Task extends Model
                 $m->normalizeModuleType();
                 $m->mergeMilestoneInvolved();
                 $m->validateStageIdsFormat();
+                $priority = $m->getAttribute('priority');
+                if ($priority === null || $priority === '' || !PriorityLevel::tryFrom($priority))
+                    $m->setAttribute('priority', PriorityLevel::Medium);
             } catch (\Throwable $ex) {
                 Log::error(static::class . ' saving() failed', [
                     'id' => (string) ($m->getAttribute('id') ?? ''),

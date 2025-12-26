@@ -1,19 +1,20 @@
 <?php
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{HasNullableAuditColumns, IsCardNote};
+use App\Traits\{HasNfeColumns, HasNullableAuditColumns, IsCardNote};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDebitNotesTable extends Migration
 {
-    use HasNullableAuditColumns, IsCardNote;
+    use HasNfeColumns, HasNullableAuditColumns, IsCardNote;
     private const TABLE = DC::TABLE_DB_NOTES;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $this->addCardNoteColumns($table, billIdentifier: 'bill');
+            $this->addNfeColumns($table);
             $table->uuid(UC::COL_VD_ID)->index();
             $table->foreign(UC::COL_VD_ID)
                 ->references('id')

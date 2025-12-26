@@ -32,6 +32,23 @@ class UserSeeder extends Seeder
 			return;
 		}
 
+		// * ensuring all existing users have cpfs and cnpjs
+
+		$usersPool = DB::table(DC::TABLE_USERS);
+		$unidentifiedUsers = $usersPool->whereNull(UC::COL_ENT_CD)->orWhere(UC::COL_ENT_CD, '')->get();
+		foreach ($unidentifiedUsers as $user) {
+			$codeIdentifier = null;
+			$isCnpjCandidate = in_array($user->type, [UserType::Vendor->value, UserType::Company->value], true)
+				? true : (in_array($user->type, [UserType::Client->value], true) ? fake()->boolean(50) : false);
+			do $codeIdentifier = $isCnpjCandidate ? Utility::generateRandomCnpj() : Utility::generateRandomCpf();
+			while (User::query()->where(UC::COL_ENT_CD, $codeIdentifier)->exists());
+			DB::table(DC::TABLE_USERS)->where('id', $user->id)->update([
+				UC::COL_ENT_CD => $codeIdentifier,
+				UC::COL_ENT_TP => $isCnpjCandidate ? 'cnpj' : 'cpf',
+			]);
+			$output->writeln("Updated user {$user->id} with " . ($isCnpjCandidate ? 'CNPJ' : 'CPF') . " {$codeIdentifier}");
+		}
+
 		$languageMappings = [
 			'pt-br' => 'Português brasileiro',
 			'pt' => 'Português',
@@ -87,8 +104,14 @@ class UserSeeder extends Seeder
 					: (in_array($type, [UserType::Client->value], true)
 						? ($faker->boolean(50) ? $faker->company() : $faker->name())
 						: $faker->name());
+				$isCnpjCandidate = in_array($type, [UserType::Vendor->value, UserType::Company->value], true)
+					? true : (in_array($type, [UserType::Client->value], true) ? $faker->boolean(50) : false);
+				do $codeIdentifier = $isCnpjCandidate ? Utility::generateRandomCnpj() : Utility::generateRandomCpf();
+				while (User::query()->where(UC::COL_ENT_CD, $codeIdentifier)->exists());
 				$fixtures[] = [
 					UC::COL_NM  => "{$name} — System Fixture for {$type}",
+					UC::COL_ENT_CD => $codeIdentifier,
+					UC::COL_ENT_TP => $isCnpjCandidate ? 'cnpj' : 'cpf',
 					'phone' => $faker->boolean(50) ? Utility::generateBrazilianPhone() : $faker->unique()->phoneNumber(),
 					'address' => $faker->streetAddress() . ', ' .
 						$faker->city() . ', ' .
@@ -145,9 +168,14 @@ class UserSeeder extends Seeder
 					// E-mail único e estável para evitar colisão com UNIQUE
 					$emailLocal = Str::slug($name, '.') . '.' . Str::lower(Str::random(6));
 					$email      = $emailLocal . '@example.test';
-
+					$isCnpjCandidate = in_array($type, [UserType::Vendor->value, UserType::Company->value], true)
+						? true : (in_array($type, [UserType::Client->value], true) ? $faker->boolean(50) : false);
+					do $codeIdentifier = $isCnpjCandidate ? Utility::generateRandomCnpj() : Utility::generateRandomCpf();
+					while (User::query()->where(UC::COL_ENT_CD, $codeIdentifier)->exists());
 					$payload = [
 						UC::COL_NM   => $name,
+						UC::COL_ENT_CD => $codeIdentifier,
+						UC::COL_ENT_TP => $isCnpjCandidate ? 'cnpj' : 'cpf',
 						'phone' 	=> fake()->boolean(75) ? Utility::generateBrazilianPhone() : $faker->unique()->phoneNumber(),
 						'address' 	=> $faker->streetAddress() . ', ' .
 							$faker->city() . ', ' .

@@ -1,45 +1,50 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{EmailsConstants as EC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateProjectEmailTemplatesTable extends Migration
 {
-    private const TABLE = 'project_email_templates';
-    private const COL_TEMPLATE = 'template_id';
-    private const COL_PROJ = 'project_id';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_PRJ_EM_TMP;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // !CHANGED use UUID primary key
-            $table->uuid(self::COL_TEMPLATE); // !CHANGED UUID foreign key to email_templates.id
-            $table->uuid(self::COL_PROJ);  // !CHANGED UUID foreign key to projects.id
-            $table->boolean('is_active')->default(false);
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid('id')->primary();
+            $table->string('code', 254)->nullable()->unique(); // ? unique code with the pattern PRJ-EM-TMP-{UUID}; if null or invalidated, generated automatically on saving with the help of a check of do/while to ensure it's unique
+            $table->string('name', 254)->nullable()->index();
+            $table->uuid(EC::COL_TMP)->index();
+            $table->uuid(PJC::COL_PJ_ID)->index();
+            $table->boolean(EC::COL_IA)->default(false);
+            $table->json('fonts')->nullable(); // ? names of fonts suggested to the user, with the first one being the default
+            $table->json('colors')->nullable(); // ? filtered at saving as a set of hexcodes of colors to be suggested to the user when using this template in the project context
+            $table->json('variables')->nullable(); // ? MUST incorporate all the variables from the linked template via EC::COL_TMP, and never alter them
+            $table->json('settings')->nullable(); // ? MUST incorporate all the settings from the linked template via EC::COL_TMP, and never alter them
+            $table->json('tags')->nullable();
             foreach (
                 [
-                    self::COL_TEMPLATE                => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
-                    self::COL_PROJ                    => DatabaseConstants::TABLE_PROJECTS,
-                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                    EC::COL_TMP                => DC::TABLE_EMAIL_TEMPLATES,
+                    PJC::COL_PJ_ID                    => DC::TABLE_PROJECTS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->onDelete('cascade');
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_TEMPLATE,
-                    self::COL_PROJ,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    EC::COL_TMP,
+                    PJC::COL_PJ_ID,
                 ] as $column
             ) {
                 try {

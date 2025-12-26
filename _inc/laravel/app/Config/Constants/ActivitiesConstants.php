@@ -75,4 +75,11 @@ class ActivitiesConstants
 	public const COL_RPL_CNT = 'reply_count';
 	public const COL_IS_DEL = 'is_deleted';
 	public const COL_DEL_AT = 'deleted_at';
+	public const COL_TSK_FL = 'task_file';
+	public const COL_LD_FL = 'lead_file';
+	public const COL_DL_FL = 'deal_file';
+	public const COL_EMP_RES = 'employee_response';
+	public const COL_RL_TTL = 'role_title';
+	public const COL_RL_DSC = 'role_description';
+	public const COL_PST_DT = 'posting_date';
 }

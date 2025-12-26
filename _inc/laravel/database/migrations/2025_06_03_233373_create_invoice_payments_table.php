@@ -2,13 +2,13 @@
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\PaymentType;
-use App\Traits\{HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns};
+use App\Traits\{HasNfeColumns, HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateInvoicePaymentsTable extends Migration
 {
-    use HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns;
+    use HasNfeColumns, HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns;
     private const TABLE = DC::TABLE_INV_PAY;
     public function up(): void
     {
@@ -17,6 +17,7 @@ class CreateInvoicePaymentsTable extends Migration
             $table->uuid('code')->unique()->nullable(); // ? nullable for tests, should be booted/created at model level if null
             $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: false);
             $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');
+            $this->addNfeColumns($table);
             $table->enum(BC::COL_PAY_TP, PaymentType::values())->default(PaymentType::Manual);
             $table->uuid(BC::COL_OD_ID)->nullable();
             $table->uuid(BC::COL_TAX_ID)->nullable();

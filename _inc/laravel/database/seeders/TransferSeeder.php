@@ -85,7 +85,7 @@ final class TransferSeeder extends Seeder
 			}
 
 			// Regra do projeto (mocking): default >= 64 * n (n = base entities: employees)
-			$total = $countOpt ?? max(64 * max(1, $nEmployees), 3);
+			$total = $countOpt ?? max(16 * max(1, $nEmployees), 3);
 
 			$out->writeln("Seeding Transfers: total={$total}, employees={$nEmployees}");
 

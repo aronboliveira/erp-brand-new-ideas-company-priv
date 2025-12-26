@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\PaymentPatternType;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
@@ -28,12 +28,19 @@ class OtherPayment extends Model
         'title',
         'amount',
         'type',
+        'description',
+        'notes',
+        BC::COL_NFE_KEY,
+        BC::COL_NFE_NUMBER,
+        BC::COL_NFE_SERIES,
+        BC::COL_NFE_XML_PATH,
+        BC::COL_NFE_PROTOCOL,
+        BC::COL_NFE_AUTH_AT,
     ];
 
     protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [

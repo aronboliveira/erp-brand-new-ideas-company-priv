@@ -14,7 +14,7 @@ use App\Config\Constants\{
     SettingsConstants as SC,
     UsersConstants as UC
 };
-use App\Enums\BrazilState;
+use App\Enums\{BrazilState, UserType};
 use App\Traits\{
     ChecksLogin,
     NormalizesAddresses,
@@ -52,6 +52,8 @@ class User extends Authenticatable implements MustVerifyEmail
         UC::COL_NM,
         UC::COL_EM,
         'phone',
+        UC::COL_ENT_CD,
+        UC::COL_ENT_TP,
         UC::COL_PW,
         UC::COL_TP,
         UC::COL_SL,
@@ -112,6 +114,28 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         parent::booted();
         static::saving(function (User $user): void {
+            if (
+                in_array($user->getAttribute('type'), [UserType::Company->value, UserType::Vendor->value], true)
+            ) {
+                $user->getAttribute(UC::COL_ENT_TP) !== 'cnpj' && $user->setAttribute(UC::COL_ENT_TP, 'cnpj');
+                // * in the mature system we would throw here, but since this is testing only nullify
+                if (!Utility::isValidCnpj($user->getAttribute(UC::COL_ENT_CD))) {
+                    Log::debug('Invalid CNPJ for user ' . ($user->getAttribute('id') ?? 'new user') . ': ' . $user->getAttribute(UC::COL_ENT_CD));
+                    $user->setAttribute(UC::COL_ENT_CD, null);
+                }
+            } else if (in_array($user->getAttribute('type'), [UserType::Hr->value, UserType::Admin->value, UserType::Accountant->value], true)) {
+                $user->getAttribute(UC::COL_ENT_TP) !== 'cpf' && $user->setAttribute(UC::COL_ENT_TP, 'cpf');
+                // * in the mature system we would throw here, but since this is testing only nullify
+                if (!Utility::isValidCpf($user->getAttribute(UC::COL_ENT_CD))) {
+                    Log::debug('Invalid CPF for user ' . ($user->getAttribute('id') ?? 'new user') . ': ' . $user->getAttribute(UC::COL_ENT_CD));
+                    $user->setAttribute(UC::COL_ENT_CD, null);
+                }
+            } else {
+                if (!Utility::isValidCpf($user->getAttribute(UC::COL_ENT_CD)) && !Utility::isValidCnpj($user->getAttribute(UC::COL_ENT_CD))) {
+                    Log::debug('Invalid CPF/CNPJ for user ' . ($user->getAttribute('id') ?? 'new user') . ': ' . $user->getAttribute(UC::COL_ENT_CD));
+                    $user->setAttribute(UC::COL_ENT_CD, null);
+                }
+            }
             $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
             if ($user->getAttribute('phone') && $isNormalizePhoneCallable)
                 $user->setAttribute('phone', self::normalizePhone(

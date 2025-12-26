@@ -20,7 +20,6 @@ class CreateEmailTemplatesTable extends Migration
                 $table->string('from')->nullable();
                 $table->uuid('notification')->nullable()->index();
                 $this->addTemplateColumns($table);
-                $this->addAuditColumns($table);
                 $table->json('variables')->nullable(); // ? json object with key-value pairs representing variables to be replaced in the template body and the expected types/format of these variables
                 $table->json('settings')->nullable(); // ? json object representing additional settings for the email template, such as priority, read receipt request, etc.
                 $table->json(DC::COL_PLT_AV)->nullable(); // ? platforms where this template is available, e.g., web, mobile, outlook, gmail, protonmail, etc.
@@ -28,6 +27,7 @@ class CreateEmailTemplatesTable extends Migration
                     ->references('id')
                     ->on(DC::TABLE_NOTIFICATION_TEMPLATES)
                     ->nullOnDelete();
+                $this->addAuditColumns($table);
             });
     }
 

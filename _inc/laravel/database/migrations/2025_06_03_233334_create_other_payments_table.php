@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\DatabaseConstants as DC;
-use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
+use App\Traits\{EmployeeConnected, HasNfeColumns, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\Schema;
 
 class CreateOtherPaymentsTable extends Migration
 {
-    use EmployeeConnected, HasNullableAuditColumns;
+    use EmployeeConnected, HasNfeColumns, HasNullableAuditColumns;
 
     private const TABLE = DC::TABLE_OT_PYMTS;
 
@@ -23,6 +23,7 @@ class CreateOtherPaymentsTable extends Migration
             $table->string('type')->nullable()->index();
             $table->string('description')->nullable();
             $table->string('notes')->nullable();
+            $this->addNfeColumns($table);
             $this->addAuditColumns($table);
         });
     }

@@ -13,7 +13,6 @@ class CreateProjectStagesTable extends Migration
 {
     use HasNullableAuditColumns;
     private const TABLE         = DC::TABLE_PROJ_STAGES;
-    private const COL_NAME      = PJC::COL_NM;
     private const COL_COLOR     = PJC::COL_CL;
     private const COL_ORDER     = AC::COL_OD;
 
@@ -21,10 +20,15 @@ class CreateProjectStagesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string(self::COL_NAME);
-            $table->string(self::COL_COLOR, 15)->nullable();
-            $table->integer(self::COL_ORDER)->default(0);
+            $table->string('name')->index();
+            $table->text('description')->nullable();
+            $table->string('color', 15)->default('#11ff3388')->nullable();
+            $table->integer('order')->default(0);
             $this->addAuditColumns($table);
+            $table->json('notes')->nullable();
+            $table->json('involved')->nullable(); // ? ids/names of users involved in this stage
+            $table->json('metadata')->nullable();
+            $table->json('positioning')->nullable(); // ? metadata for ui positioning
         });
     }
 

@@ -128,6 +128,40 @@ enum TransferType: string
 		};
 	}
 
+	public function isIncome(): bool
+	{
+		return match ($this) {
+			self::Salary, self::Investment, self::Refund => true,
+			default => false,
+		};
+	}
+
+	public function isExpense(): bool
+	{
+		return match ($this) {
+			self::TaxPayment, self::LoanPayment, self::Withdrawal, self::Rent, self::Service, self::Purchase => true,
+			default => false,
+		};
+	}
+
+	public function isTransfer(): bool
+	{
+		return match ($this) {
+			self::Internal, self::SpecialPayment => true,
+			default => false,
+		};
+	}
+
+	public function getCategory(): string
+	{
+		return match ($this) {
+			self::Salary, self::Investment, self::Refund => 'income',
+			self::TaxPayment, self::LoanPayment, self::Withdrawal, self::Rent, self::Service, self::Purchase => 'expense',
+			self::Internal, self::SpecialPayment => 'transfer',
+			self::Other => 'other',
+		};
+	}
+
 	public static function labels($lang = DatabaseConstants::DEFAULT_LANG): array
 	{
 		$lang = preg_replace('/_/', '-', strtolower(trim($lang ?? '')));
@@ -418,40 +452,5 @@ enum TransferType: string
 			self::Refund->value         => '退款',
 			self::Other->value          => '其他',
 		];
-	}
-
-	// Helper methods for business logic
-	public function isIncome(): bool
-	{
-		return match ($this) {
-			self::Salary, self::Investment, self::Refund => true,
-			default => false,
-		};
-	}
-
-	public function isExpense(): bool
-	{
-		return match ($this) {
-			self::TaxPayment, self::LoanPayment, self::Withdrawal, self::Rent, self::Service, self::Purchase => true,
-			default => false,
-		};
-	}
-
-	public function isTransfer(): bool
-	{
-		return match ($this) {
-			self::Internal, self::SpecialPayment => true,
-			default => false,
-		};
-	}
-
-	public function getCategory(): string
-	{
-		return match ($this) {
-			self::Salary, self::Investment, self::Refund => 'income',
-			self::TaxPayment, self::LoanPayment, self::Withdrawal, self::Rent, self::Service, self::Purchase => 'expense',
-			self::Internal, self::SpecialPayment => 'transfer',
-			self::Other => 'other',
-		};
 	}
 }

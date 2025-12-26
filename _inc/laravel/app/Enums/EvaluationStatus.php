@@ -41,6 +41,8 @@ enum EvaluationStatus: string
 			'expirado'    => 'expired',
 			'arquivado'   => 'archived',
 			'aceito'      => 'accept',
+			'declined'    => 'decline',
+			'declinado'   => 'decline',
 			'recusado'    => 'decline',
 			'não_iniciado' => 'not_started',
 			'em_andamento' => 'in_progress',

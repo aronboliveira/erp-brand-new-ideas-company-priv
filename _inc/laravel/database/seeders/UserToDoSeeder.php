@@ -29,6 +29,8 @@ class UserToDoSeeder extends Seeder
 	private bool $hasNotificationsTable = false;
 	private bool $hasNotificationsUserCol = false;
 
+	private const HARD_CAP = 160000;
+
 	/**
 	 * @var array{notifications_by_user: array<string, array<int, string>>}
 	 */
@@ -45,6 +47,7 @@ class UserToDoSeeder extends Seeder
 	protected function seedUserToDos(): void
 	{
 		try {
+			$counter = 0;
 			$this->out()->writeln('<info>[UserToDoSeeder]</info> Starting seeding user_to_dos...');
 
 			$this->projectInvolvedColumn = $this->resolveProjectInvolvedColumn();
@@ -92,6 +95,8 @@ class UserToDoSeeder extends Seeder
 					// foreach (task in the project); if none, then add more 2 to 8 iterations
 					if (!empty($taskIds)) {
 						foreach ($taskIds as $taskId) {
+							if ($counter > self::HARD_CAP) break 3;
+							$counter += 1;
 							if ($cap > 0 && $created >= $cap) break 3;
 							$this->createToDo(
 								ownerUserId: $ownerUserId,
@@ -107,6 +112,8 @@ class UserToDoSeeder extends Seeder
 					} else {
 						$iters = random_int(0, 4);
 						for ($i = 0; $i < $iters; $i++) {
+							if ($counter > self::HARD_CAP) break 3;
+							$counter += 1;
 							if ($cap > 0 && $created >= $cap) break 3;
 							$this->createToDo(
 								ownerUserId: $ownerUserId,
@@ -125,6 +132,8 @@ class UserToDoSeeder extends Seeder
 					if (!empty($milestoneIds)) {
 						foreach ($milestoneIds as $milestoneId) {
 							if ($cap > 0 && $created >= $cap) break 3;
+							if ($counter > self::HARD_CAP) break 3;
+							$counter += 1;
 							$this->createToDo(
 								ownerUserId: $ownerUserId,
 								projectId: $projectId,
@@ -140,6 +149,8 @@ class UserToDoSeeder extends Seeder
 						$iters = random_int(1, 4);
 						for ($i = 0; $i < $iters; $i++) {
 							if ($cap > 0 && $created >= $cap) break 3;
+							if ($counter > self::HARD_CAP) break 3;
+							$counter += 1;
 							$this->createToDo(
 								ownerUserId: $ownerUserId,
 								projectId: $projectId,

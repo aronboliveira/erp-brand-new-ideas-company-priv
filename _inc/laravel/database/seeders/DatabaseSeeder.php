@@ -113,6 +113,8 @@ class DatabaseSeeder extends Seeder
                     CustomFieldValuesSeeder::class,
                     ProjectSeeder::class,
                     ProjectStagesSeeder::class,
+                    ProjectUserSeeder::class,
+                    ProjectEmailTemplateSeeder::class,
                     SourceSeeder::class,
                     StageSeeder::class,
                     LabelSeeder::class,
@@ -173,6 +175,7 @@ class DatabaseSeeder extends Seeder
                     ContractCommentSeeder::class,
                     PerformanceTypeSeeder::class,
                     PayslipSeeder::class,
+                    ProjectTaskSeeder::class,
                     ChartOfAccountTypeSeeder::class,
                     ChartOfAccountSubTypeSeeder::class,
                     ChartOfAccountSeeder::class,
@@ -184,6 +187,7 @@ class DatabaseSeeder extends Seeder
                     BankTransferSeeder::class,
                     VendorSeeder::class,
                     AnnouncementSeeder::class,
+                    InterviewScheduleSeeder::class,
                     OrderSeeder::class,
                     CouponSeeder::class,
                     UserCouponSeeder::class,
@@ -224,6 +228,9 @@ class DatabaseSeeder extends Seeder
                     HolidaySeeder::class,
                     TimeTrackerSeeder::class,
                     BasicFavoritesSeeder::class,
+                    JournalEntrySeeder::class,
+                    JournalItemSeeder::class,
+                    ActivityLogSeeder::class,
                 ] as $mockSeeder
             ) {
                 try {

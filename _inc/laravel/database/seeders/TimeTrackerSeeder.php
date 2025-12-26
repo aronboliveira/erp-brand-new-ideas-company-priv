@@ -24,9 +24,9 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 final class TimeTrackerSeeder extends Seeder
 {
-	private const MAX_LOOP_GUARD = 500000;
+	private const MAX_LOOP_GUARD = 2000;
 
-	private const DEFAULT_POOL_LIMIT = 4096;
+	private const DEFAULT_POOL_LIMIT = 1600;
 
 	public function run(): void
 	{
@@ -201,7 +201,7 @@ final class TimeTrackerSeeder extends Seeder
 				AC::COL_TTL_TIME => $ttlSeed,
 				AC::COL_IA => $isActive,
 			]);
-
+			$out->writeln("<info>[TimeTrackerSeeder]</info> creating time tracker: user_id={$userId} project_id={$projectId} task_id={$taskId} start=" . ($start !== null ? $start->toDateTimeString() : 'null') . " end=" . ($end !== null ? $end->toDateTimeString() : 'null') . " total_hours={$totalHours} billable_hours={$billableHours} is_billable=" . ($isBillable ? '1' : '0'));
 			$m->save();
 
 			$created++;
@@ -249,7 +249,7 @@ final class TimeTrackerSeeder extends Seeder
 		}
 
 		$n = max(1, $baseN);
-		return 64 * $n;
+		return 16 * $n;
 	}
 
 	private function roundUp64(int $n): int

@@ -53,9 +53,9 @@ class UsersTableSeeder extends Seeder
             $admin = $settled[PMC::ADM];
             $accountant = $settled[PMC::ACT];
             $company = $settled[PMC::CPN];
-            $clientUser = $settled[PMC::CL . 'User'];
-            $project = $settled['project'];
-            $uuids = $settled['uuids'];
+            $clientUser = $settled[PMC::CL . 'User'] ?? null;
+            $project = $settled['project'] ?? null;
+            $uuids = $settled['uuids'] ?? null;
             $users = [$superAdmin, $admin, $accountant, $company, $clientUser];
             $utilityTasks = [];
             $employeePairs = [

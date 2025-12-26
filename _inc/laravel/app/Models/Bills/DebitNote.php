@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DebitNote extends CardNote
@@ -12,7 +12,13 @@ class DebitNote extends CardNote
     private const EXTRA_FILLABLE = [
         UC::COL_VD_ID,
         'bill',
-        'invoice'
+        'invoice',
+        BC::COL_NFE_KEY,
+        BC::COL_NFE_NUMBER,
+        BC::COL_NFE_SERIES,
+        BC::COL_NFE_XML_PATH,
+        BC::COL_NFE_PROTOCOL,
+        BC::COL_NFE_AUTH_AT,
     ];
 
     protected $fillable = [

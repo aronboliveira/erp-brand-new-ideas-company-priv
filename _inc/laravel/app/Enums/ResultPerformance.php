@@ -590,8 +590,4 @@ enum ResultPerformance: int
 			self::Excellent->value => '超出预期并表现出卓越表现',
 		];
 	}
-
-	/**
-	 * Get the numeric score (0-100) for this performance level
-	 */
 }

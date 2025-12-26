@@ -113,6 +113,57 @@ enum PaymentType: string
 		return array_map(fn($case) => $case->value, self::cases());
 	}
 
+	public function isAutomatic(): bool
+	{
+		return match ($this) {
+			self::Recurring, self::Automatic, self::Subscription => true,
+			default => false,
+		};
+	}
+
+	public function isScheduled(): bool
+	{
+		return match ($this) {
+			self::Scheduled, self::Deferred, self::Advance => true,
+			default => false,
+		};
+	}
+
+	public function isImmediate(): bool
+	{
+		return match ($this) {
+			self::Manual, self::Instant, self::OneTime => true,
+			default => false,
+		};
+	}
+
+	public function requiresApproval(): bool
+	{
+		return match ($this) {
+			self::Manual, self::Advance => true,
+			default => false,
+		};
+	}
+
+	public function canBeRecurring(): bool
+	{
+		return match ($this) {
+			self::Recurring, self::Subscription, self::Installment => true,
+			default => false,
+		};
+	}
+
+	public function getProcessingTime(): string
+	{
+		return match ($this) {
+			self::Instant    => 'immediate',
+			self::Scheduled  => 'future',
+			self::Deferred   => 'delayed',
+			self::Advance    => 'pre_payment',
+			default          => 'standard',
+		};
+	}
+
 	public function label(): string
 	{
 		return match ($this) {
@@ -405,57 +456,5 @@ enum PaymentType: string
 			self::Advance->value      => '预付款',
 			self::Other->value        => '其他',
 		];
-	}
-
-	// Helper methods for business logic
-	public function isAutomatic(): bool
-	{
-		return match ($this) {
-			self::Recurring, self::Automatic, self::Subscription => true,
-			default => false,
-		};
-	}
-
-	public function isScheduled(): bool
-	{
-		return match ($this) {
-			self::Scheduled, self::Deferred, self::Advance => true,
-			default => false,
-		};
-	}
-
-	public function isImmediate(): bool
-	{
-		return match ($this) {
-			self::Manual, self::Instant, self::OneTime => true,
-			default => false,
-		};
-	}
-
-	public function requiresApproval(): bool
-	{
-		return match ($this) {
-			self::Manual, self::Advance => true,
-			default => false,
-		};
-	}
-
-	public function canBeRecurring(): bool
-	{
-		return match ($this) {
-			self::Recurring, self::Subscription, self::Installment => true,
-			default => false,
-		};
-	}
-
-	public function getProcessingTime(): string
-	{
-		return match ($this) {
-			self::Instant    => 'immediate',
-			self::Scheduled  => 'future',
-			self::Deferred   => 'delayed',
-			self::Advance    => 'pre_payment',
-			default          => 'standard',
-		};
 	}
 }

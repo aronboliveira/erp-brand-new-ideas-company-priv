@@ -5,7 +5,7 @@ use App\Config\Constants\{
 	DatabaseConstants as DC,
 	ProjectsConstants as PJC
 };
-use App\Enums\{AppModuleType};
+use App\Enums\{AppModuleType, PriorityLevel};
 use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -24,6 +24,7 @@ class CreateTasksTable extends Migration
 			$table->date('date')->index();
 			$table->time('time');
 			$table->text('description')->nullable();
+			$table->enum('priority', PriorityLevel::values())->default(PriorityLevel::Medium->value)->nullable()->index(); // ? priority_class
 			$table->enum(AC::COL_MT, AppModuleType::values())->default(AppModuleType::Other->value)->nullable()->index(); // ? module_type, should be clamped at model level to the existing module types defined in the system
 			$table->string(AC::COL_MI)->nullable()->index(); // ? the module_id, reference to the id of the module defined by module_type, just the case index stringified for now
 			$table->uuid(PJC::COL_ASGN)->nullable();

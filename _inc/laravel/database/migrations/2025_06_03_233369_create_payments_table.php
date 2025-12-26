@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\{BanksConstants as BKC, BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{AcceptsSchedule, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures};
+use App\Traits\{AcceptsSchedule, HasNfeColumns, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePaymentsTable extends Migration
 {
-    use AcceptsSchedule, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures;
+    use AcceptsSchedule, HasNfeColumns, HasNullableAuditColumns, HasPaymentColumns, RegistersShipping, TracksFailures;
     private const TABLE = DC::TABLE_PAY;
     public function up(): void
     {
@@ -21,6 +21,7 @@ class CreatePaymentsTable extends Migration
             $table->uuid(BC::COL_CAT_ID)->nullable()->index();
             $table->string('recurring')->nullable();
             $this->addPaymentColumns($table);
+            $this->addNfeColumns($table);
             $table->string(BC::COL_ADD_RCP)->nullable(); // * this is not clear in the old implementation, so keeping it as is for now for compatibility
             $table->json(BC::COL_RCP_MD)->nullable();
             foreach (

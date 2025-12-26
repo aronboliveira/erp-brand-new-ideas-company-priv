@@ -15,6 +15,7 @@ class CreateTransactionsTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
+                $table->string('code', 254)->nullable()->unique(); // ? unique code for the transaction, generated at model level or inserted, with the code pattern TRS-{UUID}-{timestamp}
                 $table->uuid('account')->nullable()->index();
                 $table->uuid(UC::COL_USER_ID)->nullable()->index();
                 $table->string(UC::COL_U_TP);

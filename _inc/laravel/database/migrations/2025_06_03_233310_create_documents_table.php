@@ -16,6 +16,7 @@ class CreateDocumentsTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
+                $table->unsignedBigInteger('number')->index()->nullable();
                 $table->string(DC::COL_IR)->default('false'); // todo must be changed to bool later
                 $table->boolean(DC::COL_IPV)->default(false)->nullable();
                 $this->addFileColumns($table);

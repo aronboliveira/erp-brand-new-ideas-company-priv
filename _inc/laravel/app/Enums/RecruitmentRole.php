@@ -105,6 +105,55 @@ enum RecruitmentRole: string
 		return array_map(fn($case) => $case->value, self::cases());
 	}
 
+	public function isRecruitmentTeam(): bool
+	{
+		return match ($this) {
+			self::Interviewer, self::Manager, self::Proctor, self::Assistant,
+			self::OnboardingSpecialist, self::Representant => true,
+			default => false,
+		};
+	}
+
+	public function isCandidate(): bool
+	{
+		return $this === self::Candidate;
+	}
+
+	public function isHiringManager(): bool
+	{
+		return $this === self::Manager;
+	}
+
+	public function canInterview(): bool
+	{
+		return match ($this) {
+			self::Interviewer, self::Manager, self::Representant => true,
+			default => false,
+		};
+	}
+
+	public function canEvaluate(): bool
+	{
+		return match ($this) {
+			self::Interviewer, self::Manager, self::Proctor => true,
+			default => false,
+		};
+	}
+
+	public function getPermissionLevel(): int
+	{
+		return match ($this) {
+			self::Manager              => 4,
+			self::Interviewer          => 3,
+			self::Proctor              => 3,
+			self::Representant         => 3,
+			self::OnboardingSpecialist => 2,
+			self::Assistant            => 1,
+			self::Candidate            => 0,
+			self::Other                => 0,
+		};
+	}
+
 	public function label(): string
 	{
 		return match ($this) {
@@ -349,55 +398,5 @@ enum RecruitmentRole: string
 			self::Representant->value         => '代表',
 			self::Other->value                => '其他',
 		];
-	}
-
-	// Helper methods for business logic
-	public function isRecruitmentTeam(): bool
-	{
-		return match ($this) {
-			self::Interviewer, self::Manager, self::Proctor, self::Assistant,
-			self::OnboardingSpecialist, self::Representant => true,
-			default => false,
-		};
-	}
-
-	public function isCandidate(): bool
-	{
-		return $this === self::Candidate;
-	}
-
-	public function isHiringManager(): bool
-	{
-		return $this === self::Manager;
-	}
-
-	public function canInterview(): bool
-	{
-		return match ($this) {
-			self::Interviewer, self::Manager, self::Representant => true,
-			default => false,
-		};
-	}
-
-	public function canEvaluate(): bool
-	{
-		return match ($this) {
-			self::Interviewer, self::Manager, self::Proctor => true,
-			default => false,
-		};
-	}
-
-	public function getPermissionLevel(): int
-	{
-		return match ($this) {
-			self::Manager              => 4,
-			self::Interviewer          => 3,
-			self::Proctor              => 3,
-			self::Representant         => 3,
-			self::OnboardingSpecialist => 2,
-			self::Assistant            => 1,
-			self::Candidate            => 0,
-			self::Other                => 0,
-		};
 	}
 }

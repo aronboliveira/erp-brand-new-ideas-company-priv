@@ -167,6 +167,12 @@ class DatabaseConstants
 	public const TABLE_DL_TSK = 'deal_tasks';
 	public const TABLE_TSK_CMT = 'task_comments';
 	public const TABLE_TSK_FL = 'task_files';
+	public const TABLE_ACT_LOG = 'activity_logs';
+	public const TABLE_ITV_SCD = 'interview_schedules';
+	public const TABLE_EXP = 'expenses';
+	public const TABLE_JRN_IT = 'journal_items';
+	public const TABLE_PRJ_USR = 'project_users';
+	public const TABLE_PRJ_EM_TMP = 'project_email_templates';
 
 	// * FIELD NAMES
 	// invoice

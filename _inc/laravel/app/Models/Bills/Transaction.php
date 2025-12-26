@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\{
     DB,
     Log
 };
+use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
@@ -33,9 +34,12 @@ class Transaction extends Model
 
     public const TABLE = DC::TABLE_TRS;
 
+    public const TRS_PATTERN = '/^TRS-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-\d{10,}$/i';
+
     protected $table = self::TABLE;
 
     protected $fillable = [
+        'code',
         'account',
         UC::COL_USER_ID,
         UC::COL_U_TP,
@@ -90,6 +94,7 @@ class Transaction extends Model
     ];
 
     protected $casts = [
+        'code'                      => 'string',
         'amount'                    => 'decimal:2',
         BC::COL_SVC_FEE             => 'decimal:2',
         BC::COL_TXS_FEE             => 'decimal:2',
@@ -136,6 +141,23 @@ class Transaction extends Model
             self::sanitizeAttachments($transaction);
             self::sanitizeTaxConfig($transaction);
             self::ensureDefaults($transaction);
+            $rawCode = $transaction->getAttribute('code') ?? null;
+            if (!$rawCode || $rawCode === '' || !preg_match(self::TRS_PATTERN, $rawCode)) {
+                $maxAttempts = 160000;
+                do {
+                    $maxAttempts--;
+                    $uuid = Str::uuid();
+                    $timestamp = Carbon::now()->timestamp;
+                    $code = "TRS-{$uuid}-{$timestamp}";
+                } while (Transaction::query()->where('code', $code)->exists() && $maxAttempts > 0);
+                if ($maxAttempts > 0) {
+                    $transaction->setAttribute('code', $code);
+                } else {
+                    Log::error(
+                        self::class . '::booted failed to generate unique code for Transaction after maximum attempts.'
+                    );
+                }
+            }
         });
     }
 
