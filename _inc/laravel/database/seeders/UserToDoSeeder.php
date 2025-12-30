@@ -29,7 +29,7 @@ class UserToDoSeeder extends Seeder
 	private bool $hasNotificationsTable = false;
 	private bool $hasNotificationsUserCol = false;
 
-	private const HARD_CAP = 160000;
+	private const HARD_CAP = 800;
 
 	/**
 	 * @var array{notifications_by_user: array<string, array<int, string>>}

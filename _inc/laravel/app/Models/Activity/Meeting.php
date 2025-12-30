@@ -129,6 +129,8 @@ class Meeting extends Model
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $m->id ?? null,
                     'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
                 ]);
             }
         });

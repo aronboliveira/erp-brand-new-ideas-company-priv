@@ -1,6 +1,7 @@
 <?php
 
 use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\CountryName;
 use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Schema};
@@ -17,16 +18,15 @@ class CreateWarehousesTable extends Migration
             $table->string('name')->index();
             $table->uuid(CC::COL_CP_ID)->nullable()->index(); // ? nullable for tests
             $table->string('zip')->index();
-            $table->string('country', 256)->nullable(); // ? nullable for tests
-            $table->string('state', 256)->nullable()->index(); // ? nullable for tests
-            $table->string('city', 256)->index();
-            $table->string('address', 256);
+            $table->string('country', 64)->default(CountryName::Brazil->value)->nullable(); // ? nullable for tests,  // * constrained at model with CountryName enum either through direct cases or through the keys of the enum, as available in CountryName::normalize, falling back to null if not found
+            $table->string('state', 1024)->nullable()->index(); // ? nullable for tests, // * if the country is the code or full name of Brazil, Argentina, Bolivia, Colombia, Chile, China, Ecuador, Guyana, Paraguay, Peru, Portugal, Suriname, United States, Uruguay or Venezuela, then use normalize/tryFrom from the following enums, respectively (if failed, nullify): BrazilState, ArgentinaProvince, BoliviaDepartment, ChileRegion, ChinaState, ColombiaDepartment, EcuadorProvince, GuyanaRegion, ParaguayDepartment, PeruDepartment, PortugalState, SurinameDistrict, UnitedStatesState, UruguayDepartment, VenezuelaState; for other countries, just store the string as is; if 'country' is null, then try to "reverse search" the state in all enums and set the country accordingly, if found; otherwise, leave both as null
+            $table->string('city', 1024)->index();
+            $table->string('address', 1024);
             $table->unique(['zip', 'name']);
-            $table->unique(['city', 'address', 'name']);
             $table->text(CC::COL_ADR_DTL)->nullable();
             $table->string('notes')->nullable();
             $table->string('phone', 32)->nullable(); // ? nullable for tests
-            $table->string('email')->nullable(); // ? nullable for tests
+            $table->string('email', 254)->nullable(); // ? nullable for tests
             $table->uuid(CC::COL_OWN_ID)->nullable(); // * not every warehouse owner should be registered
             $table->string(CC::COL_OWN_NM)->nullable(); // ? nullable for tests, because the owner should be at least a company or an employee or the company
             $table->boolean(CC::COL_IA)->default(true)->nullable(); // ? nullable for tests

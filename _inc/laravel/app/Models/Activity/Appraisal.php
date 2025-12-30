@@ -285,7 +285,7 @@ class Appraisal extends Model
         $name       = $fallbackName;
 
         // 1. Se for UUID, tenta consultar com users.id ou employees.id/user_id
-        if (self::looksLikeUuid($candidate)) {
+        if (Utility::looksLikeUuid($candidate)) {
             try {
                 if (Schema::hasTable(DC::TABLE_USERS)) {
                     $user = DB::table(DC::TABLE_USERS)
@@ -405,14 +405,6 @@ class Appraisal extends Model
         }
 
         return [null, null, $name];
-    }
-
-    private static function looksLikeUuid(string $value): bool
-    {
-        return (bool) preg_match(
-            '/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/',
-            $value
-        );
     }
 
     private static function normalizeDateTimeString(string $value): ?string

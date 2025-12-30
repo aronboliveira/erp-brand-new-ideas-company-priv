@@ -20,7 +20,7 @@ class CreateTrainersTable extends Migration
                 $table->string('firstname'); // * this should be dynamically set from the linked user/employee if present
                 $table->string('lastname'); // * same
                 $table->string('contact'); // * same
-                $table->string('email'); // * same
+                $table->string('email', 254); // * same
                 $table->text('address')->nullable(); // * same
                 $table->text('presentation')->nullable();
                 $table->text('expertise')->nullable();

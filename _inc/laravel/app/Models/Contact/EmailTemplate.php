@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo,
     Relations\HasOne
 };
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\{Auth, DB};
 use Illuminate\Support\Str;
 
 class EmailTemplate extends Model
@@ -95,14 +95,26 @@ class EmailTemplate extends Model
     protected static function booted(): void
     {
         static::creating(function (self $model): void {
-            if (
-                ! $model->getAttribute(EC::COL_SLG)
-                && $model->getAttribute(EC::COL_TT)
-            )
-                $model->setAttribute(
-                    EC::COL_SLG,
-                    Str::slug((string) $model->getAttribute(EC::COL_TT))
-                );
+            $rawSlug = $model->getAttribute('slug');
+            $baseSlug = empty($rawSlug) && $model->getAttribute(EC::COL_TT)
+                ? Str::slug((string) $model->getAttribute(EC::COL_TT))
+                : Str::slug((string) $rawSlug);
+            $acc = 0;
+            do {
+                $candidateSlug = $acc === 0
+                    ? Str::limit($baseSlug, 254)
+                    : Str::limit($baseSlug . '-' . Str::random(8), 254);
+                $acc++;
+            } while (
+                DB::table($model->getTable())
+                ->where('slug', $candidateSlug)
+                ->where('id', '!=', $model->getAttribute('id') ?? '')
+                ->exists()
+                && $acc < 64000
+            );
+            if ($acc >= 64000)
+                throw new \RuntimeException('Failed to generate unique slug for EmailTemplate after 64000 attempts');
+            $model->setAttribute('slug', $candidateSlug);
             if (!$model->getAttribute(AC::COL_AV_FROM))
                 $model->setAttribute(AC::COL_AV_FROM, now());
             if ($model->getAttribute(AC::COL_DSB) === null)

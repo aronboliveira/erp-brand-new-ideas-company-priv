@@ -17,12 +17,12 @@ class CreateEmployeesTable extends Migration
             $table->uuid(UC::COL_USER_ID)->unique()->nullable(); // ? A employee may not have a user account
             $table->string('name')->nullable()->index();
             $table->boolean('manager')->default(false)->nullable()->index();
-            $table->string('phone')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
-            $table->string('email')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
+            $table->string('phone', 32)->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
+            $table->string('email', 254)->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
             $table->string('gender')->nullable(); // ? This is check by a enum when creating and updating
             $table->string('notes')->nullable();
             $table->string('password')->nullable();
-            $table->string('address')->nullable();
+            $table->string('address', 1024)->nullable();
             $table->date('dob')->nullable();
             $this->addBranchColumns($table, unique: false, nullable: false);
             $table->string(CPC::COL_BRC_LC)->nullable(); // ? This is queried on creating and updating to be not null when there is a branch, using branch->address

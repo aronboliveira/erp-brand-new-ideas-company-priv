@@ -12,6 +12,7 @@ class EmailsConstants
 	public const COL_TO_ID = 'to_id';
 	public const COL_D_URL = 'document_url';
 	public const COL_EM  = 'email';
+	public const COL_EM_KEY = 'email_key';
 	public const COL_ATC = 'attachments';
 	public const COL_IA = 'is_active';
 	public const COL_PRT_ID = 'parent_id';

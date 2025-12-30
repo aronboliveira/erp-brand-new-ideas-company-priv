@@ -6,11 +6,71 @@ use App\Config\Constants\BillsConstants as BC;
 use App\Enums\{BrazilState, ChinaState, ContactKeyType, CountryName, PortugalState, UnitedStatesState};
 use App\Models\Utility;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Log, Schema};
 
 trait NormalizesAddresses
 {
 	use NormalizesArrays;
+
+	public static function bootNormalizesAddresses(): void
+	{
+		static::saving(function (self $model) {
+			Schema::hasColumn($model->getTable(), 'phone') && $model->setAttribute(
+				'phone',
+				self::normalizePhone(
+					$model->getAttribute('phone'),
+					'phone',
+					$model->getKey(),
+					false
+				)
+			);
+			Schema::hasColumn($model->getTable(), 'email') && $model->setAttribute(
+				'email',
+				self::normalizeEmail(
+					$model->getAttribute('email'),
+					'email',
+					$model->getKey()
+				)
+			);
+			Schema::hasColumn($model->getTable(), BC::COL_BL_EMAIL) && $model->setAttribute(
+				BC::COL_BL_EMAIL,
+				self::normalizeEmail(
+					$model->getAttribute(BC::COL_BL_EMAIL),
+					'billing_email',
+					$model->getKey()
+				)
+			);
+			Schema::hasColumn($model->getTable(), BC::COL_BL_TEL) && $model->setAttribute(
+				BC::COL_BL_TEL,
+				self::normalizePhone(
+					$model->getAttribute(BC::COL_BL_TEL),
+					'billing_phone',
+					$model->getKey(),
+					false
+				)
+			);
+			Schema::hasColumn($model->getTable(), BC::COL_BL_ZIP) && $model->setAttribute(
+				BC::COL_BL_ZIP,
+				self::normalizeZip(
+					$model->getAttribute(BC::COL_BL_ZIP),
+					$model->getAttribute(BC::COL_BL_CTR),
+					'billing_zip',
+					$model->getKey()
+				)
+			);
+			Schema::hasColumn($model->getTable(), BC::COL_BL_CTR) && self::normalizeBillingCountry($model);
+			Schema::hasColumn($model->getTable(), BC::COL_SHIP_CTR) && self::normalizeShippingCountry($model);
+			Schema::hasColumn($model->getTable(), 'zip') && $model->setAttribute(
+				'zip',
+				self::normalizeZip(
+					$model->getAttribute('zip'),
+					$model->getAttribute('country'),
+					'zip',
+					$model->getKey()
+				)
+			);
+		});
+	}
 
 	public static function normalizeEmail(?string $email, string|null $context = '', string|int|null $ownerId = ''): ?string
 	{
@@ -18,9 +78,12 @@ trait NormalizesAddresses
 		if ($email === '')
 			return null;
 		if (!preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) {
-			Log::warning(static::class . " invalid {$context} email", [
+			Log::warning("[" . self::class . "]: " . static::class . " invalid {$context} email", [
 				'owner_id' => $ownerId,
 				'email'    => $email,
+				'method' => __METHOD__,
+				'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+				'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
 			]);
 			return $email;
 		}
@@ -51,9 +114,13 @@ trait NormalizesAddresses
 			if ($isMock)
 				return Utility::generateBrazilianPhone();
 			else {
-				Log::warning(static::class . " invalid {$context} phone", [
+				Log::warning("[" . self::class . "]: " . static::class . " invalid {$context} phone", [
 					'owner_id' => $ownerId,
 					'phone'    => $phone,
+					'method' => __METHOD__,
+					'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+					'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+					'original' => (is_string($phone) && !empty($phone)) ? $phone : '#NULL',
 				]);
 				return null;
 			}
@@ -80,9 +147,13 @@ trait NormalizesAddresses
 				return substr($digits, 0, 5) . '-' . substr($digits, 5);
 
 			if (!preg_match('/^\d{5}\-?\d{3}$/', $zip)) {
-				Log::warning(static::class . " invalid Brazilian {$context} zip", [
+				Log::warning("[" . self::class . "]: " . static::class . " invalid Brazilian {$context} zip", [
 					'owner_id' => $ownerId,
 					'zip'      => $zip,
+					'method' => __METHOD__,
+					'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+					'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+					'original' => (is_string($zip) && !empty($zip)) ? $zip : '#NULL',
 				]);
 				return $zip;
 			}
@@ -95,18 +166,17 @@ trait NormalizesAddresses
 
 		// Algo genérico para outros países
 		if (!preg_match('/^[A-Za-z0-9\- ]{3,12}$/', $zip)) {
-			Log::warning(static::class . " invalid {$context} zip", [
+			Log::warning("[" . self::class . "]: " . static::class . " invalid {$context} zip", [
 				'owner_id' => $ownerId,
 				'zip'      => $zip,
+				'method' => __METHOD__,
+				'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+				'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+				'original' => (is_string($zip) && !empty($zip)) ? $zip : '#NULL',
 			]);
 		}
 
 		return $zip;
-	}
-
-	public static function looksLikeUuid(string $value): bool
-	{
-		return Utility::looksLikeUuid($value);
 	}
 
 	public static function normalizeContactKey(string $key): string

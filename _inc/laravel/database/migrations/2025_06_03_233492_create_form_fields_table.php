@@ -1,45 +1,39 @@
 
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateFormFieldsTable extends Migration
 {
-    private const TABLE = 'form_fields';
-    private const COL_FORM = 'form_id';
-    private const COL_CREATOR = DatabaseConstants::COL_TABLE_CREATOR;
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_FM_FD;
+    private const COL_CREATOR = DC::COL_TABLE_CREATOR;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(self::COL_FORM);
-            $table->string('name');
-            $table->string('email')->nullable();
+            $table->uuid(AC::COL_FM_ID)->index();
+            $table->string('name')->index();
+            $table->string('email', 254)->nullable();
             $table->string('type');
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
-            $table->timestamps();
-            foreach (
-                [
-                    self::COL_FORM    => DatabaseConstants::TABLE_FORM_BUILD,
-                    self::COL_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl
-            )
-                $table->foreign($col)
-                    ->references('id')
-                    ->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+            $table->foreign(AC::COL_FM_ID)
+                ->references('id')
+                ->on(DC::TABLE_FORM_BUILD)
+                ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_FORM,
-                    self::COL_CREATOR,
+                    AC::COL_FM_ID,
                 ] as $col
             ) {
                 try {

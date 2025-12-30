@@ -51,6 +51,8 @@ class TaskFile extends AbstractFile
                 Log::warning(static::class . ' saving normalization failed', [
                     'id'    => $m->getAttribute('id'),
                     'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
                 ]);
             }
         });

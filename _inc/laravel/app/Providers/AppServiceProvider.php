@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Throwable;
 use App\Config\Constants\ViewsConstants;
+use App\Services\Resolvers\{BrasilApiCepV2Resolver, ViaCepResolver};
+use App\Services\{GeoLookupService, ZipGeoService, Providers\BrasilApiCepProvider};
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\{Event, Log, Schema};
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +18,18 @@ final class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' registering...');
+        $this->app->singleton(ZipGeoService::class, function () {
+            return new ZipGeoService([
+                new BrasilApiCepV2Resolver(),
+                new ViaCepResolver(),
+            ]);
+        });
+        $this->app->singleton(BrasilApiCepProvider::class);
+        $this->app->singleton(GeoLookupService::class, function ($app) {
+            return new GeoLookupService(
+                $app->make(BrasilApiCepProvider::class)
+            );
+        });
     }
 
     public function boot(): void

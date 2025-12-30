@@ -6,7 +6,7 @@ use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\{MimeType, UserType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -86,10 +86,43 @@ abstract class AbstractFile extends Model
 				$m->enforceTypeNullWhenNotDocument();
 				$m->normalizePermissionRules();
 				$m->normalizeActorListsIfDirty();
+				$basePath = trim((string) ($m->getAttribute('url') ?? ''));
+				if ($basePath === '') {
+					$title = trim((string) ($m->getAttribute('title') ?? $m->getAttribute('name') ?? ''));
+					$basePath = $title !== '' ? Str::slug($title) : 'resource-' . now()->timestamp;
+				}
+				$basePath = trim(parse_url($basePath, PHP_URL_PATH) ?? $basePath, '/');
+				$basePath = Str::slug($basePath);
+				$candidatePath = '/' . $basePath;
+				if (DB::table($m->getTable())
+					->where('url', $candidatePath)
+					->where('id', '!=', $m->getAttribute('id') ?? '')
+					->exists()
+				) {
+					$acc = 0;
+					$maxAttempts = 1000;
+					do {
+						$suffix = now()->timestamp . '-' . Str::random(6);
+						$candidatePath = '/' . $basePath . '-' . $suffix;
+						$acc++;
+						if ($acc > $maxAttempts) {
+							throw new \RuntimeException(
+								'Failed to generate unique URL path for ' . get_class($m) . ' after ' . $maxAttempts . ' attempts'
+							);
+						}
+					} while (DB::table($m->getTable())
+						->where('url', $candidatePath)
+						->where('id', '!=', $m->getAttribute('id') ?? '')
+						->exists()
+					);
+				}
+				$m->setAttribute('url', $candidatePath);
 			} catch (Throwable $e) {
 				Log::warning(static::class . ' saving normalization failed', [
 					'id'    => $m->getAttribute('id'),
 					'error' => $e->getMessage(),
+					'line' => $e->getLine(),
+					'file' => $e->getFile(),
 				]);
 			}
 		});

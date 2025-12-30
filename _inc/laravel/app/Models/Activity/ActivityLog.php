@@ -98,6 +98,8 @@ class ActivityLog extends Model
             } catch (\Throwable $e) {
                 Log::warning(self::class . ' saving normalization failed: ' . $e->getMessage(), [
                     'id' => $model->getKey(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
                 ]);
             }
         });

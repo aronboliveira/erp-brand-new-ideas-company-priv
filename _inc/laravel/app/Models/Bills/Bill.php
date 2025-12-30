@@ -286,6 +286,8 @@ class Bill extends Model
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $bill->id ?? null,
                     'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
                 ]);
             }
         });

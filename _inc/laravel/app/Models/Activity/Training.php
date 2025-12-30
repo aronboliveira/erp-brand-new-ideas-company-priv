@@ -18,13 +18,9 @@ use App\Traits\{
     NormalizesArrays,
     UsesUuids
 };
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Validation\ValidationException;
 
 class Training extends Model
@@ -379,25 +375,22 @@ class Training extends Model
     {
         $company = $this->getAttribute('company');
         $branch = $this->getAttribute('branch');
-
         if (!$company && !$branch)
             throw ValidationException::withMessages([
                 'company' => 'A training deve ter company ou branch.',
                 'branch' => 'A training deve ter company ou branch.',
             ]);
-
-        // Infer company via branch (se aplicável)
         if ($branch) {
             try {
+                $companyColumn = Schema::hasColumn(DC::TABLE_BRANCHES, 'company') ? 'company' : (Schema::hasColumn(DC::TABLE_BRANCHES, CC::COL_CP_ID)
+                    ? CC::COL_CP_ID : null);
                 $branchCompany = DB::table(DC::TABLE_BRANCHES)
                     ->where('id', (string) $branch)
-                    ->value(CC::COL_CP_ID);
-
+                    ->value($companyColumn);
                 if ($branchCompany && !$company) {
                     $this->setAttribute('company', (string) $branchCompany);
                     $company = (string) $branchCompany;
                 }
-
                 if ($branchCompany && $company && (string) $branchCompany !== (string) $company)
                     throw ValidationException::withMessages([
                         'branch' => 'A branch informada não pertence à company selecionada.',
@@ -666,7 +659,7 @@ class Training extends Model
         $names = [];
 
         foreach ($items as $it) {
-            if ($this->looksLikeUuidSafe($it)) $uuids[] = $it;
+            if (Utility::looksLikeUuid($it)) $uuids[] = $it;
             else $names[] = $it;
         }
 
@@ -698,13 +691,6 @@ class Training extends Model
 
         $out = array_values(array_unique(array_merge($valid, $names)));
         return array_slice($out, 0, 256);
-    }
-
-    private function looksLikeUuidSafe(string $value): bool
-    {
-        $v = trim($value);
-        if ($v === '') return false;
-        return (bool) preg_match('/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/', $v);
     }
 
     private static function clampInt(mixed $value, int $min, int $max): int

@@ -99,6 +99,8 @@ class BillProduct extends Model
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $m->id ?? null,
                     'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
                 ]);
                 if (!is_array($m->getAttribute(BC::COL_OT_TX) ?? null))
                     $m->setAttribute(BC::COL_OT_TX, []);

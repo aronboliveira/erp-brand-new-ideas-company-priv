@@ -3,6 +3,7 @@
 namespace App\Enums;
 
 use App\Config\Constants\DatabaseConstants;
+use Illuminate\Support\Facades\Log;
 
 enum CountryName: string
 {
@@ -60,10 +61,13 @@ enum CountryName: string
 			return $value;
 		if ($value === null)
 			return null;
-		$v = strtolower(trim($value));
+		$v = strtolower(trim(str_replace(
+			[':', '—', '–', '_', '|', '/', '\\', ',', ';', '"'],
+			' ',
+			$value
+		)));
 		if ($v === '')
 			return null;
-
 		$map = [
 			'br'                         => self::Brazil,
 			'bra'                        => self::Brazil,
@@ -299,15 +303,125 @@ enum CountryName: string
 			'guyane française'           => self::FrenchGuiana,
 			'guayana francesa'           => self::FrenchGuiana,
 		];
-
 		if (isset($map[$v]))
 			return $map[$v];
-
 		foreach (self::cases() as $case)
 			if (strtolower($case->value) === $v)
 				return $case;
-
 		return null;
+	}
+
+	public static function IsIsoCoded(?string $isoCode): bool
+	{
+		if ($isoCode === null)
+			return false;
+
+		$iso = strtoupper(trim($isoCode));
+		$validIsoCodes = [
+			'BR',
+			'US',
+			'CA',
+			'GB',
+			'DE',
+			'FR',
+			'ES',
+			'PT',
+			'IT',
+			'AR',
+			'CL',
+			'MX',
+			'JP',
+			'CN',
+			'IN',
+			'AU',
+			'ZA',
+			'DK',
+			'NL',
+			'PL',
+			'SA',
+			'TR',
+			'IL',
+			'RU',
+			'CH',
+			'BE',
+			'AT',
+			'TW',
+			'CO',
+			'PE',
+			'VE',
+			'NO',
+			'SE',
+			'FI',
+			'GR',
+			'CZ',
+			'HU',
+			'RO',
+			'BO',
+			'EC',
+			'GY',
+			'PY',
+			'SR',
+			'UY',
+			'GF',
+		];
+
+		return in_array($iso, $validIsoCodes, true);
+	}
+
+	public static function getIsoCode(?string $countryName): ?string
+	{
+		$country = self::normalize($countryName);
+		if ($country === null)
+			return null;
+		Log::debug('Normalized country name to enum case', ['input' => $countryName, 'enum_case' => $country->value]);
+		return match ($country) {
+			self::Brazil        => 'BR',
+			self::UnitedStates  => 'US',
+			self::Canada        => 'CA',
+			self::UnitedKingdom => 'GB',
+			self::Germany       => 'DE',
+			self::France        => 'FR',
+			self::Spain         => 'ES',
+			self::Portugal      => 'PT',
+			self::Italy         => 'IT',
+			self::Argentina     => 'AR',
+			self::Chile         => 'CL',
+			self::Mexico        => 'MX',
+			self::Japan         => 'JP',
+			self::China         => 'CN',
+			self::India         => 'IN',
+			self::Australia     => 'AU',
+			self::SouthAfrica   => 'ZA',
+			self::Denmark       => 'DK',
+			self::Netherlands   => 'NL',
+			self::Poland        => 'PL',
+			self::SaudiArabia   => 'SA',
+			self::Turkey        => 'TR',
+			self::Israel        => 'IL',
+			self::Russia        => 'RU',
+			self::Switzerland   => 'CH',
+			self::Belgium       => 'BE',
+			self::Austria       => 'AT',
+			self::Taiwan        => 'TW',
+			self::Colombia      => 'CO',
+			self::Peru          => 'PE',
+			self::Venezuela     => 'VE',
+			self::Norway        => 'NO',
+			self::Sweden        => 'SE',
+			self::Finland       => 'FI',
+			self::Greece        => 'GR',
+			self::CzechRepublic => 'CZ',
+			self::Hungary       => 'HU',
+			self::Romania       => 'RO',
+			self::Bolivia       => 'BO',
+			self::Ecuador       => 'EC',
+			self::Guyana        => 'GY',
+			self::Paraguay      => 'PY',
+			self::Suriname      => 'SR',
+			self::Uruguay       => 'UY',
+			self::FrenchGuiana  => 'GF',
+			default => 'BR'
+		};
 	}
 
 	public static function labels($lang = DatabaseConstants::DEFAULT_LANG): array

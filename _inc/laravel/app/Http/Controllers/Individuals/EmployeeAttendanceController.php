@@ -45,7 +45,7 @@ final class EmployeeAttendanceController extends Controller
   public function index(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@index';
-    $view   = ViewsConstants::EMP_ATD . '.index';
+    $view = ViewsConstants::EMP_ATD . '.index';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       // login check
@@ -110,7 +110,7 @@ final class EmployeeAttendanceController extends Controller
   public function create(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@create';
-    $view   = ViewsConstants::EMP_ATD . '.create';
+    $view = ViewsConstants::EMP_ATD . '.create';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -162,9 +162,9 @@ final class EmployeeAttendanceController extends Controller
       $t = microtime(true);
       if ($c = self::v($req, [
         UsersConstants::COL_EMP_ID => 'required',
-        'date'       => 'required|date',
-        'clock_in'   => 'required',
-        'clock_out'  => 'required'
+        'date' => 'required|date',
+        'clock_in' => 'required',
+        'clock_out' => 'required'
       ])) {
         $this->logExecutionTime($t, $action . '::validate', 'failed');
         return $c;
@@ -175,7 +175,7 @@ final class EmployeeAttendanceController extends Controller
         // compute & persist
         $t = microtime(true);
         $start = Utility::getValByName('company_start_time');
-        $end   = Utility::getValByName('company_end_time');
+        $end = Utility::getValByName('company_end_time');
 
         $exists = EmployeeAttendance::where([
           [UsersConstants::COL_EMP_ID, $req[UsersConstants::COL_EMP_ID]],
@@ -188,24 +188,24 @@ final class EmployeeAttendanceController extends Controller
             ->with('error', __('Employee Attendance Already Created.'));
         }
 
-        $lateSecs  = strtotime($req->clock_in) - strtotime("{$req->date}{$start}");
-        $late      = gmdate('H:i:s', max($lateSecs, 0));
+        $lateSecs = strtotime($req->clock_in) - strtotime("{$req->date}{$start}");
+        $late = gmdate('H:i:s', max($lateSecs, 0));
         $earlySecs = strtotime("{$req->date}{$end}") - strtotime($req->clock_out);
-        $early     = gmdate('H:i:s', max($earlySecs, 0));
-        $overtime  = strtotime($req->clock_out) > strtotime("{$req->date}{$end}")
+        $early = gmdate('H:i:s', max($earlySecs, 0));
+        $overtime = strtotime($req->clock_out) > strtotime("{$req->date}{$end}")
           ? gmdate('H:i:s', strtotime($req->clock_out) - strtotime("{$req->date}{$end}"))
           : '00:00:00';
 
         EmployeeAttendance::create([
           UsersConstants::COL_EMP_ID => $req[UsersConstants::COL_EMP_ID],
-          'date'          => $req->date,
-          'status'        => 'Present',
-          'clock_in'      => "{$req->clock_in}:00",
-          'clock_out'     => "{$req->clock_out}:00",
-          'late'          => $late,
+          'date' => $req->date,
+          'status' => 'Present',
+          'clock_in' => "{$req->clock_in}:00",
+          'clock_out' => "{$req->clock_out}:00",
+          'late' => $late,
           'early_leaving' => $early,
-          'overtime'      => $overtime,
-          'total_rest'    => '00:00:00',
+          'overtime' => $overtime,
+          'total_rest' => '00:00:00',
           DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'created');
@@ -228,7 +228,7 @@ final class EmployeeAttendanceController extends Controller
   public function edit(Request $req, int|string $id): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@edit';
-    $view   = ViewsConstants::EMP_ATD . '.edit';
+    $view = ViewsConstants::EMP_ATD . '.edit';
 
     return $this->measureProfile($action, function () use ($req, $id, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -245,7 +245,7 @@ final class EmployeeAttendanceController extends Controller
       // load data
       $t = microtime(true);
       $attendance = EmployeeAttendance::findOrFail($id);
-      $employees  = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+      $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(UsersConstants::COL_NM, 'id');
       $this->logExecutionTime($t, $action . '::loadData', 'employees: ' . $employees->count());
 
@@ -279,23 +279,23 @@ final class EmployeeAttendanceController extends Controller
       // compute & persist
       $t = microtime(true);
       $attendance = EmployeeAttendance::findOrFail($id);
-      $inRaw  = $req->clock_in;
+      $inRaw = $req->clock_in;
       $outRaw = $req->clock_out;
-      $date   = $attendance->date;
-      $start  = Utility::getValByName('company_start_time');
-      $end    = Utility::getValByName('company_end_time');
+      $date = $attendance->date;
+      $start = Utility::getValByName('company_start_time');
+      $end = Utility::getValByName('company_end_time');
 
-      $in   = $inRaw  ? date('H:i:s', strtotime($inRaw))  : $attendance->clock_in;
-      $out  = $outRaw ? date('H:i:s', strtotime($outRaw)) : $attendance->clock_out;
+      $in = $inRaw ? date('H:i:s', strtotime($inRaw)) : $attendance->clock_in;
+      $out = $outRaw ? date('H:i:s', strtotime($outRaw)) : $attendance->clock_out;
 
       ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
         = self::computeDurations($in, $out, $date, $start, $end);
 
-      $attendance->clock_in      = $in;
-      $attendance->clock_out     = $out;
-      $attendance->late          = $late;
+      $attendance->clock_in = $in;
+      $attendance->clock_out = $out;
+      $attendance->late = $late;
       $attendance->early_leaving = $early;
-      $attendance->overtime      = $ovt;
+      $attendance->overtime = $ovt;
       $attendance->save();
       $this->logExecutionTime($t, $action . '::persist', 'updated');
 
@@ -355,7 +355,7 @@ final class EmployeeAttendanceController extends Controller
         // close previous open attendance
         $t = microtime(true);
         $start = Utility::getValByName('company_start_time');
-        $end   = Utility::getValByName('company_end_time');
+        $end = Utility::getValByName('company_end_time');
         $empId = $user?->employee->id ?? 0;
 
         $last = EmployeeAttendance::where([
@@ -370,14 +370,14 @@ final class EmployeeAttendanceController extends Controller
 
         EmployeeAttendance::create([
           UsersConstants::COL_EMP_ID => $empId,
-          'date'          => $date,
-          'status'        => 'Present',
-          'clock_in'      => $time,
-          'clock_out'     => '00:00:00',
-          'late'          => $late,
+          'date' => $date,
+          'status' => 'Present',
+          'clock_in' => $time,
+          'clock_out' => '00:00:00',
+          'late' => $late,
           'early_leaving' => '00:00:00',
-          'overtime'      => '00:00:00',
-          'total_rest'    => '00:00:00',
+          'overtime' => '00:00:00',
+          'total_rest' => '00:00:00',
           DatabaseConstants::COL_TABLE_CREATOR => $user?->id,
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'clock-in');
@@ -394,7 +394,7 @@ final class EmployeeAttendanceController extends Controller
   public function bulkAttendance(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@bulkAttendance';
-    $view   = ViewsConstants::EMP_ATD . '.bulk';
+    $view = ViewsConstants::EMP_ATD . '.bulk';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -452,14 +452,14 @@ final class EmployeeAttendanceController extends Controller
       // process rows
       $t = microtime(true);
       $start = Utility::getValByName('company_start_time');
-      $end   = Utility::getValByName('company_end_time');
+      $end = Utility::getValByName('company_end_time');
 
       foreach ($req[UsersConstants::COL_EMP_ID] as $emp) {
         $present = $req->input("present-{$emp}") === 'on';
-        $date    = $req->date;
+        $date = $req->date;
 
         if ($present) {
-          $in  = date('H:i:s', strtotime($req->input("in-{$emp}")));
+          $in = date('H:i:s', strtotime($req->input("in-{$emp}")));
           $out = date('H:i:s', strtotime($req->input("out-{$emp}")));
           ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
             = self::computeDurations($in, $out, $date, $start, $end);
@@ -474,16 +474,16 @@ final class EmployeeAttendanceController extends Controller
           ['date', $date],
         ])->first() ?? new EmployeeAttendance();
 
-        $attendance[UsersConstants::COL_EMP_ID]  = $emp;
-        $attendance->date          = $date;
-        $attendance->status        = $status;
-        $attendance->clock_in      = $in;
-        $attendance->clock_out     = $out;
-        $attendance->late          = $late;
+        $attendance[UsersConstants::COL_EMP_ID] = $emp;
+        $attendance->date = $date;
+        $attendance->status = $status;
+        $attendance->clock_in = $in;
+        $attendance->clock_out = $out;
+        $attendance->late = $late;
         $attendance->early_leaving = $early;
-        $attendance->overtime      = $ovt;
-        $attendance->total_rest    = '00:00:00';
-        $attendance->created_by    = $user?->creatorId();
+        $attendance->overtime = $ovt;
+        $attendance->total_rest = '00:00:00';
+        $attendance->created_by = $user?->creatorId();
         $attendance->save();
       }
       $this->logExecutionTime($t, $action . '::persist', 'bulk-done');
@@ -495,7 +495,7 @@ final class EmployeeAttendanceController extends Controller
   public function importFile(): View
   {
     $action = 'EmployeeAttendanceController@importFile';
-    $view   = ViewsConstants::EMP_ATD . '.import';
+    $view = ViewsConstants::EMP_ATD . '.import';
 
     // this one is trivial, but we still validate the view and profile it for consistency
     return $this->measureProfile($action, function () use ($view, $action) {
@@ -540,7 +540,7 @@ final class EmployeeAttendanceController extends Controller
         $rows = (new AttendanceImport())->toArray($req->file('file'))[0];
         $errors = [];
         $start = Utility::getValByName('company_start_time');
-        $end   = Utility::getValByName('company_end_time');
+        $end = Utility::getValByName('company_end_time');
 
         foreach ($rows as $i => $row) if ($i) {
           [$email, $date, $inRaw, $outRaw] = $row;
@@ -551,7 +551,7 @@ final class EmployeeAttendanceController extends Controller
             $errors[] = $email;
             continue;
           }
-          $in  = date('H:i:s', strtotime($inRaw));
+          $in = date('H:i:s', strtotime($inRaw));
           $out = date('H:i:s', strtotime($outRaw));
           ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
             = self::computeDurations($in, $out, $date, $start, $end);
@@ -561,16 +561,16 @@ final class EmployeeAttendanceController extends Controller
             ['date', $date],
           ])->first() ?? new EmployeeAttendance();
 
-          $attendance[UsersConstants::COL_EMP_ID]  = $emp->id;
-          $attendance->date          = $date;
-          $attendance->status        = 'Present';
-          $attendance->clock_in      = $in;
-          $attendance->clock_out     = $out;
-          $attendance->late          = $late;
+          $attendance[UsersConstants::COL_EMP_ID] = $emp->id;
+          $attendance->date = $date;
+          $attendance->status = 'Present';
+          $attendance->clock_in = $in;
+          $attendance->clock_out = $out;
+          $attendance->late = $late;
           $attendance->early_leaving = $early;
-          $attendance->overtime      = $ovt;
-          $attendance->total_rest    = '00:00:00';
-          $attendance->created_by    = $user?->creatorId();
+          $attendance->overtime = $ovt;
+          $attendance->total_rest = '00:00:00';
+          $attendance->created_by = $user?->creatorId();
           $attendance->save();
         }
 
@@ -597,11 +597,11 @@ final class EmployeeAttendanceController extends Controller
   }
 
   /**
-   * @param  string  $in
-   * @param  string  $out
-   * @param  string  $date
-   * @param  string  $start
-   * @param  string  $end
+   * @param string $in
+   * @param string $out
+   * @param string $date
+   * @param string $start
+   * @param string $end
    * @return array{late:string,earlyLeaving:string,overtime:string}
    */
   private static function computeDurations(

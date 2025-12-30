@@ -44,7 +44,7 @@ final class CustomerSeeder extends Seeder
 					$safeAcc = 0;
 					do {
 						if ($safeAcc > $count * 1000) throw new \Exception("Too many attempts to generate unique email");
-						$email  = $faker->username() . '_' . Str::uuid()->toString() . '@' . $faker->freeEmailDomain();
+						$email  = $faker->username() . '_' . Str::random(8) . "@" . $faker->freeEmailDomain();
 						$safeAcc++;
 					} while (Customer::query()->where('email', $email)->exists());
 					(new \Symfony\Component\Console\Output\ConsoleOutput

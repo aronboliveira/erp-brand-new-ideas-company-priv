@@ -213,7 +213,7 @@ class EmailSeeder extends Seeder
 
 						EC::COL_D_URL     => $this->chance(0.10) ? ('https://example.test/doc/' . Str::uuid()) : null,
 						DC::COL_DOC_ID    => $docId,
-						EC::COL_EM        => $unique,
+						EC::COL_EM_KEY    => $unique,
 
 						AC::COL_MT        => $t->value,
 						AC::COL_MI        => null,
@@ -273,7 +273,6 @@ class EmailSeeder extends Seeder
 		return null;
 	}
 
-	/** leitura raw otimizada */
 	private function fetchUsersWithEmailRaw(): array
 	{
 		$rows = DB::select(
@@ -285,7 +284,39 @@ class EmailSeeder extends Seeder
 			$a = (array) $r;
 			$id = is_string($a['id'] ?? null) ? trim((string) $a['id']) : '';
 			$em = is_string($a['email'] ?? null) ? trim((string) $a['email']) : '';
-			if ($id !== '' && $em !== '') $out[] = ['id' => $id, 'email' => $em];
+
+			if ($id === '') continue;
+
+			// Validate email and generate random one if invalid
+			if ($em === '' || !preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $em)) {
+				$newEmail = $this->generateRandomEmail();
+
+				// Try to update the user row with the new email
+				try {
+					$updated = DB::table(DC::TABLE_USERS)
+						->where('id', $id)
+						->whereNotNull('id')
+						->update(['email' => $newEmail]);
+
+					if ($updated) {
+						$em = $newEmail;
+						Log::debug('[EmailSeeder] Updated user email', [
+							'user_id' => $id,
+							'new_email' => $newEmail,
+						]);
+					}
+				} catch (\Throwable $e) {
+					Log::debug('[EmailSeeder] Failed to update user email', [
+						'user_id' => $id,
+						'error' => $e->getMessage(),
+					]);
+				}
+
+				// Use the new email regardless of update success
+				$em = $newEmail;
+			}
+
+			$out[] = ['id' => $id, 'email' => $em];
 		}
 		return $out;
 	}
@@ -499,12 +530,115 @@ class EmailSeeder extends Seeder
 			$to = $toUsers[random_int(0, count($toUsers) - 1)] ?? null;
 		}
 
+		$fromEmail = $this->ensureValidEmail($from['email'] ?? null, $from['id'] ?? null);
+		$toEmail = $this->ensureValidEmail($to['email'] ?? null, $to['id'] ?? null);
+
+		while ($fromEmail === $toEmail) {
+			$toEmail = $this->generateRandomEmail();
+		}
+
 		return [
-			'from_id'    => is_array($from) ? (string) ($from['id'] ?? '') : null,
-			'to_id'      => is_array($to)   ? (string) ($to['id'] ?? '') : null,
-			'from_email' => is_array($from) ? (string) ($from['email'] ?? '') : null,
-			'to_email'   => is_array($to)   ? (string) ($to['email'] ?? '') : null,
+			'from_id'    => is_array($from) ? (string)($from['id'] ?? '') : null,
+			'to_id'      => is_array($to)   ? (string)($to['id'] ?? '') : null,
+			'from_email' => is_array($from) ? $fromEmail : null,
+			'to_email'   => is_array($to)   ? $toEmail : null,
 		];
+	}
+
+	/** @return array<string>|null */
+	private function pickEmailsList(array $eligibleUsers, int $n, array $exclude = []): ?array
+	{
+		$excludeMap = [];
+		foreach ($exclude as $e) {
+			if (is_string($e) && trim($e) !== '') $excludeMap[trim($e)] = true;
+		}
+
+		$out = [];
+		$tries = 0;
+
+		while (count($out) < $n && $tries++ < 256) {
+			$u = $eligibleUsers[random_int(0, count($eligibleUsers) - 1)] ?? null;
+			if (!is_array($u)) continue;
+
+			$userId = is_string($u['id'] ?? null) ? trim((string) $u['id']) : '';
+			$em = is_string($u['email'] ?? null) ? trim((string) $u['email']) : '';
+
+			// Validate email and generate random one if invalid
+			if ($em === '' || !preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $em)) {
+				$newEmail = $this->generateRandomEmail();
+
+				// Try to update the user row with the new email
+				if ($userId !== '') {
+					try {
+						$updated = DB::table(DC::TABLE_USERS)
+							->where('id', $userId)
+							->whereNotNull('id')
+							->update(['email' => $newEmail]);
+
+						if ($updated) {
+							Log::debug('[EmailSeeder] Updated user email in pickEmailsList', [
+								'user_id' => $userId,
+								'new_email' => $newEmail,
+							]);
+							// Update the array reference for future iterations
+							$u['email'] = $newEmail;
+						}
+					} catch (\Throwable $e) {
+						Log::debug('[EmailSeeder] Failed to update user email in pickEmailsList', [
+							'user_id' => $userId,
+							'error' => $e->getMessage(),
+						]);
+					}
+				}
+
+				$em = $newEmail;
+			}
+
+			if (isset($excludeMap[$em])) continue;
+
+			$out[] = $em;
+			$out = array_values(array_unique($out));
+		}
+
+		return $out ?: null;
+	}
+
+	private function ensureValidEmail(?string $email, ?string $userId): string
+	{
+		$email = is_string($email) ? trim($email) : '';
+
+		if ($email === '' || !preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) {
+			$newEmail = $this->generateRandomEmail();
+
+			if (is_string($userId) && trim($userId) !== '') {
+				try {
+					$updated = DB::table(DC::TABLE_USERS)
+						->where('id', trim($userId))
+						->whereNotNull('id')
+						->update(['email' => $newEmail]);
+
+					if ($updated) {
+						Log::debug('[EmailSeeder] Updated user email in ensureValidEmail', [
+							'user_id' => $userId,
+							'new_email' => $newEmail,
+						]);
+					}
+				} catch (\Throwable $e) {
+					Log::debug('[EmailSeeder] Failed to update user email in ensureValidEmail', [
+						'user_id' => $userId,
+						'error' => $e->getMessage(),
+					]);
+				}
+			}
+
+			return $newEmail;
+		}
+
+		return $email;
+	}
+	private function generateRandomEmail(): string
+	{
+		return fake()->userName() . '-' . Str::random(8) . '@' . fake()->domainName();
 	}
 
 	private function generateUniqueIdentifier(): string
@@ -525,7 +659,7 @@ class EmailSeeder extends Seeder
 	{
 		try {
 			$row = DB::selectOne(
-				"select 1 as x from " . DC::TABLE_EMAILS . " where " . EC::COL_EM . " = ? limit 1",
+				"select 1 as x from " . DC::TABLE_EMAILS . " where " . EC::COL_EM_KEY . " = ? limit 1",
 				[$unique]
 			);
 			return $row !== null;
@@ -590,31 +724,6 @@ class EmailSeeder extends Seeder
 			$id = $createdIds[random_int(0, count($createdIds) - 1)] ?? null;
 			if (!is_string($id) || $id === '') continue;
 			$out[] = $id;
-			$out = array_values(array_unique($out));
-		}
-
-		return $out ?: null;
-	}
-
-	/** @return array<string>|null */
-	private function pickEmailsList(array $eligibleUsers, int $n, array $exclude = []): ?array
-	{
-		$excludeMap = [];
-		foreach ($exclude as $e) {
-			if (is_string($e) && trim($e) !== '') $excludeMap[trim($e)] = true;
-		}
-
-		$out = [];
-		$tries = 0;
-
-		while (count($out) < $n && $tries++ < 256) {
-			$u = $eligibleUsers[random_int(0, count($eligibleUsers) - 1)] ?? null;
-			if (!is_array($u)) continue;
-
-			$em = is_string($u['email'] ?? null) ? trim((string) $u['email']) : '';
-			if ($em === '' || isset($excludeMap[$em])) continue;
-
-			$out[] = $em;
 			$out = array_values(array_unique($out));
 		}
 

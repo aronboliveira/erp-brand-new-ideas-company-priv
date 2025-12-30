@@ -117,7 +117,7 @@ class ProjectTask extends Model
                     do {
                         $attempts++;
                         if ($attempts > 48) {
-                            Log::warning(__CLASS__ . ' failed to generate unique code after excessive attempts.');
+                            Log::warning(__CLASS__ . ' failed to generate unique code for ' . $m::class . ' after excessive attempts.');
                             break;
                         }
                         $candidate = 'PRJ-TSK-' . Str::uuid();

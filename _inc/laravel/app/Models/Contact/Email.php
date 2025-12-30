@@ -61,7 +61,7 @@ class Email extends Model
 
         EC::COL_D_URL,
         DC::COL_DOC_ID,
-        EC::COL_EM,               // unique identifier (legacy name "email")
+        EC::COL_EM_KEY,               // unique identifier (legacy name "email")
 
         AC::COL_MT,               // module_type
         AC::COL_MI,               // module_id (legacy)
@@ -146,6 +146,7 @@ class Email extends Model
                 Log::error(self::class . ' creating failed to set creator', [
                     'id'    => (string) ($m->getAttribute('id') ?? ''),
                     'error' => $e->getMessage(),
+                    'method' => 'static::creating',
                 ]);
             }
         });
@@ -164,8 +165,8 @@ class Email extends Model
                     'id'        => (string) ($m->getAttribute('id') ?? ''),
                     'from_id'   => (string) ($m->getAttribute(EC::COL_FROM_ID) ?? ''),
                     'to_id'     => (string) ($m->getAttribute(EC::COL_TO_ID) ?? ''),
-                    'unique'    => (string) ($m->getAttribute(EC::COL_EM) ?? ''),
                     'error'     => $e->getMessage(),
+                    'method' => 'static::saving'
                 ]);
                 throw $e;
             }
@@ -312,20 +313,44 @@ class Email extends Model
 
             $v = trim($raw);
             if ($v === '') $this->setAttribute($k, null);
-            elseif (!self::looksLikeUuid($v)) $this->setAttribute($k, null);
+            elseif (!Utility::looksLikeUuid($v)) $this->setAttribute($k, null);
             else $this->setAttribute($k, $v);
         }
     }
 
     private function ensureUniqueIdentifier(): void
     {
-        $raw = $this->getAttribute(EC::COL_EM);
-
-        if (!is_string($raw) || trim($raw) === '')
-            $this->setAttribute(EC::COL_EM, (string) Str::uuid());
-        else {
+        $raw = $this->getAttribute(EC::COL_EM_KEY);
+        $candidateKey = null;
+        if (!is_string($raw) || trim($raw) === '') {
+            $retriesLimit = 1024;
+            do {
+                $retriesLimit--;
+                $candidateKey = (string) Str::uuid();
+            } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
+            if (!$retriesLimit) {
+                Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
+                    'method' => __METHOD__,
+                    'id'     => (string) ($this->getAttribute('id') ?? ''),
+                ]);
+                throw new \RuntimeException('Failed to generate unique email identifier');
+            }
+            !empty($candidateKey) && $this->setAttribute(EC::COL_EM_KEY, $candidateKey);
+        } else {
             $v = trim($raw);
-            $this->setAttribute(EC::COL_EM, $v === '' ? (string) Str::uuid() : $v);
+            $retriesLimit = 1024;
+            do {
+                $retriesLimit--;
+                $candidateKey = (string) Str::uuid();
+            } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
+            if (!$retriesLimit) {
+                Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
+                    'method' => __METHOD__,
+                    'id'     => (string) ($this->getAttribute('id') ?? ''),
+                ]);
+                throw new \RuntimeException('Failed to generate unique email identifier');
+            }
+            $this->setAttribute(EC::COL_EM_KEY, $v === '' ? (string) Str::uuid() : $v);
         }
     }
 
@@ -347,7 +372,7 @@ class Email extends Model
             foreach ($thread as $id) {
                 if (!is_string($id)) continue;
                 $id = trim($id);
-                if ($id !== '' && self::looksLikeUuid($id)) $filtered[] = $id;
+                if ($id !== '' && Utility::looksLikeUuid($id)) $filtered[] = $id;
             }
             $this->setAttribute('thread', array_values(array_unique($filtered)));
         } elseif ($thread !== null) {
@@ -427,7 +452,13 @@ class Email extends Model
                 $this->setAttribute(MC::COL_SNT_AT, $sentAt);
             }
         } catch (\Throwable $e) {
-            Log::warning(self::class . ' invalid sent_at', ['error' => $e->getMessage()]);
+            Log::warning(self::class . ' invalid sent_at', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__,
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'original' => is_string($sent) ? $sent : '#NULL',
+            ]);
             $this->setAttribute(MC::COL_SNT_AT, null);
         }
 
@@ -445,7 +476,13 @@ class Email extends Model
 
                 $this->setAttribute(MC::COL_RD_AT, $readAt);
             } catch (\Throwable $e) {
-                Log::warning(self::class . ' invalid read_at', ['error' => $e->getMessage()]);
+                Log::warning(self::class . ' invalid read_at', [
+                    'error' => $e->getMessage(),
+                    'method' => __METHOD__,
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
+                    'original' => is_string($read) ? $read : '#NULL',
+                ]);
                 $this->setAttribute(MC::COL_RD_AT, null);
                 $this->setAttribute(MC::COL_IS_RD, false);
             }
@@ -455,7 +492,7 @@ class Email extends Model
     private function resolveUserEmail(string $userId): ?string
     {
         $userId = trim($userId);
-        if ($userId === '' || !self::looksLikeUuid($userId)) return null;
+        if ($userId === '' || !Utility::looksLikeUuid($userId)) return null;
 
         if (array_key_exists($userId, self::$cache['user_email']))
             return self::$cache['user_email'][$userId];
@@ -504,7 +541,7 @@ class Email extends Model
     {
         try {
             $uid = defined(DC::class . '::DEFAULT_UUID') ? (string) constant(DC::class . '::DEFAULT_UUID') : '';
-            if ($uid === '' || !self::looksLikeUuid($uid)) return null;
+            if ($uid === '' || !Utility::looksLikeUuid($uid)) return null;
 
             $email = (string) (DB::table(DC::TABLE_USERS)->where('id', $uid)->value('email') ?? '');
             $email = self::normalizeEmail($email, 'system.email', $uid);

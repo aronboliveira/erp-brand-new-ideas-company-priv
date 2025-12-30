@@ -11,6 +11,7 @@ trait HasFileColumns
 	protected function addFileColumns(Blueprint $table): void
 	{
 		$table->string(DC::COL_FL_PT)->nullable();
+		$table->string('url', 254)->nullable()->index();
 		$table->string('name', 1024)->nullable()->index(); // ? it null, then generate randomly as "FILE_{Str::UUID}_{timestamp}"
 		$table->string('extension')->nullable()->index();
 		$table->enum(DC::COL_MM_TP, array_column(MimeType::cases(), 'value'))->default(MimeType::OTHER->value)->nullable(); // * boot/saving should be constrained by MimeType enum

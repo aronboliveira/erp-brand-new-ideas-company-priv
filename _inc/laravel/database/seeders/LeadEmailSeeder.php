@@ -95,9 +95,9 @@ class LeadEmailSeeder extends Seeder
 					// from: remetente pode ser alguém do sistema ou caixa genérica
 					$from = Arr::random(array_filter([
 						$userEmail,
-						'sales_' . Str::uuid()->toString() . '@' . fake()->domainName(),
-						'support_' . Str::uuid()->toString() . '@' . fake()->domainName(),
-						'noreply_' . Str::uuid()->toString() . '@' . fake()->domainName(),
+						'sales_' . Str::random(8) . "@" . fake()->domainName(),
+						'support_' . Str::random(8) . "@" . fake()->domainName(),
+						'noreply_' . Str::random(8) . "@" . fake()->domainName(),
 					])) ?: 'noreply_' . Str::uuid()->toString() . '@example.test';
 					// to: prioridade: e-mail do lead -> e-mail de usuário -> fallback determinístico
 					$to = $leadEmail

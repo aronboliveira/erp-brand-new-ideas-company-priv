@@ -31,7 +31,15 @@ trait HasNfeColumns
 			try {
 				$table->dropColumn($col);
 			} catch (\Exception $e) {
-				Log::warning("Tried to drop nfe column foreign {$col} on table {$tableName} but failed: {$e->getMessage()}");
+				Log::warning(
+					"[" . self::class . "]: " . "Tried to drop nfe column foreign {$col} on table {$tableName} but failed: {$e->getMessage()}",
+					[
+						'class' => static::class,
+						'method' => __METHOD__,
+						'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+						'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+					]
+				);
 			}
 		}
 	}

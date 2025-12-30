@@ -295,7 +295,6 @@ final class HolidaySeeder extends Seeder
 		}
 
 		// 70% escopado (countries)
-		// Majoritariamente BR-only, para cumprir “dataset predominantemente BR”
 		$countries = null;
 
 		if ($cc === 'BR') {
@@ -324,9 +323,6 @@ final class HolidaySeeder extends Seeder
 
 	private function randomStatesMap(string $cc): ?array
 	{
-		// Aqui você deveria buscar do enum correspondente (BrazilState::cases(), etc.)
-		// Como o Seeder não deve “adivinhar” o mapeamento do trait por reflexão,
-		// faço por match simples nos países que você listou.
 
 		$cc = strtoupper(trim($cc));
 
@@ -378,7 +374,6 @@ final class HolidaySeeder extends Seeder
 	): array {
 		$cc = strtoupper(trim($cc));
 
-		// date / end_date (obrigatórios)
 		$year = (int) now()->format('Y');
 		$date = Carbon::create($year, random_int(1, 12), random_int(1, 28))->startOfDay();
 

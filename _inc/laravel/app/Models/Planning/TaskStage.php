@@ -406,7 +406,7 @@ class TaskStage extends Model
         $names = [];
 
         foreach ($items as $it) {
-            if ($this->looksLikeUuidSafe($it)) $uuids[] = $it;
+            if (Utility::looksLikeUuid($it)) $uuids[] = $it;
             else $names[] = $it;
         }
 
@@ -510,13 +510,6 @@ class TaskStage extends Model
         ]);
 
         return '#558855';
-    }
-
-    private function looksLikeUuidSafe(string $value): bool
-    {
-        $v = trim($value);
-        if ($v === '') return false;
-        return (bool) preg_match('/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/', $v);
     }
 
     private function resolveProjectNameCached(): ?string

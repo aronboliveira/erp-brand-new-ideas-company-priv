@@ -59,7 +59,7 @@ class UserCoupon extends Model
             }
             try {
                 $orderId = trim((string) $orderId);
-                if (!self::looksLikeUuid($orderId)) {
+                if (!Utility::looksLikeUuid($orderId)) {
                     $model->setAttribute(self::COL_ORDER, null);
                     return;
                 }

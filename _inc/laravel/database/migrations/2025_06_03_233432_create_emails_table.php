@@ -44,7 +44,7 @@ class CreateEmailsTable extends Migration
             $table->timestamp(MC::COL_RD_AT)->nullable(); // ? nullable for tests, constrained at model level, the timestamp when the message was read, nullified is MC::COL_IS_RD is false; if not null, then never < MC::COL_SNT_AT
             $table->string(EC::COL_D_URL, 254)->nullable();
             $table->uuid(DC::COL_DOC_ID)->nullable()->index();
-            $table->string(EC::COL_EM, 254)->unique();
+            $table->string(EC::COL_EM_KEY, 254)->unique();
             $table->enum(AC::COL_MT, array_column(AppModuleType::cases(), 'value'))->default(AppModuleType::Other->value)->nullable()->index(); // ? nullable to avoid issues with existing data, enforced at model level
             $table->uuid(AC::COL_MI)->nullable(); // * kept for legacy
             $table->unsignedInteger('counter')->default(0); // ? number of times the email was opened

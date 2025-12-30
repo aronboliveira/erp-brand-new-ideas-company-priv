@@ -13,7 +13,7 @@ class CreateLeadsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $this->addUserLikeColumns($table, nullableName: true);
-            $table->string('phone')->nullable();
+            $table->string('phone', 32)->nullable();
             $table->string('subject');
             $table->boolean(PJC::COL_CRT)->default(false)->nullable();
             $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? not every lead is assigned to a user

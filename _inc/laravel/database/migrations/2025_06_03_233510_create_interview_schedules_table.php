@@ -4,7 +4,7 @@ use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, Pr
 use App\Traits\{HasNullableAuditColumns, TaskConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-// todo update journal,jobs,custom_question migrations
+// todo update journal,custom_question migrations
 class CreateInterviewSchedulesTable extends Migration
 {
     use HasNullableAuditColumns, TaskConnected;

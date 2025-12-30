@@ -199,7 +199,7 @@ class Customer extends Authenticatable
                         $customer->setAttribute(BC::COL_TX_N, null);
                 } else {
                     $raw = trim((string) $customer->getAttribute(BC::COL_TX_N));
-                    if (static::looksLikeUuid($raw))
+                    if (Utility::looksLikeUuid($raw))
                         $customer->setAttribute(BC::COL_TX_N, strtolower($raw));
                     else {
                         $digits = preg_replace('/\D+/', '', $raw);

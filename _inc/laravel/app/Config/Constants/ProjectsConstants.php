@@ -122,6 +122,13 @@ class ProjectsConstants
 	public const COL_ALW_MNT_NTF = 'allow_mention_notifications';
 	public const COL_ALW_STT_UPD_NTF = 'allow_status_update_notifications';
 	public const COL_TTL_HRS = 'total_hours';
+	public const COL_SHFT_TP = 'shift_type';
+	public const COL_ACP_SHFT = 'accepted_shifts';
+	public const COL_PRS_TP = 'presence_type';
+	public const COL_ACP_PRS = 'accepted_presences';
+	public const COL_CTC_TP = 'contract_type';
+	public const COL_ACP_CTC_TP = 'accepted_contract_types';
+	public const COL_ACP_LVLS = 'accepted_levels';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

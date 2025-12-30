@@ -14,7 +14,7 @@ class CreatePasswordResetsTable extends Migration
     {
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $table->string('token')->unique()->primary();
-            $table->string('email')->index();
+            $table->string('email', 254)->index();
             $table->foreign('email')
                 ->references(UC::COL_EM)
                 ->on(DC::TABLE_USERS)

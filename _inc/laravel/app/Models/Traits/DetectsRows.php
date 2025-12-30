@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\Utility;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
 
@@ -21,7 +22,7 @@ trait DetectsRows
 		$s = trim((string) $token);
 		if ($s === '') return null;
 
-		if ($this->looksLikeUuid($s)) return $indexed['by_id'][$s] ?? null;
+		if (Utility::looksLikeUuid($s)) return $indexed['by_id'][$s] ?? null;
 		if ($nameCol === null) return null;
 
 		$key = strtoupper(Str::ascii($s));
@@ -39,7 +40,7 @@ trait DetectsRows
 				$s = trim((string) $t);
 				if ($s === '') continue;
 
-				if ($this->looksLikeUuid($s)) $ids[] = $s;
+				if (Utility::looksLikeUuid($s)) $ids[] = $s;
 				elseif ($nameCol !== null) $names[] = $s;
 			}
 
@@ -63,8 +64,11 @@ trait DetectsRows
 
 				$rows = $q->get();
 			} catch (\Throwable $e) {
-				Log::warning("Holiday scope: failed fetching rows from {$table}", [
+				Log::warning("[" . self::class . "]: " . "Holiday scope: failed fetching rows from {$table}", [
 					'error' => $e->getMessage(),
+					'method' => __METHOD__,
+					'file' => $e->getFile(),
+					'line' => $e->getMessage(),
 				]);
 				return null;
 			}
@@ -87,11 +91,6 @@ trait DetectsRows
 
 			return $indexed;
 		});
-	}
-
-	protected function looksLikeUuid(string $value): bool
-	{
-		return (bool) preg_match('/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/', $value);
 	}
 
 	protected function cacheOnce(string $key, callable $cb): mixed

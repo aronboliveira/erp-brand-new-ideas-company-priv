@@ -52,7 +52,7 @@ class ClientSeeder extends Seeder
 					$attempts = 0;
 					$exitAcumulator = $quantity * 64;
 					do {
-						$clientEmail = $faker->userName() . "_" . Str::uuid()->toString() . "@" . $faker->safeEmailDomain();
+						$clientEmail = $faker->userName() . "_" . Str::random(8) . "@" . $faker->safeEmailDomain();
 						$attempts++;
 						if ($attempts >= $exitAcumulator) throw new \Exception("Too many attempts to generate unique client email. Seeding is canceled.");
 					} while (Cli::where(UC::COL_EM, $clientEmail)->exists());

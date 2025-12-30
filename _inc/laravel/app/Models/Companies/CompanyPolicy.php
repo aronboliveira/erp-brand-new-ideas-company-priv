@@ -116,7 +116,10 @@ class CompanyPolicy extends Model
             } catch (\DomainException $e) {
                 throw $e;
             } catch (\Throwable $e) {
-                Log::warning('CompanyPolicy: saving normalization failed: ' . $e->getMessage());
+                Log::warning('CompanyPolicy: saving normalization failed: ' . $e->getMessage(), [
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
+                ]);
             }
         });
     }

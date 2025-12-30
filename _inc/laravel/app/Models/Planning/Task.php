@@ -250,21 +250,11 @@ class Task extends Model
         foreach ($stages as $v) {
             if (!is_string($v)) continue;
             $id = trim($v);
-            if ($id !== '' && $this->looksLikeUuidSafe($id)) $valid[] = $id;
+            if ($id !== '' && Utility::looksLikeUuid($id)) $valid[] = $id;
         }
 
         $valid = array_values(array_unique($valid));
         $this->setAttribute('stages', array_slice($valid, 0, 512));
-    }
-
-    private function looksLikeUuidSafe(string $value): bool
-    {
-        $v = trim($value);
-        if ($v === '') return false;
-        return (bool) preg_match(
-            '/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/',
-            $v
-        );
     }
 
     public function getModuleTypeEnumAttribute(): AppModuleType

@@ -50,6 +50,12 @@ class BillSeeder extends Seeder
 		$count = 15; // ajuste conforme necessário
 		$today = Carbon::today();
 		$customerPool = DB::table(DC::TABLE_CUSTOMERS)->inRandomOrder()->get()->toArray();
+		if (empty($customerPool)) {
+			$this->command?->warn(
+				'[BillSeeder] Nenhum cliente encontrado para associar às contas; por favor, execute o CustomerSeeder primeiro.'
+			);
+			return;
+		}
 		for ($i = 0; $i < $count; $i++) {
 			try {
 				$vendorId = $vendorIds->random();

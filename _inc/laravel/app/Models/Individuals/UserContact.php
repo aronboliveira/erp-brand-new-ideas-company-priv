@@ -252,14 +252,14 @@ class UserContact extends Model
         $this->setAttribute('phone', self::normalizePhone(is_string($curPhone) ? $curPhone : null, 'user_contact.phone', $userId, false));
 
         // sync somente se user existir
-        if ($userId === '' || !self::looksLikeUuid($userId)) return;
+        if ($userId === '' || !Utility::looksLikeUuid($userId)) return;
 
         $u = $this->getUserRowCached($userId);
         if (!$u) return;
 
         // 1) birthday <- employee.dob (source of truth)
         $empId = trim((string) ($u[UC::COL_EMP_ID] ?? ''));
-        $emp   = $empId !== '' && self::looksLikeUuid($empId) ? $this->getEmployeeRowCached($empId) : null;
+        $emp   = $empId !== '' && Utility::looksLikeUuid($empId) ? $this->getEmployeeRowCached($empId) : null;
 
         try {
             $dob = $emp ? ($emp['dob'] ?? null) : null;
@@ -315,7 +315,7 @@ class UserContact extends Model
                 $this->setAttribute('role', ContactRole::Other);
         } else {
             $companyId = trim((string) ($this->getAttribute('company') ?? ''));
-            if ($companyId !== '' && self::looksLikeUuid($companyId)) {
+            if ($companyId !== '' && Utility::looksLikeUuid($companyId)) {
                 $ct = $this->getUserTypeCached($companyId);
                 if (!in_array($ct, ['company', 'vendor'], true))
                     $this->setAttribute('company', null);
@@ -369,7 +369,7 @@ class UserContact extends Model
         $tpl = array_values(array_unique(array_filter(array_map(function ($v) {
             if (!is_string($v)) return null;
             $t = trim($v);
-            return $t !== '' && self::looksLikeUuid($t) ? $t : null;
+            return $t !== '' && Utility::looksLikeUuid($t) ? $t : null;
         }, $tpl))));
         $this->setAttribute('templates', array_slice($tpl, 0, 512));
 
@@ -449,10 +449,10 @@ class UserContact extends Model
         $userId  = trim((string) ($this->getAttribute(UC::COL_USER_ID) ?? ''));
         $ownerId = trim((string) ($this->getAttribute(EC::COL_PRT_ID) ?? ''));
 
-        if ($userId === '' || !self::looksLikeUuid($userId))
+        if ($userId === '' || !Utility::looksLikeUuid($userId))
             throw new \InvalidArgumentException('UserContact requires a valid user_id (saved user).');
 
-        if ($ownerId !== '' && !self::looksLikeUuid($ownerId))
+        if ($ownerId !== '' && !Utility::looksLikeUuid($ownerId))
             $this->setAttribute(EC::COL_PRT_ID, null);
 
         if ($ownerId !== '' && $ownerId === $userId)
@@ -469,10 +469,10 @@ class UserContact extends Model
 
         // company: se preenchido, precisa apontar para (company|vendor)
         $companyId = trim((string) ($this->getAttribute('company') ?? ''));
-        if ($companyId !== '' && !self::looksLikeUuid($companyId))
+        if ($companyId !== '' && !Utility::looksLikeUuid($companyId))
             $this->setAttribute('company', null);
 
-        if ($companyId !== '' && self::looksLikeUuid($companyId)) {
+        if ($companyId !== '' && Utility::looksLikeUuid($companyId)) {
             $ct = $this->getUserTypeCached($companyId);
             if (!in_array($ct, ['company', 'vendor'], true))
                 $this->setAttribute('company', null);

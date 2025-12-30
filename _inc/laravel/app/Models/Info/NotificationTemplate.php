@@ -12,7 +12,7 @@ use App\Models\{Language, User};
 use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Str};
-use Illuminate\Support\Facades\{Cache, Log};
+use Illuminate\Support\Facades\{Cache, DB, Log};
 
 class NotificationTemplate extends Model
 {
@@ -63,7 +63,24 @@ class NotificationTemplate extends Model
                 $rawSlug = (string) ($model->getAttribute('slug') ?? '');
                 if ($rawSlug === '' && is_string($model->getAttribute('name')))
                     $rawSlug = (string) $model->getAttribute('name');
-                $model->setAttribute('slug', Str::slug($rawSlug));
+                $candidateSlug = Str::slug($rawSlug);
+                if (DB::table($model->getTable())
+                    ->where('slug', $candidateSlug)
+                    ->where('id', '!=', $model->getAttribute('id') ?? '')
+                    ->exists()
+                ) {
+                    $acc = 0;
+                    do {
+                        $candidateSlug = Str::slug($rawSlug . '_' . Str::uuid()->toString());
+                        $acc++;
+                    } while (DB::table($model->getTable())
+                        ->where('slug', $candidateSlug)
+                        ->where('id', '!=', $model->getAttribute('id') ?? '')
+                        ->exists()
+                    );
+                    if ($acc > 64000) throw new \RuntimeException('Failed to generate unique slug for NotificationTemplate after 64000 attempts');
+                }
+                $model->setAttribute('slug', $candidateSlug);
                 $typeEnum = NotificationTemplateType::normalize(
                     (string) ($model->getAttribute('type') ?? '')
                 );

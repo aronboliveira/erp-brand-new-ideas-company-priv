@@ -88,7 +88,7 @@ class VendorSeeder extends Seeder
 				->all();
 			while (count($seed) < max(User::where('type', 'vendor')->count(), self::MIN_VENDORS * count(UserType::cases()))) {
 				if ($acc > $userNum / count(UserType::cases())) break;
-				do $candidateEmail = $companiesPool[array_rand($companiesPool)]->email ?? $faker->username() . '_' . Str::uuid() . '@' . $faker->domainName();
+				do $candidateEmail = $companiesPool[array_rand($companiesPool)]->email ?? $faker->username() . '_' . Str::random(8) . '@' . $faker->domainName();
 				while (in_array($candidateEmail, array_map(fn($e) => $e[1], $seed)));
 				(new \Symfony\Component\Console\Output\ConsoleOutput
 				)->writeln("Criando semente para fornecedor: " . $candidateEmail);

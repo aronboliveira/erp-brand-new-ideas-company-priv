@@ -335,18 +335,6 @@ class JournalEntry extends Model
         ]);
     }
 
-    private static function looksLikeUuid(?string $value): bool
-    {
-        if ($value === null) return false;
-        $v = trim($value);
-        if ($v === '') return false;
-
-        return (bool) preg_match(
-            '/^[0-9a-f]{8}\-[0-9a-f]{4}\-[1-5][0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$/i',
-            $v
-        );
-    }
-
     private function ensureUniqueCode(): void
     {
         $existing = (string) ($this->getAttribute('code') ?? '');
@@ -506,7 +494,7 @@ class JournalEntry extends Model
             if ($v === null) continue;
 
             $s = is_string($v) ? trim($v) : (string) $v;
-            if ($s === '' || !self::looksLikeUuid($s))
+            if ($s === '' || !Utility::looksLikeUuid($s))
                 $this->setAttribute($col, null);
         }
 
@@ -555,7 +543,7 @@ class JournalEntry extends Model
     private function ensureCompanyConstraint(): void
     {
         $companyId = (string) ($this->getAttribute('company') ?? '');
-        if (trim($companyId) === '' || !self::looksLikeUuid($companyId)) {
+        if (trim($companyId) === '' || !Utility::looksLikeUuid($companyId)) {
             $this->setAttribute('company', null);
             return;
         }
@@ -605,8 +593,8 @@ class JournalEntry extends Model
         $rvsing = (string) ($this->getAttribute(BC::COL_RVSING_ID) ?? '');
         $rvsed  = (string) ($this->getAttribute(BC::COL_RVSED_ID) ?? '');
 
-        $rvsing = trim($rvsing) !== '' && self::looksLikeUuid($rvsing) ? $rvsing : '';
-        $rvsed  = trim($rvsed) !== '' && self::looksLikeUuid($rvsed) ? $rvsed : '';
+        $rvsing = trim($rvsing) !== '' && Utility::looksLikeUuid($rvsing) ? $rvsing : '';
+        $rvsed  = trim($rvsed) !== '' && Utility::looksLikeUuid($rvsed) ? $rvsed : '';
 
         if ($id !== '') {
             if ($rvsing === $id) $rvsing = '';
@@ -631,10 +619,10 @@ class JournalEntry extends Model
     private function ensurePosPaymentConsistency(): void
     {
         $posPayId = (string) ($this->getAttribute(BC::COL_POS_PAY_ID) ?? '');
-        if (trim($posPayId) === '' || !self::looksLikeUuid($posPayId)) return;
+        if (trim($posPayId) === '' || !Utility::looksLikeUuid($posPayId)) return;
 
         $posId = (string) ($this->getAttribute(BC::COL_POS_ID) ?? '');
-        if (trim($posId) === '' || !self::looksLikeUuid($posId)) return;
+        if (trim($posId) === '' || !Utility::looksLikeUuid($posId)) return;
 
         $attempt = 0;
         $limit = 6;
@@ -1007,7 +995,7 @@ class JournalEntry extends Model
 
     public function scopeForCompany(Builder $q, string $companyId): Builder
     {
-        if (!self::looksLikeUuid($companyId))
+        if (!Utility::looksLikeUuid($companyId))
             return $q->whereRaw('1=0');
 
         return $q->where('company', $companyId);

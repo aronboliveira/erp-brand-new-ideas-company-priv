@@ -20,7 +20,7 @@ class CreateDepartmentsTable extends Migration
             $table->text('address')->nullable();
             $table->text('description')->nullable();
             $table->string('phone', 32)->nullable()->index();
-            $table->string('email')->nullable();
+            $table->string('email', 254)->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
             $table->decimal('budget', 15, 2)->default(0.00);
             $table->unsignedDecimal('expenses', 15, 2)->default(0.00);

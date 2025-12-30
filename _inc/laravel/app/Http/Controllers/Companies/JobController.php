@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Config\Constants\{
     CompaniesConstants,
-    DatabaseConstants,
+    DatabaseConstants as DC,
     PermissionsConstants,
     SettingsConstants,
     UsersConstants,
@@ -74,21 +74,21 @@ final class JobController extends Controller
             if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
             $qStart = microtime(true);
-            $jobs = Job::with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::COL_TABLE_CREATOR])
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
+            $jobs = Job::with([DC::TABLE_BRANCHES, DC::COL_TABLE_CREATOR])
+                ->where(DC::COL_TABLE_CREATOR, $u->creatorId())
                 ->get();
             $this->logExecutionTime($qStart, $action, 'fetchJobs');
             $cStart = microtime(true);
             $data = [
-                'active'   => Job::where('status', 'active')->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->count(),
-                'inActive' => Job::where('status', 'in_active')->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->count(),
-                'total'    => Job::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->count(),
+                'active'   => Job::where('status', 'active')->where(DC::COL_TABLE_CREATOR, $u->creatorId())->count(),
+                'inActive' => Job::where('status', 'in_active')->where(DC::COL_TABLE_CREATOR, $u->creatorId())->count(),
+                'total'    => Job::where(DC::COL_TABLE_CREATOR, $u->creatorId())->count(),
             ];
             $this->logExecutionTime($cStart, $action, 'aggregateCounts');
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact('data', DatabaseConstants::TABLE_JOBS));
+            $resp = view($viewPath, compact('data', DC::TABLE_JOBS));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
@@ -104,14 +104,14 @@ final class JobController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
-            ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
-            ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            ${DC::TABLE_JOB_CATS} = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            ${DC::TABLE_BRANCHES} = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
             $status = Job::$status;
-            $custom_question = CustomQuestion::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+            $custom_question = CustomQuestion::where(DC::COL_TABLE_CREATOR, $u->creatorId())->get();
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact(DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_JOB_CATS, 'custom_question', 'status'));
+            $resp = view($viewPath, compact(DC::TABLE_BRANCHES, DC::TABLE_JOB_CATS, 'custom_question', 'status'));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
@@ -175,9 +175,9 @@ final class JobController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
-            ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
-            ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
-            $custom_question = CustomQuestion::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+            ${DC::TABLE_BRANCHES} = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            ${DC::TABLE_JOB_CATS} = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            $custom_question = CustomQuestion::where(DC::COL_TABLE_CREATOR, $u->creatorId())->get();
             $status = Job::$status;
             $job->applicant = explode(',', (string) $job->applicant);
             $job->customQuestion = explode(',', (string) $job->custom_question);
@@ -186,7 +186,7 @@ final class JobController extends Controller
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact(DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_JOB_CATS, 'custom_question', self::SINGULAR, 'status'));
+            $resp = view($viewPath, compact(DC::TABLE_BRANCHES, DC::TABLE_JOB_CATS, 'custom_question', self::SINGULAR, 'status'));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'job_id' => $job->id]);
@@ -251,23 +251,23 @@ final class JobController extends Controller
         return $this->measureProfile($action, function () use ($companyId, $lang, $action, $method, $class, $base) {
             Log::debug("[$base::$action] start", ['companyId' => $companyId, 'lang' => $lang, 'method' => $method]);
             $qStart = microtime(true);
-            $jobs = Job::where(DatabaseConstants::COL_TABLE_CREATOR, $companyId)->with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::COL_TABLE_CREATOR])->get();
+            $jobs = Job::where(DC::COL_TABLE_CREATOR, $companyId)->with([DC::TABLE_BRANCHES, DC::COL_TABLE_CREATOR])->get();
             $this->logExecutionTime($qStart, $action, 'fetchJobs');
             App::setLocale($lang);
             session(['lang' => $lang]);
             $sStart = microtime(true);
-            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $companyId)
+            $settings = DB::table(DC::TABLE_SETTINGS)
+                ->where(DC::COL_TABLE_CREATOR, $companyId)
                 ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
                 ->pluck('value', 'name')
                 ->toArray();
             $this->logExecutionTime($sStart, $action, 'loadSettings');
             $languages = Utility::languages();
-            $currLang = session('lang') ?? User::find($companyId)->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $currLang = session('lang') ?? User::find($companyId)->lang ?? DC::DEFAULT_LANG;
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact('companyId', 'currLang', DatabaseConstants::TABLE_JOBS, DatabaseConstants::TABLE_LANGS, DatabaseConstants::TABLE_SETTINGS));
+            $resp = view($viewPath, compact('companyId', 'currLang', DC::TABLE_JOBS, DC::TABLE_LANGS, DC::TABLE_SETTINGS));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'companyId' => $companyId, 'lang' => $lang]);
@@ -289,18 +289,18 @@ final class JobController extends Controller
             App::setLocale($lang);
             session(['lang' => $lang]);
             $sStart = microtime(true);
-            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $job->created_by)
+            $settings = DB::table(DC::TABLE_SETTINGS)
+                ->where(DC::COL_TABLE_CREATOR, $job->created_by)
                 ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
                 ->pluck('value', 'name')
                 ->toArray();
             $this->logExecutionTime($sStart, $action, 'loadSettings');
             $languages = Utility::languages();
-            $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $currLang = session('lang') ?? $job->createdBy->lang ?? DC::DEFAULT_LANG;
             $viewPath = self::SINGULAR . '.requirement';
             if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact('currLang', self::SINGULAR, DatabaseConstants::TABLE_LANGS, DatabaseConstants::TABLE_SETTINGS));
+            $resp = view($viewPath, compact('currLang', self::SINGULAR, DC::TABLE_LANGS, DC::TABLE_SETTINGS));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'code' => $code, 'lang' => $lang]);
@@ -321,21 +321,21 @@ final class JobController extends Controller
             App::setLocale($lang);
             session(['lang' => $lang]);
             $sStart = microtime(true);
-            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $job->created_by)
+            $settings = DB::table(DC::TABLE_SETTINGS)
+                ->where(DC::COL_TABLE_CREATOR, $job->created_by)
                 ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
                 ->pluck('value', 'name')
                 ->toArray();
             $this->logExecutionTime($sStart, $action, 'loadSettings');
             $qsStart = microtime(true);
-            $questions = CustomQuestion::where(DatabaseConstants::COL_TABLE_CREATOR, $job->created_by)->get();
+            $questions = CustomQuestion::where(DC::COL_TABLE_CREATOR, $job->created_by)->get();
             $this->logExecutionTime($qsStart, $action, 'loadQuestions');
             $languages = Utility::languages();
-            $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $currLang = session('lang') ?? $job->createdBy->lang ?? DC::DEFAULT_LANG;
             $viewPath = self::SINGULAR . '.apply';
             if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact('currLang', self::SINGULAR, DatabaseConstants::TABLE_LANGS, 'questions', DatabaseConstants::TABLE_SETTINGS));
+            $resp = view($viewPath, compact('currLang', self::SINGULAR, DC::TABLE_LANGS, 'questions', DC::TABLE_SETTINGS));
             $this->logExecutionTime($renderStart, $action, 'renderView');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'code' => $code, 'lang' => $lang]);
@@ -371,13 +371,13 @@ final class JobController extends Controller
                         $files[$f] = $stored;
                     }
                 }
-                $stage = JobStage::where(DatabaseConstants::COL_TABLE_CREATOR, $job->created_by)->first()?->id;
+                $stage = JobStage::where(DC::COL_TABLE_CREATOR, $job->created_by)->first()?->id;
                 $appData = [self::SINGULAR => $job->id];
                 foreach (['name', 'email', 'phone', 'cover_letter', 'dob', 'gender', 'country', 'state', 'city'] as $field) $appData[$field] = $req->input($field, '');
                 $appData['custom_question'] = json_encode($req->input('question', []));
                 foreach (['profile', 'resume'] as $f) $appData[$f] = $files[$f] ?? '';
                 $appData['stage'] = $stage;
-                $appData[DatabaseConstants::COL_TABLE_CREATOR] = $job->created_by;
+                $appData[DC::COL_TABLE_CREATOR] = $job->created_by;
                 $crtStart = microtime(true);
                 JobApplication::create($appData);
                 $this->logExecutionTime($crtStart, $action, 'createApplication');
@@ -404,7 +404,7 @@ final class JobController extends Controller
             $attrs[$col] = implode(',', $req->input($list, []));
         }
         if ($includeMeta) {
-            $attrs[DatabaseConstants::COL_TABLE_CREATOR] = $userId;
+            $attrs[DC::COL_TABLE_CREATOR] = $userId;
             $attrs['code']      = uniqid();
         }
         return $attrs;

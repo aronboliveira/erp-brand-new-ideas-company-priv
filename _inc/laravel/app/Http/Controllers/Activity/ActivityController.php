@@ -6,13 +6,13 @@ require __DIR__ . '/errorHandlers.php';
 require __DIR__ . '/http.php';
 
 use App\Config\Constants\{
-  ActivitiesConstants,
-  DatabaseConstants,
+  ActivitiesConstants as AC,
+  DatabaseConstants as DC,
   MiddlewaresConstants,
   PermissionsConstants,
-  ProjectsConstants,
+  ProjectsConstants as PJC,
   ServicesConstants,
-  UsersConstants,
+  UsersConstants as UC,
 };
 use App\Models\{
   Activity,
@@ -58,19 +58,19 @@ class ActivityController extends Controller
         Log::warning("{$action} - insufficient permissions, redirecting", ['guard_redirect' => self::REDIRECT_INDEX]);
         return $redirect;
       }
-      Log::info("{$action} started", [ActivitiesConstants::COL_U => $user->id]);
+      Log::info("{$action} started", [AC::COL_U => $user->id]);
       try {
         $creatorId  = $user->creatorId();
         $models     = [
-          DatabaseConstants::TABLE_NOTES      => Note::class,
-          DatabaseConstants::TABLE_TASKS      => Task::class,
-          DatabaseConstants::TABLE_EMAILS     => Email::class,
-          DatabaseConstants::TABLE_LOG_ACTS   => ActivityLog::class,
-          DatabaseConstants::TABLE_SCHEDULES  => Schedule::class,
+          DC::TABLE_NOTES      => Note::class,
+          DC::TABLE_TASKS      => Task::class,
+          DC::TABLE_EMAILS     => Email::class,
+          DC::TABLE_LOG_ACTS   => ActivityLog::class,
+          DC::TABLE_SCHEDULES  => Schedule::class,
         ];
         $allResults = [];
         foreach ($models as $alias => $modelClass) {
-          $items = $modelClass::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+          $items = $modelClass::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->orderBy('id', 'desc')
             ->get();
           Log::debug("{$action} fetched items", ['alias' => $alias, 'count' => $items->count()]);
@@ -78,11 +78,11 @@ class ActivityController extends Controller
         }
         Log::info("{$action} succeeded", ['sections' => array_keys($models)]);
         return view(ServicesConstants::CRM . '.' . self::ENTITY . '.view', [
-          'results'   => $allResults[DatabaseConstants::TABLE_NOTES],
-          'results1'  => $allResults[DatabaseConstants::TABLE_TASKS],
-          'results2'  => $allResults[DatabaseConstants::TABLE_EMAILS],
-          'results3'  => $allResults[DatabaseConstants::TABLE_LOG_ACTS],
-          'results4'  => $allResults[DatabaseConstants::TABLE_SCHEDULES],
+          'results'   => $allResults[DC::TABLE_NOTES],
+          'results1'  => $allResults[DC::TABLE_TASKS],
+          'results2'  => $allResults[DC::TABLE_EMAILS],
+          'results3'  => $allResults[DC::TABLE_LOG_ACTS],
+          'results4'  => $allResults[DC::TABLE_SCHEDULES],
         ]);
       } catch (\Throwable $e) {
         Log::error("{$action} failed", [
@@ -117,42 +117,42 @@ class ActivityController extends Controller
       try {
         $fetchStart = microtime(true);
         [$notes, $tasks, $emails, $logActivities, $schedules] = array_map(function ($m) use ($user) {
-          return $m::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+          return $m::where(DC::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         }, [Note::class, Task::class, Email::class, ActivityLog::class, Schedule::class]);
         $this->logExecutionTime($fetchStart, $action . '::fetchData', 'completed');
         $processStart = microtime(true);
         $notesProcessed = self::_processItems($notes, function ($note) {
-          $data = Activity::getActivity($note[ActivitiesConstants::COL_MT], $note[ActivitiesConstants::COL_MI]);
-          $data[ActivitiesConstants::COL_NT] = $note[ActivitiesConstants::COL_NT];
-          $data[DatabaseConstants::COL_C_AT] = $note[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+          $data = Activity::getActivity($note[AC::COL_MT], $note[AC::COL_MI]);
+          $data[AC::COL_NT] = $note[AC::COL_NT];
+          $data[DC::COL_C_AT] = $note[DC::COL_C_AT]->format('Y-m-d H:i:s');
           return $data;
         });
         $tasksProcessed = self::_processItems($tasks, function ($task) {
-          $data = Activity::getActivity($task[ActivitiesConstants::COL_MT], $task[ActivitiesConstants::COL_MI]);
-          $data[ActivitiesConstants::COL_NT] = $task[ActivitiesConstants::COL_DESC];
-          $data[DatabaseConstants::COL_C_AT] = $task[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
-          $data[ActivitiesConstants::COL_A_O_M] = $task[ActivitiesConstants::COL_A_O_M];
+          $data = Activity::getActivity($task[AC::COL_MT], $task[AC::COL_MI]);
+          $data[AC::COL_NT] = $task[AC::COL_DESC];
+          $data[DC::COL_C_AT] = $task[DC::COL_C_AT]->format('Y-m-d H:i:s');
+          $data[AC::COL_A_O_M] = $task[AC::COL_A_O_M];
           return $data;
         });
         $emailsProcessed = self::_processItems($emails, function ($email) {
-          $data = Activity::getActivity($email[ActivitiesConstants::COL_MT], $email[ActivitiesConstants::COL_MI]);
-          $data[ActivitiesConstants::COL_NT] = $email[ActivitiesConstants::COL_DESC];
-          $data[DatabaseConstants::COL_C_AT] = $email[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
-          $data[UsersConstants::COL_EM] = $email->email;
+          $data = Activity::getActivity($email[AC::COL_MT], $email[AC::COL_MI]);
+          $data[AC::COL_NT] = $email[AC::COL_DESC];
+          $data[DC::COL_C_AT] = $email[DC::COL_C_AT]->format('Y-m-d H:i:s');
+          $data[UC::COL_EM] = $email->{UC::COL_EM_KEY};
           return $data;
         });
         $logActivitiesProcessed = self::_processItems($logActivities, function ($log) {
-          $data = Activity::getActivity($log[ActivitiesConstants::COL_MT], $log[ActivitiesConstants::COL_MI]);
-          foreach ([ActivitiesConstants::COL_NT, ProjectsConstants::COL_S_DT, ActivitiesConstants::COL_TSK_TIME, ActivitiesConstants::COL_TP] as $key)
+          $data = Activity::getActivity($log[AC::COL_MT], $log[AC::COL_MI]);
+          foreach ([AC::COL_NT, PJC::COL_S_DT, AC::COL_TSK_TIME, AC::COL_TP] as $key)
             $data[$key] = $log->$key;
-          $data[DatabaseConstants::COL_C_AT] = $log[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+          $data[DC::COL_C_AT] = $log[DC::COL_C_AT]->format('Y-m-d H:i:s');
           return $data;
         });
         $schedulesProcessed = self::_processItems($schedules, function ($schedule) {
-          $data = Activity::getActivity($schedule[ActivitiesConstants::COL_MT], $schedule[ActivitiesConstants::COL_MI]);
-          foreach ([ActivitiesConstants::COL_NT, ProjectsConstants::COL_S_DT, ActivitiesConstants::COL_TSK_TIME, ActivitiesConstants::COL_TP] as $key)
+          $data = Activity::getActivity($schedule[AC::COL_MT], $schedule[AC::COL_MI]);
+          foreach ([AC::COL_NT, PJC::COL_S_DT, AC::COL_TSK_TIME, AC::COL_TP] as $key)
             $data[$key] = $schedule->$key;
-          $data[DatabaseConstants::COL_C_AT] = $schedule[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+          $data[DC::COL_C_AT] = $schedule[DC::COL_C_AT]->format('Y-m-d H:i:s');
           return $data;
         });
         $this->logExecutionTime($processStart, $action . '::processItems', 'completed');
@@ -185,13 +185,13 @@ class ActivityController extends Controller
       $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
       try {
         $stepStart = microtime(true);
-        $data = Note::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Note::where(DC::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($stepStart, 'fetchNotes', 'completed');
         $stepStart = microtime(true);
         $processed = self::_processItems($data, function ($note) {
-          $item = Activity::getActivity($note[ActivitiesConstants::COL_MT], $note[ActivitiesConstants::COL_MI]);
-          $item[ActivitiesConstants::COL_NT] = $note[ActivitiesConstants::COL_NT];
-          $item[DatabaseConstants::COL_C_AT] = $note[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+          $item = Activity::getActivity($note[AC::COL_MT], $note[AC::COL_MI]);
+          $item[AC::COL_NT] = $note[AC::COL_NT];
+          $item[DC::COL_C_AT] = $note[DC::COL_C_AT]->format('Y-m-d H:i:s');
           return $item;
         });
         $this->logExecutionTime($stepStart, 'processItems', 'completed');
@@ -219,13 +219,13 @@ class ActivityController extends Controller
       }
       try {
         Log::debug("{$action} • fetching tasks", ['creator_id' => $user->creatorId()]);
-        $data = Task::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Task::where(DC::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         Log::debug("{$action} • processing {$data->count()} tasks");
         $processed = self::_processItems($data, function ($task) {
-          $item = Activity::getActivity($task[ActivitiesConstants::COL_MT], $task[ActivitiesConstants::COL_MI]);
-          $item[ActivitiesConstants::COL_NT] = $task[ActivitiesConstants::COL_DESC];
-          $item[DatabaseConstants::COL_C_AT] = $task[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
-          $item[ActivitiesConstants::COL_A_O_M] = $task[ActivitiesConstants::COL_A_O_M];
+          $item = Activity::getActivity($task[AC::COL_MT], $task[AC::COL_MI]);
+          $item[AC::COL_NT] = $task[AC::COL_DESC];
+          $item[DC::COL_C_AT] = $task[DC::COL_C_AT]->format('Y-m-d H:i:s');
+          $item[AC::COL_A_O_M] = $task[AC::COL_A_O_M];
           return $item;
         });
         Log::info("{$action} • returning tasks payload", ['count' => count($processed)]);
@@ -255,14 +255,14 @@ class ActivityController extends Controller
         return defaultPermissionDenial($request, new AuthorizationException(), $action);
       try {
         $fetchStart = microtime(true);
-        $data = Email::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Email::where(DC::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($fetchStart, $action . '::fetchEmails', 'completed');
         $processStart = microtime(true);
         $processed = self::_processItems($data, function ($email) {
-          $item = Activity::getActivity($email[ActivitiesConstants::COL_MT], $email[ActivitiesConstants::COL_MI]);
-          $item[ActivitiesConstants::COL_NT] = $email[ActivitiesConstants::COL_DESC];
-          $item[DatabaseConstants::COL_C_AT] = $email[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
-          $item[UsersConstants::COL_EM] = $email->email;
+          $item = Activity::getActivity($email[AC::COL_MT], $email[AC::COL_MI]);
+          $item[AC::COL_NT] = $email[AC::COL_DESC];
+          $item[DC::COL_C_AT] = $email[DC::COL_C_AT]->format('Y-m-d H:i:s');
+          $item[UC::COL_EM] = $email->{UC::COL_EM_KEY};
           return $item;
         });
         $this->logExecutionTime($processStart, $action . '::processItems', 'completed');
@@ -294,14 +294,14 @@ class ActivityController extends Controller
       $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
       try {
         $stepStart = microtime(true);
-        $data = ActivityLog::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = ActivityLog::where(DC::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($stepStart, 'fetchLogs', 'completed');
         $stepStart = microtime(true);
         $processed = self::_processItems($data, function ($log) {
-          $item = Activity::getActivity($log[ActivitiesConstants::COL_MT], $log[ActivitiesConstants::COL_MI]);
-          foreach ([ActivitiesConstants::COL_NT, ActivitiesConstants::COL_TSK_DATE, ActivitiesConstants::COL_TSK_TIME, ActivitiesConstants::COL_TP] as $key)
+          $item = Activity::getActivity($log[AC::COL_MT], $log[AC::COL_MI]);
+          foreach ([AC::COL_NT, AC::COL_TSK_DATE, AC::COL_TSK_TIME, AC::COL_TP] as $key)
             $item[$key] = $log->$key;
-          $item[DatabaseConstants::COL_C_AT] = $log[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+          $item[DC::COL_C_AT] = $log[DC::COL_C_AT]->format('Y-m-d H:i:s');
           return $item;
         });
         $this->logExecutionTime($stepStart, 'processItems', 'completed');
@@ -332,26 +332,26 @@ class ActivityController extends Controller
       }
       try {
         Log::debug("{$action} • fetching schedules", ['creator_id' => $user->creatorId()]);
-        $data = Schedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
+        $data = Schedule::where(DC::COL_TABLE_CREATOR, $user->creatorId())
           ->orderBy('id', 'desc')
           ->get();
         Log::debug("{$action} • processing {$data->count()} schedules", ['count' => $data->count()]);
         $processed = self::_processItems($data, function ($schedule) {
           $item = Activity::getActivity(
-            $schedule[ActivitiesConstants::COL_MT],
-            $schedule[ActivitiesConstants::COL_MI]
+            $schedule[AC::COL_MT],
+            $schedule[AC::COL_MI]
           );
           foreach (
             [
-              ActivitiesConstants::COL_NT,
-              ProjectsConstants::COL_S_DT,
-              ActivitiesConstants::COL_TSK_TIME,
-              ActivitiesConstants::COL_TP
+              AC::COL_NT,
+              PJC::COL_S_DT,
+              AC::COL_TSK_TIME,
+              AC::COL_TP
             ] as $key
           ) {
             $item[$key] = $schedule->$key;
           }
-          $item[DatabaseConstants::COL_C_AT] = $schedule[DatabaseConstants::COL_C_AT]
+          $item[DC::COL_C_AT] = $schedule[DC::COL_C_AT]
             ->format('Y-m-d H:i:s');
           return $item;
         });
@@ -386,32 +386,32 @@ class ActivityController extends Controller
    */
   private function formatActivity(string $type, $item): array
   {
-    $base = Activity::getActivity($item[ActivitiesConstants::COL_MT], $item[ActivitiesConstants::COL_MI]);
-    $base[DatabaseConstants::COL_C_AT] = $item[DatabaseConstants::COL_C_AT]->format('Y-m-d H:i:s');
+    $base = Activity::getActivity($item[AC::COL_MT], $item[AC::COL_MI]);
+    $base[DC::COL_C_AT] = $item[DC::COL_C_AT]->format('Y-m-d H:i:s');
     return match ($type) {
-      DatabaseConstants::TABLE_NOTES          => array_merge(
+      DC::TABLE_NOTES          => array_merge(
         $base,
-        [ActivitiesConstants::COL_NT => $item[ActivitiesConstants::COL_NT]]
+        [AC::COL_NT => $item[AC::COL_NT]]
       ),
-      DatabaseConstants::TABLE_TASKS          => array_merge($base, [
-        ActivitiesConstants::COL_NT             => $item[ActivitiesConstants::COL_DESC],
-        ActivitiesConstants::COL_A_O_M => $item[ActivitiesConstants::COL_A_O_M],
+      DC::TABLE_TASKS          => array_merge($base, [
+        AC::COL_NT             => $item[AC::COL_DESC],
+        AC::COL_A_O_M => $item[AC::COL_A_O_M],
       ]),
-      DatabaseConstants::TABLE_EMAILS         => array_merge($base, [
-        ActivitiesConstants::COL_NT  => $item[ActivitiesConstants::COL_DESC],
-        UsersConstants::COL_EM => $item->email,
+      DC::TABLE_EMAILS         => array_merge($base, [
+        AC::COL_NT  => $item[AC::COL_DESC],
+        UC::COL_EM => $item->email,
       ]),
-      DatabaseConstants::TABLE_LOG_ACTS => array_merge($base, [
-        ActivitiesConstants::COL_NT       => $item[ActivitiesConstants::COL_NT],
-        ProjectsConstants::COL_S_DT => $item[ProjectsConstants::COL_S_DT],
-        ActivitiesConstants::COL_TSK_TIME       => $item[ActivitiesConstants::COL_TSK_TIME],
-        ActivitiesConstants::COL_TP       => $item[ActivitiesConstants::COL_TP],
+      DC::TABLE_LOG_ACTS => array_merge($base, [
+        AC::COL_NT       => $item[AC::COL_NT],
+        PJC::COL_S_DT => $item[PJC::COL_S_DT],
+        AC::COL_TSK_TIME       => $item[AC::COL_TSK_TIME],
+        AC::COL_TP       => $item[AC::COL_TP],
       ]),
-      DatabaseConstants::TABLE_SCHEDULES      => array_merge($base, [
-        ActivitiesConstants::COL_NT       => $item[ActivitiesConstants::COL_NT],
-        ProjectsConstants::COL_S_DT => $item[ProjectsConstants::COL_S_DT],
-        ActivitiesConstants::COL_TSK_TIME       => $item[ActivitiesConstants::COL_ST_TIME],
-        ActivitiesConstants::COL_TP       => $item[ActivitiesConstants::COL_SCHD_TP],
+      DC::TABLE_SCHEDULES      => array_merge($base, [
+        AC::COL_NT       => $item[AC::COL_NT],
+        PJC::COL_S_DT => $item[PJC::COL_S_DT],
+        AC::COL_TSK_TIME       => $item[AC::COL_ST_TIME],
+        AC::COL_TP       => $item[AC::COL_SCHD_TP],
       ]),
       default => $base,
     };

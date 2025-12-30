@@ -6,6 +6,7 @@ class UsersConstants
 {
 	public const COL_NM = 'name';
 	public const COL_EM = 'email';
+	public const COL_EM_KEY = 'email_key';
 	public const COL_PW = 'password';
 	public const COL_EM_V_AT = 'email_verified_at';
 	public const COL_TP = 'type';

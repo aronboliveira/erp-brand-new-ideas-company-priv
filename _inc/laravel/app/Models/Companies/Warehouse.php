@@ -12,7 +12,8 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
-    UsesUuids
+    UsesCountryRegions,
+    UsesUuids,
 };
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
@@ -31,6 +32,7 @@ class Warehouse extends Model
     use HasAuditFields;
     use HasFactory;
     use NormalizesAddresses;
+    use UsesCountryRegions;
     use UsesUuids;
 
     protected $table = DC::TABLE_WRH;
@@ -106,6 +108,10 @@ class Warehouse extends Model
         parent::booted();
 
         static::saving(function (self $m): void {
+            $m->rescueCountryStateFromKnownCityList($m);
+            $m->rescueGeoFromAddressTokensIfMissing();
+            $m->rescueGeoFromZipIfMissing();
+            $m->normalizeGeo();
             foreach (
                 [
                     'dimensions',
@@ -148,6 +154,7 @@ class Warehouse extends Model
                     $val = 5.0;
                 $m->setAttribute($ratingField, $val);
             }
+            $m->enforceCountryStateColumns($m, 'country', 'state');
         });
     }
 
@@ -238,11 +245,11 @@ class Warehouse extends Model
 
     public function scopeActive($q)
     {
-        return $q->where(\App\Config\Constants\CompaniesConstants::COL_IA, true);
+        return $q->where(CC::COL_IA, true);
     }
     public function scopeShipping($q, bool $enabled = true)
     {
-        return $q->where(\App\Config\Constants\CompaniesConstants::COL_IS_SHP, $enabled);
+        return $q->where(CC::COL_IS_SHP, $enabled);
     }
     public function scopeByStateCity($q, ?string $state = null, ?string $city = null)
     {
@@ -256,7 +263,7 @@ class Warehouse extends Model
     }
     public function scopeCompany($q, ?string $companyId)
     {
-        return $companyId ? $q->where(\App\Config\Constants\CompaniesConstants::COL_CP_ID, $companyId) : $q;
+        return $companyId ? $q->where(CC::COL_CP_ID, $companyId) : $q;
     }
     public function scopeSearch($q, string $term)
     {
@@ -304,8 +311,8 @@ class Warehouse extends Model
     // Utilidade operacional
     public function workingWindow(): array
     {
-        $open  = (string)($this->{\App\Config\Constants\CompaniesConstants::COL_OP_TM} ?? '08:00:00');
-        $close = (string)($this->{\App\Config\Constants\CompaniesConstants::COL_CL_TM} ?? '18:00:00');
+        $open  = (string)($this->{CC::COL_OP_TM} ?? '08:00:00');
+        $close = (string)($this->{CC::COL_CL_TM} ?? '18:00:00');
         return ['open' => $open, 'close' => $close];
     }
     public function isOpenAt($at = null): bool
@@ -314,7 +321,7 @@ class Warehouse extends Model
         $w  = $this->workingWindow();
         $day = strtolower($at->format('D'));
         $map = ['mon' => 'mon', 'tue' => 'tue', 'wed' => 'wed', 'thu' => 'thu', 'fri' => 'fri', 'sat' => 'sat', 'sun' => 'sun'];
-        $days = array_map('strtolower', (array)($this->{\App\Config\Constants\CompaniesConstants::COL_WK_DYS} ?? []));
+        $days = array_map('strtolower', (array)($this->{CC::COL_WK_DYS} ?? []));
         if (!in_array($map[$day] ?? $day, $days, true)) return false;
         $open  = \Carbon\Carbon::parse($at->format('Y-m-d') . ' ' . $w['open']);
         $close = \Carbon\Carbon::parse($at->format('Y-m-d') . ' ' . $w['close']);
@@ -336,15 +343,15 @@ class Warehouse extends Model
     }
     public function addWorkingDay(string $weekday): self
     {
-        $raw = (array)($this->getAttribute(\App\Config\Constants\CompaniesConstants::COL_WK_DYS) ?? []);
+        $raw = (array)($this->getAttribute(CC::COL_WK_DYS) ?? []);
         $raw[] = $weekday;
-        $this->setAttribute(\App\Config\Constants\CompaniesConstants::COL_WK_DYS, array_values(array_unique(array_map('strtolower', $raw))));
+        $this->setAttribute(CC::COL_WK_DYS, array_values(array_unique(array_map('strtolower', $raw))));
         return $this;
     }
     public function removeWorkingDay(string $weekday): self
     {
-        $raw = array_filter((array)($this->getAttribute(\App\Config\Constants\CompaniesConstants::COL_WK_DYS) ?? []), fn($v) => strtolower($v) !== strtolower($weekday));
-        $this->setAttribute(\App\Config\Constants\CompaniesConstants::COL_WK_DYS, array_values(array_map('strtolower', $raw)));
+        $raw = array_filter((array)($this->getAttribute(CC::COL_WK_DYS) ?? []), fn($v) => strtolower($v) !== strtolower($weekday));
+        $this->setAttribute(CC::COL_WK_DYS, array_values(array_map('strtolower', $raw)));
         return $this;
     }
 
@@ -360,8 +367,8 @@ class Warehouse extends Model
             'address' => (string)($this->getAttribute('address') ?? ''),
             'phone'   => (string)($this->getAttribute('phone') ?? ''),
             'email'   => (string)($this->getAttribute('email') ?? ''),
-            'shipping' => (bool)($this->getAttribute(\App\Config\Constants\CompaniesConstants::COL_IS_SHP) ?? false),
-            'active'  => (bool)($this->getAttribute(\App\Config\Constants\CompaniesConstants::COL_IA) ?? false),
+            'shipping' => (bool)($this->getAttribute(CC::COL_IS_SHP) ?? false),
+            'active'  => (bool)($this->getAttribute(CC::COL_IA) ?? false),
             'sections' => $this->sectionsFlat(),
             'capacity' => $this->capacitySummary(),
         ];

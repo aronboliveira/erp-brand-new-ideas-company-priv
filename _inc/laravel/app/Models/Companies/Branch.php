@@ -3,16 +3,16 @@
 namespace App\Models;
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
-use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Branch extends Model
 {
-    use HasAuditFields, NormalizesAddresses, UsesUuids;
+    use HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids;
 
     protected $table     = DC::TABLE_BRANCHES;
-    protected $fillable  = ['company', CPC::COL_BRC_NM, 'description', 'address', 'phone', 'departments', CPC::COL_ADM, CPC::COL_MNG];
+    protected $fillable  = ['company', CPC::COL_BRC_NM, 'description', 'country', 'state', 'city', 'address', 'zip', 'phone', 'departments', CPC::COL_ADM, CPC::COL_MNG];
     protected $casts     = [
         'budget'   => 'decimal:2',
         'expenses' => 'decimal:2',
@@ -24,9 +24,10 @@ class Branch extends Model
     {
         parent::booted();
         static::saving(function (self $m): void {
-            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
-            if (!empty($m->getAttribute('phone')) && $isNormalizePhoneCallable)
-                $m->setAttribute('phone', self::normalizePhone($m->getAttribute('phone'), 'Branch Phone', $m->getAttribute('id')));
+            if (Schema::hasColumn($m->getTable(), 'phone') && !empty($m->getAttribute('phone')))
+                is_callable([self::class, 'normalizePhone']) && $m->setAttribute('phone', self::normalizePhone($m->getAttribute('phone'), 'Branch Phone', $m->getAttribute('id')));
+            if (Schema::hasColumn($m->getTable(), 'email') && !empty($m->getAttribute('email')))
+                is_callable([self::class, 'normalizeEmail']) && $m->setAttribute('email', self::normalizeEmail($m->getAttribute('email'), 'Branch Email', $m->getAttribute('id')));
             if (!empty($m->getAttribute('departments')) && is_array($m->getAttribute('departments')) || is_string($m->getAttribute('departments'))) {
                 $departments = is_array($m->getAttribute('departments'))
                     ? $m->getAttribute('departments')
@@ -35,6 +36,10 @@ class Branch extends Model
                 $departments = array_filter($departments, fn($dept) => !empty($dept));
                 $m->setAttribute('departments', implode(',', $departments));
             }
+            $m->rescueCountryStateFromKnownCityList($m);
+            $m->rescueGeoFromAddressTokensIfMissing();
+            $m->rescueGeoFromZipIfMissing();
+            $m->normalizeGeo();
         });
         static::updating(function (self $m): void {
             $departments = $m->getAttribute('departments');
@@ -83,6 +88,8 @@ class Branch extends Model
                             'id' => $m->getAttribute('id'),
                             'departments' => $departments,
                             'error' => $e->getMessage(),
+                            				'method' => __METHOD__,
+				'line' => $e->getLine(),
                         ]
                     );
 

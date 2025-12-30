@@ -65,7 +65,7 @@ trait IsBusinessContact
 	protected function addBusinessCallColumns(Blueprint $table): void
 	{
 		$table->enum(AC::COL_CL_TP, CallType::values())->default(CallType::Other->value)->index();
-		$table->string('phone')->nullable();
+		$table->string('phone', 32)->nullable();
 		$table->dateTime(AC::COL_CL_DT)->nullable();
 		$table->time(AC::COL_CL_DUR)->nullable();
 		$table->text(AC::COL_CL_RS)->nullable();

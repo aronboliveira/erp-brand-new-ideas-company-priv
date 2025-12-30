@@ -15,8 +15,8 @@ class CreateDealsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->index();
-            $table->string('phone')->nullable();
-            $table->string('email')->nullable();
+            $table->string('phone', 32)->nullable();
+            $table->string('email', 254)->nullable();
             $table->decimal('price', 15, 2)->default(0.00);
             $this->addPipelineColumns($table, unique: false, nullable: true, cascade: false);
             $table->uuid(PJC::COL_STG_ID)->nullable();

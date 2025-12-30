@@ -15,7 +15,7 @@ class CreateJoinUsTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid("query_key")->unique();
-                $table->string('email')->unique();
+                $table->string('email', 254)->unique();
                 $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
                 $table->timestamps();
                 $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)

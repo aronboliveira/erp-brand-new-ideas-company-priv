@@ -28,7 +28,7 @@ class CreateCustomersTable extends Migration
 
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $this->addUserLikeColumns($table);
-            $table->string('phone', 64)->nullable()->index();
+            $table->string('phone', 32)->nullable()->index();
             $table->string('website', 255)->nullable();
             $table->json(AC::COL_SC_MD)->nullable(); // ? filtered as an array containing direct urls for a valid social media domains, or an associative array with the keys (normalized) as the names of a recognized social media and some value in a inner key that has a valid social media domain url, else filtered out
             $this->addSalesRepresentantColumns($table, 'customer');

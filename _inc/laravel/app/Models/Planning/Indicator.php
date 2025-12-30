@@ -157,7 +157,7 @@ class Indicator extends Model
                         continue;
                     }
 
-                    if (!self::looksLikeUuid($trimmed)) {
+                    if (!Utility::looksLikeUuid($trimmed)) {
                         continue;
                     }
 
@@ -181,15 +181,6 @@ class Indicator extends Model
             }
         });
     }
-
-    private static function looksLikeUuid(string $value): bool
-    {
-        return (bool) preg_match(
-            '/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/',
-            $value
-        );
-    }
-
 
     public function branches(): BelongsTo
     {

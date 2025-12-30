@@ -173,6 +173,10 @@ class DatabaseConstants
 	public const TABLE_JRN_IT = 'journal_items';
 	public const TABLE_PRJ_USR = 'project_users';
 	public const TABLE_PRJ_EM_TMP = 'project_email_templates';
+	public const TABLE_JOB_STG = 'job_stages';
+	public const TABLE_JB_AP_NTS = 'job_application_notes';
+	public const TABLE_FM_FD = 'form_fields';
+	public const TABLE_JB_BRD = 'job_on_boards';
 
 	// * FIELD NAMES
 	// invoice

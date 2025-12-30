@@ -98,6 +98,21 @@
       "App\\Enums\\": [
         "app/Enums/"
       ],
+      "App\\Services\\": [
+        "app/Services/"
+      ],
+      "App\\Services\\Contracts\\": [
+        "app/Services/Contracts/"
+      ],
+      "App\\Services\\DTO\\": [
+        "app/Services/DTO/"
+      ],
+      "App\\Services\\Resolvers\\": [
+        "app/Services/Resolvers/"
+      ],
+      "App\\Services\\Providers\\": [
+        "app/Services/Providers/"
+      ],
       "App\\Http\\Controllers\\": [
         "app/Http/Controllers/",
         "app/Http/Controllers/Abstracts/",
