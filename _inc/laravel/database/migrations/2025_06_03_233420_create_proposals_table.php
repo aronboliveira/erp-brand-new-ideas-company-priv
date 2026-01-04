@@ -23,6 +23,7 @@ class CreateProposalsTable extends Migration
             $table->unsignedTinyinteger(BC::COL_IS_CNV)->default(0); // todo this should turn into a boolean when the system is more mature
             $table->unsignedSmallInteger('version')->min(1)->default(1); // ? enforced at boot/saving to be minimum 1
             $this->addFormalProjectionColumns($table, 14);
+            $table->uuid(PJC::COL_REJ_BY)->nullable()->index();
             $table->datetime(BC::COL_REJ_AT)->nullable(); // ? nullable for testing purposes
             $table->text(BC::COL_REJ_RS)->nullable(); // ? nullable for testing purposes
             $table->uuid(PJC::COL_LD_ID)->nullable();
@@ -33,6 +34,7 @@ class CreateProposalsTable extends Migration
             $table->json('signers')->nullable(); // * a simple list of names or uuids to represent signers data, while the signer is the one who accepts in fact
             foreach (
                 [
+                    PJC::COL_REJ_BY => DC::TABLE_USERS,
                     PJC::COL_LD_ID => DC::TABLE_LEADS,
                     BC::COL_TAX_ID => DC::TABLE_TAXES,
                     BC::COL_CNV_INV_ID => DC::TABLE_INVS,
@@ -54,6 +56,7 @@ class CreateProposalsTable extends Migration
             $this->dropFormalProjectionColumnForeigns($table, self::TABLE);
             foreach (
                 [
+                    PJC::COL_REJ_BY,
                     PJC::COL_LD_ID,
                     BC::COL_TAX_ID,
                     BC::COL_CNV_INV_ID,

@@ -101,6 +101,7 @@ final class LoanSeeder extends Seeder
 								PJC::COL_S_DT     => $start,
 								PJC::COL_E_DT     => $end,
 								'reason'          => 'Necessidade financeira pontual / política interna.',
+								BC::COL_IS_PAY_RL_DDT => ($installments !== null), // true se houver parcelas
 								BC::COL_DD_TYPE   => $deductionType,   // DeductionType::loan
 								'installments'    => $installments,
 								DC::COL_TABLE_CREATOR => $systemUserId,

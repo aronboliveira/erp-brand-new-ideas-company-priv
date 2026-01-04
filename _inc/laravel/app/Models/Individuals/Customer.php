@@ -22,6 +22,7 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
+    UsesCountryRegions,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -36,7 +37,13 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Customer extends Authenticatable
 {
-    use ChecksLogin, HasRoles, Notifiable, UsesUuids, HasAuditFields, NormalizesAddresses;
+    use UsesUuids,
+        ChecksLogin,
+        HasRoles,
+        Notifiable,
+        HasAuditFields,
+        NormalizesAddresses,
+        UsesCountryRegions;
 
     public $settings;
 

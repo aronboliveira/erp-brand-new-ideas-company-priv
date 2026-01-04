@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{PaymentMethod, PaymentStatus, PaymentType};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, HasPaymentColumns, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -16,6 +16,7 @@ class BillPayment extends Model
 {
     use HasAuditFields;
     use HasFactory;
+    use HasPaymentColumns;
     use UsesUuids;
 
     protected $table = DC::TABLE_BL_PAY;

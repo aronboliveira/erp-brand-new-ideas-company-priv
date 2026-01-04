@@ -19,7 +19,8 @@ use App\Enums\{
 use App\Traits\{
     HasAuditFields,
     NormalizesAddresses,
-    UsesUuids
+    UsesCountryRegions,
+    UsesUuids,
 };
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{
@@ -35,6 +36,7 @@ class Bill extends Model
     use HasAuditFields;
     use HasFactory;
     use NormalizesAddresses;
+    use UsesCountryRegions;
     use UsesUuids;
 
     protected $table = DC::TABLE_BILLS;

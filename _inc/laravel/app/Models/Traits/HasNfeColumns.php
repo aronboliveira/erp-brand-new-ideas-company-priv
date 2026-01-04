@@ -17,7 +17,7 @@ trait HasNfeColumns
 		$table->string(BC::COL_NFE_PROTOCOL, 20)->nullable(); // Protocolo de autorização
 		$table->timestamp(BC::COL_NFE_AUTH_AT)->nullable();
 	}
-	protected function dropNfeColumnForeigns(Blueprint $table, string $tableName): void
+	protected function dropNfeColumns(Blueprint $table, string $tableName): void
 	{
 		$cols = [
 			BC::COL_NFE_KEY,

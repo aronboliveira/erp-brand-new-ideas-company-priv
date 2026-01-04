@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{JobLevel, WorkContractType, WorkPresence, WorkShift};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Support\Facades\{Cache, DB, Log};
@@ -15,6 +15,7 @@ class JobCategory extends Model
     use UsesUuids;
     use HasAuditFields;
     use NormalizesArrays;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_JOB_CATS;
 

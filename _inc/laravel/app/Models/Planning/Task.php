@@ -9,6 +9,7 @@ use App\Config\Constants\{
 };
 use App\Enums\{AppModuleType, PriorityLevel};
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -21,10 +22,11 @@ use Illuminate\Support\Facades\Log;
 
 class Task extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
     use NormalizesArrays;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_TASKS;
 

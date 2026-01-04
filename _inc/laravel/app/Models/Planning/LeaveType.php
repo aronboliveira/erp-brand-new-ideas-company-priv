@@ -7,6 +7,7 @@ use App\Config\Constants\{
     ProjectsConstants as PJC
 };
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -20,10 +21,11 @@ use Illuminate\Support\Facades\Log;
 
 class LeaveType extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
     use NormalizesArrays;
+    use FiltersSecureAttachments;
 
     public const TABLE = DC::TABLE_LEAVE_TYPES;
 

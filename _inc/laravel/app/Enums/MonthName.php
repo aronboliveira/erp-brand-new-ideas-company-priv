@@ -143,6 +143,24 @@ enum MonthName: string
 		};
 	}
 
+	public static function values($slice = 11): array
+	{
+		return array_slice([
+			MonthName::January->value,
+			MonthName::February->value,
+			MonthName::March->value,
+			MonthName::April->value,
+			MonthName::May->value,
+			MonthName::June->value,
+			MonthName::July->value,
+			MonthName::August->value,
+			MonthName::September->value,
+			MonthName::October->value,
+			MonthName::November->value,
+			MonthName::December->value,
+		], 0, $slice);
+	}
+
 	public function label(): string
 	{
 		return match ($this) {
@@ -451,23 +469,5 @@ enum MonthName: string
 			self::November->value  => '十一月',
 			self::December->value  => '十二月',
 		];
-	}
-
-	public static function values($slice = 11): array
-	{
-		return array_slice([
-			MonthName::January->value,
-			MonthName::February->value,
-			MonthName::March->value,
-			MonthName::April->value,
-			MonthName::May->value,
-			MonthName::June->value,
-			MonthName::July->value,
-			MonthName::August->value,
-			MonthName::September->value,
-			MonthName::October->value,
-			MonthName::November->value,
-			MonthName::December->value,
-		], 0, $slice);
 	}
 }

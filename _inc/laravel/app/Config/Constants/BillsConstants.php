@@ -195,6 +195,7 @@ class BillsConstants
 	public const COL_BILL_STATUS = 'bill_status';
 	public const COL_CLT_ID = 'client_id';
 	public const COL_DUE_DT = 'due_date';
+	public const COL_TTL_AMT = 'total_amount';
 	public const COL_TTL_DBT = 'total_debit';
 	public const COL_TTL_CRT = 'total_credit';
 	public const COL_EXC_RT = 'exchange_rate';
@@ -220,6 +221,16 @@ class BillsConstants
 	public const COL_TED_DOC_N = 'ted_doc_number';
 	public const COL_ORG_USER_ID = 'origin_user_id';
 	public const COL_USR_AGT = 'user_agent';
+	public const COL_ADD_ATTACH = 'additional_attachments';
+	public const COL_SBM_AT = 'submitted_at';
+	public const COL_SBM_BY = 'submitted_by';
+	public const COL_APV_AT = 'approved_at';
+	public const COL_APV_BY = 'approved_by';
+	public const COL_PD_AT = 'paid_at';
+	public const COL_PD_BY = 'paid_by';
+	public const COL_BNK_TRF_ID = 'bank_transfer_id';
+	public const COL_IS_PAY_RL_DDT = 'is_payroll_deducted';
+	public const COL_ALW_PAY_RL_DDT = 'allow_payroll_deduction';
 
 	// * VALORES
 

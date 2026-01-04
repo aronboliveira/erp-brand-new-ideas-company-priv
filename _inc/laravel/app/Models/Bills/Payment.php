@@ -15,7 +15,9 @@ use App\Enums\{
 };
 use App\Traits\{
     HasAuditFields,
+    HasPaymentColumns,
     NormalizesAddresses,
+    UsesCountryRegions,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -29,7 +31,9 @@ class Payment extends Model
 {
     use HasAuditFields;
     use HasFactory;
+    use HasPaymentColumns;
     use NormalizesAddresses;
+    use UsesCountryRegions;
     use UsesUuids;
 
     protected $table = DC::TABLE_PAY;

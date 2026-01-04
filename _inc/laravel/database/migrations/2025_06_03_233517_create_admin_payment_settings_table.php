@@ -1,27 +1,26 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
+// * it's not clear what this model is for semantically, but it's being kept for legacy reasons. We will just make it a bridge table for payments for now
+// * this is likely for interacting with FormData settings fields, but it's not clear
 class CreateAdminPaymentSettingsTable extends Migration
 {
-    private const TABLE = 'admin_payment_settings';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_ADM_PAY_SETG;
     public function up(): void
     {
         Schema::create(
             self::TABLE,
             function (Blueprint $table) {
-                $table->uuid('id')->primary(); // ! CHANGED
-                $table->string('name');
+                $table->uuid('id')->primary();
+                $table->string('name')->index();
                 $table->string('value');
-                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
-                $table->timestamps();
-                $table->unique(['name', DatabaseConstants::COL_TABLE_CREATOR]);
-                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
-                    ->references('id')
-                    ->on(DatabaseConstants::TABLE_USERS)
-                    ->cascadeOnDelete();
+                $this->addAuditColumns($table);
+                $table->unique(['name', DC::COL_TABLE_CREATOR]);
             }
         );
     }
@@ -29,19 +28,7 @@ class CreateAdminPaymentSettingsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
-                    && $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
-            } catch (\Exception $e) {
-                Log::warning(
-                    'Failed to drop foreign key for '
-                        . DatabaseConstants::COL_TABLE_CREATOR
-                        . ' on table '
-                        . self::TABLE
-                        . ': '
-                        . $e->getMessage()
-                );
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

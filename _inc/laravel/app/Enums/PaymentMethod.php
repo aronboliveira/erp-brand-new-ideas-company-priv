@@ -81,6 +81,48 @@ enum PaymentMethod: string
 		return array_map(fn($case) => $case->value, self::cases());
 	}
 
+	public function isCard(): bool
+	{
+		return match ($this) {
+			self::CardDebit, self::CardCredit => true,
+			default => false,
+		};
+	}
+
+	public function isBankTransfer(): bool
+	{
+		return match ($this) {
+			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => true,
+			default => false,
+		};
+	}
+
+	public function isInstant(): bool
+	{
+		return match ($this) {
+			self::Pix, self::Cash => true,
+			default => false,
+		};
+	}
+
+	public function requiresProcessing(): bool
+	{
+		return match ($this) {
+			self::BankTransfer, self::Ted, self::Doc, self::WireTransfer, self::CardDebit, self::CardCredit => true,
+			default => false,
+		};
+	}
+
+	public function getCategory(): string
+	{
+		return match ($this) {
+			self::CardDebit, self::CardCredit => 'card',
+			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => 'bank',
+			self::Cash => 'cash',
+			self::Other => 'other',
+		};
+	}
+
 	public function label(): string
 	{
 		return match ($this) {
@@ -341,48 +383,5 @@ enum PaymentMethod: string
 			self::Cash->value         => '现金',
 			self::Other->value        => '其他',
 		];
-	}
-
-	// Helper methods for business logic
-	public function isCard(): bool
-	{
-		return match ($this) {
-			self::CardDebit, self::CardCredit => true,
-			default => false,
-		};
-	}
-
-	public function isBankTransfer(): bool
-	{
-		return match ($this) {
-			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => true,
-			default => false,
-		};
-	}
-
-	public function isInstant(): bool
-	{
-		return match ($this) {
-			self::Pix, self::Cash => true,
-			default => false,
-		};
-	}
-
-	public function requiresProcessing(): bool
-	{
-		return match ($this) {
-			self::BankTransfer, self::Ted, self::Doc, self::WireTransfer, self::CardDebit, self::CardCredit => true,
-			default => false,
-		};
-	}
-
-	public function getCategory(): string
-	{
-		return match ($this) {
-			self::CardDebit, self::CardCredit => 'card',
-			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => 'bank',
-			self::Cash => 'cash',
-			self::Other => 'other',
-		};
 	}
 }

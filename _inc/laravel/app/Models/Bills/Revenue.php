@@ -13,6 +13,7 @@ use App\Enums\{
 };
 use App\Traits\{
     HasAuditFields,
+    HasPaymentColumns,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -25,6 +26,7 @@ class Revenue extends Model
 {
     use HasAuditFields;
     use HasFactory;
+    use HasPaymentColumns;
     use UsesUuids;
 
     protected $table = DC::TABLE_RVN;

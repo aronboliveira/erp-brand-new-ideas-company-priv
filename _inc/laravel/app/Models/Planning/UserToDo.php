@@ -10,8 +10,10 @@ use App\Config\Constants\{
 };
 use App\Enums\PriorityLevel;
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
+    PlansByHierarchy,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
@@ -20,10 +22,12 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class UserToDo extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
     use NormalizesArrays;
+    use PlansByHierarchy;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_USR_TD;
 

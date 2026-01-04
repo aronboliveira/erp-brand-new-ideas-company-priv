@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -12,9 +12,10 @@ use Illuminate\Database\Eloquent\{
 
 class InvoiceProduct extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
-    use UsesUuids;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_INV_PRD;
 

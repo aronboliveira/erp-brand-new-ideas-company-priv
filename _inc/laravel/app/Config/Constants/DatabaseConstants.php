@@ -177,6 +177,14 @@ class DatabaseConstants
 	public const TABLE_JB_AP_NTS = 'job_application_notes';
 	public const TABLE_FM_FD = 'form_fields';
 	public const TABLE_JB_BRD = 'job_on_boards';
+	public const TABLE_ADM_PAY_SETG = 'admin_payment_settings';
+	public const TABLE_CPN_PAY_SETG = 'company_payment_settings';
+	public const TABLE_TMS = 'timesheets';
+	public const TABLE_SUP_REP = 'support_replies';
+	public const TABLE_FORM_RSP = 'form_responses';
+	public const TABLE_CMPT = 'competencies';
+	public const TABLE_TRK_PHT = 'track_photos';
+	public const TABLE_PLAN_REQUESTS = 'plan_requests';
 
 	// * FIELD NAMES
 	// invoice

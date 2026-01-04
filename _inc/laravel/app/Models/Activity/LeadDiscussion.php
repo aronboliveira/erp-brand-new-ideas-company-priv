@@ -10,9 +10,10 @@ use App\Config\Constants\{
 };
 use App\Enums\UserType;
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
-    UsesUuids
+    UsesUuids,
 };
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,10 +23,11 @@ use Illuminate\Database\Eloquent\Relations\{
 
 class LeadDiscussion extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
     use NormalizesArrays;
-    use UsesUuids;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_LD_DSC;
 

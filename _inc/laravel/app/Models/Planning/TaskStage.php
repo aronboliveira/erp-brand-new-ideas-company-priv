@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, PermissionsConstants as PC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, PriorityLevel};
-use App\Traits\{ChecksLogin, HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{ChecksLogin, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\RedirectResponse;
@@ -13,9 +13,10 @@ use Illuminate\Support\Facades\{DB, Log, Redirect};
 
 class TaskStage extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
+    use FiltersSecureAttachments;
     use NormalizesArrays;
     use ChecksLogin;
 

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\HasOne
 };
+use Illuminate\Support\Facades\{DB, Schema};
 
 class Loan extends Model
 {
@@ -39,12 +40,12 @@ class Loan extends Model
         'type',
         BC::COL_DD_TYPE,
         'installments',
+        BC::COL_IS_PAY_RL_DDT,
     ];
 
     protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -56,6 +57,7 @@ class Loan extends Model
         'installments'  => 'integer',
         BC::COL_DD_TYPE => DeductionType::class,
         'type'          => PaymentPatternType::class,
+        BC::COL_IS_PAY_RL_DDT => 'boolean',
     ];
 
     protected $with = [
@@ -71,16 +73,22 @@ class Loan extends Model
     {
         parent::booted();
         static::saving(function (Loan $loan): void {
+            if (Schema::hasColumn(DC::TABLE_LOAN_OPTS, BC::COL_ALW_PAY_RL_DDT)) {
+                if ($loan->getAttribute(BC::COL_LN_OPT) && DB::table(DC::TABLE_LOAN_OPTS)->where('id', $loan->getAttribute(BC::COL_LN_OPT))->exists()) {
+                    /** @var LoanOption|null $option */
+                    $option = LoanOption::query()->find($loan->getAttribute(BC::COL_LN_OPT));
+                    $option && $option->getAttribute(BC::COL_ALW_PAY_RL_DDT) === false &&
+                        $loan->setAttribute(BC::COL_IS_PAY_RL_DDT, false);
+                }
+            }
             if ($loan->{BC::COL_DD_TYPE} !== null) {
                 $normalized = DeductionType::normalize($loan->{BC::COL_DD_TYPE});
                 $loan->{BC::COL_DD_TYPE} = $normalized;
             }
-
             if ($loan->type !== null) {
                 $normalizedType = PaymentPatternType::normalize($loan->type);
                 $loan->type = $normalizedType;
             }
-
             if ($loan->{PJC::COL_S_DT} && $loan->{PJC::COL_E_DT} && $loan->{PJC::COL_E_DT} < $loan->{PJC::COL_S_DT})
                 $loan->{PJC::COL_E_DT} = $loan->{PJC::COL_S_DT};
 

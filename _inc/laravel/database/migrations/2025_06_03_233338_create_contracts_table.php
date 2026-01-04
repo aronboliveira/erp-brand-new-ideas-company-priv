@@ -58,6 +58,7 @@ class CreateContractsTable extends Migration
             $table->date(PJC::COL_CL_SIGN_AT)->nullable(); // ? nullable for initial tests
             $table->date(PJC::COL_CO_SIGN_AT)->nullable(); // ? nullable for initial tests
             $table->uuid(PJC::COL_APV_BY)->nullable(); // ? nullable for initial tests
+            $table->date(PJC::COL_APV_AT)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT_NM)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT2_NM)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT_IDF)->nullable(); // ? CNPJ or CPF

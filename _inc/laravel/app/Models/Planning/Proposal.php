@@ -4,17 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{BillStatus, ProposalStatus};
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
+use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Carbon, Facades\Log, Str};
 
 class Proposal extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_PROPOSALS;
 

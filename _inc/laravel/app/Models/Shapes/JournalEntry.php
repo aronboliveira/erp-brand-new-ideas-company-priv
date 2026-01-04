@@ -11,7 +11,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\{EvaluationStatus, LedgerBookType, PaymentType, UserType};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Builder,
     Model,
@@ -24,7 +24,7 @@ use Illuminate\Support\Str;
 
 class JournalEntry extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, SoftDeletes;
+    use UsesUuids, HasAuditFields, NormalizesArrays, DescribesCompanyBranch, FiltersSecureAttachments, SoftDeletes;
 
     public const JIT_PATTERN = '/^JIT-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-\d{10,}$/i';
 

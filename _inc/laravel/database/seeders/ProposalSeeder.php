@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
-use App\Enums\ProposalStatus;
+use App\Enums\{ProposalStatus, UserType};
 use App\Models\Proposal;
 use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
@@ -42,6 +42,10 @@ class ProposalSeeder extends Seeder
 		$categoryIds  = DB::table(DC::TABLE_PROD_SERV_CATS)->pluck('id')->all();
 		$unitIds      = DB::table(DC::TABLE_PROD_SERV_UNITS)->pluck('id')->all();
 		$employeeIds  = DB::table(DC::TABLE_EMPLOYEES)->pluck('id')->all();
+		$qualifiedRejectors = DB::table(DC::TABLE_USERS)
+			->where('type', [UserType::Admin->value, UserType::SuperAdmin->value, UserType::Company->value, UserType::Accountant->value])
+			->pluck('id')
+			->all();
 
 		$statusCases = ProposalStatus::cases();
 		$now = Carbon::now();
@@ -143,6 +147,7 @@ class ProposalSeeder extends Seeder
 					BC::COL_STT_LB          => $statusEnum->value,
 					BC::COL_IS_CNV          => $isConvert ? 1 : 0,
 					'version'               => random_int(1, 5),
+					PJC::COL_REJ_BY         => $rejectedAt ? $qualifiedRejectors[array_rand($qualifiedRejectors)] : null,
 					BC::COL_REJ_AT          => $rejectedAt,
 					BC::COL_REJ_RS          => $rejectionReason,
 					PJC::COL_LD_ID          => $leadId,

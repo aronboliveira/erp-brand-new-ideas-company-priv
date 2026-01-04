@@ -1,44 +1,42 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Enums\Visibility;
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
+// * the purpose of this table was never made clear in legacy... barely changed
 class CreateTrackPhotosTable extends Migration
 {
-    private const TABLE = 'track_photos';
-    private const COL_USER = 'user_id';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_TRK_PHT;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                     // ! CHANGED: use UUID for primary key
-            $table->uuid('track_id')->index();   // track_id remains integer
-            $table->uuid(self::COL_USER)->index();                  // ! CHANGED
-            $table->string('img_path')->nullable();
+            $table->uuid('id')->primary();
+            $table->string(PJC::COL_TRK_ID)->index();
+            $table->uuid(UC::COL_USER_ID)->index();
+            $table->string(PJC::COL_IMG_PATH)->nullable()->index();
+            $table->string('url')->nullable();
             $table->dateTime('time')->nullable();
+            $table->enum('visibility', array_column(Visibility::cases(), 'value'))->default(Visibility::Private->value)->nullable();
             $table->string('status')->nullable();
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
-            foreach (
-                [
-                    self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl
-            )
-                $table->foreign($col)
-                    ->references('id')
-                    ->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+            $table->foreign(UC::COL_USER_ID)
+                ->references('id')
+                ->on(DC::TABLE_USERS)
+                ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_USER,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    UC::COL_USER_ID,
                 ] as $col
             ) {
                 try {

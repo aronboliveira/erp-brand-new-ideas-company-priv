@@ -21,7 +21,8 @@ use App\Models\Utility;
 use App\Traits\{
     HasAuditFields,
     NormalizesAddresses,
-    UsesUuids
+    UsesCountryRegions,
+    UsesUuids,
 };
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -31,11 +32,12 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Vendor extends Authenticatable
 {
+    use UsesUuids;
     use HasRoles;
     use Notifiable;
-    use UsesUuids;
     use HasAuditFields;
     use NormalizesAddresses;
+    use UsesCountryRegions;
 
     public const TABLE = DC::TABLE_VENDORS;
 

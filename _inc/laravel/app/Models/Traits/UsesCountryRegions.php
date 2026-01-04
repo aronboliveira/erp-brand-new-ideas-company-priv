@@ -3635,49 +3635,298 @@ trait UsesCountryRegions
 		'zh',
 	];
 
-	public static function bootUsesCountryRegions(): void
+	protected static function bootUsesCountryRegions(): void
 	{
 		static::saving(function (Model $model) {
-			try {
-				if (Schema::hasColumn($model->getTable(), 'country') && !CountryName::IsIsoCoded((string) $model->getAttribute('country')))
-					$model->setAttribute('country', CountryName::getIsoCode($model->getAttribute('country')));
-				if (Schema::hasColumn($model->getTable(), 'country') && Schema::hasColumn($model->getTable(), 'state') && CountryName::IsIsoCoded((string) $model->getAttribute('country'))) {
-					$stateEnumClass = $model->stateEnumClassForCountry($model->getAttribute('country'));
-					if ($stateEnumClass !== null) {
-						$stateValue = $model->getAttribute('state');
-						$stateEnum = $stateEnumClass::normalize((string) $stateValue);
-						if ($stateEnum instanceof $stateEnumClass)
-							$model->setAttribute('state', $stateEnum->value);
-						else
-							$model->setAttribute('state', null);
-						if (Schema::hasColumn($model->getTable(), 'city')) {
-							$city = $model->getAttribute('city');
-							if (is_string($city) && !empty($city)) {
-								$replacedCity = trim(str_replace([':', '—', '–', '_', '|', '/', '\\', ',', ';', '"'], ' ', $city));
-								$lowerCasedCity = strtolower($replacedCity);
-								$model->setAttribute('city', $replacedCity);
-								// ? redundant brackets for now, but there will be more blocks here
-								if ($model->getAttribute('country') === 'BR') {
-									$normalizedBrState = BrazilState::normalize($model->getAttribute('state'));
-									if (in_array($normalizedBrState, [BrazilState::RJ->value, BrazilState::SP->value, BrazilState::MG->value])) {
-										$stateRef = self::CITIES_BY_STATE['BR'][$normalizedBrState];
-										$isValid = (is_array($stateRef['common']) && in_array($replacedCity, $stateRef['common']))
-											|| (is_array($stateRef['normalized']) && in_array($lowerCasedCity, $stateRef['normalized']));
-										if (!$isValid)
-											$model->setAttribute('city', null);
-									}
-								}
-							}
-						}
-					}
+			$sets = [
+				['country', 'state', 'city', 'zip', 'address'],
+				[BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY, BC::COL_SHIP_ZIP, BC::COL_SHIP_ADR],
+				[BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY, BC::COL_BL_ZIP, BC::COL_BL_ADR],
+			];
+
+			foreach ($sets as $cols) {
+				try {
+					if (!is_array($cols) || count($cols) < 2) continue;
+					if (!method_exists($model, 'applyCountryRegionNormalization')) continue;
+					$model->applyCountryRegionNormalization($cols);
+				} catch (\Throwable $e) {
+					Log::warning("[" . self::class . "]: " . static::class . " failed to normalize geo columns set", [
+						'cols' => $cols,
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
 				}
-			} catch (\Throwable $e) {
-				Log::warning(
-					"[" . self::class . "]: " . static::class . " failed to execute the callback for static::saving: ",
-					['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]
-				);
 			}
 		});
+	}
+
+	public function getCountriesConstraintAttribute(): ?array
+	{
+		$table = $this->getTable();
+
+		$sets = [
+			['countries', null],
+			[BC::COL_SHIP_CTR, 'single_country'],
+			[BC::COL_BL_CTR, 'single_country'],
+		];
+
+		$out = [];
+
+		foreach ($sets as $set) {
+			try {
+				$col = $set[0] ?? null;
+				$mode = $set[1] ?? null;
+
+				if (!is_string($col) || $col === '' || !Schema::hasColumn($table, $col)) continue;
+
+				$val = $this->getAttribute($col);
+
+				if ($mode === 'single_country') {
+					if (!is_scalar($val)) continue;
+					$s = trim((string) $val);
+					if ($s === '') continue;
+					$list = [$s];
+				} else {
+					$list = $this->normalizeStringList($val);
+					if (!$list) continue;
+				}
+
+				$codes = $this->countryCodesFromMixedList($list);
+				if (!$codes) continue;
+
+				foreach ($codes as $cc) {
+					$cc = strtoupper(trim((string) $cc));
+					if ($cc !== '') $out[$cc] = true;
+				}
+			} catch (\Throwable $e) {
+				Log::warning("[" . self::class . "]: failed to resolve countries constraint from column", [
+					'column' => $set[0] ?? null,
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+			}
+		}
+
+		if (!$out) return null;
+
+		$codes = array_keys($out);
+		sort($codes);
+		return $codes ?: null;
+	}
+
+	public function getStatesConstraintAttribute(): ?array
+	{
+		$table = $this->getTable();
+
+		$rawMap = null;
+		$shipPair = null;
+		$billPair = null;
+
+		try {
+			if (Schema::hasColumn($table, 'states'))
+				$rawMap = $this->normalizeStatesMap($this->getAttribute('states'));
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to normalize raw states map", [
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			$rawMap = null;
+		}
+
+		try {
+			if (Schema::hasColumn($table, BC::COL_SHIP_CTR) && Schema::hasColumn($table, BC::COL_SHIP_ST)) {
+				$ccRaw = $this->getAttribute(BC::COL_SHIP_CTR);
+				$stRaw = $this->getAttribute(BC::COL_SHIP_ST);
+				$cc = is_scalar($ccRaw) ? $this->normalizeCountryToCode((string) $ccRaw) : null;
+				$st = is_scalar($stRaw) ? trim((string) $stRaw) : '';
+				if ($cc !== null && $st !== '') $shipPair = ['country' => $cc, 'state' => $st];
+			}
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to read shipping geo pair", [
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			$shipPair = null;
+		}
+
+		try {
+			if (Schema::hasColumn($table, BC::COL_BL_CTR) && Schema::hasColumn($table, BC::COL_BL_ST)) {
+				$ccRaw = $this->getAttribute(BC::COL_BL_CTR);
+				$stRaw = $this->getAttribute(BC::COL_BL_ST);
+				$cc = is_scalar($ccRaw) ? $this->normalizeCountryToCode((string) $ccRaw) : null;
+				$st = is_scalar($stRaw) ? trim((string) $stRaw) : '';
+				if ($cc !== null && $st !== '') $billPair = ['country' => $cc, 'state' => $st];
+			}
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to read billing geo pair", [
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			$billPair = null;
+		}
+
+		$hasAny = is_array($rawMap) || $shipPair !== null || $billPair !== null;
+		if (!$hasAny) return null;
+
+		$merged = is_array($rawMap) ? $rawMap : [];
+
+		foreach ([$shipPair, $billPair] as $pair) {
+			if (!$pair) continue;
+			$cc = $pair['country'] ?? null;
+			$st = $pair['state'] ?? null;
+			if (!is_string($cc) || trim($cc) === '' || !is_string($st) || trim($st) === '') continue;
+			if (!isset($merged[$cc]) || !is_array($merged[$cc])) $merged[$cc] = [];
+			$merged[$cc][] = $st;
+		}
+
+		try {
+			$countries = $this->getCountriesConstraintAttribute();
+			$hasCountries = $countries !== null;
+			$out = $this->normalizeAllowedStatesByCountry($merged, $countries ?? [], $hasCountries);
+			return $out ?: null;
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to normalize allowed states by country", [
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			return null;
+		}
+	}
+
+	protected function applyCountryRegionNormalization(array $cols): void
+	{
+		$table = $this->getTable();
+
+		[$countryCol, $stateCol, $cityCol, $zipCol, $addressCol] = array_pad($cols, 5, null);
+
+		if (!is_string($countryCol) || $countryCol === '') return;
+
+		try {
+			if (!Schema::hasColumn($table, $countryCol)) return;
+		} catch (\Throwable) {
+			return;
+		}
+
+		try {
+			$rawCountry = $this->getAttribute($countryCol);
+			if (!CountryName::IsIsoCoded((string) $rawCountry))
+				$this->setAttribute($countryCol, CountryName::getIsoCode($rawCountry));
+		} catch (\Throwable) {
+		}
+
+		$country = null;
+
+		try {
+			$country = (string) $this->getAttribute($countryCol);
+		} catch (\Throwable) {
+			$country = null;
+		}
+
+		if (!is_string($country) || !CountryName::IsIsoCoded($country)) return;
+
+		$stateOk = true;
+
+		if (is_string($stateCol) && $stateCol !== '') {
+			try {
+				if (Schema::hasColumn($table, $stateCol)) {
+					$stateEnumClass = null;
+					try {
+						$stateEnumClass = $this->stateEnumClassForCountry($country);
+					} catch (\Throwable) {
+						$stateEnumClass = null;
+					}
+
+					$stateValue = null;
+					try {
+						$stateValue = $this->getAttribute($stateCol);
+					} catch (\Throwable) {
+						$stateValue = null;
+					}
+
+					$stateStr = is_scalar($stateValue) ? trim((string) $stateValue) : '';
+
+					if ($stateStr === '') {
+						$this->setAttribute($stateCol, null);
+					} elseif (is_string($stateEnumClass) && $stateEnumClass !== '' && method_exists($stateEnumClass, 'normalize')) {
+						try {
+							$stateEnum = $stateEnumClass::normalize($stateStr);
+							if ($stateEnum instanceof $stateEnumClass)
+								$this->setAttribute($stateCol, $stateEnum->value);
+							else
+								$this->setAttribute($stateCol, null);
+						} catch (\Throwable) {
+							$this->setAttribute($stateCol, null);
+						}
+					} else {
+						$this->setAttribute($stateCol, $stateStr !== '' ? $stateStr : null);
+					}
+				}
+			} catch (\Throwable) {
+				$stateOk = false;
+			}
+		}
+
+		if (!is_string($cityCol) || $cityCol === '') return;
+
+		try {
+			if (!Schema::hasColumn($table, $cityCol)) return;
+		} catch (\Throwable) {
+			return;
+		}
+
+		$city = null;
+
+		try {
+			$city = $this->getAttribute($cityCol);
+		} catch (\Throwable) {
+			$city = null;
+		}
+
+		if (!is_string($city) || trim($city) === '') return;
+
+		$replacedCity = trim(str_replace([':', '—', '–', '_', '|', '/', '\\', ',', ';', '"'], ' ', $city));
+		$lowerCasedCity = strtolower($replacedCity);
+
+		try {
+			$this->setAttribute($cityCol, $replacedCity);
+		} catch (\Throwable) {
+			return;
+		}
+
+		if ($country !== 'BR') return;
+		if (!$stateOk) return;
+		if (!defined('static::CITIES_BY_STATE') || !is_array(static::CITIES_BY_STATE)) return;
+
+		$normalizedBrState = null;
+
+		try {
+			$normalizedBrState = BrazilState::normalize((string) $this->getAttribute($stateCol));
+		} catch (\Throwable) {
+			$normalizedBrState = null;
+		}
+
+		if (!is_string($normalizedBrState) || !in_array($normalizedBrState, [BrazilState::RJ->value, BrazilState::SP->value, BrazilState::MG->value], true)) return;
+
+		$stateRef = null;
+
+		try {
+			$stateRef = static::CITIES_BY_STATE['BR'][$normalizedBrState] ?? null;
+		} catch (\Throwable) {
+			$stateRef = null;
+		}
+
+		if (!is_array($stateRef)) return;
+
+		$isValid = (is_array($stateRef['common'] ?? null) && in_array($replacedCity, $stateRef['common'], true))
+			|| (is_array($stateRef['normalized'] ?? null) && in_array($lowerCasedCity, $stateRef['normalized'], true));
+
+		if (!$isValid) $this->setAttribute($cityCol, null);
 	}
 
 	protected function stateEnumClassForCountry(string $countryCode): ?string
@@ -3938,51 +4187,65 @@ trait UsesCountryRegions
 		return null;
 	}
 
-	public function getCountriesConstraintAttribute(): ?array
-	{
-		if (!Schema::hasColumn($this->getTable(), 'countries'))
-			return null;
-		$c = $this->normalizeStringList($this->getAttribute('countries'));
-		$codes = $this->countryCodesFromMixedList($c);
-		return $codes ?: null;
-	}
-
-	public function getStatesConstraintAttribute(): ?array
-	{
-		if (!Schema::hasColumn($this->getTable(), 'states'))
-			return null;
-		$raw = $this->normalizeStatesMap($this->getAttribute('states'));
-		if ($raw === null) return null;
-		$countries = $this->getCountriesConstraintAttribute();
-		$hasCountries = $countries !== null;
-		$out = $this->normalizeAllowedStatesByCountry($raw, $countries ?? [], $hasCountries);
-		return $out ?: null;
-	}
-
 	protected function normalizeStatesMap(mixed $value): ?array
 	{
 		if ($value === null) return null;
-		$arr = is_array($value) ? $value : (Utility::looksLikeJson((string) $value) ? (json_decode((string) $value, true) ?: []) : []);
-		if (!is_array($arr)) return null;
+
+		$arr = null;
+
+		if (is_array($value)) {
+			$arr = $value;
+		} elseif (is_string($value) && trim($value) !== '' && Utility::looksLikeJson($value)) {
+			$decoded = json_decode($value, true);
+			$arr = is_array($decoded) ? $decoded : null;
+		} elseif (is_string($value)) {
+			$s = trim($value);
+			if ($s !== '') {
+				$tmp = [];
+				foreach (preg_split('/[;|]+/u', $s, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $chunk) {
+					$chunk = trim($chunk);
+					if ($chunk === '') continue;
+					[$k, $rest] = array_pad(preg_split('/\s*[:=]\s*/u', $chunk, 2) ?: [], 2, null);
+					$k = is_string($k) ? trim($k) : '';
+					$rest = is_string($rest) ? trim($rest) : '';
+					if ($k === '' || $rest === '') continue;
+					$tmp[$k] = preg_split('/[\s,]+/u', $rest, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+				}
+				$arr = $tmp ?: null;
+			}
+		}
+
+		if (!is_array($arr) || !$arr) return null;
 
 		$out = [];
+
 		foreach ($arr as $k => $v) {
 			if (!is_scalar($k)) continue;
-			$ck = $this->normalizeCountryToCode((string) $k);
-			if ($ck === null) continue;
 
-			$list = is_array($v) ? $v : [];
+			$cc = $this->normalizeCountryToCode((string) $k);
+			if ($cc === null) continue;
+
+			$list = [];
+			if (is_array($v)) {
+				$list = $v;
+			} elseif (is_string($v) && trim($v) !== '') {
+				$list = preg_split('/[\s,]+/u', trim($v), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+			}
+
 			$states = [];
 			foreach ($list as $sv) {
 				if (!is_scalar($sv)) continue;
-				$states[] = (string) $sv;
+				$norm = $this->normalizeStateForCountry((string) $sv, $cc, false);
+				if ($norm !== null) $states[] = $norm;
 			}
-			$states = array_values(array_unique(array_filter(array_map('trim', $states), fn($x) => $x !== '')));
-			if ($states) $out[$ck] = $states;
+
+			$states = array_values(array_unique(array_filter($states, static fn($x) => is_string($x) && trim($x) !== '')));
+			if ($states) $out[$cc] = $states;
 		}
 
 		return $out ?: null;
 	}
+
 
 	protected function countryCodesFromMixedList(?array $countries): array
 	{
@@ -4022,25 +4285,33 @@ trait UsesCountryRegions
 	protected function detectCountryFromAddress(string $address, array $allowedCountryCodes, bool $mustDetect): ?string
 	{
 		$addr = trim($address);
-		if ($addr === '') return $mustDetect ? null : null;
-		if (!$allowedCountryCodes) return null;
+		if ($addr === '') return null;
+
+		if (!$allowedCountryCodes) return $mustDetect ? null : null;
 
 		$hayAscii = strtoupper(Str::ascii($addr));
 		$hayRaw = mb_strtoupper($addr);
 
-		foreach ($allowedCountryCodes as $cc) {
-			$tokens = $this->countryTokensForCode($cc);
-			foreach ($tokens as $t) {
+		foreach ($allowedCountryCodes as $ccRaw) {
+			$cc = $this->normalizeCountryToCode(is_scalar($ccRaw) ? (string) $ccRaw : null);
+			if ($cc === null) continue;
+
+			foreach ($this->countryTokensForCode($cc) as $t) {
+				$t = is_string($t) ? trim($t) : '';
 				if ($t === '') continue;
 
-				if (preg_match('/[^\x00-\x7F]/', $t)) {
+				$hasNonAscii = (bool) preg_match('/[^\x00-\x7F]/', $t);
+				if ($hasNonAscii) {
 					if (mb_strpos($hayRaw, mb_strtoupper($t)) !== false) return $cc;
 					continue;
 				}
 
 				$tt = strtoupper(Str::ascii($t));
+				if ($tt === '') continue;
+
+				// For 2–3 letter tokens, enforce boundaries to avoid matching inside other words.
 				if (strlen($tt) <= 3) {
-					$re = '/(^|[^A-Z0-9])' . preg_quote($tt, '/') . '([^A-Z0-9]|$)/';
+					$re = '/(^|[^A-Z0-9])' . preg_quote($tt, '/') . '([^A-Z0-9]|$)/u';
 					if (preg_match($re, $hayAscii)) return $cc;
 					continue;
 				}
@@ -4049,7 +4320,7 @@ trait UsesCountryRegions
 			}
 		}
 
-		return null;
+		return $mustDetect ? null : null;
 	}
 
 	protected function countryTokensForCode(string $cc): array
@@ -4080,8 +4351,6 @@ trait UsesCountryRegions
 		foreach ($tokens as $t) {
 			$tt = strtoupper(Str::ascii(trim((string) $t)));
 			if ($tt === '') continue;
-
-			// Evita match de 1 caractere (muito “ruidoso” em endereços)
 			if (strlen($tt) === 1) continue;
 
 			if (strlen($tt) <= 3) {
@@ -4109,30 +4378,56 @@ trait UsesCountryRegions
 	protected function computeEffectiveScope(): array
 	{
 		return $this->cacheOnce('effective_scope', function (): array {
-			if (Schema::hasColumn($this->getTable(), 'countries'))
-				$countriesRaw = $this->normalizeStringList($this->getAttribute('countries'));
-			else
-				$countriesRaw = null;
-			if (Schema::hasColumn($this->getTable(), 'states'))
-				$statesRaw = $this->normalizeStatesMap($this->getAttribute('states'));
-			else
-				$statesRaw = null;
-			$hasCountries = $countriesRaw !== null;
-			$hasStates = $statesRaw !== null;
-			$allowedCountries = $hasCountries ? $this->countryCodesFromMixedList($countriesRaw) : [];
-			$allowedStates = $hasStates ? $this->normalizeAllowedStatesByCountry($statesRaw, $allowedCountries, $hasCountries) : [];
+			$countries = null;
+			$states = null;
+
+			try {
+				$countries = $this->getCountriesConstraintAttribute();
+			} catch (\Throwable $e) {
+				Log::warning("[" . self::class . "]: failed to compute countries constraint", [
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+				$countries = null;
+			}
+
+			try {
+				$states = $this->getStatesConstraintAttribute();
+			} catch (\Throwable $e) {
+				Log::warning("[" . self::class . "]: failed to compute states constraint", [
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+				$states = null;
+			}
+
+			$hasCountries = $countries !== null;
+			$hasStates = $states !== null;
+
+			$allowedCountries = $countries ?? [];
+			$allowedStates = $states ?? [];
+
 			if (!$hasCountries && $hasStates) $allowedCountries = array_values(array_unique(array_keys($allowedStates)));
+
 			$effective = [];
+
 			if (Schema::hasColumn($this->getTable(), 'companies'))
 				$effective['companies'] = $this->filterByAddressList('companies', DC::TABLE_USERS, 'address', $allowedCountries, $allowedStates, $hasCountries, $hasStates, true);
+
 			if (Schema::hasColumn($this->getTable(), 'branches'))
 				$effective['branches'] = $this->filterByAddressList('branches', DC::TABLE_BRANCHES, 'address', $allowedCountries, $allowedStates, $hasCountries, $hasStates);
+
 			if (Schema::hasColumn($this->getTable(), 'departments'))
 				$effective['departments'] = $this->filterByAddressList('departments', DC::TABLE_DEPARTMENTS, 'address', $allowedCountries, $allowedStates, $hasCountries, $hasStates);
+
 			if (Schema::hasColumn($this->getTable(), 'vendors'))
 				$effective['vendors'] = $this->filterByBillingList('vendors', DC::TABLE_VENDORS, $allowedCountries, $allowedStates, $hasCountries, $hasStates);
+
 			if (Schema::hasColumn($this->getTable(), 'customers'))
 				$effective['customers'] = $this->filterByBillingList('customers', DC::TABLE_CUSTOMERS, $allowedCountries, $allowedStates, $hasCountries, $hasStates);
+
 			return [
 				'has_countries' => $hasCountries,
 				'has_states' => $hasStates,
@@ -4153,43 +4448,152 @@ trait UsesCountryRegions
 		bool $hasStates,
 		bool $companyOnly = false
 	): ?array {
-		$list = $this->normalizeStringList($this->getAttribute($field));
-		if ($list === null) return null;
-		if (!$hasCountries && !$hasStates) return $list;
-		if (!Schema::hasTable($table)) {
-			Log::warning("[" . self::class . "]: " . "Holiday scope: missing table {$table} for {$field}", [
+		$list = null;
+
+		try {
+			$list = $this->normalizeStringList($this->getAttribute($field));
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to normalize list for {$field}", [
 				'class' => static::class,
 				'method' => __METHOD__,
-				'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
-				'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
 			]);
 			return null;
 		}
-		$nameCol = $this->detectNameColumn($table);
+
+		if ($list === null) return null;
+		if (!$hasCountries && !$hasStates) return $list;
+
+		try {
+			if (!Schema::hasTable($table)) {
+				Log::warning("[" . self::class . "]: " . "Holiday scope: missing table {$table} for {$field}", [
+					'class' => static::class,
+					'method' => __METHOD__,
+					'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+					'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+				]);
+				return null;
+			}
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed schema check for {$table}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			return null;
+		}
+
+		$nameCol = null;
+		try {
+			$nameCol = $this->detectNameColumn($table);
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to detect name column for {$table}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			$nameCol = null;
+		}
+
 		$select = ['id'];
 		if ($nameCol !== null) $select[] = $nameCol;
-		if (Schema::hasColumn($table, $addressColumn)) $select[] = $addressColumn;
-		$rows = $this->resolveRowsByIdOrNameCached($table, $list, $select, $nameCol, $companyOnly ? ['type' => 'company'] : []);
-		if (!$rows) return null;
-		$out = [];
-		foreach ($list as $token) {
-			$row = $this->rowByToken($rows, $token, $nameCol);
-			if (!$row) continue;
-			$address = Schema::hasColumn($table, $addressColumn) && is_scalar($row->{$addressColumn} ?? null)
-				? (string) $row->{$addressColumn}
-				: '';
-			$country = $this->detectCountryFromAddress($address, $allowedCountries, $hasCountries || $hasStates);
-			if ($hasCountries && $country === null) continue;
-			if ($hasStates) {
-				if ($country === null) continue;
-				$allowedForCountry = $allowedStates[$country] ?? null;
-				if (!$allowedForCountry) continue;
-				$state = $this->detectStateFromAddress($address, $country, $allowedForCountry);
-				if ($state === null) continue;
-				if (!$this->stateInAllowed($state, $allowedForCountry)) continue;
-			}
-			$out[] = $token;
+
+		try {
+			if (Schema::hasColumn($table, $addressColumn)) $select[] = $addressColumn;
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to check address column {$addressColumn} on {$table}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
 		}
+
+		$rows = null;
+		try {
+			$rows = $this->resolveRowsByIdOrNameCached($table, $list, $select, $nameCol, $companyOnly ? ['type' => 'company'] : []);
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to resolve rows for {$field}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			return null;
+		}
+
+		if (!$rows) return null;
+
+		$out = [];
+
+		foreach ($list as $token) {
+			try {
+				$row = $this->rowByToken($rows, $token, $nameCol);
+				if (!$row) continue;
+
+				$address = '';
+				try {
+					$address = Schema::hasColumn($table, $addressColumn) && is_scalar($row->{$addressColumn} ?? null)
+						? (string) $row->{$addressColumn}
+						: '';
+				} catch (\Throwable $e) {
+					$address = '';
+				}
+
+				$country = null;
+				try {
+					$country = $this->detectCountryFromAddress($address, $allowedCountries, $hasCountries || $hasStates);
+				} catch (\Throwable $e) {
+					$country = null;
+				}
+
+				if ($hasCountries && $country === null) continue;
+
+				if ($hasStates) {
+					if ($country === null) continue;
+					$allowedForCountry = $allowedStates[$country] ?? null;
+					if (!$allowedForCountry) continue;
+
+					$state = null;
+					try {
+						$state = $this->detectStateFromAddress($address, $country, $allowedForCountry);
+					} catch (\Throwable $e) {
+						$state = null;
+					}
+
+					if ($state === null) continue;
+
+					$ok = false;
+					try {
+						$ok = $this->stateInAllowed($state, $allowedForCountry);
+					} catch (\Throwable $e) {
+						$ok = false;
+					}
+
+					if (!$ok) continue;
+				}
+
+				$out[] = $token;
+			} catch (\Throwable $e) {
+				Log::warning("[" . self::class . "]: failed to filter token in {$field}", [
+					'class' => static::class,
+					'method' => __METHOD__,
+					'token' => is_scalar($token) ? (string) $token : null,
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+			}
+		}
+
 		$out = array_values(array_unique(array_filter($out, fn($v) => is_string($v) && trim($v) !== '')));
 		return $out ?: null;
 	}
@@ -4202,63 +4606,183 @@ trait UsesCountryRegions
 		bool $hasCountries,
 		bool $hasStates
 	): ?array {
-		$list = $this->normalizeStringList($this->getAttribute($field));
-		if ($list === null) return null;
-		if (!$hasCountries && !$hasStates) return $list;
-		if (!Schema::hasTable($table)) {
-			Log::warning(
-				"[" . self::class . "]: " . "Holiday scope: missing table {$table} for {$field}",
-				[
-					'class' => static::class,
-					'method' => __METHOD__,
-					'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
-					'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
-				]
-			);
+		$list = null;
+
+		try {
+			$list = $this->normalizeStringList($this->getAttribute($field));
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to normalize list for {$field}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
 			return null;
 		}
-		$nameCol = $this->detectNameColumn($table);
+
+		if ($list === null) return null;
+		if (!$hasCountries && !$hasStates) return $list;
+
+		try {
+			if (!Schema::hasTable($table)) {
+				Log::warning(
+					"[" . self::class . "]: " . "Holiday scope: missing table {$table} for {$field}",
+					[
+						'class' => static::class,
+						'method' => __METHOD__,
+						'file' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__,
+						'line' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['line'] ?? __LINE__,
+					]
+				);
+				return null;
+			}
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed schema check for {$table}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			return null;
+		}
+
+		$nameCol = null;
+		try {
+			$nameCol = $this->detectNameColumn($table);
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to detect name column for {$table}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			$nameCol = null;
+		}
+
 		$select = ['id'];
 		if ($nameCol !== null) $select[] = $nameCol;
-		foreach ([BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_ADR] as $col)
-			if (Schema::hasColumn($table, $col)) $select[] = $col;
 
-		$rows = $this->resolveRowsByIdOrNameCached($table, $list, $select, $nameCol, []);
+		foreach ([BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_ADR] as $col) {
+			try {
+				if (Schema::hasColumn($table, $col)) $select[] = $col;
+			} catch (\Throwable $e) {
+				//
+			}
+		}
+
+		$rows = null;
+		try {
+			$rows = $this->resolveRowsByIdOrNameCached($table, $list, $select, $nameCol, []);
+		} catch (\Throwable $e) {
+			Log::warning("[" . self::class . "]: failed to resolve rows for {$field}", [
+				'class' => static::class,
+				'method' => __METHOD__,
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+			return null;
+		}
+
 		if (!$rows) return null;
 
 		$out = [];
+
 		foreach ($list as $token) {
-			$row = $this->rowByToken($rows, $token, $nameCol);
-			if (!$row) continue;
+			try {
+				$row = $this->rowByToken($rows, $token, $nameCol);
+				if (!$row) continue;
 
-			$billingCountry = Schema::hasColumn($table, BC::COL_BL_CTR) && is_scalar($row->{BC::COL_BL_CTR} ?? null)
-				? (string) $row->{BC::COL_BL_CTR}
-				: null;
+				$billingCountry = null;
+				try {
+					$billingCountry = Schema::hasColumn($table, BC::COL_BL_CTR) && is_scalar($row->{BC::COL_BL_CTR} ?? null)
+						? (string) $row->{BC::COL_BL_CTR}
+						: null;
+				} catch (\Throwable $e) {
+					$billingCountry = null;
+				}
 
-			$billingState = Schema::hasColumn($table, BC::COL_BL_ST) && is_scalar($row->{BC::COL_BL_ST} ?? null)
-				? (string) $row->{BC::COL_BL_ST}
-				: null;
+				$billingState = null;
+				try {
+					$billingState = Schema::hasColumn($table, BC::COL_BL_ST) && is_scalar($row->{BC::COL_BL_ST} ?? null)
+						? (string) $row->{BC::COL_BL_ST}
+						: null;
+				} catch (\Throwable $e) {
+					$billingState = null;
+				}
 
-			$billingAddress = Schema::hasColumn($table, BC::COL_BL_ADR) && is_scalar($row->{BC::COL_BL_ADR} ?? null)
-				? (string) $row->{BC::COL_BL_ADR}
-				: '';
+				$billingAddress = '';
+				try {
+					$billingAddress = Schema::hasColumn($table, BC::COL_BL_ADR) && is_scalar($row->{BC::COL_BL_ADR} ?? null)
+						? (string) $row->{BC::COL_BL_ADR}
+						: '';
+				} catch (\Throwable $e) {
+					$billingAddress = '';
+				}
 
-			$country = $this->normalizeCountryToCode($billingCountry);
-			if ($country === null) $country = $this->detectCountryFromAddress($billingAddress, $allowedCountries, $hasCountries || $hasStates);
-			if ($hasCountries && $country === null) continue;
+				$country = null;
+				try {
+					$country = $this->normalizeCountryToCode($billingCountry);
+				} catch (\Throwable $e) {
+					$country = null;
+				}
 
-			if ($hasStates) {
-				if ($country === null) continue;
-				$allowedForCountry = $allowedStates[$country] ?? null;
-				if (!$allowedForCountry) continue;
+				if ($country === null) {
+					try {
+						$country = $this->detectCountryFromAddress($billingAddress, $allowedCountries, $hasCountries || $hasStates);
+					} catch (\Throwable $e) {
+						$country = null;
+					}
+				}
 
-				$state = $this->normalizeStateForCountry($billingState, $country, true);
-				if ($state === null) $state = $this->detectStateFromAddress($billingAddress, $country, $allowedForCountry);
-				if ($state === null) continue;
-				if (!$this->stateInAllowed($state, $allowedForCountry)) continue;
+				if ($hasCountries && $country === null) continue;
+
+				if ($hasStates) {
+					if ($country === null) continue;
+					$allowedForCountry = $allowedStates[$country] ?? null;
+					if (!$allowedForCountry) continue;
+
+					$state = null;
+					try {
+						$state = $this->normalizeStateForCountry($billingState, $country, true);
+					} catch (\Throwable $e) {
+						$state = null;
+					}
+
+					if ($state === null) {
+						try {
+							$state = $this->detectStateFromAddress($billingAddress, $country, $allowedForCountry);
+						} catch (\Throwable $e) {
+							$state = null;
+						}
+					}
+
+					if ($state === null) continue;
+
+					$ok = false;
+					try {
+						$ok = $this->stateInAllowed($state, $allowedForCountry);
+					} catch (\Throwable $e) {
+						$ok = false;
+					}
+
+					if (!$ok) continue;
+				}
+
+				$out[] = $token;
+			} catch (\Throwable $e) {
+				Log::warning("[" . self::class . "]: failed to filter token in {$field}", [
+					'class' => static::class,
+					'method' => __METHOD__,
+					'token' => is_scalar($token) ? (string) $token : null,
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
 			}
-
-			$out[] = $token;
 		}
 
 		$out = array_values(array_unique(array_filter($out, fn($v) => is_string($v) && trim($v) !== '')));
@@ -4268,19 +4792,22 @@ trait UsesCountryRegions
 	protected function enforceGeoScopeOnPersistedLists(): void
 	{
 		$effective = $this->computeEffectiveScope();
+
 		foreach (['companies', 'branches', 'departments', 'vendors', 'customers'] as $field) {
 			if (!Schema::hasColumn($this->getTable(), $field)) continue;
 			$current = $this->normalizeStringList($this->getAttribute($field));
 			if ($current === null) continue;
 			$this->setAttribute($field, $effective['effective'][$field] ?? null);
 		}
+
 		$countriesNameOnSchema = Schema::hasColumn($this->getTable(), 'countries') ? 'countries' : (Schema::hasColumn($this->getTable(), AC::COL_ALW_CTR) ? AC::COL_ALW_CTR : null);
-		if (Schema::hasColumn($this->getTable(), $countriesNameOnSchema)) {
+		if ($countriesNameOnSchema !== null && Schema::hasColumn($this->getTable(), $countriesNameOnSchema)) {
 			$countries = $this->normalizeStringList($this->getAttribute($countriesNameOnSchema));
 			if ($countries === null) $this->setAttribute($countriesNameOnSchema, null);
 		}
+
 		$statesNameOnSchema = Schema::hasColumn($this->getTable(), 'states') ? 'states' : (Schema::hasColumn($this->getTable(), AC::COL_ALW_ST) ? AC::COL_ALW_ST : null);
-		if (Schema::hasColumn($this->getTable(), $statesNameOnSchema)) {
+		if ($statesNameOnSchema !== null && Schema::hasColumn($this->getTable(), $statesNameOnSchema)) {
 			$states = $this->normalizeStatesMap($this->getAttribute($statesNameOnSchema));
 			if ($states === null) $this->setAttribute($statesNameOnSchema, null);
 		}
@@ -4324,20 +4851,15 @@ trait UsesCountryRegions
 		return null;
 	}
 
-	protected function enforceCountryStateColumns(
-		Model $model,
-		string $countryCol = 'country',
-		string $stateCol = 'state'
-	): void {
-		if (
-			!Schema::hasColumn($model->getTable(), $countryCol) ||
-			!Schema::hasColumn($model->getTable(), $stateCol)
-		)
-			return;
+	protected function enforceCountryStateColumns(Model $model, string $countryCol = 'country', string $stateCol = 'state'): void
+	{
+		if (!Schema::hasColumn($model->getTable(), $countryCol) || !Schema::hasColumn($model->getTable(), $stateCol)) return;
+
 		$pair = $this->normalizeCountryStatePair(
 			is_scalar($model->getAttribute($countryCol) ?? null) ? (string) $model->getAttribute($countryCol) : null,
 			is_scalar($model->getAttribute($stateCol) ?? null) ? (string) $model->getAttribute($stateCol) : null
 		);
+
 		$model->setAttribute($countryCol, $pair['country'] ?? null);
 		$model->setAttribute($stateCol, $pair['state'] ?? null);
 	}
@@ -4357,95 +4879,117 @@ trait UsesCountryRegions
 
 	protected function rescueGeoFromZipIfMissing(): void
 	{
-		if (!Schema::hasColumn($this->getTable(), 'zip')) return;
-		$zip = $this->getAttribute('zip');
-		$zip = is_scalar($zip) ? trim((string) $zip) : '';
-		if (empty($zip)) return;
-		$countryNow = '';
-		$stateNow = '';
-		$cityNow = '';
-		$hasCountry = Schema::hasColumn($this->getTable(), 'country');
-		$hasState = Schema::hasColumn($this->getTable(), 'state');
-		$hasCity = Schema::hasColumn($this->getTable(), 'city');
-		if (!$hasCountry && !$hasState && !$hasCity) return;
-		if ($hasCountry) {
-			$countryNow = $this->getAttribute('country');
-			$countryNow = is_scalar($countryNow) ? trim((string) $countryNow) : '';
-		}
-		if ($hasState) {
-			$stateNow = $this->getAttribute('state');
-			$stateNow = is_scalar($stateNow) ? trim((string) $stateNow) : '';
-		}
-		if ($hasCity) {
-			$cityNow = $this->getAttribute('city');
-			$cityNow = is_scalar($cityNow) ? trim((string) $cityNow) : '';
-		}
-		if (!empty($countryNow) || empty($stateNow) || empty($cityNow)) return;
-		$geo = $this->tryResolveGeoFromZip($zip, $countryNow !== '' ? $countryNow : null);
-		if (!$geo) return;
-		if (empty($countryNow) && $hasCountry) $this->setAttribute('country', $this->normalizeCountryCodeToCase($geo->countryCode));
-		if (empty($stateNow) && $hasState && $geo->state !== null) $this->setAttribute('state', $geo->state);
-		if (empty($cityNow) && $hasCity && $geo->city !== null) $this->setAttribute('city', $geo->city);
-		if (Schema::hasColumn($this->getTable(), 'address')) {
-			$addrNow = $this->getAttribute('address');
-			$addrNow = is_scalar($addrNow) ? trim((string) $addrNow) : '';
-			if (empty($addrNow)) {
-				$parts = [];
-				if ($geo->street !== null && trim($geo->street) !== '') $parts[] = trim($geo->street);
-				if ($geo->neighborhood !== null && trim($geo->neighborhood) !== '') $parts[] = trim($geo->neighborhood);
-				if ($parts) $this->setAttribute('address', implode(' - ', $parts));
+		$sets = [
+			['zip', 'country', 'state', 'city', 'address'],
+			[BC::COL_SHIP_ZIP, BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY, BC::COL_SHIP_ADR],
+			[BC::COL_BL_ZIP, BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY, BC::COL_BL_ADR],
+		];
+
+		foreach ($sets as $cols) {
+			try {
+				[$zipCol, $countryCol, $stateCol, $cityCol, $addrCol] = $cols;
+
+				if (!Schema::hasColumn($this->getTable(), $zipCol)) continue;
+
+				$zip = $this->getAttribute($zipCol);
+				$zip = is_scalar($zip) ? trim((string) $zip) : '';
+				if ($zip === '') continue;
+
+				$hasCountry = Schema::hasColumn($this->getTable(), $countryCol);
+				$hasState = Schema::hasColumn($this->getTable(), $stateCol);
+				$hasCity = Schema::hasColumn($this->getTable(), $cityCol);
+				if (!$hasCountry && !$hasState && !$hasCity) continue;
+
+				$countryNow = $hasCountry && is_scalar($this->getAttribute($countryCol) ?? null) ? trim((string) $this->getAttribute($countryCol)) : '';
+				$stateNow = $hasState && is_scalar($this->getAttribute($stateCol) ?? null) ? trim((string) $this->getAttribute($stateCol)) : '';
+				$cityNow = $hasCity && is_scalar($this->getAttribute($cityCol) ?? null) ? trim((string) $this->getAttribute($cityCol)) : '';
+
+				if ($countryNow !== '' && $stateNow !== '' && $cityNow !== '') continue;
+
+				$geo = $this->tryResolveGeoFromZip($zip, $countryNow !== '' ? $countryNow : null);
+				if (!$geo) continue;
+
+				if ($countryNow === '' && $hasCountry) $this->setAttribute($countryCol, $this->normalizeCountryCodeToCase($geo->countryCode));
+				if ($stateNow === '' && $hasState && $geo->state !== null) $this->setAttribute($stateCol, $geo->state);
+				if ($cityNow === '' && $hasCity && $geo->city !== null) $this->setAttribute($cityCol, $geo->city);
+
+				if (Schema::hasColumn($this->getTable(), $addrCol)) {
+					$addrNow = $this->getAttribute($addrCol);
+					$addrNow = is_scalar($addrNow) ? trim((string) $addrNow) : '';
+					if ($addrNow === '') {
+						$parts = [];
+						if ($geo->street !== null && trim($geo->street) !== '') $parts[] = trim($geo->street);
+						if ($geo->neighborhood !== null && trim($geo->neighborhood) !== '') $parts[] = trim($geo->neighborhood);
+						if ($parts) $this->setAttribute($addrCol, implode(' - ', $parts));
+					}
+				}
+			} catch (\Throwable) {
+				continue;
 			}
 		}
 	}
 
 	protected function rescueGeoFromAddressTokensIfMissing(): void
 	{
-		if (!Schema::hasColumn($this->getTable(), 'address')) return;
-		$address = $this->getAttribute('address');
-		$address = is_scalar($address) ? trim((string) $address) : '';
-		if ($address === '') return;
-		$countryNow = '';
-		$stateNow = '';
-		$cityNow = '';
-		$hasCountry = Schema::hasColumn($this->getTable(), 'country');
-		$hasState = Schema::hasColumn($this->getTable(), 'state');
-		$hasCity = Schema::hasColumn($this->getTable(), 'city');
-		if ($hasCountry) {
-			$countryNow = $this->getAttribute('country');
-			$countryNow = is_scalar($countryNow) ? trim((string) $countryNow) : '';
-		}
-		if ($hasState) {
-			$stateNow = $this->getAttribute('state');
-			$stateNow = is_scalar($stateNow) ? trim((string) $stateNow) : '';
-		}
-		if ($hasCity) {
-			$cityNow = $this->getAttribute('city');
-			$cityNow = is_scalar($cityNow) ? trim((string) $cityNow) : '';
-		}
-		if (mb_strlen($countryNow) && mb_strlen($stateNow) && mb_strlen($cityNow)) return;
-		$current = [
-			'country' => $countryNow !== '' ? $countryNow : null,
-			'state'   => $stateNow !== '' ? $stateNow : null,
-			'city'    => $cityNow !== '' ? $cityNow : null,
+		$sets = [
+			['address', 'country', 'state', 'city'],
+			[BC::COL_SHIP_ADR, BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY],
+			[BC::COL_BL_ADR, BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY],
 		];
-		$resolved = null;
-		try {
-			$resolved = $this->tryResolveGeoFromAddressTokens($address, $current);
-		} catch (\Throwable) {
-			$resolved = null;
-		}
-		if (!$resolved || !is_array($resolved)) return;
-		if (empty($countryNow) && isset($resolved['country']) && $hasCountry) {
-			$v = $resolved['country'] ?? null;
-			if (is_string($v) && trim($v) !== '') $this->setAttribute('country', $this->normalizeCountryCodeToCase($v));
-		}
-		if (empty($stateNow) && isset($resolved['state']) && $hasState) {
-			$v = $resolved['state'] ?? null;
-			if (is_string($v) && trim($v) !== '') $this->setAttribute('state', trim($v));
-		}
-		if (empty($cityNow) && isset($resolved['city']) && $hasCity) {
-			$v = $resolved['city'] ?? null;
-			if (is_string($v) && trim($v) !== '') $this->setAttribute('city', trim($v));
+
+		foreach ($sets as $cols) {
+			try {
+				[$addrCol, $countryCol, $stateCol, $cityCol] = $cols;
+
+				if (!Schema::hasColumn($this->getTable(), $addrCol)) continue;
+
+				$address = $this->getAttribute($addrCol);
+				$address = is_scalar($address) ? trim((string) $address) : '';
+				if ($address === '') continue;
+
+				$hasCountry = Schema::hasColumn($this->getTable(), $countryCol);
+				$hasState = Schema::hasColumn($this->getTable(), $stateCol);
+				$hasCity = Schema::hasColumn($this->getTable(), $cityCol);
+
+				$countryNow = $hasCountry && is_scalar($this->getAttribute($countryCol) ?? null) ? trim((string) $this->getAttribute($countryCol)) : '';
+				$stateNow = $hasState && is_scalar($this->getAttribute($stateCol) ?? null) ? trim((string) $this->getAttribute($stateCol)) : '';
+				$cityNow = $hasCity && is_scalar($this->getAttribute($cityCol) ?? null) ? trim((string) $this->getAttribute($cityCol)) : '';
+
+				if ($countryNow !== '' && $stateNow !== '' && $cityNow !== '') continue;
+
+				$current = [
+					'country' => $countryNow !== '' ? $countryNow : null,
+					'state' => $stateNow !== '' ? $stateNow : null,
+					'city' => $cityNow !== '' ? $cityNow : null,
+				];
+
+				$resolved = null;
+
+				try {
+					$resolved = $this->tryResolveGeoFromAddressTokens($address, $current);
+				} catch (\Throwable) {
+					$resolved = null;
+				}
+
+				if (!$resolved || !is_array($resolved)) continue;
+
+				if ($countryNow === '' && $hasCountry && isset($resolved['country'])) {
+					$v = $resolved['country'] ?? null;
+					if (is_string($v) && trim($v) !== '') $this->setAttribute($countryCol, $this->normalizeCountryCodeToCase($v));
+				}
+
+				if ($stateNow === '' && $hasState && isset($resolved['state'])) {
+					$v = $resolved['state'] ?? null;
+					if (is_string($v) && trim($v) !== '') $this->setAttribute($stateCol, trim($v));
+				}
+
+				if ($cityNow === '' && $hasCity && isset($resolved['city'])) {
+					$v = $resolved['city'] ?? null;
+					if (is_string($v) && trim($v) !== '') $this->setAttribute($cityCol, trim($v));
+				}
+			} catch (\Throwable) {
+				continue;
+			}
 		}
 	}
 
@@ -4453,32 +4997,33 @@ trait UsesCountryRegions
 	{
 		$stateToken = is_string($stateToken) ? trim($stateToken) : '';
 		if ($stateToken === '') return null;
+
 		$attempts = 0;
 		$maxAttempts = 64;
 		$needleRaw = $stateToken;
 		$needle = mb_strtolower($stateToken);
 		$needle = preg_replace('/\s+/', ' ', $needle);
 		$needle = trim($needle);
+
 		foreach (array_keys(self::STATE_ENUMS) as $countryCode) {
 			if ($attempts++ >= $maxAttempts) break;
+
 			$enumCls = $this->stateEnumClassForCountry((string) $countryCode);
 			if (!$enumCls || !enum_exists($enumCls) || !method_exists($enumCls, 'cases')) continue;
+
 			try {
 				foreach ($enumCls::cases() as $e) {
 					$v = (string) $e->value;
-					if (mb_strtolower(trim($v)) === $needle)
-						return (string) $countryCode;
-					if (mb_strtolower(trim($v)) === mb_strtolower(trim($needleRaw))) {
-						return (string) $countryCode;
-					}
+					if (mb_strtolower(trim($v)) === $needle) return (string) $countryCode;
+					if (mb_strtolower(trim($v)) === mb_strtolower(trim($needleRaw))) return (string) $countryCode;
 				}
 			} catch (\Throwable) {
 				//
 			}
+
 			try {
 				$norm = $this->normalizeStateForCountry($needleRaw, (string) $countryCode, false);
-				if ($norm !== null && is_string($norm) && trim($norm) !== '')
-					return (string) $countryCode;
+				if ($norm !== null && is_string($norm) && trim($norm) !== '') return (string) $countryCode;
 			} catch (\Throwable) {
 				//
 			}
@@ -4495,12 +5040,12 @@ trait UsesCountryRegions
 		$out = [];
 
 		$curCountry = isset($current['country']) && is_string($current['country']) ? trim($current['country']) : null;
-		$curState   = isset($current['state']) && is_string($current['state']) ? trim($current['state']) : null;
-		$curCity    = isset($current['city']) && is_string($current['city']) ? trim($current['city']) : null;
+		$curState = isset($current['state']) && is_string($current['state']) ? trim($current['state']) : null;
+		$curCity = isset($current['city']) && is_string($current['city']) ? trim($current['city']) : null;
 
 		$curCountry = ($curCountry !== null && $curCountry !== '') ? $curCountry : null;
-		$curState   = ($curState !== null && $curState !== '') ? $curState : null;
-		$curCity    = ($curCity !== null && $curCity !== '') ? $curCity : null;
+		$curState = ($curState !== null && $curState !== '') ? $curState : null;
+		$curCity = ($curCity !== null && $curCity !== '') ? $curCity : null;
 
 		$tokens = $this->tokenizeAddressForGeoLabels($addr);
 		if (!$tokens) return null;
@@ -4509,7 +5054,6 @@ trait UsesCountryRegions
 			foreach (self::GEO_LABEL_LANG_ORDER as $lang) {
 				$map = self::GEO_LABEL_TOKENS_BY_LANG[$lang] ?? null;
 				if (!$map || !isset($map[$kind]) || !is_array($map[$kind])) continue;
-
 				$labels = $map[$kind];
 				$val = $this->findGeoValueByLabels($tokens, $labels);
 				if (is_string($val) && trim($val) !== '') return trim($val);
@@ -4521,10 +5065,12 @@ trait UsesCountryRegions
 			$v = $extractLabeledValue('country');
 			if ($v !== null) $out['country'] = $v;
 		}
+
 		if ($curState === null) {
 			$v = $extractLabeledValue('state');
 			if ($v !== null) $out['state'] = $v;
 		}
+
 		if ($curCity === null) {
 			$v = $extractLabeledValue('city');
 			if ($v !== null) $out['city'] = $v;
@@ -4532,7 +5078,7 @@ trait UsesCountryRegions
 
 		$country = $curCountry ?? (isset($out['country']) && is_string($out['country']) ? trim((string) $out['country']) : null);
 
-		if (($country === null || $country === '')) {
+		if ($country === null || $country === '') {
 			try {
 				$detected = $this->detectCountryFromAddress($addr, array_keys(self::STATE_ENUMS), false);
 				if (is_string($detected) && trim($detected) !== '') {
@@ -4562,13 +5108,8 @@ trait UsesCountryRegions
 				$curState ?? (isset($out['state']) && is_string($out['state']) ? (string) $out['state'] : null)
 			);
 
-			$normCountry = isset($pair['country']) && is_string($pair['country']) && trim($pair['country']) !== ''
-				? trim($pair['country'])
-				: null;
-
-			$normState = isset($pair['state']) && is_string($pair['state']) && trim($pair['state']) !== ''
-				? trim($pair['state'])
-				: null;
+			$normCountry = isset($pair['country']) && is_string($pair['country']) && trim($pair['country']) !== '' ? trim($pair['country']) : null;
+			$normState = isset($pair['state']) && is_string($pair['state']) && trim($pair['state']) !== '' ? trim($pair['state']) : null;
 
 			if ($curCountry === null && $normCountry !== null) {
 				$country = $normCountry;
@@ -4612,20 +5153,15 @@ trait UsesCountryRegions
 
 		try {
 			$finalCountry2 = $curCountry ?? (isset($out['country']) ? (string) $out['country'] : null);
-			$finalState2   = $curState ?? (isset($out['state']) ? (string) $out['state'] : null);
+			$finalState2 = $curState ?? (isset($out['state']) ? (string) $out['state'] : null);
 
 			$pair = $this->normalizeCountryStatePair(
 				$finalCountry2 ? trim((string) $finalCountry2) : null,
 				$finalState2 ? trim((string) $finalState2) : null
 			);
 
-			$normCountry2 = isset($pair['country']) && is_string($pair['country']) && trim($pair['country']) !== ''
-				? trim($pair['country'])
-				: null;
-
-			$normState2 = isset($pair['state']) && is_string($pair['state']) && trim($pair['state']) !== ''
-				? trim($pair['state'])
-				: null;
+			$normCountry2 = isset($pair['country']) && is_string($pair['country']) && trim($pair['country']) !== '' ? trim($pair['country']) : null;
+			$normState2 = isset($pair['state']) && is_string($pair['state']) && trim($pair['state']) !== '' ? trim($pair['state']) : null;
 
 			if ($curCountry === null && $normCountry2 !== null) $out['country'] = $normCountry2;
 			if ($curState === null && $normState2 !== null) $out['state'] = $normState2;
@@ -4633,14 +5169,12 @@ trait UsesCountryRegions
 			//
 		}
 
-		// Garantia: não retornar chaves vazias
 		$clean = [];
 		foreach (['country', 'state', 'city'] as $k) {
 			$v = $out[$k] ?? null;
-			if (is_string($v)) {
-				$v = trim($v);
-				if ($v !== '') $clean[$k] = $v;
-			}
+			if (!is_string($v)) continue;
+			$v = trim($v);
+			if ($v !== '') $clean[$k] = $v;
 		}
 
 		return $clean ?: null;
@@ -4659,27 +5193,43 @@ trait UsesCountryRegions
 
 	protected function normalizeGeo(): void
 	{
-		if (Schema::hasColumn($this->getTable(), 'country') && Schema::hasColumn($this->getTable(), 'state')) {
-			$pair = $this->normalizeCountryStatePair(
-				is_scalar($this->getAttribute('country') ?? null) ? (string) $this->getAttribute('country') : null,
-				is_scalar($this->getAttribute('state') ?? null) ? (string) $this->getAttribute('state') : null
-			);
-			$this->setAttribute('country', $this->normalizeCountryCodeToCase($pair['country'] ?? null));
-			$this->setAttribute('state', $pair['state'] ?? null);
-		}
-		if (Schema::hasColumn($this->getTable(), 'city')) {
-			$city = $this->getAttribute('city');
-			if (is_scalar($city)) {
-				$c = trim((string) $city);
-				$this->setAttribute('city', $c !== '' ? $c : null);
-			} elseif ($city === '') $this->setAttribute('city', null);
-		}
-		if (Schema::hasColumn($this->getTable(), 'address')) {
-			$addr = $this->getAttribute('address');
-			if (is_scalar($addr)) {
-				$a = trim((string) $addr);
-				$this->setAttribute('address', $a !== '' ? $a : null);
-			} elseif ($addr === '') $this->setAttribute('address', null);
+		$sets = [
+			['country', 'state', 'city', 'address'],
+			[BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY, BC::COL_SHIP_ADR],
+			[BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY, BC::COL_BL_ADR],
+		];
+
+		foreach ($sets as $cols) {
+			try {
+				[$countryCol, $stateCol, $cityCol, $addrCol] = $cols;
+
+				if (Schema::hasColumn($this->getTable(), $countryCol) && Schema::hasColumn($this->getTable(), $stateCol)) {
+					$pair = $this->normalizeCountryStatePair(
+						is_scalar($this->getAttribute($countryCol) ?? null) ? (string) $this->getAttribute($countryCol) : null,
+						is_scalar($this->getAttribute($stateCol) ?? null) ? (string) $this->getAttribute($stateCol) : null
+					);
+					$this->setAttribute($countryCol, $this->normalizeCountryCodeToCase($pair['country'] ?? null));
+					$this->setAttribute($stateCol, $pair['state'] ?? null);
+				}
+
+				if (Schema::hasColumn($this->getTable(), $cityCol)) {
+					$city = $this->getAttribute($cityCol);
+					if (is_scalar($city)) {
+						$c = trim((string) $city);
+						$this->setAttribute($cityCol, $c !== '' ? $c : null);
+					} elseif ($city === '') $this->setAttribute($cityCol, null);
+				}
+
+				if (Schema::hasColumn($this->getTable(), $addrCol)) {
+					$addr = $this->getAttribute($addrCol);
+					if (is_scalar($addr)) {
+						$a = trim((string) $addr);
+						$this->setAttribute($addrCol, $a !== '' ? $a : null);
+					} elseif ($addr === '') $this->setAttribute($addrCol, null);
+				}
+			} catch (\Throwable) {
+				continue;
+			}
 		}
 	}
 
@@ -4707,19 +5257,6 @@ trait UsesCountryRegions
 		return $out;
 	}
 
-	/**
-	 * Encontra um valor associado a qualquer label, buscando padrões:
-	 *  - "<label> <value>"
-	 *  - "<label>: <value>"
-	 *  - "<label>-<value>"
-	 *
-	 * Estratégia:
-	 *  - compara tokens de forma ASCII case-insensitive (com fallback unicode)
-	 *  - quando acha label, extrai o restante do token; se vazio, tenta o próximo token
-	 *
-	 * @param string[] $tokens
-	 * @param string[] $labels
-	 */
 	protected function findGeoValueByLabels(array $tokens, array $labels): ?string
 	{
 		if (!$tokens || !$labels) return null;
@@ -4729,37 +5266,76 @@ trait UsesCountryRegions
 			if (!is_string($l)) continue;
 			$ll = trim($l);
 			if ($ll === '') continue;
-			$normLabels[] = strtoupper(Str::ascii($ll));
+			$normLabels[] = [
+				'ascii' => strtoupper(Str::ascii($ll)),
+				'raw' => mb_strtoupper($ll),
+				'raw_src' => $ll,
+			];
 		}
-		$normLabels = array_values(array_unique($normLabels));
+
+		$uniq = [];
+		foreach ($normLabels as $row) {
+			$k = (string) ($row['ascii'] ?? '');
+			if ($k === '') continue;
+			$uniq[$k] = $row;
+		}
+		$normLabels = array_values($uniq);
 		if (!$normLabels) return null;
+
 		$tokenCount = count($tokens);
+
 		for ($i = 0; $i < $tokenCount; $i++) {
-			$raw = (string) $tokens[$i];
-			$rawTrim = trim($raw);
-			if ($rawTrim === '') continue;
-			$hayAscii = strtoupper(Str::ascii($rawTrim));
-			$hayRawUpper = mb_strtoupper($rawTrim);
-			foreach ($normLabels as $lab) {
-				if ($lab === '') continue;
-				$re = '/(^|[^A-Z0-9])' . preg_quote($lab, '/') . '([^A-Z0-9]|$)/';
-				$hasLabelAscii = (bool) preg_match($re, $hayAscii);
-				$hasLabelRaw = false;
-				if (!$hasLabelAscii && !$hasLabelRaw) continue;
-				$pos = mb_stripos($hayRawUpper, mb_strtoupper($lab));
-				$tail = null;
-				if ($pos !== false)
-					$tail = trim((string) mb_substr($rawTrim, $pos + mb_strlen($lab)));
-				if (is_string($tail)) {
-					$tail = ltrim($tail, " \t:-—–|/\\,;");
-					$tail = trim($tail);
+			try {
+				$raw = (string) $tokens[$i];
+				$rawTrim = trim($raw);
+				if ($rawTrim === '') continue;
+
+				$hayAscii = strtoupper(Str::ascii($rawTrim));
+				$hayRawUpper = mb_strtoupper($rawTrim);
+
+				foreach ($normLabels as $labRow) {
+					$labAscii = (string) ($labRow['ascii'] ?? '');
+					$labRawUpper = (string) ($labRow['raw'] ?? '');
+					$labRawSrc = (string) ($labRow['raw_src'] ?? '');
+
+					if ($labAscii === '' && $labRawUpper === '') continue;
+
+					$hasLabel = false;
+
+					if ($labAscii !== '') {
+						$re = '/(^|[^A-Z0-9])' . preg_quote($labAscii, '/') . '([^A-Z0-9]|$)/';
+						if (preg_match($re, $hayAscii)) $hasLabel = true;
+					}
+
+					if (!$hasLabel && $labRawUpper !== '' && mb_strpos($hayRawUpper, $labRawUpper) !== false) $hasLabel = true;
+					if (!$hasLabel) continue;
+
+					$tail = null;
+
+					if ($labRawUpper !== '') {
+						$pos = mb_stripos($hayRawUpper, $labRawUpper);
+						if ($pos !== false) $tail = trim((string) mb_substr($rawTrim, $pos + mb_strlen($labRawUpper)));
+					}
+
+					if ($tail === null && $labAscii !== '') {
+						$posA = mb_stripos($hayAscii, $labAscii);
+						if ($posA !== false) $tail = trim((string) mb_substr($rawTrim, $posA + mb_strlen($labRawSrc)));
+					}
+
+					if (is_string($tail)) {
+						$tail = ltrim($tail, " \t:-—–|/\\,;");
+						$tail = trim($tail);
+					}
+
+					if (is_string($tail) && $tail !== '') return $this->cleanGeoLabeledValue($tail);
+
+					if ($i + 1 < $tokenCount) {
+						$next = trim((string) $tokens[$i + 1]);
+						if ($next !== '') return $this->cleanGeoLabeledValue($next);
+					}
 				}
-				if (is_string($tail) && $tail !== '')
-					return $this->cleanGeoLabeledValue($tail);
-				if ($i + 1 < $tokenCount) {
-					$next = trim((string) $tokens[$i + 1]);
-					if ($next !== '') return $this->cleanGeoLabeledValue($next);
-				}
+			} catch (\Throwable) {
+				continue;
 			}
 		}
 
@@ -4777,22 +5353,6 @@ trait UsesCountryRegions
 	{
 		$table = $model->getTable();
 		if (!is_string($table) || $table === '' || !Schema::hasTable($table)) return;
-
-		$hasCountry = Schema::hasColumn($table, 'country');
-		$hasState = Schema::hasColumn($table, 'state');
-		if (!$hasCountry && !$hasState) return;
-
-		$countryNow = $hasCountry && is_scalar($model->getAttribute('country') ?? null) ? trim((string) $model->getAttribute('country')) : '';
-		$stateNow = $hasState && is_scalar($model->getAttribute('state') ?? null) ? trim((string) $model->getAttribute('state')) : '';
-		$needsCountry = $hasCountry && $countryNow === '';
-		$needsState = $hasState && $stateNow === '';
-		if (!$needsCountry && !$needsState) return;
-
-		$cityCol = Schema::hasColumn($table, 'city') ? 'city' : (Schema::hasColumn($table, 'municipality') ? 'municipality' : null);
-		if ($cityCol === null) return;
-
-		$cityRaw = is_scalar($model->getAttribute($cityCol) ?? null) ? trim((string) $model->getAttribute($cityCol)) : '';
-		if ($cityRaw === '') return;
 
 		$data = defined('static::CITIES_BY_STATE') ? static::CITIES_BY_STATE : null;
 		if (!is_array($data)) return;
@@ -4830,9 +5390,7 @@ trait UsesCountryRegions
 				if (!$chars) continue;
 
 				$rx = '';
-				foreach ($chars as $ch) {
-					$rx .= $charClass($ch);
-				}
+				foreach ($chars as $ch) $rx .= $charClass($ch);
 				$outParts[] = $rx;
 			}
 
@@ -4840,9 +5398,6 @@ trait UsesCountryRegions
 			$sep = '[\s_-—–\:;,\|\\\\\/]*';
 			return $sep . implode($sep, $outParts) . $sep;
 		};
-
-		$normCity = mb_strtolower(Str::ascii($cityRaw), 'UTF-8');
-		$normCity = preg_replace('/\s+/u', ' ', trim($normCity)) ?: trim($normCity);
 
 		$tryList = static function (?array $list, string $hay, bool $normalized) use ($toLooseRegex): ?string {
 			if (!is_array($list) || !$list) return null;
@@ -4857,7 +5412,10 @@ trait UsesCountryRegions
 				$s = trim((string) $name);
 				if ($s === '') continue;
 
-				$candidate = $normalized ? (preg_replace('/\s+/u', ' ', trim(mb_strtolower(Str::ascii($s), 'UTF-8'))) ?: trim(mb_strtolower(Str::ascii($s), 'UTF-8'))) : $s;
+				$candidate = $normalized
+					? (preg_replace('/\s+/u', ' ', trim(mb_strtolower(Str::ascii($s), 'UTF-8'))) ?: trim(mb_strtolower(Str::ascii($s), 'UTF-8')))
+					: $s;
+
 				$rxCore = $toLooseRegex($candidate);
 				if ($rxCore === '') continue;
 
@@ -4868,40 +5426,78 @@ trait UsesCountryRegions
 			return null;
 		};
 
-		foreach (['RJ', 'SP', 'MG'] as $st) {
-			$bucket = $br[$st] ?? null;
-			if (!is_array($bucket)) continue;
+		$sets = [
+			['country', 'state', Schema::hasColumn($table, 'city') ? 'city' : (Schema::hasColumn($table, 'municipality') ? 'municipality' : null)],
+			[BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY],
+			[BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY],
+		];
 
-			$common = $bucket['common'] ?? null;
-			$normalized = $bucket['normalized'] ?? null;
+		foreach ($sets as [$countryCol, $stateCol, $cityCol]) {
+			try {
+				if (!is_string($cityCol) || $cityCol === '' || !Schema::hasColumn($table, $cityCol)) continue;
 
-			$hit = $tryList($common, $cityRaw, false);
-			$hit ??= $tryList($normalized, $normCity, true);
+				$hasCountry = Schema::hasColumn($table, $countryCol);
+				$hasState = Schema::hasColumn($table, $stateCol);
+				if (!$hasCountry && !$hasState) continue;
 
-			if ($hit === null) continue;
+				$countryNow = $hasCountry && is_scalar($model->getAttribute($countryCol) ?? null) ? trim((string) $model->getAttribute($countryCol)) : '';
+				$stateNow = $hasState && is_scalar($model->getAttribute($stateCol) ?? null) ? trim((string) $model->getAttribute($stateCol)) : '';
 
-			$needsCountry && $model->setAttribute('country', CountryName::Brazil->value);
-			$needsState && $model->setAttribute('state', $st);
-			return;
+				$needsCountry = $hasCountry && $countryNow === '';
+				$needsState = $hasState && $stateNow === '';
+				if (!$needsCountry && !$needsState) continue;
+
+				$cityRaw = is_scalar($model->getAttribute($cityCol) ?? null) ? trim((string) $model->getAttribute($cityCol)) : '';
+				if ($cityRaw === '') continue;
+
+				$normCity = mb_strtolower(Str::ascii($cityRaw), 'UTF-8');
+				$normCity = preg_replace('/\s+/u', ' ', trim($normCity)) ?: trim($normCity);
+
+				foreach (['RJ', 'SP', 'MG'] as $st) {
+					$bucket = $br[$st] ?? null;
+					if (!is_array($bucket)) continue;
+
+					$common = $bucket['common'] ?? null;
+					$normalized = $bucket['normalized'] ?? null;
+
+					$hit = $tryList($common, $cityRaw, false);
+					if ($hit === null) $hit = $tryList($normalized, $normCity, true);
+					if ($hit === null) continue;
+
+					if ($needsCountry) $model->setAttribute($countryCol, CountryName::Brazil->value);
+					if ($needsState) $model->setAttribute($stateCol, $st);
+					break 2;
+				}
+			} catch (\Throwable) {
+				continue;
+			}
 		}
 	}
 
 	protected function pickStateCodesForCountry(?string $country): array
 	{
-		$cc = $this->normalizeCountryToCode($country);
-		if ($cc === null) return [];
-		$cls = $this->stateEnumClassForCountry($cc);
-		if (!is_string($cls) || $cls === '' || !enum_exists($cls) || !is_subclass_of($cls, \BackedEnum::class)) return [];
-		$codes = array_map(static fn(\BackedEnum $e): string => (string) $e->value, $cls::cases());
-		$codes = array_values(array_unique(array_filter($codes, static fn($v): bool => is_string($v) && $v !== '')));
-		return $codes;
+		try {
+			$cc = $this->normalizeCountryToCode($country);
+			if ($cc === null) return [];
+			$cls = $this->stateEnumClassForCountry($cc);
+			if (!is_string($cls) || $cls === '' || !enum_exists($cls) || !is_subclass_of($cls, \BackedEnum::class)) return [];
+			$codes = array_map(static fn(\BackedEnum $e): string => (string) $e->value, $cls::cases());
+			$codes = array_values(array_unique(array_filter($codes, static fn($v): bool => is_string($v) && $v !== '')));
+			return $codes;
+		} catch (\Throwable) {
+			return [];
+		}
 	}
 
 	private function normalizeCountryCodeToCase(?string $countryCode): ?string
 	{
-		if (!is_string($countryCode)) return null;
-		$countryNormalized = CountryName::normalize($countryCode);
-		$countryNormalized = $countryNormalized instanceof CountryName ? (string) $countryNormalized->value : (is_string($countryCode) ? trim($countryCode) : '');
-		return $countryNormalized !== '' ? $countryNormalized : null;
+		try {
+			if (!is_string($countryCode)) return null;
+			$countryNormalized = CountryName::normalize($countryCode);
+			$countryNormalized = $countryNormalized instanceof CountryName ? (string) $countryNormalized->value : trim($countryCode);
+			return $countryNormalized !== '' ? $countryNormalized : null;
+		} catch (\Throwable) {
+			return null;
+		}
 	}
 }

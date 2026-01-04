@@ -12,7 +12,7 @@ trait HasPaymentRequestColumns
 	use HasFinancialIssuingColumns, RegistersShipping;
 	protected function addPaymentRequestColumns(Blueprint $table, ?bool $isProjection = false, ?bool $issues = false, ?int $addIssueDays = 0, ?bool $prioritizesBillStatus = true): void
 	{
-		$this->addFinancingIssuingColumns($table);
+		$this->addFinancialIssuingColumns($table);
 		// * it is not clear why the amount wasn't listed in the old implementation, so its added here as nullable for now
 		$issues && $table->date(BC::COL_ISS_DT)->default(now()->addDays($addIssueDays)->format('Y-m-d'))->index(); // ? nullable para testes 
 		$table->date(BC::COL_SD_DT)->nullable()->index(); // ? nullable para testes 

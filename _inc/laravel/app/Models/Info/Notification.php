@@ -9,14 +9,14 @@ use App\Config\Constants\{
 };
 use App\Enums\{MessagingPlatform, NotificationTemplateType};
 use App\Models\User;
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{Cache, Log};
 
 class Notification extends Model
 {
-    use HasAuditFields, HasFactory, UsesUuids, NormalizesArrays;
+    use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_NTF;
 
@@ -146,7 +146,7 @@ class Notification extends Model
                 $template = null;
                 $rules    = null;
                 $typeSlug = trim((string) ($model->getAttribute('type') ?? ''));
-                if ($typeSlug !== '' && class_exists(\App\Models\NotificationTemplate ::class)) {
+                if ($typeSlug !== '' && class_exists(\App\Models\NotificationTemplate::class)) {
                     try {
                         /** @var \App\Models\NotificationTemplate |null $template */
                         $template = \App\Models\NotificationTemplate::query()

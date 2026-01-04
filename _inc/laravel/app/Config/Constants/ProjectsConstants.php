@@ -5,6 +5,7 @@ namespace App\Config\Constants;
 class ProjectsConstants
 {
 	public const COL_PJ_ID = 'project_id';
+	public const COL_PJ_TSK_ID = 'project_task_id';
 	public const COL_ASGN = 'assign_to';
 	public const COL_ML_ID = 'milestone_id';
 	public const COL_PPL_ID = 'pipeline_id';
@@ -66,6 +67,11 @@ class ProjectsConstants
 	public const COL_F_PATH = 'file_path';
 	public const COL_ATC_PATHS = 'attachment_paths';
 	public const COL_APV_BY = 'approved_by';
+	public const COL_APV_AT = 'approved_at';
+	public const COL_SBM_BY = 'submitted_by';
+	public const COL_SBM_AT = 'submitted_at';
+	public const COL_REJ_BY = 'rejected_by';
+	public const COL_REJ_AT = 'rejected_at';
 	public const COL_M_METRIC = 'main_metric';
 	public const COL_CRT = 'is_critical';
 	public const COL_CNV = 'is_converted';
@@ -129,6 +135,8 @@ class ProjectsConstants
 	public const COL_CTC_TP = 'contract_type';
 	public const COL_ACP_CTC_TP = 'accepted_contract_types';
 	public const COL_ACP_LVLS = 'accepted_levels';
+	public const COL_TRK_ID = 'track_id';
+	public const COL_IMG_PATH = 'image_path';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

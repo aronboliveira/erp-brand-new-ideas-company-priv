@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, Frequency};
-use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
+use App\Traits\{ChecksLogin, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{Log, Validator};
@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
 {
-    use ChecksLogin, UsesUuids, HasAuditFields;
+    use UsesUuids, HasAuditFields, PlansByHierarchy, FiltersSecureAttachments, ChecksLogin;
 
     public const TABLE = DC::TABLE_CONTRACTS;
 
@@ -60,6 +60,7 @@ class Contract extends Model
         PJC::COL_CL_SIG,
         PJC::COL_CL_SIGN_AT,
         PJC::COL_CO_SIGN_AT,
+        PJC::COL_APV_AT,
         PJC::COL_APV_BY,
         PJC::COL_WT_NM,
         PJC::COL_WT2_NM,
@@ -81,9 +82,10 @@ class Contract extends Model
     ];
 
     protected $casts = [
-        PJC::COL_S_DT         => 'date',
-        PJC::COL_E_DT           => 'date',
+        PJC::COL_S_DT        => 'date',
+        PJC::COL_E_DT        => 'date',
         PJC::COL_CL_SIGN_AT  => 'date',
+        PJC::COL_APV_AT      => 'date',
         PJC::COL_CO_SIGN_AT  => 'date',
         PJC::COL_WT_SIGN_AT  => 'date',
         PJC::COL_WT2_SIGN_AT => 'date',

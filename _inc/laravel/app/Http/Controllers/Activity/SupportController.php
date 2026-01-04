@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    SupportsConstants,
-    UsersConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    SupportsConstants as SC,
+    UsersConstants as UC
 };
 use App\Models\{Support, SupportReply, User, Utility};
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -45,17 +45,17 @@ class SupportController extends Controller
             try {
                 $buildStart = microtime(true);
                 $ownerId = $user?->creatorId();
-                $query = Support::with([DatabaseConstants::COL_TABLE_CREATOR, ProjectsConstants::COL_ASGN])->where(DatabaseConstants::COL_TABLE_CREATOR, $ownerId);
-                if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CPN) $query->where(SupportsConstants::COL_USR, $user?->id);
+                $query = Support::with([DC::COL_TABLE_CREATOR, PJC::COL_ASGN])->where(DC::COL_TABLE_CREATOR, $ownerId);
+                if ($user[UC::COL_TP] !== PMC::CPN) $query->where(SC::COL_USR, $user?->id);
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);
                 $supports = $query->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchSupports');
                 $countStart = microtime(true);
                 $countAll = $query->count();
-                $countOpen = (clone $query)->where(ActivitiesConstants::COL_TSK_STT, 'open')->count();
-                $countOnHold = (clone $query)->where(ActivitiesConstants::COL_TSK_STT, 'on hold')->count();
-                $countClosed = (clone $query)->where(ActivitiesConstants::COL_TSK_STT, 'close')->count();
+                $countOpen = (clone $query)->where(AC::COL_TSK_STT, 'open')->count();
+                $countOnHold = (clone $query)->where(AC::COL_TSK_STT, 'on hold')->count();
+                $countClosed = (clone $query)->where(AC::COL_TSK_STT, 'close')->count();
                 $this->logExecutionTime($countStart, $action, 'countStatuses');
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -96,15 +96,15 @@ class SupportController extends Controller
             if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
-            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
+            $users = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, '!=', PMC::CL)->pluck(UC::COL_NM, 'id');
             $this->logExecutionTime($usersStart, $action, 'fetchUsers');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
-                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [ProjectsConstants::COL_PRT, ActivitiesConstants::COL_TSK_STT, DatabaseConstants::TABLE_USERS]]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [PJC::COL_PRT, AC::COL_TSK_STT, DC::TABLE_USERS]]);
                 return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             }
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact(ProjectsConstants::COL_PRT, ActivitiesConstants::COL_TSK_STT, DatabaseConstants::TABLE_USERS));
+            $resp = view($viewPath, compact(PJC::COL_PRT, AC::COL_TSK_STT, DC::TABLE_USERS));
             $this->logExecutionTime($renderStart, $action, 'renderCreate');
             Log::info("[{$base}::{$action}] complete", ['view_path' => $viewPath]);
             return $resp;
@@ -121,11 +121,11 @@ class SupportController extends Controller
         $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'support_id' => $support->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'support_id' => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'view support', self::INDEX_ROUTE)) return $denial;
             try {
                 $authStart = microtime(true);
-                if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+                if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 Log::info("[{$base}::{$action}] authorized", ['support_id' => $support->id]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -155,10 +155,10 @@ class SupportController extends Controller
         $req    = $request;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) return $denial;
             $valStart = microtime(true);
-            $v = Validator::make($req->all(), [SupportsConstants::COL_SBJ => 'required|string', ProjectsConstants::COL_PRT => 'required|in:0,1,2,3']);
+            $v = Validator::make($req->all(), [SC::COL_SBJ => 'required|string', PJC::COL_PRT => 'required|in:0,1,2,3']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
             if ($v->fails()) {
                 Log::warning("[{$base}::{$action}] validation failed", ['errors' => $v->errors()->all()]);
@@ -171,24 +171,24 @@ class SupportController extends Controller
                 DB::transaction(function () use ($req, $user, &$support, $action, $base) {
                     $buildStart = microtime(true);
                     $support = new Support([
-                        SupportsConstants::COL_SBJ => $req->input(SupportsConstants::COL_SBJ),
-                        ProjectsConstants::COL_PRT => $req->input(ProjectsConstants::COL_PRT),
-                        ProjectsConstants::COL_E_DT => $req->input(ProjectsConstants::COL_E_DT),
-                        SupportsConstants::COL_TKT_CD => now()->format('His'),
-                        ActivitiesConstants::COL_TSK_STT => 'open',
-                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
-                        SupportsConstants::COL_TKT_CR => $user?->id,
-                        SupportsConstants::COL_USR => $user[UsersConstants::COL_TP] === PermissionsConstants::CL ? $user?->id : $req->input(SupportsConstants::COL_USR),
-                        ActivitiesConstants::COL_DESC => $req->input(ActivitiesConstants::COL_DESC),
+                        SC::COL_SBJ => $req->input(SC::COL_SBJ),
+                        PJC::COL_PRT => $req->input(PJC::COL_PRT),
+                        PJC::COL_E_DT => $req->input(PJC::COL_E_DT),
+                        SC::COL_TKT_CD => now()->format('His'),
+                        AC::COL_TSK_STT => 'open',
+                        DC::COL_TABLE_CREATOR => $user?->creatorId(),
+                        SC::COL_TKT_CR => $user?->id,
+                        SC::COL_USR => $user[UC::COL_TP] === PMC::CL ? $user?->id : $req->input(SC::COL_USR),
+                        AC::COL_DESC => $req->input(AC::COL_DESC),
                     ]);
                     $this->logExecutionTime($buildStart, $action, 'buildModel');
-                    if ($req->hasFile(SupportsConstants::COL_ATC)) {
+                    if ($req->hasFile(SC::COL_ATC)) {
                         $uStart = microtime(true);
-                        $size = $req->file(SupportsConstants::COL_ATC)->getSize();
+                        $size = $req->file(SC::COL_ATC)->getSize();
                         if (Utility::updateStorageLimit($user?->creatorId(), $size) !== 1) throw new \RuntimeException('Storage limit exceeded');
-                        $name = time() . '_' . $req->file(SupportsConstants::COL_ATC)->getClientOriginalName();
-                        $support[SupportsConstants::COL_ATC] = $name;
-                        Utility::uploadFile($req, SupportsConstants::COL_ATC, $name, 'uploads/supports', []);
+                        $name = time() . '_' . $req->file(SC::COL_ATC)->getClientOriginalName();
+                        $support[SC::COL_ATC] = $name;
+                        Utility::uploadFile($req, SC::COL_ATC, $name, 'uploads/supports', []);
                         $this->logExecutionTime($uStart, $action, 'uploadAttachment');
                     }
                     $saveStart = microtime(true);
@@ -199,9 +199,9 @@ class SupportController extends Controller
                 $this->logExecutionTime($txnStart, $action, 'transaction');
                 $settingStart = microtime(true);
                 $setting = Utility::settings($user?->creatorId());
-                $prioLabel = Support::$priority?->{$support[ProjectsConstants::COL_PRT]} ?? $support[ProjectsConstants::COL_PRT];
-                $targetUser = User::find($support[SupportsConstants::COL_USR]);
-                $notifyPayload = ['support_priority' => $prioLabel, 'support_user_name' => $targetUser[UsersConstants::COL_NM]];
+                $prioLabel = Support::$priority?->{$support[PJC::COL_PRT]} ?? $support[PJC::COL_PRT];
+                $targetUser = User::find($support[SC::COL_USR]);
+                $notifyPayload = ['support_priority' => $prioLabel, 'support_user_name' => $targetUser[UC::COL_NM]];
                 $this->logExecutionTime($settingStart, $action, 'prepareNotifications');
                 if (!$support) {
                     Log::warning("[{$base}::{$action}] support not found");
@@ -221,11 +221,11 @@ class SupportController extends Controller
                 }
                 $mailStart = microtime(true);
                 $emailResp = Utility::sendEmailTemplate('new_support_ticket', [$targetUser->id => $targetUser->email], [
-                    'support_name' => $targetUser[UsersConstants::COL_NM],
-                    'support_title' => $support[SupportsConstants::COL_SBJ],
+                    'support_name' => $targetUser[UC::COL_NM],
+                    'support_title' => $support[SC::COL_SBJ],
                     'support_priority' => $prioLabel,
-                    'support_end_date' => $support[ProjectsConstants::COL_E_DT],
-                    'support_description' => $support[ActivitiesConstants::COL_DESC],
+                    'support_end_date' => $support[PJC::COL_E_DT],
+                    'support_description' => $support[AC::COL_DESC],
                 ]);
                 $this->logExecutionTime($mailStart, $action, 'sendEmail');
                 if (!$emailResp['is_success']) Log::warning("[{$base}::{$action}] email notification failed", ['error' => $emailResp['error']]);
@@ -261,9 +261,9 @@ class SupportController extends Controller
         $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
-            if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+            if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $listsStart = microtime(true);
             $prioListAvailable = is_callable([Support::class, 'priorityList']);
             $priority = $prioListAvailable ? Support::priorityList() : [];
@@ -273,15 +273,15 @@ class SupportController extends Controller
             if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
-            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
+            $users = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, '!=', PMC::CL)->pluck(UC::COL_NM, 'id');
             $this->logExecutionTime($usersStart, $action, 'fetchUsers');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
-                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [self::ENTITY, ProjectsConstants::COL_PRT, ActivitiesConstants::COL_TSK_STT, DatabaseConstants::TABLE_USERS]]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [self::ENTITY, PJC::COL_PRT, AC::COL_TSK_STT, DC::TABLE_USERS]]);
                 return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             }
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact(self::ENTITY, ProjectsConstants::COL_PRT, ActivitiesConstants::COL_TSK_STT, DatabaseConstants::TABLE_USERS));
+            $resp = view($viewPath, compact(self::ENTITY, PJC::COL_PRT, AC::COL_TSK_STT, DC::TABLE_USERS));
             $this->logExecutionTime($renderStart, $action, 'renderEdit');
             Log::info("[{$base}::{$action}] complete", ['view_path' => $viewPath, 'support_id' => $support->id]);
             return $resp;
@@ -297,14 +297,14 @@ class SupportController extends Controller
         $req    = $request;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
-            if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+            if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $valStart = microtime(true);
             $v = Validator::make($req->all(), [
-                SupportsConstants::COL_SBJ => 'required|string',
-                ProjectsConstants::COL_PRT => 'required|in:0,1,2,3',
-                ActivitiesConstants::COL_TSK_STT => 'required|in:open,on hold,close',
+                SC::COL_SBJ => 'required|string',
+                PJC::COL_PRT => 'required|in:0,1,2,3',
+                AC::COL_TSK_STT => 'required|in:open,on hold,close',
             ]);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
             if ($v->fails()) {
@@ -317,21 +317,21 @@ class SupportController extends Controller
                 DB::transaction(function () use ($req, $support, $action, $base) {
                     $fillStart = microtime(true);
                     $support->fill($req->only([
-                        SupportsConstants::COL_SBJ,
-                        ProjectsConstants::COL_PRT,
-                        ActivitiesConstants::COL_TSK_STT,
-                        ProjectsConstants::COL_E_DT,
-                        ActivitiesConstants::COL_DESC,
-                        SupportsConstants::COL_USR,
+                        SC::COL_SBJ,
+                        PJC::COL_PRT,
+                        AC::COL_TSK_STT,
+                        PJC::COL_E_DT,
+                        AC::COL_DESC,
+                        SC::COL_USR,
                     ]));
                     $this->logExecutionTime($fillStart, $action, 'fillModel');
-                    if ($req->hasFile(SupportsConstants::COL_ATC)) {
+                    if ($req->hasFile(SC::COL_ATC)) {
                         $uStart = microtime(true);
-                        $size = $req->file(SupportsConstants::COL_ATC)->getSize();
+                        $size = $req->file(SC::COL_ATC)->getSize();
                         if (Utility::updateStorageLimit($support->creatorId(), $size) !== 1) throw new \RuntimeException('Storage limit exceeded');
-                        $name = time() . '_' . $req->file(SupportsConstants::COL_ATC)->getClientOriginalName();
+                        $name = time() . '_' . $req->file(SC::COL_ATC)->getClientOriginalName();
                         $support->attachment = $name;
-                        Utility::uploadFile($req, SupportsConstants::COL_ATC, $name, 'uploads/supports', []);
+                        Utility::uploadFile($req, SC::COL_ATC, $name, 'uploads/supports', []);
                         $this->logExecutionTime($uStart, $action, 'uploadAttachment');
                     }
                     $saveStart = microtime(true);
@@ -358,17 +358,17 @@ class SupportController extends Controller
         $req    = $request;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'delete support', self::INDEX_ROUTE)) return $denial;
             try {
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($support, $user, $action, $base) {
-                    if ($support[SupportsConstants::COL_ATC]) {
+                    if ($support[SC::COL_ATC]) {
                         $attStart = microtime(true);
-                        Utility::changeStorageLimit($user?->creatorId(), '/uploads/supports/' . $support[SupportsConstants::COL_ATC]);
-                        File::delete(storage_path('uploads/supports/' . $support[SupportsConstants::COL_ATC]));
+                        Utility::changeStorageLimit($user?->creatorId(), '/uploads/supports/' . $support[SC::COL_ATC]);
+                        File::delete(storage_path('uploads/supports/' . $support[SC::COL_ATC]));
                         $this->logExecutionTime($attStart, $action, 'deleteAttachment');
-                        Log::info("[{$base}::{$action}] attachment deleted", ['file' => $support[SupportsConstants::COL_ATC]]);
+                        Log::info("[{$base}::{$action}] attachment deleted", ['file' => $support[SC::COL_ATC]]);
                     }
                     $repStart = microtime(true);
                     $support->replies()->delete();
@@ -398,7 +398,7 @@ class SupportController extends Controller
         $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $encryptedId, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, 'encrypted_id' => $encryptedId, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, 'encrypted_id' => $encryptedId, 'method' => $method]);
             $decStart = microtime(true);
             try {
                 $id = Crypt::decrypt($encryptedId);
@@ -410,11 +410,11 @@ class SupportController extends Controller
             }
             try {
                 $fetchStart = microtime(true);
-                $support = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::COL_TABLE_CREATOR])->findOrFail($id);
+                $support = Support::with([PJC::COL_ASGN, DC::COL_TABLE_CREATOR])->findOrFail($id);
                 $this->logExecutionTime($fetchStart, $action, 'fetchSupport');
-                if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+                if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
                 $repliesStart = microtime(true);
-                $replies = SupportReply::where('support_id', $id)->with(DatabaseConstants::TABLE_USERS)->get();
+                $replies = SupportReply::where('support_id', $id)->with(DC::TABLE_USERS)->get();
                 $this->logExecutionTime($repliesStart, $action, 'fetchReplies');
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($replies, $action) {
@@ -450,10 +450,10 @@ class SupportController extends Controller
         $req    = $request;
         return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $id, 'method' => $method]);
             if ($denial = $this->guard($req, 'reply support', self::INDEX_ROUTE)) return $denial;
             $valStart = microtime(true);
-            $v = Validator::make($req->all(), [ActivitiesConstants::COL_DESC => 'required|string']);
+            $v = Validator::make($req->all(), [AC::COL_DESC => 'required|string']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
             if ($v->fails()) {
                 Log::warning("[{$base}::{$action}] validation failed", ['errors' => $v->errors()->all()]);
@@ -466,9 +466,9 @@ class SupportController extends Controller
                     $createStart = microtime(true);
                     SupportReply::create([
                         'support_id' => $id,
-                        SupportsConstants::COL_USR => $user?->id,
-                        ActivitiesConstants::COL_DESC => $req[ActivitiesConstants::COL_DESC],
-                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                        SC::COL_USR => $user?->id,
+                        AC::COL_DESC => $req[AC::COL_DESC],
+                        DC::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createReply');
                     Log::info("[{$base}::{$action}] reply saved", [self::ENTITY => $id]);
@@ -493,13 +493,13 @@ class SupportController extends Controller
         $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
-            Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, 'method' => $method]);
             try {
                 $ownerId = $user?->creatorId();
                 $buildStart = microtime(true);
-                $query = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::COL_TABLE_CREATOR])->where(DatabaseConstants::COL_TABLE_CREATOR, $ownerId);
-                if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL || strtolower($user[UsersConstants::COL_TP]) === 'employee') $query->where(function ($q) use ($user) {
-                    $q->where(SupportsConstants::COL_USR, $user?->id)->orWhere(SupportsConstants::COL_TKT_CR, $user?->id);
+                $query = Support::with([PJC::COL_ASGN, DC::COL_TABLE_CREATOR])->where(DC::COL_TABLE_CREATOR, $ownerId);
+                if ($user[UC::COL_TP] === PMC::CL || strtolower($user[UC::COL_TP]) === 'employee') $query->where(function ($q) use ($user) {
+                    $q->where(SC::COL_USR, $user?->id)->orWhere(SC::COL_TKT_CR, $user?->id);
                 });
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);

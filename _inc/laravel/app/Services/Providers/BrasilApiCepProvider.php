@@ -41,7 +41,7 @@ final class BrasilApiCepProvider
 				service: $service !== '' ? $service : null
 			);
 		} catch (\Throwable $t) {
-			Log::warning('BrasilApiCepProvider failed', [
+			Log::notice('BrasilApiCepProvider failed', [
 				'zip' => $zip,
 				'error' => $t->getMessage(),
 			]);

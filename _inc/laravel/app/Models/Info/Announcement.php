@@ -9,6 +9,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Traits\{
+    DescribesCompanyBranch,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Log;
 
 class Announcement extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, DescribesCompanyBranch, HasAuditFields, NormalizesArrays;
 
     protected $table = DC::TABLE_ANC;
 

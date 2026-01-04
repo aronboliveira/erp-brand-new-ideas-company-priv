@@ -15,7 +15,8 @@ trait NormalizesAddresses
 	public static function bootNormalizesAddresses(): void
 	{
 		static::saving(function (self $model) {
-			Schema::hasColumn($model->getTable(), 'phone') && $model->setAttribute(
+			$tableName = $model->getTable();
+			Schema::hasColumn($tableName, 'phone') && $model->setAttribute(
 				'phone',
 				self::normalizePhone(
 					$model->getAttribute('phone'),
@@ -24,7 +25,7 @@ trait NormalizesAddresses
 					false
 				)
 			);
-			Schema::hasColumn($model->getTable(), 'email') && $model->setAttribute(
+			Schema::hasColumn($tableName, 'email') && $model->setAttribute(
 				'email',
 				self::normalizeEmail(
 					$model->getAttribute('email'),
@@ -32,7 +33,7 @@ trait NormalizesAddresses
 					$model->getKey()
 				)
 			);
-			Schema::hasColumn($model->getTable(), BC::COL_BL_EMAIL) && $model->setAttribute(
+			Schema::hasColumn($tableName, BC::COL_BL_EMAIL) && $model->setAttribute(
 				BC::COL_BL_EMAIL,
 				self::normalizeEmail(
 					$model->getAttribute(BC::COL_BL_EMAIL),
@@ -40,7 +41,15 @@ trait NormalizesAddresses
 					$model->getKey()
 				)
 			);
-			Schema::hasColumn($model->getTable(), BC::COL_BL_TEL) && $model->setAttribute(
+			Schema::hasColumn($tableName, BC::COL_SHIP_EMAIL) && $model->setAttribute(
+				BC::COL_SHIP_EMAIL,
+				self::normalizeEmail(
+					$model->getAttribute(BC::COL_SHIP_EMAIL),
+					'shipping_email',
+					$model->getKey()
+				)
+			);
+			Schema::hasColumn($tableName, BC::COL_BL_TEL) && $model->setAttribute(
 				BC::COL_BL_TEL,
 				self::normalizePhone(
 					$model->getAttribute(BC::COL_BL_TEL),
@@ -49,7 +58,16 @@ trait NormalizesAddresses
 					false
 				)
 			);
-			Schema::hasColumn($model->getTable(), BC::COL_BL_ZIP) && $model->setAttribute(
+			Schema::hasColumn($tableName, BC::COL_SHIP_TEL) && $model->setAttribute(
+				BC::COL_SHIP_TEL,
+				self::normalizePhone(
+					$model->getAttribute(BC::COL_SHIP_TEL),
+					'shipping_phone',
+					$model->getKey(),
+					false
+				)
+			);
+			Schema::hasColumn($tableName, BC::COL_BL_ZIP) && $model->setAttribute(
 				BC::COL_BL_ZIP,
 				self::normalizeZip(
 					$model->getAttribute(BC::COL_BL_ZIP),
@@ -58,9 +76,18 @@ trait NormalizesAddresses
 					$model->getKey()
 				)
 			);
-			Schema::hasColumn($model->getTable(), BC::COL_BL_CTR) && self::normalizeBillingCountry($model);
-			Schema::hasColumn($model->getTable(), BC::COL_SHIP_CTR) && self::normalizeShippingCountry($model);
-			Schema::hasColumn($model->getTable(), 'zip') && $model->setAttribute(
+			Schema::hasColumn($tableName, BC::COL_SHIP_ZIP) && $model->setAttribute(
+				BC::COL_SHIP_ZIP,
+				self::normalizeZip(
+					$model->getAttribute(BC::COL_SHIP_ZIP),
+					$model->getAttribute(BC::COL_SHIP_CTR),
+					'shipping_zip',
+					$model->getKey()
+				)
+			);
+			Schema::hasColumn($tableName, BC::COL_BL_CTR) && self::normalizeBillingCountry($model);
+			Schema::hasColumn($tableName, BC::COL_SHIP_CTR) && self::normalizeShippingCountry($model);
+			Schema::hasColumn($tableName, 'zip') && $model->setAttribute(
 				'zip',
 				self::normalizeZip(
 					$model->getAttribute('zip'),

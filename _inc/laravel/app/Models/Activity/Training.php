@@ -14,6 +14,7 @@ use App\Enums\{
     WorkActivityScope
 };
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -25,10 +26,11 @@ use Illuminate\Validation\ValidationException;
 
 class Training extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
     use NormalizesArrays;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_TRAINING;
 

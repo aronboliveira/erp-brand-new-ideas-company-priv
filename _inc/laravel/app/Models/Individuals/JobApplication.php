@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
 use App\Enums\{DEICategory, Gender};
-use App\Traits\{HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
 use Carbon\{Carbon, CarbonImmutable};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\{DB, Log, Schema};
 class JobApplication extends Model
 {
     // todo ParsesDocument will be implemented later
-    use UsesUuids, HasAuditFields, NormalizesAddresses, UsesCountryRegions;
+    use UsesUuids, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesCountryRegions;
 
     protected $table = DC::TABLE_JOB_APPS;
 

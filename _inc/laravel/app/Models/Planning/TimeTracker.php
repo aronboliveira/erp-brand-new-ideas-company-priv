@@ -10,7 +10,7 @@ use App\Config\Constants\{
     SettingsConstants as SC,
     UsersConstants as UC
 };
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
 
 class TimeTracker extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_TM_TRK;
 

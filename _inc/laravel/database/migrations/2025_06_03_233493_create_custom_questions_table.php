@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateCustomQuestionsTable extends Migration
 {
-    // todo
+    // todo 
     use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_CUSTOM_QUESTIONS;
     public function up(): void

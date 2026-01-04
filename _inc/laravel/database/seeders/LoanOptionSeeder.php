@@ -29,6 +29,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => true,
 					BC::COL_TC      => 'Sujeito a elegibilidade do RH e margem consignável.',
 				],
 				[
@@ -42,6 +43,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => true,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => true,
 					BC::COL_TC      => 'Requer comprovação de vínculo estatutário.',
 				],
 				[
@@ -55,6 +57,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => false,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => false,
 					BC::COL_TC      => 'Limitado a 30% do salário líquido.',
 				],
 				[
@@ -68,6 +71,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 30,
+					BC::COL_ALW_PAY_RL_DDT => true,
 					BC::COL_TC      => 'FGTS bloqueado proporcional durante a vigência.',
 				],
 				[
@@ -81,6 +85,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 15,
+					BC::COL_ALW_PAY_RL_DDT => false,
 					BC::COL_TC      => 'Comprovação de compra vinculada ao trabalho.',
 				],
 				[
@@ -94,6 +99,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => true,
 					BC::COL_TC      => 'Necessária comprovação do evento/nota fiscal.',
 				],
 				[
@@ -107,6 +113,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => true,
 					BC::COL_TC      => 'Comprovação de matrícula e desempenho quando aplicável.',
 				],
 				[
@@ -120,6 +127,7 @@ final class LoanOptionSeeder extends Seeder
 					BC::COL_SVR_GRT => false,
 					BC::COL_RNGT    => true,
 					BC::COL_GRC_PRD_DYS => 0,
+					BC::COL_ALW_PAY_RL_DDT => false,
 					BC::COL_TC      => 'Liquidação dos contratos anteriores no ato.',
 				],
 			];

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, SettingsConstants as SC, UsersConstants as UC};
 use App\Enums\{TransactionType, TransferType, UserType};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,9 +15,11 @@ use Illuminate\Support\Str;
 class JournalItem extends Model
 {
     use UsesUuids;
-    use SoftDeletes;
     use HasAuditFields;
     use NormalizesArrays;
+    use DescribesCompanyBranch;
+    use FiltersSecureAttachments;
+    use SoftDeletes;
 
     protected $table = DC::TABLE_JRN_IT;
 

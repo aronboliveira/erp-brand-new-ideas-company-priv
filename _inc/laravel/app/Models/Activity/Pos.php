@@ -10,10 +10,12 @@ use App\Config\Constants\{
 };
 use App\Enums\{CountryName, PosStatus, PosType, TransactionType};
 use App\Traits\{
+    DescribesCompanyBranch,
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
-    UsesUuids
+    UsesCountryRegions,
+    UsesUuids,
 };
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{
@@ -27,10 +29,12 @@ use Illuminate\Http\RedirectResponse;
 
 class Pos extends Model
 {
+    use DescribesCompanyBranch;
     use ChecksLogin;
     use HasAuditFields;
     use HasFactory;
     use NormalizesAddresses;
+    use UsesCountryRegions;
     use UsesUuids;
 
     protected $table = DC::TABLE_POS;

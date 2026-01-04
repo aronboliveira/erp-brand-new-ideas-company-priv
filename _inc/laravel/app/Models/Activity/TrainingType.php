@@ -11,6 +11,7 @@ use App\Enums\{
     IndicatorTechnicalLevel
 };
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -21,10 +22,11 @@ use Illuminate\Support\Facades\Log;
 
 class TrainingType extends Model
 {
-    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
+    use HasFactory;
     use NormalizesArrays;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_TRAINING_TYPES;
 

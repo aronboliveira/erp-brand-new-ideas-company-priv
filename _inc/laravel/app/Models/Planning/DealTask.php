@@ -4,18 +4,13 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, PriorityLevel};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
+use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
+use Illuminate\Support\{Carbon, Facades\Log, Str};
 
 class DealTask extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_DL_TSK;
 

@@ -1,12 +1,13 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateFormResponsesTable extends Migration
 {
-    private const TABLE = 'form_responses';
+    // todo
+    private const TABLE = DC::TABLE_FORM_RSP;
     private const COL_FORM = 'form_id';
     public function up(): void
     {
@@ -15,11 +16,11 @@ class CreateFormResponsesTable extends Migration
             $table->uuid(self::COL_FORM)->index();             // ! CHANGED
             $table->text('response')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
             foreach (
                 [
-                    self::COL_FORM    => DatabaseConstants::TABLE_FORM_BUILD,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    self::COL_FORM    => DC::TABLE_FORM_BUILD,
+                    DC::COL_TABLE_CREATOR => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -32,7 +33,7 @@ class CreateFormResponsesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([self::COL_FORM, DatabaseConstants::COL_TABLE_CREATOR] as $column) {
+            foreach ([self::COL_FORM, DC::COL_TABLE_CREATOR] as $column) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

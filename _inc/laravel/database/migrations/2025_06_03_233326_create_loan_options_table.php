@@ -33,6 +33,7 @@ class CreateLoanOptionsTable extends Migration
                 ->nullable(); // ? Nullable para testes iniciais
             $table->text(BC::COL_TC)
                 ->nullable(); // ? Nullable para testes iniciais
+            $table->boolean(BC::COL_ALW_PAY_RL_DDT)->default(false)->nullable(); // ? Nullable para testes iniciais
             $this->addAuditColumns($table);
         });
     }

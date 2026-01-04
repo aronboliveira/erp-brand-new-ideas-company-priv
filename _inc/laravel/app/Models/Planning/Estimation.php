@@ -15,6 +15,7 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
+    UsesCountryRegions,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -29,7 +30,11 @@ use Illuminate\Support\Facades\Log;
 
 class Estimation extends Model
 {
-    use ChecksLogin, HasAuditFields, NormalizesAddresses, UsesUuids;
+    use ChecksLogin,
+        HasAuditFields,
+        NormalizesAddresses,
+        UsesCountryRegions,
+        UsesUuids;
 
     protected $table = DC::TABLE_EST;
 

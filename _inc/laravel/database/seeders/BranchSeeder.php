@@ -16,12 +16,13 @@ use Illuminate\Support\Str;
 final class BranchSeeder extends Seeder
 {
 	use EnsuresSystemUser;
+	public const COL_HARD_CAP = 16000;
 
 	public function run(): void
 	{
 		DB::transaction(function (): void {
 			$systemUserId = $this->ensureSystemUser();
-
+			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			$userIds = Usr::query()->pluck('id')->all();
 			$pickUser = function () use ($userIds, $systemUserId) {
 				return $userIds ? $userIds[array_rand($userIds)] : $systemUserId;
@@ -297,7 +298,13 @@ final class BranchSeeder extends Seeder
 			$sequence = collect($countries)->shuffle()->values()->all();
 			while (count($sequence) < $rows) $sequence[] = $pickWeightedCountry($countries, $weights);
 
+			$acc = 0;
+			$retryAcc = 0;
 			foreach ($sequence as $countryCase) {
+				$acc++;
+				$retryAcc++;
+				if ($acc > self::COL_HARD_CAP) break;
+				if ($retryAcc > 256) continue;
 				try {
 					$countryCase = $countryCase instanceof CountryName ? $countryCase : (CountryName::normalize((string) $countryCase) ?? CountryName::Brazil);
 					$countryName = $countryCase->value;
@@ -411,7 +418,7 @@ final class BranchSeeder extends Seeder
 
 					$b->{DC::COL_TABLE_CREATOR} = $systemUserId;
 					$b->setAttribute(DC::COL_TABLE_UPDATER, null);
-
+					$output->writeln('Creating branch [' . $branchId . '] ' . $branchName . ' (' . $countryName . ', ' . $state . ', ' . $city . ') from company . ' . (DB::table(DC::TABLE_USERS)->where('id', $companyId)->value('name') ?? 'Unnamed') . '[' . ($companyId ?? 'Unidentified') . ']');
 					$b->save();
 				} catch (\Throwable $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());

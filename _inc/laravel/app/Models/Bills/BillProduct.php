@@ -9,6 +9,7 @@ use App\Config\Constants\{
 };
 use App\Models\User;
 use App\Traits\{
+    FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -23,10 +24,11 @@ use Illuminate\Support\Facades\Log;
 
 class BillProduct extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
     use NormalizesArrays;
-    use UsesUuids;
+    use FiltersSecureAttachments;
 
     protected $fillable = [
         BC::COL_BL_ID,

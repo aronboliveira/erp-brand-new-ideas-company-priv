@@ -3,7 +3,8 @@
 use App\Config\Constants\{
     BillsConstants as BC,
     DatabaseConstants as DC,
-    ProjectsConstants as PJC
+    ProjectsConstants as PJC,
+    SettingsConstants as SC,
 };
 use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
@@ -23,14 +24,16 @@ class CreateLoansTable extends Migration
             $table->uuid('id')->primary();
             $this->addEmployeeColumns($table, unique: false, nullable: false);
             $table->uuid(BC::COL_LN_OPT)->nullable()->index();
-            $table->string('title');
+            $table->string('title')->index();
             $table->decimal('amount', 15, 2)->default(0.00);
+            $table->string('currency', 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable for tests
             $table->string('type')->nullable()->index();
             $table->date(PJC::COL_S_DT);
             $table->date(PJC::COL_E_DT)->nullable();
             $table->string('reason');
             $table->string(BC::COL_DD_TYPE)->nullable()->index();
             $table->unsignedSmallInteger('installments')->nullable(); // ? Nullable para fase inicial; em produção deveria ser obrigatório p/ consignados
+            $table->boolean(BC::COL_IS_PAY_RL_DDT)->default(false)->nullable(); // ? Nullable para fase inicial
             $this->addAuditColumns($table);
             $table->foreign(BC::COL_LN_OPT)
                 ->references('id')

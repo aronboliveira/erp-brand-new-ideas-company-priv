@@ -9,7 +9,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\UserType;
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 
 class TaskChecklist extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, HasAuditFields, NormalizesArrays, HasFactory, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_TSK_CHKL;
 

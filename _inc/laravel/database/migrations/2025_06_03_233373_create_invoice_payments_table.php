@@ -22,7 +22,7 @@ class CreateInvoicePaymentsTable extends Migration
             $table->uuid(BC::COL_OD_ID)->nullable();
             $table->uuid(BC::COL_TAX_ID)->nullable();
             $table->string('currency')->nullable(); // * this will be kept for legacy reasons, but should be deprecated in future versions and booted and saving should ensure that the BC::COL_CUR_ID matches the currency of the linked invoice and this one, with the hierarchy: COL_CUR_ID in invoice > COL_CUR_ID in payment, found in the payment columns > 'currency' in payment, here listed
-            $table->string('receipt')->nullable();
+            $table->string('receipt')->nullable(); // * constrained at model level to be match a secure url (with https + domain at env(APP_URL) or known domains of storage providers) OR a file path at the local filesystem OR a id for an existing Document (model) row
             $table->foreign(BC::COL_OD_ID)
                 ->references('id')
                 ->on(DC::TABLE_ORDERS)

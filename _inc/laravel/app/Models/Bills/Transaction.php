@@ -14,6 +14,7 @@ use App\Enums\{
 };
 use App\Traits\{
     HasAuditFields,
+    HasPaymentColumns,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -30,7 +31,7 @@ use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
-    use UsesUuids, HasAuditFields;
+    use UsesUuids, HasPaymentColumns, HasAuditFields;
 
     public const TABLE = DC::TABLE_TRS;
 

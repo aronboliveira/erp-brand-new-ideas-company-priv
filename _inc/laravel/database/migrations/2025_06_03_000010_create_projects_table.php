@@ -23,8 +23,8 @@ class CreateProjectsTable extends Migration
             $table->text(PJC::COL_DESCRIPTION)->nullable();
             $table->string(PJC::COL_STATUS);
             $table->string(PJC::COL_E_HRS)->nullable();
-            $table->string(PJC::COL_PASSWORD)->nullable();                // * consider adding to $fillable
-            $table->text(PJC::COL_COPYLINK)->nullable();           // * consider adding to $fillable
+            $table->string(PJC::COL_PASSWORD)->nullable();
+            $table->text(PJC::COL_COPYLINK)->nullable();
             $table->text(PJC::COL_TAGS)->nullable();
             foreach (
                 [

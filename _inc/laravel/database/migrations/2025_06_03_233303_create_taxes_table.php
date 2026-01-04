@@ -14,6 +14,7 @@ class CreateTaxesTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
+            $table->text('description')->nullable();
             $table->decimal('rate', 5, 2)->default(0.00);
             $this->addAuditColumns($table);
         });

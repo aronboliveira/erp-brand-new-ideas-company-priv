@@ -72,4 +72,5 @@ class UsersConstants
 	public const COL_VD_ID = 'vendor_id';
 	public const COL_ENT_TP = 'entity_type';
 	public const COL_ENT_CD = 'entity_code';
+	public const COL_RQ_PLN = 'requested_plan';
 }

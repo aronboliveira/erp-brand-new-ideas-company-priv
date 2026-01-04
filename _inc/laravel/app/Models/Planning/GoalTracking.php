@@ -5,14 +5,14 @@ namespace App\Models;
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, PriorityLevel};
 use App\Models\{Branch, Department, Goal, GoalType as GoalTypeModel, User};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Str};
 use Illuminate\Support\Facades\Log;
 
 class GoalTracking extends Model
 {
-    use HasAuditFields, UsesUuids, NormalizesArrays;
+    use UsesUuids, HasAuditFields, DescribesCompanyBranch, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_GL_TRK;
 
@@ -81,7 +81,7 @@ class GoalTracking extends Model
         if (self::$status === []) {
             try {
                 $enumValues = method_exists(EvaluationStatus::class, 'values')
-                    ? EvaluationStatus::values()
+                    ? array_column(EvaluationStatus::cases(), 'value')
                     : array_map(fn(EvaluationStatus $c) => $c->value, EvaluationStatus::cases());
 
                 self::$status = array_values(array_unique([

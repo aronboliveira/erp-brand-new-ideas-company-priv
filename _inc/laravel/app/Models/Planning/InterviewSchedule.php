@@ -8,7 +8,7 @@ use App\Config\Constants\{
     ProjectsConstants as PJC,
     UsersConstants as UC
 };
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Builder, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{Cache, DB, Log};
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 
 class InterviewSchedule extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_ITV_SCD;
 

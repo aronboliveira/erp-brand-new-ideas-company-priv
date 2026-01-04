@@ -10,14 +10,14 @@ use App\Config\Constants\{
 };
 use App\Enums\AssetType;
 use App\Models\Employee;
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Str};
 use Illuminate\Support\Facades\Log;
 
 class Asset extends Model
 {
-    use HasAuditFields, UsesUuids, NormalizesArrays;
+    use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments;
 
     protected $table = DC::TABLE_AST;
 

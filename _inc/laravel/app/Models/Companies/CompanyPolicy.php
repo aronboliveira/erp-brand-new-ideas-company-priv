@@ -10,7 +10,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\{AvailableLang, EvaluationStatus, UserType};
-use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
+use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\{DB, Log};
@@ -21,6 +21,7 @@ class CompanyPolicy extends Model
     use UsesUuids;
     use HasAuditFields;
     use NormalizesAddresses;
+    use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_CPN_POL;
 

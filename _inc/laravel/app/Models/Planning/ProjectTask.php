@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\{AppModuleType, EvaluationStatus, PriorityLevel};
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{ChecksLogin, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Model};
 use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 class ProjectTask extends Model
 {
-    use ChecksLogin, UsesUuids;
+    use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments, PlansByHierarchy, ChecksLogin;
 
     protected $table = DC::TABLE_PROJ_TSKS;
 

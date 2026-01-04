@@ -15,6 +15,7 @@ use App\Enums\{
 use App\Traits\{
     HasAuditFields,
     NormalizesAddresses,
+    UsesCountryRegions,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -30,6 +31,7 @@ class Invoice extends Model
     use HasAuditFields;
     use HasFactory;
     use NormalizesAddresses;
+    use UsesCountryRegions;
     use UsesUuids;
 
     protected $table = DC::TABLE_INVS;
