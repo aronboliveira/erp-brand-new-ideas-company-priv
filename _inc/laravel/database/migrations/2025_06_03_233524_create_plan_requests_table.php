@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC, UsersConstants as UC};
 use App\Enums\Frequency;
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
@@ -29,6 +29,7 @@ class CreatePlanRequestsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(UC::COL_USER_ID)->index();
             $table->uuid(UC::COL_PLAN_ID)->index();
+            $table->uuid(FC::COL_FM_ID)->nullable()->index();
             $table->enum('duration', array_column(Frequency::cases(), 'value'))->default(Frequency::Monthly->value);
             $table->text('notes')->nullable();
             $table->json('attachments')->nullable();
@@ -36,6 +37,7 @@ class CreatePlanRequestsTable extends Migration
                 [
                     UC::COL_USER_ID                  => DC::TABLE_USERS,
                     UC::COL_PLAN_ID                  => DC::TABLE_PLANS,
+                    FC::COL_FM_ID                    => DC::TABLE_FORM_BUILD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -54,6 +56,7 @@ class CreatePlanRequestsTable extends Migration
                 [
                     UC::COL_USER_ID,
                     UC::COL_PLAN_ID,
+                    FC::COL_FM_ID,
                 ] as $col
             ) {
                 try {

@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\DatabaseConstants as DC;
 
 enum FieldType: string
 {
@@ -101,7 +101,7 @@ enum FieldType: string
 		return array_map(fn($case) => $case->value, self::cases());
 	}
 
-	public static function labels($lang = DatabaseConstants::DEFAULT_LANG): array
+	public static function labels($lang = DC::DEFAULT_LANG): array
 	{
 		$lang = preg_replace('/_/', '-', strtolower(trim($lang ?? '')));
 		return match ($lang) {
@@ -123,7 +123,7 @@ enum FieldType: string
 		};
 	}
 
-	public static function placeholders($lang = DatabaseConstants::DEFAULT_LANG): array
+	public static function placeholders($lang = DC::DEFAULT_LANG): array
 	{
 		$lang = preg_replace('/_/', '-', strtolower(trim($lang ?? '')));
 		return match ($lang) {
@@ -142,6 +142,150 @@ enum FieldType: string
 			'tr', 'tr-tr' => self::placeholdersTr(),
 			'zh', 'zh-cn' => self::placeholdersZh(),
 			default => self::placeholdersEn(),
+		};
+	}
+
+	/**
+	 * Get HTML input type attribute for each field type
+	 */
+	public static function htmlTypes(): array
+	{
+		return [
+			self::Text->value          => 'text',
+			self::Email->value         => 'email',
+			self::Tel->value           => 'tel',
+			self::Number->value        => 'number',
+			self::Date->value          => 'date',
+			self::Url->value           => 'url',
+			self::RadioGroup->value    => 'radio',
+			self::Checkbox->value      => 'checkbox',
+			self::Select->value        => 'select',
+			self::Time->value          => 'time',
+			self::DateTimeLocal->value => 'datetime-local',
+			self::Month->value         => 'month',
+			self::Week->value          => 'week',
+			self::Textarea->value      => 'textarea',
+			self::Range->value         => 'range',
+			self::Color->value         => 'color',
+			self::File->value          => 'file',
+			self::Password->value      => 'password',
+			self::Search->value        => 'search',
+		];
+	}
+
+	/**
+	 * Get validation rules for each field type
+	 */
+	public static function validationRules(): array
+	{
+		return [
+			self::Text->value          => 'string|max:255',
+			self::Email->value         => 'email|max:255',
+			self::Tel->value           => 'string|regex:/^[\d\s\-\+\(\)]+$/',
+			self::Number->value        => 'numeric',
+			self::Date->value          => 'date',
+			self::Url->value           => 'url|max:255',
+			self::RadioGroup->value    => 'string|in_array',
+			self::Checkbox->value      => 'boolean',
+			self::Select->value        => 'string',
+			self::Time->value          => 'date_format:H:i',
+			self::DateTimeLocal->value => 'date',
+			self::Month->value         => 'date_format:Y-m',
+			self::Week->value          => 'date_format:Y-\WW',
+			self::Textarea->value      => 'string|max:65535',
+			self::Range->value         => 'numeric|min:0|max:100',
+			self::Color->value         => 'regex:/^#[0-9A-F]{6}$/i',
+			self::File->value          => 'file|max:10240', // 10MB
+			self::Password->value      => 'string|min:8|max:255',
+			self::Search->value        => 'string|max:255',
+		];
+	}
+
+	/**
+	 * Get icon for each field type (for UI)
+	 */
+	public static function icons(): array
+	{
+		return [
+			self::Text->value          => 'text-fields',
+			self::Email->value         => 'email',
+			self::Tel->value           => 'phone',
+			self::Number->value        => 'numbers',
+			self::Date->value          => 'calendar-today',
+			self::Url->value           => 'link',
+			self::RadioGroup->value    => 'radio-button-checked',
+			self::Checkbox->value      => 'check-box',
+			self::Select->value        => 'arrow-drop-down',
+			self::Time->value          => 'access-time',
+			self::DateTimeLocal->value => 'date-range',
+			self::Month->value         => 'event-note',
+			self::Week->value          => 'view-week',
+			self::Textarea->value      => 'notes',
+			self::Range->value         => 'linear-scale',
+			self::Color->value         => 'palette',
+			self::File->value          => 'attach-file',
+			self::Password->value      => 'lock',
+			self::Search->value        => 'search',
+		];
+	}
+
+	/**
+	 * Check if field type requires multiple values
+	 */
+	public function isMultiple(): bool
+	{
+		return match ($this) {
+			self::Select,
+			self::Checkbox,
+			self::File => true,
+			default => false,
+		};
+	}
+
+	public function isTextual(): bool
+	{
+		return match ($this) {
+			self::Text,
+			self::Email,
+			self::Tel,
+			self::Textarea,
+			self::Search,
+			self::Url,
+			self::Password => true,
+			default => false,
+		};
+	}
+
+	public function isNumeric(): bool
+	{
+		return match ($this) {
+			self::Number,
+			self::Range => true,
+			default => false,
+		};
+	}
+
+	public function isCheckable(): bool
+	{
+		return match ($this) {
+			self::Checkbox,
+			self::RadioGroup => true,
+			default => false,
+		};
+	}
+
+	/**
+	 * Check if field type is a date/time type
+	 */
+	public function isDateTime(): bool
+	{
+		return match ($this) {
+			self::Date,
+			self::Time,
+			self::DateTimeLocal,
+			self::Month,
+			self::Week => true,
+			default => false,
 		};
 	}
 
@@ -923,149 +1067,5 @@ enum FieldType: string
 			self::Password->value      => '••••••••',
 			self::Search->value        => '搜索...',
 		];
-	}
-
-	/**
-	 * Get HTML input type attribute for each field type
-	 */
-	public static function htmlTypes(): array
-	{
-		return [
-			self::Text->value          => 'text',
-			self::Email->value         => 'email',
-			self::Tel->value           => 'tel',
-			self::Number->value        => 'number',
-			self::Date->value          => 'date',
-			self::Url->value           => 'url',
-			self::RadioGroup->value    => 'radio',
-			self::Checkbox->value      => 'checkbox',
-			self::Select->value        => 'select',
-			self::Time->value          => 'time',
-			self::DateTimeLocal->value => 'datetime-local',
-			self::Month->value         => 'month',
-			self::Week->value          => 'week',
-			self::Textarea->value      => 'textarea',
-			self::Range->value         => 'range',
-			self::Color->value         => 'color',
-			self::File->value          => 'file',
-			self::Password->value      => 'password',
-			self::Search->value        => 'search',
-		];
-	}
-
-	/**
-	 * Get validation rules for each field type
-	 */
-	public static function validationRules(): array
-	{
-		return [
-			self::Text->value          => 'string|max:255',
-			self::Email->value         => 'email|max:255',
-			self::Tel->value           => 'string|regex:/^[\d\s\-\+\(\)]+$/',
-			self::Number->value        => 'numeric',
-			self::Date->value          => 'date',
-			self::Url->value           => 'url|max:255',
-			self::RadioGroup->value    => 'string|in_array',
-			self::Checkbox->value      => 'boolean',
-			self::Select->value        => 'string',
-			self::Time->value          => 'date_format:H:i',
-			self::DateTimeLocal->value => 'date',
-			self::Month->value         => 'date_format:Y-m',
-			self::Week->value          => 'date_format:Y-\WW',
-			self::Textarea->value      => 'string|max:65535',
-			self::Range->value         => 'numeric|min:0|max:100',
-			self::Color->value         => 'regex:/^#[0-9A-F]{6}$/i',
-			self::File->value          => 'file|max:10240', // 10MB
-			self::Password->value      => 'string|min:8|max:255',
-			self::Search->value        => 'string|max:255',
-		];
-	}
-
-	/**
-	 * Get icon for each field type (for UI)
-	 */
-	public static function icons(): array
-	{
-		return [
-			self::Text->value          => 'text-fields',
-			self::Email->value         => 'email',
-			self::Tel->value           => 'phone',
-			self::Number->value        => 'numbers',
-			self::Date->value          => 'calendar-today',
-			self::Url->value           => 'link',
-			self::RadioGroup->value    => 'radio-button-checked',
-			self::Checkbox->value      => 'check-box',
-			self::Select->value        => 'arrow-drop-down',
-			self::Time->value          => 'access-time',
-			self::DateTimeLocal->value => 'date-range',
-			self::Month->value         => 'event-note',
-			self::Week->value          => 'view-week',
-			self::Textarea->value      => 'notes',
-			self::Range->value         => 'linear-scale',
-			self::Color->value         => 'palette',
-			self::File->value          => 'attach-file',
-			self::Password->value      => 'lock',
-			self::Search->value        => 'search',
-		];
-	}
-
-	/**
-	 * Check if field type requires multiple values
-	 */
-	public function isMultiple(): bool
-	{
-		return match ($this) {
-			self::Select,
-			self::Checkbox,
-			self::File => true,
-			default => false,
-		};
-	}
-
-	public function isTextual(): bool
-	{
-		return match ($this) {
-			self::Text,
-			self::Email,
-			self::Tel,
-			self::Textarea,
-			self::Search,
-			self::Url,
-			self::Password => true,
-			default => false,
-		};
-	}
-
-	public function isNumeric(): bool
-	{
-		return match ($this) {
-			self::Number,
-			self::Range => true,
-			default => false,
-		};
-	}
-
-	public function isCheckable(): bool
-	{
-		return match ($this) {
-			self::Checkbox,
-			self::RadioGroup => true,
-			default => false,
-		};
-	}
-
-	/**
-	 * Check if field type is a date/time type
-	 */
-	public function isDateTime(): bool
-	{
-		return match ($this) {
-			self::Date,
-			self::Time,
-			self::DateTimeLocal,
-			self::Month,
-			self::Week => true,
-			default => false,
-		};
 	}
 }

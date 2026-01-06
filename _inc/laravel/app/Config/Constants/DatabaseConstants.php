@@ -185,6 +185,7 @@ class DatabaseConstants
 	public const TABLE_CMPT = 'competencies';
 	public const TABLE_TRK_PHT = 'track_photos';
 	public const TABLE_PLAN_REQUESTS = 'plan_requests';
+	public const TABLE_FM_FLD_RSP = 'fm_field_responses';
 
 	// * FIELD NAMES
 	// invoice

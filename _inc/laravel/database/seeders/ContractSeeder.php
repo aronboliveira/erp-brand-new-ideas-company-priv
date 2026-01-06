@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Enums\EvaluationStatus;
 use App\Models\{Contract, ContractType};
 use App\Traits\EnsuresSystemUser;
 use Carbon\CarbonImmutable;
@@ -113,7 +114,7 @@ final class ContractSeeder extends Seeder
 			};
 
 			$freqOptions = ['once', 'variable', 'hourly', 'biweekly', 'weekly', 'semimonthly', 'semestral', 'monthly', 'annual'];
-			$statusOptions = ['draft', 'pending', 'active', 'suspended', 'completed', 'cancelled'];
+			$statusOptions = array_column(EvaluationStatus::cases(), 'value');
 
 			// -- Linhas a semear (com dados ricos do Faker) -------------------
 

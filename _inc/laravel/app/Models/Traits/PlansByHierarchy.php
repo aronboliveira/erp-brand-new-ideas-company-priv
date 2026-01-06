@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, SupportsConstants as SC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, FormsConstants as FC, ProjectsConstants as PJC, SupportsConstants as SC};
 use App\Enums\{EvaluationStatus, UserType};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -258,6 +258,22 @@ trait PlansByHierarchy
 						'model_id' => $model->getKey()
 					]);
 				}
+			}
+			if (Schema::hasColumn($tableName, FC::COL_DPL_BY)) {
+				$deployer = $model->getAttribute(FC::COL_DPL_BY);
+				$hasDplAt = Schema::hasColumn($tableName, FC::COL_DPL_AT);
+				if (empty($deployer))
+					$hasDplAt && $model->setAttribute(FC::COL_DPL_AT, null);
+				else if (empty($model->getAttribute(FC::COL_DPL_AT)))
+					$hasDplAt && $model->setAttribute(FC::COL_DPL_AT, now());
+			}
+			if (Schema::hasColumn($tableName, FC::COL_PUB_BY)) {
+				$publisher = $model->getAttribute(FC::COL_PUB_BY);
+				$hasPUBAt = Schema::hasColumn($tableName, FC::COL_PUB_AT);
+				if (empty($publisher))
+					$hasPUBAt && $model->setAttribute(FC::COL_PUB_AT, null);
+				else if (empty($model->getAttribute(FC::COL_PUB_AT)))
+					$hasPUBAt && $model->setAttribute(FC::COL_PUB_AT, now());
 			}
 		});
 	}

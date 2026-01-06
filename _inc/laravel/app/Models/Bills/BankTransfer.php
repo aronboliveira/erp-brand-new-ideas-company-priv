@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{MimeType, PaymentMethod};
-use App\Traits\{HasAuditFields, HasPaymentColumns, UsesUuids};
+use App\Traits\{HasAuditFields, HasPaymentColumns, TracksFailures, UsesUuids};
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
@@ -12,11 +12,9 @@ use Illuminate\Support\Facades\Log;
 
 class BankTransfer extends Model
 {
-    use HasAuditFields, HasPaymentColumns, UsesUuids;
+    use UsesUuids, HasAuditFields, HasPaymentColumns, TracksFailures;
 
-    public const TABLE = DC::TABLE_BNK_TRF;
-
-    protected $table = self::TABLE;
+    protected $table = DC::TABLE_BNK_TRF;
 
     protected $fillable = [
         BC::COL_ACC_FROM,
@@ -33,9 +31,7 @@ class BankTransfer extends Model
         BC::COL_SCHD_TRF_TS,
         BC::COL_EXC_AT,
         BC::COL_CNC_AT,
-        DC::COL_FL_AT,
         BC::COL_CMP_AT,
-        DC::COL_FLD_RS,
         BC::COL_CNC_RS,
         BC::COL_IS_SCD,
         BC::COL_CAN_CHG_BK,
@@ -56,15 +52,12 @@ class BankTransfer extends Model
         'invoice',
         'payslip',
         BC::COL_PRD_SV_UNT,
-        DC::COL_ER_LG,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [
         'id',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [

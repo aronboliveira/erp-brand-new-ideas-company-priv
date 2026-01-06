@@ -16,6 +16,9 @@ class EmailsConstants
 	public const COL_ATC = 'attachments';
 	public const COL_IA = 'is_active';
 	public const COL_PRT_ID = 'parent_id';
+	public const COL_RCV_TMP = 'received_template';
+	public const COL_SBM_TMP = 'submitted_template';
+	public const COL_FLD_TMP = 'failed_template';
 	public const STATUS_MAP = [
 		'new_user' => 'New User',
 		'new_client' => 'New Client',

@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC, UsersConstants as UC};
 use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -18,11 +18,18 @@ class CreateTerminationsTable extends Migration
                 $table->date(UC::COL_TERMINATION_NDT)->default(now()->format('Y-m-d'));
                 $table->date(UC::COL_TERMINATION_DT)->default(now()->addDays(30)->format('Y-m-d'));
                 $table->uuid(UC::COL_TERMINATION_TP)->nullable();
+                $table->uuid(FC::COL_FM_ID)->nullable()->index(); // ? related exit interview form
                 $table->string('description')->nullable();
-                $table->foreign(UC::COL_TERMINATION_TP)
-                    ->references('id')
-                    ->on(DC::TABLE_TERMINATION_TYPES)
-                    ->nullOnDelete();
+                foreach (
+                    [
+                        UC::COL_TERMINATION_TP => DC::TABLE_TERMINATION_TYPES,
+                        FC::COL_FM_ID => DC::TABLE_FORM_BUILD,
+                    ] as $col => $tableName
+                )
+                    $table->foreign($col)
+                        ->references('id')
+                        ->on($tableName)
+                        ->nullOnDelete();
                 $this->addAuditColumns($table);
             });
     }

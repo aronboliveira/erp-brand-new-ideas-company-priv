@@ -4,15 +4,16 @@ namespace App\Models;
 
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\ProjectsConstants as PJC;
-use App\Traits\{HasAuditFields, UsesCountryRegions, UsesUuids};
+use App\Traits\{HasAuditFields, UsesCountryRegions, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Holiday extends Model
 {
-    use HasAuditFields;
-    use UsesCountryRegions;
     use UsesUuids;
+    use HasAuditFields;
+    use StoresManyRefJson;
+    use UsesCountryRegions;
 
     protected $table = DC::TABLE_HLD;
 

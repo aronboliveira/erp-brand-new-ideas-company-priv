@@ -7,7 +7,8 @@ use App\Enums\{EvaluationStatus, Frequency};
 use App\Traits\{ChecksLogin, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
-use Illuminate\Support\Facades\{Log, Validator};
+use Illuminate\Support\Facades\{DB, Log, Validator};
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
@@ -18,6 +19,7 @@ class Contract extends Model
 
     protected $table = self::TABLE;
 
+    // * legacy, prefer using EvaluationStatus enum
     private const STATUS_OPTIONS = [
         'accept'  => 'Accept',
         'decline' => 'Decline',
@@ -111,6 +113,15 @@ class Contract extends Model
     {
         parent::booted();
         static::saving(function (self $c): void {
+            if (empty((string) trim($c->getAttribute('code'))) || !is_string($c->getAttribute('code'))) {
+                do $newCode = 'CTR-' . strtoupper((string) Str::uuid());
+                while (DB::table(self::TABLE)->where('code', $newCode)->exists());
+                $c->setAttribute('code', $newCode);
+            }
+            if ($c->getAttribute('frequency') === null || !in_array($c->getAttribute('frequency'), array_column(Frequency::cases(), 'value'), true))
+                $c->setAttribute('frequency', Frequency::Once->value);
+            if ($c->getAttribute('status') === null || !in_array($c->getAttribute('status'), array_column(EvaluationStatus::cases(), 'value'), true))
+                $c->setAttribute('status', EvaluationStatus::Draft->value);
             if ($c->getAttribute('renewable') === false)
                 $c->setAttribute(PJC::COL_ARNW, false);
             $start = $c->getAttribute(PJC::COL_S_DT);
@@ -131,6 +142,7 @@ class Contract extends Model
                 if ($t)
                     self::applyTypeConstraints($c, $t);
             }
+            $c->applyDynamicStatusFromColumns();
             $v = Validator::make($c->getAttributes(), [
                 'currency' => ['nullable', 'string', 'max:8'],
                 'value'    => ['nullable', 'regex:/^\d+(\.\d{1,2})?$/'], // compatível com coluna string
@@ -225,11 +237,6 @@ class Contract extends Model
         return $this->{PJC::COL_S_DT}->diffInMonths($this->{PJC::COL_E_DT}) ?: 0;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mutators (saneamento defensivo)
-    |--------------------------------------------------------------------------
-    */
     public function setValueAttribute($raw): void
     {
         if ($raw === null || $raw === '') {
@@ -294,7 +301,7 @@ class Contract extends Model
         return $this->contractType();
     }
 
-    public static function getContractSummary($contracts): string // ! CHANGED
+    public static function getContractSummary($contracts): string
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -337,7 +344,7 @@ class Contract extends Model
         return $this->hasMany(ContractNotes::class, 'contract_id', 'id');
     }
 
-    public function contractAttachment(): BelongsTo // ! CHANGED
+    public function contractAttachment(): BelongsTo
     {
         return $this->belongsTo(ContractAttachment::class, 'id', 'contract_id');
     }
@@ -347,12 +354,12 @@ class Contract extends Model
         return $this->contractAttachment();
     }
 
-    public function contractComment(): BelongsTo // ! CHANGED
+    public function contractComment(): BelongsTo
     {
         return $this->belongsTo(ContractComment::class, 'id', 'contract_id');
     }
 
-    public function contractNote(): BelongsTo // ! CHANGED
+    public function contractNote(): BelongsTo
     {
         return $this->belongsTo(ContractNotes::class, 'id', 'contract_id');
     }
@@ -371,5 +378,172 @@ class Contract extends Model
             && $this->end_date
             && $this->start_date->lessThanOrEqualTo($today)
             && $this->end_date->greaterThanOrEqualTo($today);
+    }
+
+    /**
+     * Call from booted()->saving() AFTER other trait normalizations have run.
+     * This method ONLY mutates the "status" attribute.
+     */
+    protected function applyDynamicStatusFromColumns(): void
+    {
+        try {
+            $next = $this->inferDynamicStatusFromColumns();
+            if (!$next) return;
+
+            $cur = EvaluationStatus::normalize($this->getAttribute('status'));
+            if ($cur->value !== $next->value)
+                $this->setAttribute('status', $next->value);
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to apply dynamic status', [
+                'id'    => $this->getAttribute('id'),
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+        }
+    }
+
+    /**
+     * Computes status purely from:
+     * - dates: start/end (PJC::COL_S_DT / PJC::COL_E_DT)
+     * - approval: (PJC::COL_APV_BY / PJC::COL_APV_AT)
+     * - beneficiary validity: client_id OR (client_name OR (obl_name || obl_idf))
+     * - obligor validity: (obg_name || obg_idf)
+     *
+     * Returns null when you should not override the existing status.
+     */
+    protected function inferDynamicStatusFromColumns(): ?EvaluationStatus
+    {
+        $cur = EvaluationStatus::normalize($this->getAttribute('status'));
+
+        if (in_array($cur, [EvaluationStatus::Archived, EvaluationStatus::Cancelled, EvaluationStatus::Decline], true))
+            return null;
+
+        $hasBeneficiary = $this->contractHasValidBeneficiary();
+        $hasObligor     = $this->contractHasValidObligor();
+
+        if (!$hasBeneficiary || !$hasObligor)
+            return EvaluationStatus::Draft;
+
+        $start = $this->toImmutableSafe($this->getAttribute(PJC::COL_S_DT));
+        $end   = $this->toImmutableSafe($this->getAttribute(PJC::COL_E_DT));
+
+        $now = now();
+
+        $hasStart = (bool) $start;
+        $hasEnd   = (bool) $end;
+
+        if ($hasEnd && $end->lessThanOrEqualTo($now))
+            return EvaluationStatus::Expired;
+
+        $approved = $this->contractIsApproved();
+
+        if (!$approved) {
+            if (!$hasStart && !$hasEnd) return EvaluationStatus::Draft;
+            return EvaluationStatus::Pending;
+        }
+
+        if ($hasStart && $start->greaterThan($now))
+            return EvaluationStatus::NotStarted;
+
+        if (($hasStart && $start->lessThanOrEqualTo($now)) && (!$hasEnd || $end->greaterThan($now)))
+            return EvaluationStatus::Active;
+
+        if (!$hasStart && $hasEnd && $end->greaterThan($now))
+            return EvaluationStatus::Active;
+
+        return EvaluationStatus::InProgress;
+    }
+
+    protected function contractIsApproved(): bool
+    {
+        $by = $this->getAttribute(PJC::COL_APV_BY);
+        $at = $this->getAttribute(PJC::COL_APV_AT);
+
+        $byOk = is_string($by) ? trim($by) !== '' : !empty($by);
+        $atOk = $this->toImmutableSafe($at) !== null;
+
+        return $byOk && $atOk;
+    }
+
+    /**
+     * Beneficiary validity:
+     * - valid client_id (exists) OR
+     * - non-empty client_name OR
+     * - non-empty obligor name/idf (fallback)
+     */
+    protected function contractHasValidBeneficiary(): bool
+    {
+        $clientId = $this->getAttribute('client_id') ?? null;
+
+        if (is_string($clientId) && trim($clientId) !== '' && $this->looksLikeUuidSafe($clientId))
+            return $this->fkExistsSafe(DC::TABLE_USERS, $clientId);
+
+        $clientName = $this->getAttribute(PJC::COL_CLIENT_NAME) ?? null;
+        if (is_string($clientName) && trim($clientName) !== '') return true;
+
+        $oblName = $this->getAttribute(PJC::COL_OBL_NAME) ?? null;
+        $oblIdf  = $this->getAttribute(PJC::COL_OBL_IDF) ?? null;
+
+        return (is_string($oblName) && trim($oblName) !== '')
+            || (is_string($oblIdf) && trim($oblIdf) !== '');
+    }
+
+    /**
+     * Obligor validity:
+     * - non-empty obg name OR non-empty obg idf
+     */
+    protected function contractHasValidObligor(): bool
+    {
+        $obgName = $this->getAttribute(PJC::COL_OBG_NAME) ?? null;
+        $obgIdf  = $this->getAttribute(PJC::COL_OBG_IDF) ?? null;
+
+        return (is_string($obgName) && trim($obgName) !== '')
+            || (is_string($obgIdf) && trim($obgIdf) !== '');
+    }
+
+    protected function toImmutableSafe(mixed $date): ?\Carbon\CarbonImmutable
+    {
+        try {
+            if ($date instanceof \Carbon\CarbonImmutable) return $date;
+            if ($date instanceof \Carbon\Carbon) return \Carbon\CarbonImmutable::instance($date);
+            if (is_string($date) && trim($date) !== '') return \Carbon\CarbonImmutable::parse($date);
+            return null;
+        } catch (\Throwable $e) {
+            Log::debug(static::class . ' failed to parse date for status inference', [
+                'id'    => $this->getAttribute('id'),
+                'raw'   => $date,
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+            return null;
+        }
+    }
+
+    protected function looksLikeUuidSafe(string $value): bool
+    {
+        try {
+            return Str::isUuid($value);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    protected function fkExistsSafe(string $table, string $id): bool
+    {
+        try {
+            return DB::table($table)->where('id', $id)->exists();
+        } catch (\Throwable $e) {
+            Log::debug(static::class . ' failed FK existence check', [
+                'table' => $table,
+                'id'    => $this->getAttribute('id'),
+                'fk'    => $id,
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+            return false;
+        }
     }
 }

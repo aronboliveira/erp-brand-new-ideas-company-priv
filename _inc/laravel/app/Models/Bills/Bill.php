@@ -19,6 +19,7 @@ use App\Enums\{
 use App\Traits\{
     HasAuditFields,
     NormalizesAddresses,
+    StoresManyRefJson,
     UsesCountryRegions,
     UsesUuids,
 };
@@ -33,11 +34,12 @@ use Illuminate\Support\Facades\Log;
 
 class Bill extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
+    use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
-    use UsesUuids;
 
     protected $table = DC::TABLE_BILLS;
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
+use App\Enums\{EvaluationStatus, Frequency};
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -16,6 +17,7 @@ class CreateContractsTable extends Migration
 
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->string('code')->unique()->nullable(); // ? nullable for initial tests, will be generated as CTR-{UUID}, checking with do/while for uniqueness
             $table->uuid('type')->nullable();
             $table->string(PJC::COL_CN)->unique()->nullable(); // ? nullable for initial tests
             $table->string('title')->nullable()->index();               // ? nullable for initial tests
@@ -27,20 +29,10 @@ class CreateContractsTable extends Migration
             $table->date(PJC::COL_S_DT)->default(now()->addDays(7)->format('Y-m-d')); // ? default to tomorrow for initial tests
             $table->date(PJC::COL_E_DT)->default(now()->addDays(30)->format('Y-m-d'));  // ? default to 30 days from now for initial tests
             $table->longText(PJC::COL_CDESC)->nullable();
-            $table->string('status')->default('pending');
+            $table->enum('status', array_column(EvaluationStatus::cases(), 'value'))->default(EvaluationStatus::Draft->value)->nullable(); // ? nullable for initial tests
             $table->boolean('renewable')->default(false)->nullable(); // ? Nullable para testes iniciais
             $table->boolean(PJC::COL_ARNW)->default(false)->nullable(); // * during ::saving, if renewable is false then goes to false as well
-            $table->enum('frequency', [
-                'once',
-                'variable',
-                'hourly',
-                'biweekly',
-                'weekly',
-                'semimonthly',
-                'semestral',
-                'monthly',
-                'annual',
-            ])->default('monthly')
+            $table->enum('frequency', array_column(Frequency::cases(), 'value'))->default(Frequency::Monthly->value)
                 ->nullable()->index(); // ? Nullable para testes iniciais
             $table->uuid('company')->nullable(); // ? nullable for initial tests
             $table->uuid(PJC::COL_CLIENT_ID)->nullable()->index();

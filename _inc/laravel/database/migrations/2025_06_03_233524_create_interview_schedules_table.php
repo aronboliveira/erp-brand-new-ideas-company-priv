@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, FormsConstants as FC, ProjectsConstants as PJC};
 use App\Traits\{HasNullableAuditColumns, TaskConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -27,6 +27,7 @@ class CreateInterviewSchedulesTable extends Migration
             $table->text('feedback')->nullable();
             $this->addTaskColumns($table, unique: false, nullable: true, cascade: false); // ? the interview can be a task for a user, mainly if the interviewer is an employee
             $table->uuid(PJC::COL_PJ_ID)->nullable()->index(); // ? can be related to a larger project, like a team overhaul
+            $table->uuid(FC::COL_FM_ID)->nullable()->index(); // ? related form, like an evaluation form
             $table->uuid('document')->nullable()->index(); // ? related document, like a requisition form
             $table->uuid('todo')->nullable()->index(); // ? related to-do item for the employee  // ? the interview can be linked to a to-do of the employee as an user. If not null, it should be checked if the 'employee' uuid column and the UC::COL_USER_ID in the DC::TABLE_USR_TD are the same, else it's nullified at boot/save
             $table->json('steps')->nullable(); // ? metadata about the steps
@@ -35,9 +36,18 @@ class CreateInterviewSchedulesTable extends Migration
             $table->json('involved')->nullable(); // ? people involved in the hiring process, must forcefully include the interviewer
             $table->foreign('candidate')->references('id')->on(DC::TABLE_JOB_APPS)->cascadeOnDelete();
             $table->foreign('employee')->references('id')->on(DC::TABLE_USERS)->restrictOnDelete();
-            $table->foreign(PJC::COL_PJ_ID)->references('id')->on(DC::TABLE_PROJECTS)->nullOnDelete();
-            $table->foreign('document')->references('id')->on(DC::TABLE_DOCS)->nullOnDelete();
-            $table->foreign('todo')->references('id')->on(DC::TABLE_USR_TD)->nullOnDelete();
+            foreach (
+                [
+                    FC::COL_FM_ID => DC::TABLE_FORM_BUILD,
+                    PJC::COL_PJ_ID => DC::TABLE_PROJECTS,
+                    'document' => DC::TABLE_DOCS,
+                    'todo' => DC::TABLE_USR_TD,
+                ] as $column => $referencedTable
+            )
+                $table->foreign($column)
+                    ->references('id')
+                    ->on($referencedTable)
+                    ->nullOnDelete();
             $this->addAuditColumns($table);
         });
     }

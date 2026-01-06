@@ -14,6 +14,7 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
+    TracksFailures,
     UsesCountryRegions,
     UsesUuids,
 };
@@ -29,13 +30,14 @@ use Illuminate\Http\RedirectResponse;
 
 class Pos extends Model
 {
-    use DescribesCompanyBranch;
-    use ChecksLogin;
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
     use NormalizesAddresses;
+    use DescribesCompanyBranch;
     use UsesCountryRegions;
-    use UsesUuids;
+    use TracksFailures;
+    use ChecksLogin;
 
     protected $table = DC::TABLE_POS;
     protected $fillable = [
@@ -90,11 +92,7 @@ class Pos extends Model
         BC::COL_BL_DTL,
 
         // Rastreamento de falhas
-        DC::COL_FL_AT,
-        DC::COL_FLD_RS,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
-        DC::COL_ER_LG,
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

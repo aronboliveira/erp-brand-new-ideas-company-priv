@@ -88,6 +88,8 @@ class ProjectsConstants
 	public const COL_EST_CC = 'estimated_chance_of_continuation';
 	public const COL_STG_ID = 'stage_id';
 	public const COL_LD_ID = 'lead_id';
+	public const COL_DL_ID = 'deal_id';
+	public const COL_SUP_ID = 'support_id';
 	public const COL_ATC_FRULES = 'attachment_filter_rules';
 	public const COL_IS_FUP = 'is_follow_up';
 	public const COL_GRP_ID = 'group_id';

@@ -19,6 +19,11 @@ trait HasNullableAuditColumns
 				->on(DC::TABLE_USERS)
 				->nullOnDelete();
 	}
+	/* Alias */
+	protected function addNullableAuditColumns(Blueprint $table): void
+	{
+		$this->addAuditColumns($table);
+	}
 	protected function dropAuditColumnForeigns(Blueprint $table, string $tableName): void
 	{
 		foreach (

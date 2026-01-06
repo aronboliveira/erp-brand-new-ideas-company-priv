@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\ActivityType;
-use App\Traits\{HasAuditFields, LogsIcons, NormalizesArrays, UsesUuids};
+use App\Traits\{HasAuditFields, LogsIcons, NormalizesArrays, TracksFailures, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\Log;
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class ActivityLog extends Model
 {
-    use LogsIcons, UsesUuids, HasAuditFields, NormalizesArrays;
+    use LogsIcons, UsesUuids, HasAuditFields, NormalizesArrays, TracksFailures;
 
     protected $table = DC::TABLE_ACT_LOG;
 
@@ -40,11 +40,7 @@ class ActivityLog extends Model
         'timestamp',
         'metadata',
 
-        DC::COL_FL_AT,
-        DC::COL_FLD_RS,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
-        DC::COL_ER_LG,
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $casts = [

@@ -22,6 +22,7 @@ use App\Traits\{
     HasNfeColumns,
     HasPaymentColumns,
     NormalizesArrays,
+    StoresManyRefJson,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -39,6 +40,7 @@ class Expense extends Model
     use HasCreditCardInfo;
     use HasNfeColumns;
     use FiltersSecureAttachments;
+    use StoresManyRefJson;
 
     protected $table = DC::TABLE_EXP;
 

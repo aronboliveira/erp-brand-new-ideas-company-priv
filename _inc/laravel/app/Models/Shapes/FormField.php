@@ -2,27 +2,171 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC};
+use App\Traits\{DescribesClientField, DescribesHtmlLinkedEntity, HasAuditFields, NormalizesAddresses, UsesUuids};
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\{Log, Schema};
 
 class FormField extends Model
 {
-    use UsesUuids;
+    use HasAuditFields, UsesUuids, NormalizesAddresses, DescribesClientField, DescribesHtmlLinkedEntity;
+
+    protected $table = DC::TABLE_FM_FD;
+
+    protected $with = [
+        'form',
+        'createdBy',
+        'customQuestion',
+    ];
 
     protected $fillable = [
-        'form_id',
-        'name',
-        'type',
-        'created_by',
+        FC::COL_FM_ID,
+        'email',
+        FC::COL_CT_QT_ID,
+        ...self::CLIENT_FIELD_COLS,
+        'aria',
+        'dataset',
+        'selectors',
+        'size',
+        'tags',
     ];
+
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+    ];
+
+    protected $casts = [
+        'required'       => 'boolean',
+        'readonly'       => 'boolean',
+        'multiline'      => 'boolean',
+        'multiple'       => 'boolean',
+        'autocapitalize' => 'boolean',
+        'autocomplete'   => 'boolean',
+        'autocorrect'    => 'boolean',
+        'disabled'       => 'boolean',
+        'tags'           => 'array',
+        'options'        => 'array',
+        'optgroups'      => 'array',
+        'accepts'        => 'array',
+        'aria'           => 'array',
+        'dataset'        => 'array',
+        'selectors'      => 'array',
+        'size'           => 'array',
+        DC::COL_C_AT     => 'datetime',
+        DC::COL_U_AT     => 'datetime',
+    ];
+
+    protected $appends = [
+        'resolved_client_payload',
+        'resolved_constraints',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $model): void {
+            try {
+                if (Schema::hasTable($model->getTable()) && Schema::hasColumn($model->getTable(), 'email')) {
+                    $model->setAttribute(
+                        'email',
+                        static::normalizeEmail(
+                            $model->getAttribute('email'),
+                            'form_field.email',
+                            $model->getAttribute('id')
+                        )
+                    );
+                }
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to normalize email before saving', [
+                    'table' => $model->getTable(),
+                    'id'    => $model->getAttribute('id'),
+                    'email' => $model->getAttribute('email'),
+                    'error' => $e->getMessage(),
+                    'file'  => $e->getFile(),
+                    'line'  => $e->getLine(),
+                ]);
+            }
+        });
+    }
 
     public function form(): BelongsTo
     {
-        return $this->belongsTo(FormBuilder::class, 'form_id');
+        return $this->belongsTo(FormBuilder::class, FC::COL_FM_ID, 'id');
     }
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
+    }
+
+    public function customQuestion(): BelongsTo
+    {
+        return $this->belongsTo(CustomQuestion::class, FC::COL_CT_QT_ID, 'id');
+    }
+
+    /**
+     * Resolve: CustomField -> CustomQuestion -> FormField (highest precedence)
+     */
+    public function getResolvedClientPayloadAttribute(): array
+    {
+        $base = [];
+        $cq = $this->getCachedCustomQuestion();
+
+        if ($cq) $base = $cq->getAttribute('resolved_client_payload') ?? [];
+
+        $local = array_merge($this->getClientFieldAttributes(), $this->getHtmlLinkedAttributes(true));
+        $merged = static::overlayIfMeaningful($base, $local);
+
+        if (Schema::hasColumn($this->getTable(), 'email'))
+            $merged['email'] = $this->getAttribute('email');
+
+        return static::normalizeClientFieldPayload($merged);
+    }
+
+    public function getResolvedConstraintsAttribute(): array
+    {
+        $payload = $this->getResolvedClientPayloadAttribute();
+
+        $constraints = [];
+        foreach (static::clientFieldConstraintColumns() as $k) {
+            if (!array_key_exists($k, $payload)) continue;
+            $constraints[$k] = $payload[$k];
+        }
+
+        // Add html accessibility metadata if you want it in “constraints”
+        foreach (['aria', 'dataset'] as $k) {
+            if (!array_key_exists($k, $payload)) continue;
+            $constraints[$k] = $payload[$k];
+        }
+
+        return $constraints;
+    }
+
+    protected function getCachedCustomQuestion(): ?\App\Models\CustomQuestion
+    {
+        if ($this->relationLoaded('customQuestion')) return $this->getRelation('customQuestion');
+        try {
+            return $this->customQuestion()->first();
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to fetch linked customQuestion', [
+                'id'   => $this->getAttribute('id'),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'err'  => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Business helper: determine if field is effectively writable.
+     */
+    public function isEffectivelyWritable(): bool
+    {
+        $p = $this->getResolvedClientPayloadAttribute();
+        $disabled = (bool)($p['disabled'] ?? false);
+        $readonly = (bool)($p['readonly'] ?? false);
+        return !$disabled && !$readonly;
     }
 }

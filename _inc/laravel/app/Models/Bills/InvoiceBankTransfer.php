@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\PaymentStatus;
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, TracksFailures, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\Log;
 
 class InvoiceBankTransfer extends Model
 {
-    use HasFactory, HasAuditFields, SoftDeletes, UsesUuids;
+    use UsesUuids, HasAuditFields, HasFactory, SoftDeletes, TracksFailures;
 
     protected $table = DC::TABLE_INV_BANK_TRANSFERS;
 
@@ -23,11 +23,7 @@ class InvoiceBankTransfer extends Model
         'status',
         'date',
         'receipt',
-        DC::COL_FL_AT,
-        DC::COL_FLD_RS,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
-        DC::COL_ER_LG,
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

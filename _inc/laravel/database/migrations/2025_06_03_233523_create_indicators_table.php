@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC};
 use App\Enums\IndicatorTechnicalLevel;
 use App\Traits\{HasNullableAuditColumns, HasRatingColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
@@ -18,6 +18,7 @@ class CreateIndicatorsTable extends Migration
             $table->uuid('department')->nullable()->index();
             $table->uuid('designation')->nullable()->index();
             $table->uuid('project')->nullable()->index();
+            $table->uuid(FC::COL_FM_ID)->nullable()->index();
             $table->uuid(DC::COL_CRT_USR)->index();
             $table->enum('level', array_column(IndicatorTechnicalLevel::cases(), 'value'))->default(IndicatorTechnicalLevel::None->value)->nullable()->index(); // ? nullable for testing, enforced with the Enum at model/level
             $table->json('sources')->nullable(); // ? a list of uuids for sources that refer to Source or Appraisals rows querying through their ids, filtered at boot/save with that in consideration
@@ -30,6 +31,7 @@ class CreateIndicatorsTable extends Migration
                     'department'                  => DC::TABLE_DEPARTMENTS,
                     'designation'                 => DC::TABLE_DESIGNS,
                     'project'                     => DC::TABLE_PROJECTS,
+                    FC::COL_FM_ID                 => DC::TABLE_FORM_BUILD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -51,6 +53,7 @@ class CreateIndicatorsTable extends Migration
                     'designation',
                     'project',
                     DC::COL_CRT_USR,
+                    FC::COL_FM_ID,
                 ] as $column
             ) {
                 try {

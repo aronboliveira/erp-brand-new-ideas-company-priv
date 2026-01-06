@@ -53,11 +53,11 @@ class CustomFieldValue extends Model
                     $isDisabled = filter_var($field->disabled ?? false, FILTER_VALIDATE_BOOLEAN);
                     $isReadonly = filter_var($field->readonly ?? false, FILTER_VALIDATE_BOOLEAN);
                     if ($isDisabled || $isReadonly) {
-                        $this->setAttribute('checked', false);
-                        $this->setAttribute('value', 'off');
+                        $model->setAttribute('checked', false);
+                        $model->setAttribute('value', 'off');
                     } else {
-                        $this->setAttribute('checked', $isChecked);
-                        $this->setAttribute('value', $isChecked ? 'on' : 'off');
+                        $model->setAttribute('checked', $isChecked);
+                        $model->setAttribute('value', $isChecked ? 'on' : 'off');
                     }
                 } else $model->setAttribute('checked', null);
             } catch (\Exception $e) {

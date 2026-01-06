@@ -17,6 +17,7 @@ use App\Traits\{
     HasAuditFields,
     HasPaymentColumns,
     NormalizesAddresses,
+    TracksFailures,
     UsesCountryRegions,
     UsesUuids
 };
@@ -33,6 +34,7 @@ class Payment extends Model
     use HasFactory;
     use HasPaymentColumns;
     use NormalizesAddresses;
+    use TracksFailures;
     use UsesCountryRegions;
     use UsesUuids;
 
@@ -96,19 +98,14 @@ class Payment extends Model
         BC::COL_BL_CTR,
         BC::COL_BL_DTL,
 
-        // rastreamento de falhas (TracksFailures)
-        DC::COL_FL_AT,
-        DC::COL_FLD_RS,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
-        DC::COL_ER_LG,
-
         BC::COL_NFE_KEY,
         BC::COL_NFE_NUMBER,
         BC::COL_NFE_SERIES,
         BC::COL_NFE_XML_PATH,
         BC::COL_NFE_PROTOCOL,
         BC::COL_NFE_AUTH_AT,
+
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

@@ -30,6 +30,11 @@ class ActivitiesConstants
 	public const COL_ITV_TIME = 'interval_time';
 	public const COL_SCHD_TP = 'schedule_type';
 	public const COL_IA = 'is_active';
+	public const COL_IS_LD_ACT = 'is_lead_active';
+	public const COL_IS_DL_ACT = 'is_deal_active';
+	public const COL_IS_SUP_ACT = 'is_support_active';
+	public const COL_IS_PRJ_ACT = 'is_project_active';
+	public const COL_IS_CTC_ACT = 'is_contact_active';
 	public const COL_DSB = 'is_disabled';
 	public const COL_PW = 'password';
 	public const COL_CPT = 'complete';

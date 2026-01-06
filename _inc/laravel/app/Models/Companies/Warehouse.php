@@ -12,6 +12,7 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
+    StoresManyRefJson,
     UsesCountryRegions,
     UsesUuids,
 };
@@ -28,12 +29,13 @@ use Illuminate\Support\Facades\{
 
 class Warehouse extends Model
 {
-    use ChecksLogin;
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
+    use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
-    use UsesUuids;
+    use ChecksLogin;
 
     protected $table = DC::TABLE_WRH;
     protected $fillable = [

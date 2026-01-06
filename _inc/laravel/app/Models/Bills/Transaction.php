@@ -15,6 +15,7 @@ use App\Enums\{
 use App\Traits\{
     HasAuditFields,
     HasPaymentColumns,
+    TracksFailures,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -31,7 +32,7 @@ use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
-    use UsesUuids, HasPaymentColumns, HasAuditFields;
+    use UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures;
 
     public const TABLE = DC::TABLE_TRS;
 
@@ -59,9 +60,7 @@ class Transaction extends Model
         BC::COL_SCHD_TRF_TS,
         BC::COL_EXC_AT,
         BC::COL_CNC_AT,
-        DC::COL_FL_AT,
         BC::COL_CMP_AT,
-        DC::COL_FLD_RS,
         BC::COL_CNC_RS,
         BC::COL_IS_SCD,
         BC::COL_CAN_CHG_BK,
@@ -82,11 +81,9 @@ class Transaction extends Model
         'invoice',
         'payslip',
         BC::COL_PRD_SV_UNT,
-        DC::COL_ER_LG,
-        DC::COL_RTR_CT,
-        DC::COL_LST_RTR_AT,
         'type',
         'date',
+        ...TracksFailures::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

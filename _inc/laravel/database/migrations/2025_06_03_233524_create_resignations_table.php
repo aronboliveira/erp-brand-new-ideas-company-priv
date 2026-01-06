@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC, UsersConstants as UC};
 use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -18,6 +18,11 @@ class CreateResignationsTable extends Migration
             $table->date(UC::COL_RESIGNATION_DT)->default(now()->addDays(30)->format('Y-m-d'));
             $table->text('description')->nullable();
             $table->text('notes')->nullable();
+            $table->uuid(FC::COL_FM_ID)->nullable()->index(); // ? related exit interview form
+            $table->foreign(FC::COL_FM_ID)
+                ->references('id')
+                ->on(DC::TABLE_FORM_BUILD)
+                ->nullOnDelete();
             $this->addAuditColumns($table);
         });
     }

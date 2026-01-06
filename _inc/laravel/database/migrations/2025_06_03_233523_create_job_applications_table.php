@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, SettingsConstants as SC};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, FormsConstants as FC, SettingsConstants as SC};
 use App\Enums\{CountryName, DEICategory, Gender};
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
@@ -49,6 +49,7 @@ class CreateJobApplicationsTable extends Migration
             $table->text(AC::COL_ITV_NTS)->nullable();
             $table->uuid(AC::COL_ITV_NT_ID)->nullable(); // ? interview_note_id, the user who made the last note in DC::TABLE_JB_AP_NTS
             $table->json(AC::COL_ITV_SCRS)->nullable(); // ? associative array of (uuid or alias):integer scores for each interview stage
+            $table->uuid(FC::COL_FM_ID)->nullable()->index(); // ? related form, like an application form
             $table->text('profile')->nullable(); //* in legacy this was saved as string. It will be assumed that this is the stringified version of the document or just the body or even the path, but a column ('profile_document' for linking with the direct doc will be added as well. If the id exists in DC::TABLE_DOCS, we can select DC::COL_FL_PT ('file_path') and 'url' to attempt to get the document and parse its context as text, with proper sanitization and try/catching, and, finally, fill this column with the text content for future reference. If the parsing returns empty value or fails, just leave the column alone.
             $table->uuid(AC::COL_PRF_DOC)->nullable(); // ? profile_document
             $table->string('portfolio')->nullable(); // ? github, behance, etc
@@ -107,6 +108,7 @@ class CreateJobApplicationsTable extends Migration
                     AC::COL_WRK_AUTH => DC::TABLE_DOCS,
                     AC::COL_CT_QT_ID => DC::TABLE_CUSTOM_QUESTIONS,
                     AC::COL_RFR_ID => DC::TABLE_USERS,
+                    FC::COL_FM_ID => DC::TABLE_FORM_BUILD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -136,6 +138,7 @@ class CreateJobApplicationsTable extends Migration
                     AC::COL_WRK_AUTH,
                     AC::COL_CT_QT_ID,
                     AC::COL_RFR_ID,
+                    FC::COL_FM_ID,
                 ] as $column
             ) {
                 try {

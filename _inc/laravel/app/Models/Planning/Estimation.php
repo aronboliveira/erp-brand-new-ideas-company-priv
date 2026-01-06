@@ -15,6 +15,7 @@ use App\Traits\{
     ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
+    StoresManyRefJson,
     UsesCountryRegions,
     UsesUuids
 };
@@ -30,11 +31,12 @@ use Illuminate\Support\Facades\Log;
 
 class Estimation extends Model
 {
-    use ChecksLogin,
+    use UsesUuids,
         HasAuditFields,
+        ChecksLogin,
         NormalizesAddresses,
         UsesCountryRegions,
-        UsesUuids;
+        StoresManyRefJson;
 
     protected $table = DC::TABLE_EST;
 

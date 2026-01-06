@@ -15,6 +15,7 @@ use App\Enums\{
 use App\Traits\{
     HasAuditFields,
     NormalizesAddresses,
+    StoresManyRefJson,
     UsesCountryRegions,
     UsesUuids
 };
@@ -28,11 +29,12 @@ use Illuminate\Database\Eloquent\{
 
 class Invoice extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
+    use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
-    use UsesUuids;
 
     protected $table = DC::TABLE_INVS;
     protected $fillable = [
