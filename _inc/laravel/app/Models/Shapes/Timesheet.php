@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\{EvaluationStatus, Visibility};
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\{DB, Log};
 
 class Timesheet extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments, SoftDeletes;
+    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments, SoftDeletes, DefinesDates;
 
     protected $table = DC::TABLE_TMS;
 

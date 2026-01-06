@@ -7,14 +7,14 @@ use App\Config\Constants\{
     MessagesConstants as MC,
     SupportsConstants as SC
 };
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class SupportReply extends Model
 {
-    use FiltersSecureAttachments, HasAuditFields, HasFactory, NormalizesArrays, UsesUuids;
+    use UsesUuids, HasAuditFields, FiltersSecureAttachments, HasFactory, NormalizesArrays, DefinesDates;
 
     protected $table = DC::TABLE_SUP_REP;
 

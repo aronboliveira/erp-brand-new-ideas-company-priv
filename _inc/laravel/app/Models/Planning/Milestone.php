@@ -11,9 +11,10 @@ use App\Enums\{
     PriorityLevel
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     NormalizesArrays,
-    UsesUuids
+    UsesUuids,
 };
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
@@ -26,6 +27,7 @@ class Milestone extends Model
     use UsesUuids;
     use HasAuditFields;
     use NormalizesArrays;
+    use DefinesDates;
 
     protected $table = DC::TABLE_MSS;
 

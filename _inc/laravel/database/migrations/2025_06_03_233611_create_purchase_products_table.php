@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
@@ -8,7 +8,7 @@ class CreatePurchaseProductsTable extends Migration
 {
     private const PC = 'purchase';
     private const PD = 'product';
-    private const TABLE = self::PC . '_' . self::PD . 's';
+    private const TABLE = DC::TABLE_PRC_PRD;
     private const COL_PURCHASE = self::PC . '_id';
     private const COL_PROD = self::PD . '_id';
     public function up(): void
@@ -22,12 +22,12 @@ class CreatePurchaseProductsTable extends Migration
             $table->decimal('discount', 15, 2)->default(0.00);
             $table->decimal('total', 15, 2)->default(0.00); // ! CHANGED from price to total
             $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
             foreach (
                 [
-                    self::COL_PURCHASE => DatabaseConstants::TABLE_PURCHASES,
-                    self::COL_PROD     => DatabaseConstants::TABLE_PROD_SERVS,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    self::COL_PURCHASE => DC::TABLE_PURCHASES,
+                    self::COL_PROD     => DC::TABLE_PROD_SERVS,
+                    DC::COL_TABLE_CREATOR => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -44,7 +44,7 @@ class CreatePurchaseProductsTable extends Migration
                 [
                     self::COL_PURCHASE,
                     self::COL_PROD,
-                    DatabaseConstants::COL_TABLE_CREATOR
+                    DC::COL_TABLE_CREATOR
                 ] as $column
             ) {
                 try {

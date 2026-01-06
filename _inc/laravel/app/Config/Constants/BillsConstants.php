@@ -231,6 +231,11 @@ class BillsConstants
 	public const COL_BNK_TRF_ID = 'bank_transfer_id';
 	public const COL_IS_PAY_RL_DDT = 'is_payroll_deducted';
 	public const COL_ALW_PAY_RL_DDT = 'allow_payroll_deduction';
+	public const COL_INC_DATA = 'income_data';
+	public const COL_EXP_DATA = 'expense_data';
+	public const COL_BNK_TRFS = 'bank_transfers';
+	public const COL_WRN_TRSH = 'warn_threshold';
+	public const COL_CRT_WRN_TH = 'critical_warning_threshold';
 
 	// * VALORES
 

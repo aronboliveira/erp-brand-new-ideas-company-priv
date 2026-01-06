@@ -1,45 +1,62 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
+use App\Enums\{EvaluationStatus, Frequency};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBudgetsTable extends Migration
 {
-    private const TABLE = 'budgets';
-    private const D = 'date';
-    private const DATA = 'data';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_BDG;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();            // ! CHANGED
-            $table->string('name');
-            $table->string('period');
-            $table->date('start_' . self::D)->nullable();   // ! CHANGED (was 'from')
-            $table->date('end_' . self::D)->nullable();     // ! CHANGED (was 'to')
-            $table->text('income_' . self::DATA)->nullable();  // ! CHANGED
-            $table->text('expense_' . self::DATA)->nullable(); // ! CHANGED
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);               // ! CHANGED
-            $table->timestamps();
-            $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
-                ->references('id')
-                ->on(DatabaseConstants::TABLE_USERS)
-                ->cascadeOnDelete(); // * ADDED
+            $table->uuid('id')->primary();
+            $table->string('code')->unique()->nullable(); // ? nullable for tests; automatically generated as BDG-{UUID}, checking uniqueness with do/while;
+            $table->string('name')->index();
+            $table->enum('type', ['revenue', 'expense', 'mixed'])->index()->nullable(); // ? nullable for tests
+            $table->string('period')->index()->nullable(); // ? e.g., Q1 2024, FY 2024, etc. Should demand the inclusion of a year via regex in the model, else nullified.
+            $table->enum('frequency', array_column(Frequency::cases(), 'value'))->default(Frequency::Once->value)->nullable()->index();
+            $table->date('from')->nullable(); // * should ALWAYS mirror start_date. Kept for legacy.
+            $table->date(PJC::COL_S_DT)->nullable();
+            $table->date('to')->nullable();   // * should ALWAYS mirror end_date. Kept for legacy.
+            $table->date(PJC::COL_E_DT)->nullable(); // ? should never be lower than COL_S_DT
+            $table->decimal('amount', 16, 2)->default(0.00)->nullable(); // ? nullable for tests
+            $table->string('currency', 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable for tests
+            $table->decimal(BC::COL_EXC_RT)->default(1.0000)->nullable(); // ? nullable for tests
+            $table->decimal(BC::COL_WRN_TRSH, 4, 2)->nullable(); // ? campled to be between 0 and 100 at model
+            $table->decimal(BC::COL_CRT_WRN_TH, 4, 2)->nullable(); // ? campled to be between 0 and 100 at model, NEVER lower than COL_WRN_TRSH if this is set
+            $table->enum('status', array_column(EvaluationStatus::cases(), 'value'))->default(EvaluationStatus::Pending->value)->nullable()->index();
+            $table->uuid(PJC::COL_SBM_BY)->nullable();
+            $table->timestamp(PJC::COL_SBM_AT)->nullable();
+            $table->uuid(PJC::COL_APV_BY)->nullable();
+            $table->timestamp(PJC::COL_APV_AT)->nullable();
+            $table->uuid(PJC::COL_REJ_BY)->nullable();
+            $table->timestamp(PJC::COL_REJ_AT)->nullable();
+            $table->text('description')->nullable();
+            $table->text('notes')->nullable();
+            $table->text(BC::COL_INC_DATA)->nullable();
+            $table->text(BC::COL_EXP_DATA)->nullable();
+            $table->uuid(PJC::COL_PJ_ID)->index()->nullable();
+            $table->uuid(PJC::COL_CTC_ID)->index()->nullable();
+            $table->uuid('company')->index()->nullable();
+            $table->uuid('branch')->index()->nullable();
+            $table->uuid('department')->index()->nullable();
+            $table->json(BC::COL_BNK_TRFS)->nullable(); // ? string[] of rows in DC::TABLE_BNK_TRF
+            $table->json('transactions')->nullable(); // ? string[] of rows in DC::TABLE_TRS
+            $table->json('attachments')->nullable();
+            $table->json('metadata')->nullable();
+            $table->softDeletes();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
-                    && $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
-            } catch (\Exception $e) {
-                Log::warning(
-                    'Failed to execute down for ' . DatabaseConstants::COL_TABLE_CREATOR
-                        . ' foreign key column: ' . $e->getMessage()
-                );
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

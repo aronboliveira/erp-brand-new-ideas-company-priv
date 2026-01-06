@@ -186,6 +186,17 @@ class DatabaseConstants
 	public const TABLE_TRK_PHT = 'track_photos';
 	public const TABLE_PLAN_REQUESTS = 'plan_requests';
 	public const TABLE_FM_FLD_RSP = 'fm_field_responses';
+	public const TABLE_BDG = 'budgets';
+	public const TABLE_PRC_PRD = 'purchase_products';
+	public const TABLE_PRC_PAY = 'purchase_payments';
+	public const TABLE_WRH_PRD = 'warehouse_products';
+	public const TABLE_POS_PRD = 'pos_products';
+	public const TABLE_BL_ACC = 'bill_accounts';
+	public const TABLE_PRD_CAT = 'product_categories';
+	public const TABLE_PRD = 'products';
+	public const TABLE_PLN_SCHD = 'planning_schedules';
+	public const TABLE_WRH_TRF = 'warehouse_transfers';
+	public const TABLE_PPS_PRD = 'proposal_products';
 
 	// * FIELD NAMES
 	// invoice

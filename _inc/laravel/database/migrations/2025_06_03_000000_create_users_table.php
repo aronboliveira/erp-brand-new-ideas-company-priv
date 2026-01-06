@@ -35,6 +35,7 @@ class CreateUsersTable extends Migration
             $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID);
             $table->uuid(DC::COL_TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
             $table->timestamps();
+            $table->json('budgets')->nullable();
         });
     }
 

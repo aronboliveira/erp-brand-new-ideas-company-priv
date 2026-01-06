@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
 use App\Enums\{Confirmation, Frequency, Weekday, WorkShift};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobOnBoard extends Model
 {
-    use UsesUuids, HasAuditFields;
+    use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_JB_BRD;
 

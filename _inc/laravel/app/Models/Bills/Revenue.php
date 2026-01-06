@@ -12,6 +12,7 @@ use App\Enums\{
     TransferType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     HasPaymentColumns,
     UsesUuids
@@ -24,10 +25,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Revenue extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
     use HasPaymentColumns;
-    use UsesUuids;
+    use DefinesDates;
 
     protected $table = DC::TABLE_RVN;
 

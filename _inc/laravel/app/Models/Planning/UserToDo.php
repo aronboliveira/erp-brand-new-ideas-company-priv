@@ -10,6 +10,7 @@ use App\Config\Constants\{
 };
 use App\Enums\PriorityLevel;
 use App\Traits\{
+    DefinesDates,
     FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
@@ -28,6 +29,7 @@ class UserToDo extends Model
     use NormalizesArrays;
     use PlansByHierarchy;
     use FiltersSecureAttachments;
+    use DefinesDates;
 
     protected $table = DC::TABLE_USR_TD;
 

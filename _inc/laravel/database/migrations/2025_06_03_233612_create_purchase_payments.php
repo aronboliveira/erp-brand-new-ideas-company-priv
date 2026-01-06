@@ -1,12 +1,12 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePurchasePayments extends Migration
 {
-    private const TABLE          = 'purchase_payments';
+    private const TABLE          = DC::TABLE_PRC_PAY;
     private const COL_ACCOUNT_ID = 'account_id';
     private const COL_PURCHASE_ID = 'purchase_id';
 
@@ -23,12 +23,12 @@ class CreatePurchasePayments extends Migration
             $table->text('description')->nullable();
             $table->string('add_receipt')->nullable();                     // * added
             $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
             foreach (
                 [
-                    self::COL_PURCHASE_ID               => DatabaseConstants::TABLE_PURCHASES,
-                    self::COL_ACCOUNT_ID                => DatabaseConstants::TABLE_BANK_ACC,
-                    DatabaseConstants::COL_TABLE_CREATOR    => DatabaseConstants::TABLE_USERS,
+                    self::COL_PURCHASE_ID               => DC::TABLE_PURCHASES,
+                    self::COL_ACCOUNT_ID                => DC::TABLE_BANK_ACC,
+                    DC::COL_TABLE_CREATOR    => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -45,7 +45,7 @@ class CreatePurchasePayments extends Migration
                 [
                     self::COL_PURCHASE_ID,
                     self::COL_ACCOUNT_ID,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    DC::COL_TABLE_CREATOR,
                 ] as $column
             ) {
                 try {

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\{ParticipationStatus, ProjectRole, UserType};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, NormalizesArrays, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 class ProjectUser extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays;
+    use UsesUuids, HasAuditFields, NormalizesArrays, DefinesDates;
 
     protected $table = DC::TABLE_PRJ_USR;
 

@@ -9,7 +9,7 @@ use App\Config\Constants\{
     MessagesConstants as MC
 };
 use App\Enums\AppModuleType;
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesUuids};
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Builder, Model, SoftDeletes};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +23,7 @@ class Email extends Model
     use NormalizesAddresses;
     use FiltersSecureAttachments;
     use SoftDeletes;
+    use DefinesDates;
 
     protected $table = DC::TABLE_EMAILS;
 

@@ -14,6 +14,7 @@ use App\Enums\{
     TransferType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     HasPaymentColumns,
     NormalizesAddresses,
@@ -30,13 +31,14 @@ use Illuminate\Support\Facades\Schema;
 
 class Payment extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasFactory;
     use HasPaymentColumns;
     use NormalizesAddresses;
     use TracksFailures;
     use UsesCountryRegions;
-    use UsesUuids;
+    use DefinesDates;
 
     protected $table = DC::TABLE_PAY;
 

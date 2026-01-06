@@ -1,12 +1,12 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBillAccountsTable extends Migration
 {
-	private const TABLE = 'bill_accounts';
+	private const TABLE = DC::TABLE_BL_ACC;
 	private const COL_COA = 'chart_account_id';
 	private const COL_REF = 'ref_id';
 	public function up(): void
@@ -19,12 +19,12 @@ class CreateBillAccountsTable extends Migration
 			$table->string('type');
 			$table->uuid(self::COL_REF);                      // ! CHANGED
 			$table->timestamps();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+			$table->uuid(DC::COL_TABLE_CREATOR)->nullable();
 			foreach (
 				[
-					self::COL_COA                      => DatabaseConstants::TABLE_COAS,
-					self::COL_REF                      => DatabaseConstants::TABLE_BILLS,
-					DatabaseConstants::COL_TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
+					self::COL_COA                      => DC::TABLE_COAS,
+					self::COL_REF                      => DC::TABLE_BILLS,
+					DC::COL_TABLE_CREATOR   => DC::TABLE_USERS,
 				] as $column => $referencedTable
 			)
 				$table->foreign($column)
@@ -41,7 +41,7 @@ class CreateBillAccountsTable extends Migration
 				[
 					self::COL_COA,
 					self::COL_REF,
-					DatabaseConstants::COL_TABLE_CREATOR,
+					DC::COL_TABLE_CREATOR,
 				] as $column
 			) {
 				try {

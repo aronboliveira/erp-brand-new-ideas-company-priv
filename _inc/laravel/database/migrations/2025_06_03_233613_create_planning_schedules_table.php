@@ -1,13 +1,13 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class CreatePlanningSchedulesTable extends Migration
 {
 	private const ENTITY = 'schedule';
-	private const TABLE = 'planning_' . self::ENTITY . 's';
+	private const TABLE = DC::TABLE_PLN_SCHD;
 	private const MD    = 'module';
 	private const ST    = 'start';
 
@@ -15,17 +15,17 @@ class CreatePlanningSchedulesTable extends Migration
 	{
 		Schema::create(self::TABLE, function (Blueprint $table): void {
 			$table->uuid('id')->primary();
-			$table->string('note')->default('No notes were written');
+			$table->string('note')->nullable();
 			$table->string(self::ENTITY . '_type')->index();
 			$table->date(self::ST . '_date')->index();
 			$table->time(self::ST . '_time');
 			$table->uuid(self::MD . '_id')->index(); // ! CHANGED
 			$table->string(self::MD . '_type')->index();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();
+			$table->uuid(DC::COL_TABLE_CREATOR)->index();
 			$table->timestamps();
-			$table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
+			$table->foreign(DC::COL_TABLE_CREATOR)
 				->references('id')
-				->on(DatabaseConstants::TABLE_USERS)
+				->on(DC::TABLE_USERS)
 				->cascadeOnDelete();
 		});
 	}
@@ -34,13 +34,13 @@ class CreatePlanningSchedulesTable extends Migration
 	{
 		try {
 			Schema::table(self::TABLE, function (Blueprint $table): void {
-				if (Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR))
-					$table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
+				if (Schema::hasColumn(self::TABLE, DC::COL_TABLE_CREATOR))
+					$table->dropForeign([DC::COL_TABLE_CREATOR]);
 			});
 		} catch (\Exception $e) {
 			Log::warning(
 				'Failed to drop foreign key for '
-					. DatabaseConstants::COL_TABLE_CREATOR
+					. DC::COL_TABLE_CREATOR
 					. ' on table '
 					. self::TABLE
 					. ': '

@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{AppModuleType, Visibility};
-use App\Traits\{HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class Competency extends Model
 {
-	use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, PlansByHierarchy, StoresManyRefJson;
+	use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, DefinesDates;
 
 	protected $table = DC::TABLE_CMPT;
 

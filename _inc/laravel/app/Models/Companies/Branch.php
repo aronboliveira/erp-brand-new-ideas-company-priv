@@ -3,20 +3,21 @@
 namespace App\Models;
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
-use App\Traits\{HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, StoresManyRefJson, UsesCountryRegions, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Branch extends Model
 {
-    use HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids;
+    use UsesUuids, HasAuditFields, NormalizesAddresses, UsesCountryRegions, StoresManyRefJson;
 
     protected $table     = DC::TABLE_BRANCHES;
-    protected $fillable  = ['company', CPC::COL_BRC_NM, 'description', 'country', 'state', 'city', 'address', 'zip', 'phone', 'departments', CPC::COL_ADM, CPC::COL_MNG];
+    protected $fillable  = ['company', 'name', 'description', 'country', 'state', 'city', 'address', 'zip', 'phone', 'departments', CPC::COL_ADM, CPC::COL_MNG, 'budget', 'expenses', 'profit', 'budgets'];
     protected $casts     = [
         'budget'   => 'decimal:2',
         'expenses' => 'decimal:2',
         'profit'   => 'decimal:2',
+        'budgets'  => 'array'
     ];
     protected $guarded = ['id', DC::COL_TABLE_CREATOR, CPC::COL_FND];
 

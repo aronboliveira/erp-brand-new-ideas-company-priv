@@ -3,19 +3,28 @@
 namespace App\Models;
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
-use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 
 class Department extends Model
 {
-    use NormalizesAddresses, HasAuditFields, UsesUuids;
+    use UsesUuids, HasAuditFields, NormalizesAddresses, StoresManyRefJson;
 
     protected $fillable = [
         'company',
         CPC::COL_BRC_ID,
-        CPC::COL_DEP_NM
+        'name',
+        'address',
+        'description',
+        'phone',
+        'email',
+        CPC::COL_MNG,
+        'budget',
+        'budgets',
+        'expenses',
+        'profits'
     ];
     protected $table    = DC::TABLE_DEPARTMENTS;
     protected $guarded  = ['id', DC::COL_TABLE_CREATOR];
@@ -24,6 +33,7 @@ class Department extends Model
         'budget'   => 'decimal:2',
         'expenses' => 'decimal:2',
         'profit'   => 'decimal:2',
+        'budgets'  => 'array',
     ];
 
     public static function booted(): void

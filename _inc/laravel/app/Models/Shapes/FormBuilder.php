@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC, ProjectsConstants as PJC, EmailsConstants as EC, ActivitiesConstants as AC};
 use App\Enums\{AppModuleType, Visibility};
-use App\Traits\{DescribesClientForm, DescribesHtmlLinkedEntity, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, TracksFailures, UsesUuids};
+use App\Traits\{DefinesDates, DescribesClientForm, DescribesHtmlLinkedEntity, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, TracksFailures, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class FormBuilder extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, DescribesClientForm, DescribesHtmlLinkedEntity, PlansByHierarchy, StoresManyRefJson, TracksFailures;
+    use UsesUuids, HasAuditFields, NormalizesArrays, DescribesClientForm, DescribesHtmlLinkedEntity, PlansByHierarchy, StoresManyRefJson, TracksFailures, DefinesDates;
 
     protected $table = DC::TABLE_FORM_BUILD;
 

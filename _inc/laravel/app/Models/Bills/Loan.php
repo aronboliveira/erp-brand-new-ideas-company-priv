@@ -9,7 +9,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\{DeductionType, PaymentPatternType};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\{DB, Schema};
 
 class Loan extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields;
+    use HasFactory, UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_LN;
 

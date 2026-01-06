@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, FormsConstants as FC};
 use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -23,7 +23,6 @@ trait StoresManyRefJson
 				'key_value' => $modelKeyValue
 			]);
 
-			// Skip if no key value (new record)
 			if (!$modelKeyValue) {
 				Log::notice("No key value present - skipping many-ref JSON validation for new record", [
 					'table' => $tableName
@@ -31,7 +30,6 @@ trait StoresManyRefJson
 				return;
 			}
 
-			// Verify existing record
 			try {
 				$existingRecord = DB::table($tableName)
 					->where($modelKey, $modelKeyValue)
@@ -70,7 +68,9 @@ trait StoresManyRefJson
 				'transactions' => DC::TABLE_TRS,
 				'vendors' => DC::TABLE_VENDORS,
 				'customers' => DC::TABLE_CUSTOMERS,
-				'clients' => DC::TABLE_CLIENTS
+				'clients' => DC::TABLE_CLIENTS,
+				BC::COL_BNK_TRFS => DC::TABLE_BNK_TRF,
+				'budgets' => DC::TABLE_BDG
 			];
 
 			foreach ($attributeMappings as $attribute => $referenceTable) {
@@ -82,7 +82,9 @@ trait StoresManyRefJson
 					$modelKeyValue
 				);
 			}
-
+			
+			self::adjustBudget($model, $tableName);
+			
 			Log::notice("Completed many-ref JSON validation for model", [
 				'table' => $tableName,
 				'key_value' => $modelKeyValue
@@ -297,6 +299,88 @@ trait StoresManyRefJson
 				'error' => $e->getMessage()
 			]);
 			return $validIds;
+		}
+	}
+
+	protected static function adjustBudget(Model $model, string $tableName): void {
+		try {
+				if (!Schema::hasTable($tableName))
+						return;
+				$hasBudgetColumn = Schema::hasColumn($tableName, 'budget');
+				$hasBudgetsColumn = Schema::hasColumn($tableName, 'budgets');
+				$hasBudgetTable = Schema::hasTable(DC::TABLE_BDG);
+				$hasBudgetAmountColumn = $hasBudgetTable && Schema::hasColumn(DC::TABLE_BDG, 'amount');
+				if (!$hasBudgetColumn || !$hasBudgetsColumn || !$hasBudgetTable || !$hasBudgetAmountColumn)
+						return;
+				$budgetsList = $model->getAttribute('budgets');
+				$budgetTotal = $model->getAttribute('budget');
+				if ($budgetsList === null && $budgetTotal === null)
+						return;
+				$budgetTotal = is_numeric($budgetTotal) ? (float) $budgetTotal : 0.00;
+				$budgetsListedTotal = 0.00;
+
+				if (!empty($budgetsList) && is_array($budgetsList)) {
+						try {
+								$budgetsTable = DB::table(DC::TABLE_BDG);
+
+								foreach ($budgetsList as $budgetId) {
+										if (empty($budgetId) || (!is_int($budgetId) && !is_string($budgetId)))
+												continue;
+										try {
+												$budgetRecord = $budgetsTable->where('id', $budgetId)->first(['amount']);
+												
+												if ($budgetRecord !== null && isset($budgetRecord->amount)) {
+														$budgetAmount = is_numeric($budgetRecord->amount) ? (float) $budgetRecord->amount : 0.00;
+														$budgetsListedTotal += $budgetAmount;
+												}
+										} catch (\Exception $e) {
+												Log::debug("Failed to fetch budget amount for ID: {$budgetId}", [
+														'budget_id' => $budgetId,
+														'table' => $tableName,
+														'error' => $e->getMessage(),
+														'trait' => __TRAIT__,
+														'class' => static::class,
+												]);
+												continue;
+										}
+								}
+						} catch (\Exception $e) {
+								Log::warning("Failed to process budgets list", [
+										'table' => $tableName,
+										'budgets_count' => count($budgetsList),
+										'error' => $e->getMessage(),
+										'file' => $e->getFile(),
+										'line' => $e->getLine(),
+										'trait' => __TRAIT__,
+										'class' => static::class,
+								]);
+								return;
+						}
+				}
+
+				if ($budgetsListedTotal > 0.00 && $budgetTotal < $budgetsListedTotal) {
+						$model->setAttribute('budget', $budgetsListedTotal);
+						
+						Log::info("Budget total adjusted to match listed budgets", [
+								'table' => $tableName,
+								'old_budget' => $budgetTotal,
+								'new_budget' => $budgetsListedTotal,
+								'budgets_count' => count($budgetsList ?? []),
+								'trait' => __TRAIT__,
+								'class' => static::class,
+						]);
+				}
+
+		} catch (\Exception $e) {
+				Log::error("Failed to validate budget totals", [
+						'table' => $tableName,
+						'error' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+						'trace' => $e->getTraceAsString(),
+						'trait' => __TRAIT__,
+						'class' => static::class,
+				]);
 		}
 	}
 }

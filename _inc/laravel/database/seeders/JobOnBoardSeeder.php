@@ -15,7 +15,7 @@ class JobOnBoardSeeder extends Seeder
 	private ConsoleOutput $out;
 
 	// Hard cap defensivo (não especificado no enunciado, mas mantém o seed controlado).
-	private const HARD_CAP = 256000;
+	private const HARD_CAP = 16000;
 
 	// Tentativas máximas para loops que podem “patinar”.
 	private const MAX_ATTEMPTS = 256;

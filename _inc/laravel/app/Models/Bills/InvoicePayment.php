@@ -12,6 +12,7 @@ use App\Enums\{
     PaymentType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     HasPaymentColumns,
     UsesUuids
@@ -20,9 +21,10 @@ use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class InvoicePayment extends Model
 {
+    use UsesUuids;
     use HasAuditFields;
     use HasPaymentColumns;
-    use UsesUuids;
+    use DefinesDates;
 
     protected $table = DC::TABLE_INV_PAY;
 

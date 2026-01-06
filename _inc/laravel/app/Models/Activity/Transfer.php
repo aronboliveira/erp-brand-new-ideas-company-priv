@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\Log;
 
 class Transfer extends Model
 {
-    use HasAuditFields, HasFactory, UsesUuids;
+    use UsesUuids, HasAuditFields, HasFactory, DefinesDates;
 
     protected $table = DC::TABLE_TRFS;
 

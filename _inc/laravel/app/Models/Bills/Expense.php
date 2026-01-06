@@ -16,6 +16,7 @@ use App\Enums\{
     TransferType
 };
 use App\Traits\{
+    DefinesDates,
     FiltersSecureAttachments,
     HasAuditFields,
     HasCreditCardInfo,
@@ -41,6 +42,7 @@ class Expense extends Model
     use HasNfeColumns;
     use FiltersSecureAttachments;
     use StoresManyRefJson;
+    use DefinesDates;
 
     protected $table = DC::TABLE_EXP;
 

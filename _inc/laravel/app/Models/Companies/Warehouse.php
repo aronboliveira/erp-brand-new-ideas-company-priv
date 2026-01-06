@@ -10,6 +10,7 @@ use App\Config\Constants\{
 use App\Enums\Weekday;
 use App\Traits\{
     ChecksLogin,
+    DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
     StoresManyRefJson,
@@ -36,6 +37,7 @@ class Warehouse extends Model
     use NormalizesAddresses;
     use UsesCountryRegions;
     use ChecksLogin;
+    use DefinesDates;
 
     protected $table = DC::TABLE_WRH;
     protected $fillable = [

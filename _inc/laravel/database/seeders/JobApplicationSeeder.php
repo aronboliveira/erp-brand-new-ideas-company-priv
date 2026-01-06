@@ -16,7 +16,7 @@ class JobApplicationSeeder extends Seeder
 	private ConsoleOutput $out;
 
 	private const MAX_ATTEMPTS = 80;
-	private const HARD_CAP = 64000;
+	private const HARD_CAP = 16000;
 
 	public function run(): void
 	{

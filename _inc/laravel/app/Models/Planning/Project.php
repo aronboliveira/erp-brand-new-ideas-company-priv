@@ -10,7 +10,7 @@ use App\Config\Constants\{
     UsersConstants as UC,
     ViewsConstants as VW
 };
-use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
+use App\Traits\{ChecksLogin, DefinesDates, HasAuditFields, StoresManyRefJson, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Support\Facades\{Auth, Storage};
 use Illuminate\{Database\Eloquent\Model, Support\Collection};
@@ -19,7 +19,7 @@ use Illuminate\Http\RedirectResponse;
 
 class Project extends Model
 {
-    use ChecksLogin, UsesUuids, HasAuditFields;
+    use ChecksLogin, UsesUuids, HasAuditFields, DefinesDates, StoresManyRefJson;
 
     protected $fillable = [
         PJC::COL_NM,

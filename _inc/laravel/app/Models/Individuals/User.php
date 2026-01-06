@@ -18,7 +18,8 @@ use App\Enums\{BrazilState, UserType};
 use App\Traits\{
     ChecksLogin,
     NormalizesAddresses,
-    UsesUuids
+    StoresManyRefJson,
+    UsesUuids,
 };
 use Carbon\Carbon;
 use Illuminate\{
@@ -39,14 +40,15 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use ChecksLogin,
+    use UsesUuids,
+        ChecksLogin,
         HasApiTokens,
         HasProfilePhoto,
         HasRoles,
         Notifiable,
         TwoFactorAuthenticatable,
-        UsesUuids,
-        NormalizesAddresses;
+        NormalizesAddresses,
+        StoresManyRefJson;
     protected $appends  = ['profile'];
     protected $fillable = [
         UC::COL_NM,

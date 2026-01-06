@@ -139,6 +139,9 @@ class ProjectsConstants
 	public const COL_ACP_LVLS = 'accepted_levels';
 	public const COL_TRK_ID = 'track_id';
 	public const COL_IMG_PATH = 'image_path';
+	public const COL_COA_ID = 'chart_of_account_id';
+	public const COL_PRD_SERV_CAT_ID = 'product_service_category_id';
+	public const COL_PRD_SERV_ID = 'product_service_id';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

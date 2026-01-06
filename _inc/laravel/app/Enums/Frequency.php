@@ -10,6 +10,7 @@ enum Frequency: string
 	case Monthly     = 'monthly';
 	case Weekly      = 'weekly';
 	case Biweekly    = 'biweekly';
+	case Quaternaly  = 'quaternaly';
 	case Semimonthly = 'semimonthly';
 	case Semestral   = 'semestral';
 	case Annual      = 'annual';
@@ -26,11 +27,20 @@ enum Frequency: string
 		$aliases = [
 			'semiannual'    => 'semestral',
 			'semi-annual'   => 'semestral',
+			'quaternaly'    => 'quaternaly',
+			'quarterly'     => 'quaternaly',
+			'quarteraly'    => 'quaternaly',
+			'quarter-ly'    => 'quaternaly',
+			'bi-monthly'    => 'semimonthly',
+			'bimonthly'     => 'semimonthly',
+			'half-yearly'    => 'semestral',
+			'half yearly'   => 'semestral',
 			'semi_monthly'  => 'semimonthly',
 			'semi-monthly'  => 'semimonthly',
 			'bimestral'     => 'biweekly',
 			'fortnightly'   => 'biweekly',
 			'yearly'        => 'annual',
+			'annual'				=> 'annual',
 			'mensal'        => 'monthly',
 			'semanal'       => 'weekly',
 			'quinzenal'     => 'biweekly',
@@ -79,6 +89,7 @@ enum Frequency: string
 			self::Once->value        => 'Uma Vez',
 			self::Variable->value    => 'Variável',
 			self::Hourly->value      => 'Horária',
+			self::Quaternaly->value      => 'Anual',
 		];
 	}
 
@@ -94,6 +105,7 @@ enum Frequency: string
 			self::Once->value        => 'Once',
 			self::Variable->value    => 'Variable',
 			self::Hourly->value      => 'Hourly',
+			self::Quaternaly->value      => 'Quaternaly',
 		];
 	}
 
@@ -109,6 +121,7 @@ enum Frequency: string
 			self::Once->value        => 'Una Vez',
 			self::Variable->value    => 'Variable',
 			self::Hourly->value      => 'Por Hora',
+			self::Quaternaly->value      => 'Trimestral',
 		];
 	}
 
@@ -124,6 +137,7 @@ enum Frequency: string
 			self::Once->value        => 'مرة واحدة',
 			self::Variable->value    => 'متغير',
 			self::Hourly->value      => 'كل ساعة',
+			self::Quaternaly->value      => 'ربع سنوي',
 		];
 	}
 
@@ -139,6 +153,7 @@ enum Frequency: string
 			self::Once->value        => 'En Gang',
 			self::Variable->value    => 'Variabel',
 			self::Hourly->value      => 'Hver Time',
+			self::Quaternaly->value      => 'Kvartalsvis',
 		];
 	}
 
@@ -154,6 +169,7 @@ enum Frequency: string
 			self::Once->value        => 'Einmalig',
 			self::Variable->value    => 'Variabel',
 			self::Hourly->value      => 'Stündlich',
+			self::Quaternaly->value      => 'Vierteljährlich',
 		];
 	}
 
@@ -169,6 +185,7 @@ enum Frequency: string
 			self::Once->value        => 'Une Fois',
 			self::Variable->value    => 'Variable',
 			self::Hourly->value      => 'Horaire',
+			self::Quaternaly->value      => 'Trimestriel',
 		];
 	}
 
@@ -184,6 +201,7 @@ enum Frequency: string
 			self::Once->value        => 'פעם אחת',
 			self::Variable->value    => 'משתנה',
 			self::Hourly->value      => 'שעתי',
+			self::Quaternaly->value      => 'רבעוני',
 		];
 	}
 
@@ -199,6 +217,7 @@ enum Frequency: string
 			self::Once->value        => 'Una Volta',
 			self::Variable->value    => 'Variabile',
 			self::Hourly->value      => 'Orario',
+			self::Quaternaly->value      => 'Trimestrale',
 		];
 	}
 
@@ -214,6 +233,7 @@ enum Frequency: string
 			self::Once->value        => '一度',
 			self::Variable->value    => '変動',
 			self::Hourly->value      => '時間ごと',
+			self::Quaternaly->value      => '四半期ごと',
 		];
 	}
 
@@ -229,6 +249,7 @@ enum Frequency: string
 			self::Once->value        => 'Eenmalig',
 			self::Variable->value    => 'Variabel',
 			self::Hourly->value      => 'Uurlijks',
+			self::Quaternaly->value      => 'Kwartaal',
 		];
 	}
 
@@ -244,6 +265,7 @@ enum Frequency: string
 			self::Once->value        => 'Jednorazowy',
 			self::Variable->value    => 'Zmienny',
 			self::Hourly->value      => 'Godzinowy',
+			self::Quaternaly->value      => 'Kwartalny',
 		];
 	}
 
@@ -259,6 +281,7 @@ enum Frequency: string
 			self::Once->value        => 'Один Раз',
 			self::Variable->value    => 'Переменный',
 			self::Hourly->value      => 'Почасовой',
+			self::Quaternaly->value      => 'Ежеквартально',
 		];
 	}
 
@@ -274,6 +297,7 @@ enum Frequency: string
 			self::Once->value        => 'Bir Kez',
 			self::Variable->value    => 'Değişken',
 			self::Hourly->value      => 'Saatlik',
+			self::Quaternaly->value      => 'Üç Aylık',
 		];
 	}
 
@@ -289,6 +313,7 @@ enum Frequency: string
 			self::Once->value        => '一次',
 			self::Variable->value    => '可变',
 			self::Hourly->value      => '每小时',
+			self::Quaternaly->value      => '每季度',
 		];
 	}
 }

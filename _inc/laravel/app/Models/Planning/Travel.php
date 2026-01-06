@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Travel extends Model
 {
-    use HasAuditFields, UsesUuids;
+    use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_TRAVELS;
     protected $fillable = [

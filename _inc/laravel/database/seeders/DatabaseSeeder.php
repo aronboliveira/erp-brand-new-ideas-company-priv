@@ -243,6 +243,7 @@ class DatabaseSeeder extends Seeder
                     BasicFavoritesSeeder::class,
                     JournalEntrySeeder::class,
                     JournalItemSeeder::class,
+                    BudgetSeeder::class,
                     FormBuilderSeeder::class,
                     FormFieldSeeder::class,
                     FormFieldResponseSeeder::class,

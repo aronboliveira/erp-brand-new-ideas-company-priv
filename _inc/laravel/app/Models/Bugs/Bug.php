@@ -7,13 +7,13 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
-use App\Traits\UsesUuids;
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 
 class Bug extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields, DefinesDates;
 
     private const COL_ASSIGN_TO  = PJC::COL_ASGN;
     private const COL_BUG_ID     = 'bug_id';

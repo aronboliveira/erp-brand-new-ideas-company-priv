@@ -45,7 +45,7 @@ final class BudgetController extends Controller
                 Log::info("[{$base}::{$action}] loaded budgets", ['count' => $budgets->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
-                $resp = view($viewPath, ['budgets' => $budgets, 'periods' => Budget::$period]);
+                $resp = view($viewPath, ['budgets' => $budgets, 'periods' => Budget::$frequency]);
                 $this->logExecutionTime($renderStart, $action, 'renderIndex');
                 return $resp;
             } catch (\Throwable $e) {
@@ -79,7 +79,7 @@ final class BudgetController extends Controller
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath, [
-                    'periods' => Budget::$period,
+                    'periods' => Budget::$frequency,
                     'incomeproduct' => $incomeCats,
                     'expenseproduct' => $expenseCats,
                     'monthList' => self::_months(),
@@ -221,7 +221,7 @@ final class BudgetController extends Controller
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath, [
-                    'periods' => Budget::$period,
+                    'periods' => Budget::$frequency,
                     'budget' => $budget,
                     'incomeproduct' => $incomeCats,
                     'expenseproduct' => $expenseCats,

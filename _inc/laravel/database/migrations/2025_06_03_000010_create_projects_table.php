@@ -44,6 +44,7 @@ class CreateProjectsTable extends Migration
                     ->references('id')
                     ->on($referencedTable)
                     ->cascadeOnDelete();
+            $table->json('budgets')->nullable();
             $this->addAuditColumns($table);
         });
     }

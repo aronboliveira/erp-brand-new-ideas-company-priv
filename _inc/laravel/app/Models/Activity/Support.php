@@ -13,6 +13,7 @@ use App\Config\Constants\{
 use App\Enums\{AppModuleType, CaseStatus, PriorityLevel, Visibility};
 use App\Traits\{
 	ChecksLogin,
+	DefinesDates,
 	FiltersSecureAttachments,
 	HasAuditFields,
 	NormalizesArrays,
@@ -29,7 +30,7 @@ use Illuminate\Support\Str;
 
 class Support extends Model
 {
-	use ChecksLogin, FiltersSecureAttachments, HasAuditFields, HasFactory, NormalizesArrays, PlansByHierarchy, UsesUuids;
+	use UsesUuids, HasAuditFields, ChecksLogin, FiltersSecureAttachments, HasFactory, NormalizesArrays, PlansByHierarchy, DefinesDates;
 
 	protected $table = DC::TABLE_SUPPORTS;
 
@@ -340,7 +341,7 @@ class Support extends Model
 
 	public function priorityEnumOptions(): array
 	{
-		return array_values(array_filter(PriorityLevel::cases(), fn ($c) => $c !== PriorityLevel::None));
+		return array_values(array_filter(PriorityLevel::cases(), fn($c) => $c !== PriorityLevel::None));
 	}
 
 	public function statusEnumOptions(): array
@@ -390,7 +391,7 @@ class Support extends Model
 
 	public function scopeOpenCases($q)
 	{
-		return $q->whereIn(SC::COL_STT_LB, array_map(fn ($c) => $c->value, array_values(array_filter(CaseStatus::cases(), fn ($c) => $c->isActive()))));
+		return $q->whereIn(SC::COL_STT_LB, array_map(fn($c) => $c->value, array_values(array_filter(CaseStatus::cases(), fn($c) => $c->isActive()))));
 	}
 
 	public function touchClosedByPolicy(?string $userId = null): void

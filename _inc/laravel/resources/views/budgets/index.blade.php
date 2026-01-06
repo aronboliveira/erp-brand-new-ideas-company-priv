@@ -95,7 +95,7 @@
                                             // $toOut         = isset($toRaw) && $toRaw !== '' ? (string) $toRaw : __('No end date available');
 
                                             $periodIndex      = data_get($budget, 'period');
-                                            $periodMap        = \App\Models\Budget::$period ?? [];
+                                            $periodMap        = \App\Models\Budget::$frequency ?? [];
                                             $hasPeriodLabel   = isset($periodIndex) && is_array($periodMap) && array_key_exists($periodIndex, $periodMap);
                                             $periodOut        = $hasPeriodLabel ? __((string) $periodMap[$periodIndex]) : __('No budget period available');
                                         @endphp

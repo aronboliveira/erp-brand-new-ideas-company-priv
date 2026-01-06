@@ -13,6 +13,7 @@ use App\Enums\{
     TransactionType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
     StoresManyRefJson,
@@ -35,6 +36,7 @@ class Invoice extends Model
     use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
+    use DefinesDates;
 
     protected $table = DC::TABLE_INVS;
     protected $fillable = [

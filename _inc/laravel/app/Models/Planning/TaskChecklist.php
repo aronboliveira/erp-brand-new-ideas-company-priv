@@ -9,18 +9,13 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\UserType;
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
+use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
+use Illuminate\Support\{Carbon, Facades\Log, Str};
 
 class TaskChecklist extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, HasFactory, FiltersSecureAttachments;
+    use UsesUuids, HasAuditFields, NormalizesArrays, HasFactory, FiltersSecureAttachments, DefinesDates;
 
     protected $table = DC::TABLE_TSK_CHKL;
 

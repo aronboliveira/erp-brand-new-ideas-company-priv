@@ -14,6 +14,7 @@ use App\Enums\{
     WorkActivityScope
 };
 use App\Traits\{
+    DefinesDates,
     FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
@@ -31,6 +32,7 @@ class Training extends Model
     use HasFactory;
     use NormalizesArrays;
     use FiltersSecureAttachments;
+    use DefinesDates;
 
     protected $table = DC::TABLE_TRAINING;
 

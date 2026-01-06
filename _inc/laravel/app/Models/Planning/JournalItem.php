@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, SettingsConstants as SC, UsersConstants as UC};
 use App\Enums\{TransactionType, TransferType, UserType};
-use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, StoresManyRefJson, UsesUuids};
+use App\Traits\{DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, StoresManyRefJson, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +20,7 @@ class JournalItem extends Model
     use DescribesCompanyBranch;
     use FiltersSecureAttachments;
     use StoresManyRefJson;
+    use DefinesDates;
     use SoftDeletes;
 
     protected $table = DC::TABLE_JRN_IT;

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\{MimeType, UserType};
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
@@ -12,7 +12,7 @@ use Throwable;
 
 abstract class AbstractFile extends Model
 {
-	use UsesUuids, HasAuditFields, FiltersSecureAttachments;
+	use UsesUuids, HasAuditFields, FiltersSecureAttachments, DefinesDates;
 
 	protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 

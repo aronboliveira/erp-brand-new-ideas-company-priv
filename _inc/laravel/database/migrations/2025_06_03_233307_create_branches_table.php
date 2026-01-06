@@ -34,6 +34,7 @@ class CreateBranchesTable extends Migration
                 $table->text('description')->nullable();
                 $table->text('departments')->nullable();
                 $table->decimal('budget', 15, 2)->default(0.00);
+                $table->json('budgets')->nullable();
                 $table->decimal('expenses', 15, 2)->default(0.00);
                 $table->decimal('profit', 15, 2)->default(0.00);
                 $this->addAuditColumns($table);

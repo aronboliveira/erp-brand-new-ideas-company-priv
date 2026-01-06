@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{MimeType, PaymentMethod};
-use App\Traits\{HasAuditFields, HasPaymentColumns, TracksFailures, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, HasPaymentColumns, TracksFailures, UsesUuids};
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class BankTransfer extends Model
 {
-    use UsesUuids, HasAuditFields, HasPaymentColumns, TracksFailures;
+    use UsesUuids, HasAuditFields, HasPaymentColumns, TracksFailures, DefinesDates;
 
     protected $table = DC::TABLE_BNK_TRF;
 

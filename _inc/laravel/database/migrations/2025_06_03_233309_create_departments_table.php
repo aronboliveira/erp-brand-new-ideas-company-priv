@@ -23,6 +23,7 @@ class CreateDepartmentsTable extends Migration
             $table->string('email', 254)->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
             $table->decimal('budget', 15, 2)->default(0.00);
+            $table->json('budgets')->nullable();
             $table->unsignedDecimal('expenses', 15, 2)->default(0.00);
             $table->unsignedDecimal('profit', 15, 2)->default(0.00);
             $table->unique([CPC::COL_BRC_ID, CPC::COL_DEP_NM], self::UNQ_BDEP);

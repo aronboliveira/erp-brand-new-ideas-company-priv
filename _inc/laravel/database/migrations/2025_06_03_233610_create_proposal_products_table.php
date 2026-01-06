@@ -1,18 +1,18 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateProposalProductsTable extends Migration
 {
-    private const TABLE = 'proposal_products';
+    private const TABLE = DC::TABLE_PPS_PRD;
     private const COL_PROPOSAL = 'proposal_id';
     private const COL_PRODUCT = 'product_id';
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                 // ! CHANGED
+            $table->uuid('id')->primary();
             $table->uuid(self::COL_PROPOSAL)->index();           // ! CHANGED
             $table->uuid(self::COL_PRODUCT)->index();            // ! CHANGED
             $table->integer('quantity');
@@ -21,12 +21,12 @@ class CreateProposalProductsTable extends Migration
             $table->decimal('price', 16, 2)->default(0.00);   // ! CHANGED field name/type
             $table->text('description')->nullable();        // ! CHANGED added
             $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
             foreach (
                 [
-                    self::COL_PROPOSAL               => DatabaseConstants::TABLE_PROPOSALS,
-                    self::COL_PRODUCT                => DatabaseConstants::TABLE_PRODUCTS,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    self::COL_PROPOSAL               => DC::TABLE_PROPOSALS,
+                    self::COL_PRODUCT                => DC::TABLE_PRODUCTS,
+                    DC::COL_TABLE_CREATOR => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -43,7 +43,7 @@ class CreateProposalProductsTable extends Migration
                 [
                     self::COL_PROPOSAL,
                     self::COL_PRODUCT,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    DC::COL_TABLE_CREATOR,
                 ] as $column
             ) {
                 try {

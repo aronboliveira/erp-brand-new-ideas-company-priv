@@ -17,6 +17,7 @@ use App\Enums\{
     UserType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
     StoresManyRefJson,
@@ -40,6 +41,7 @@ class Bill extends Model
     use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
+    use DefinesDates;
 
     protected $table = DC::TABLE_BILLS;
 

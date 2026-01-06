@@ -1,43 +1,37 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
-class CreatePosProductsTable extends Migration
+class CreateWarehouseProductsTable extends Migration
 {
-    private const TABLE            = 'pos_products';
-    private const COL_DESCRIPTION  = 'description';
-    private const COL_DISCOUNT     = 'discount';
-    private const COL_PRICE        = 'price';
-    private const COL_POS_ID       = 'pos_id';
+    private const WH = 'warehouse';
+    private const TABLE            = DC::TABLE_WRH_PRD;
+    private const COL_CREATED_BY   = DC::COL_TABLE_CREATOR;
     private const COL_PRODUCT_ID   = 'product_id';
     private const COL_QUANTITY     = 'quantity';
-    private const COL_TAX          = 'tax';
+    private const COL_WAREHOUSE_ID = self::WH . '_id';
 
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();                             // ! CHANGED
-            $table->uuid(self::COL_POS_ID);                            // ! CHANGED
-            $table->uuid(self::COL_PRODUCT_ID);                        // ! CHANGED
+            $table->uuid(self::COL_WAREHOUSE_ID);                       // ! CHANGED
+            $table->uuid(self::COL_PRODUCT_ID);                         // ! CHANGED
             $table->integer(self::COL_QUANTITY)->default(0);
-            $table->string(self::COL_TAX)->default('0.00');
-            $table->float(self::COL_DISCOUNT, 15, 2)->default(0.00)->nullable();
-            $table->decimal(self::COL_PRICE, 15, 2)->default(0.00);    // ! CHANGED
-            $table->text(self::COL_DESCRIPTION)->nullable();           // * matches model
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            $table->uuid(self::COL_CREATED_BY);                         // ! CHANGED
             $table->timestamps();
             foreach (
                 [
-                    self::COL_POS_ID                  => DatabaseConstants::TABLE_POS,
-                    self::COL_PRODUCT_ID              => DatabaseConstants::TABLE_PROD_SERVS,
-                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable
+                    self::COL_WAREHOUSE_ID => DC::TABLE_WHS,
+                    self::COL_PRODUCT_ID => DC::TABLE_PROD_SERVS,
+                    self::COL_CREATED_BY => DC::TABLE_USERS,
+                ] as $col => $tbl
             )
-                $table->foreign($column)
+                $table->foreign($col)
                     ->references('id')
-                    ->on($referencedTable)
+                    ->on($tbl)
                     ->cascadeOnDelete(); // * ADDED
         });
     }
@@ -47,9 +41,9 @@ class CreatePosProductsTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             foreach (
                 [
-                    self::COL_POS_ID,
+                    self::COL_WAREHOUSE_ID,
                     self::COL_PRODUCT_ID,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    self::COL_CREATED_BY,
                 ] as $column
             ) {
                 try {

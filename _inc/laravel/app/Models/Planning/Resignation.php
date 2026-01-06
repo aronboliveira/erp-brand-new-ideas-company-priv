@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Resignation extends Model
 {
-    use HasAuditFields, HasFactory, UsesUuids;
+    use UsesUuids, HasAuditFields, HasFactory, DefinesDates;
     protected $table = DC::TABLE_RSG;
     protected $fillable = [
         UC::COL_EMP_ID,

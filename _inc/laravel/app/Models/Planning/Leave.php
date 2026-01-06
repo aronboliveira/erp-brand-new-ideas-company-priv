@@ -8,6 +8,7 @@ use App\Config\Constants\{
     ProjectsConstants as PJC
 };
 use App\Traits\{
+    DefinesDates,
     FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
@@ -28,10 +29,9 @@ class Leave extends Model
     use HasFactory;
     use NormalizesArrays;
     use FiltersSecureAttachments;
+    use DefinesDates;
 
-    public const TABLE = DC::TABLE_LV;
-
-    protected $table = self::TABLE;
+    protected $table = DC::TABLE_LV;
 
     protected $fillable = [
         'employee_id',

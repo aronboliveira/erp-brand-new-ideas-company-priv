@@ -9,14 +9,14 @@ use App\Config\Constants\{
 };
 use App\Enums\{MessagingPlatform, NotificationTemplateType};
 use App\Models\User;
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{Cache, Log};
 
 class Notification extends Model
 {
-    use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;
+    use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments, DefinesDates;
 
     protected $table = DC::TABLE_NTF;
 

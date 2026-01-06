@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, Frequency};
-use App\Traits\{ChecksLogin, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
+use App\Traits\{ChecksLogin, DefinesDates, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Validator};
@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
 {
-    use UsesUuids, HasAuditFields, PlansByHierarchy, FiltersSecureAttachments, ChecksLogin;
+    use UsesUuids, HasAuditFields, PlansByHierarchy, FiltersSecureAttachments, DefinesDates, ChecksLogin;
 
     public const TABLE = DC::TABLE_CONTRACTS;
 

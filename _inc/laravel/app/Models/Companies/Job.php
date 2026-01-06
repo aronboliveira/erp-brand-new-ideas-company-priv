@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
-use App\Enums\{CountryName, DEICategory, EvaluationStatus, JobLevel, Visibility, WorkContractType, WorkPresence, WorkShift};
+use App\Enums\{CountryName, DefinesDates, DEICategory, EvaluationStatus, JobLevel, Visibility, WorkContractType, WorkPresence, WorkShift};
 use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
@@ -18,6 +18,7 @@ class Job extends Model
     use DescribesCompanyBranch;
     use FiltersSecureAttachments;
     use UsesCountryRegions;
+    use DefinesDates;
 
     protected $table = DC::TABLE_JOBS;
 

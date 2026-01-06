@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Carbon;
 
 class JobApplicationNote extends Model
 {
-    use HasAuditFields, UsesUuids;
+    use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_JB_AP_NTS;
 

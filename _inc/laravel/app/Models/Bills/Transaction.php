@@ -13,6 +13,7 @@ use App\Enums\{
     MimeType
 };
 use App\Traits\{
+    DefinesDates,
     HasAuditFields,
     HasPaymentColumns,
     TracksFailures,
@@ -32,7 +33,7 @@ use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
-    use UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures;
+    use UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures, DefinesDates;
 
     public const TABLE = DC::TABLE_TRS;
 

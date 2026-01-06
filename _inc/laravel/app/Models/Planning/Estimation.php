@@ -13,6 +13,7 @@ use App\Enums\{
 };
 use App\Traits\{
     ChecksLogin,
+    DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
     StoresManyRefJson,
@@ -36,7 +37,8 @@ class Estimation extends Model
         ChecksLogin,
         NormalizesAddresses,
         UsesCountryRegions,
-        StoresManyRefJson;
+        StoresManyRefJson,
+        DefinesDates;
 
     protected $table = DC::TABLE_EST;
 
