@@ -33,6 +33,7 @@ class CreateDealsTable extends Migration
             $table->integer('order')->default(0);
             $table->uuid('responsible')->nullable()->index(); // ? nullable for now
             $table->uuid('supervisor')->nullable()->index(); // ? nullable for now
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
             $table->json('involded')->nullable();
             $table->integer(AC::COL_IA)->default(1);
             foreach (
@@ -40,6 +41,7 @@ class CreateDealsTable extends Migration
                     'responsible'                  => DC::TABLE_USERS,
                     'supervisor'                   => DC::TABLE_USERS,
                     PJC::COL_STG_ID                => DC::TABLE_STAGES,
+                    PJC::COL_PLN_SCHD_ID           => DC::TABLE_PLN_SCHD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -59,6 +61,7 @@ class CreateDealsTable extends Migration
                     'responsible',
                     'supervisor',
                     PJC::COL_STG_ID,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $column
             ) {
                 try {

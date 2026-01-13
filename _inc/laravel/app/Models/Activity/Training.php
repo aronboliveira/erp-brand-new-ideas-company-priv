@@ -18,6 +18,7 @@ use App\Traits\{
     FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
+    PlansWithSchedule,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
@@ -33,6 +34,7 @@ class Training extends Model
     use NormalizesArrays;
     use FiltersSecureAttachments;
     use DefinesDates;
+    use PlansWithSchedule;
 
     protected $table = DC::TABLE_TRAINING;
 

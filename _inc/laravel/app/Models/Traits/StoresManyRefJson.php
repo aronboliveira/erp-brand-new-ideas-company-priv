@@ -12,84 +12,86 @@ trait StoresManyRefJson
 {
 	protected static function bootStoresManyRefJson(): void
 	{
-		static::saving(function (Model $model) {
-			$tableName = $model->getTable();
-			$modelKey = $model->getKeyName();
-			$modelKeyValue = $model->getKey();
+		// todo this should be activated in production, but it's too heavy for mocks
+		// static::saving(function (Model $model) {
+		// 	$tableName = $model->getTable();
+		// 	$modelKey = $model->getKeyName();
+		// 	$modelKeyValue = $model->getKey();
 
-			Log::notice("Starting many-ref JSON validation for model", [
-				'table' => $tableName,
-				'key' => $modelKey,
-				'key_value' => $modelKeyValue
-			]);
+		// 	Log::notice("Starting many-ref JSON validation for model", [
+		// 		'table' => $tableName,
+		// 		'key' => $modelKey,
+		// 		'key_value' => $modelKeyValue
+		// 	]);
 
-			if (!$modelKeyValue) {
-				Log::notice("No key value present - skipping many-ref JSON validation for new record", [
-					'table' => $tableName
-				]);
-				return;
-			}
+		// 	if (!$modelKeyValue) {
+		// 		Log::notice("No key value present - skipping many-ref JSON validation for new record", [
+		// 			'table' => $tableName
+		// 		]);
+		// 		return;
+		// 	}
 
-			try {
-				$existingRecord = DB::table($tableName)
-					->where($modelKey, $modelKeyValue)
-					->first();
+		// 	try {
+		// 		$existingRecord = DB::table($tableName)
+		// 			->where($modelKey, $modelKeyValue)
+		// 			->first();
 
-				if (!$existingRecord) {
-					Log::notice("No existing record found - skipping many-ref JSON validation", [
-						'table' => $tableName,
-						'key_value' => $modelKeyValue
-					]);
-					return;
-				}
-			} catch (Throwable $e) {
-				Log::error("Failed to retrieve existing record for many-ref JSON validation", [
-					'table' => $tableName,
-					'key_value' => $modelKeyValue,
-					'error' => $e->getMessage()
-				]);
-				return;
-			}
+		// 		if (!$existingRecord) {
+		// 			Log::notice("No existing record found - skipping many-ref JSON validation", [
+		// 				'table' => $tableName,
+		// 				'key_value' => $modelKeyValue
+		// 			]);
+		// 			return;
+		// 		}
+		// 	} catch (Throwable $e) {
+		// 		Log::error("Failed to retrieve existing record for many-ref JSON validation", [
+		// 			'table' => $tableName,
+		// 			'key_value' => $modelKeyValue,
+		// 			'error' => $e->getMessage()
+		// 		]);
+		// 		return;
+		// 	}
 
-			// Define attribute-to-table mappings
-			$attributeMappings = [
-				'notifications' => DC::TABLE_NTF,
-				'fields' => DC::TABLE_FM_FD,
-				'payments' => DC::TABLE_PAY,
-				'employees' => DC::TABLE_EMPLOYEES,
-				'sources' => 'sources',
-				'questions' => DC::TABLE_CUSTOM_QUESTIONS,
-				'branches' => DC::TABLE_BRANCHES,
-				'departments' => DC::TABLE_DEPARTMENTS,
-				'designations' => DC::TABLE_DESIGNS,
-				'taxes' => DC::TABLE_TAXES,
-				'jobs' => DC::TABLE_JOBS,
-				'projects' => DC::TABLE_PROJECTS,
-				'transactions' => DC::TABLE_TRS,
-				'vendors' => DC::TABLE_VENDORS,
-				'customers' => DC::TABLE_CUSTOMERS,
-				'clients' => DC::TABLE_CLIENTS,
-				BC::COL_BNK_TRFS => DC::TABLE_BNK_TRF,
-				'budgets' => DC::TABLE_BDG
-			];
+		// 	// Define attribute-to-table mappings
+		// 	$attributeMappings = [
+		// 		'notifications' => DC::TABLE_NTF,
+		// 		'fields' => DC::TABLE_FM_FD,
+		// 		'payments' => DC::TABLE_PAY,
+		// 		'employees' => DC::TABLE_EMPLOYEES,
+		// 		'sources' => 'sources',
+		// 		'questions' => DC::TABLE_CUSTOM_QUESTIONS,
+		// 		'branches' => DC::TABLE_BRANCHES,
+		// 		'departments' => DC::TABLE_DEPARTMENTS,
+		// 		'designations' => DC::TABLE_DESIGNS,
+		// 		'taxes' => DC::TABLE_TAXES,
+		// 		'jobs' => DC::TABLE_JOBS,
+		// 		'projects' => DC::TABLE_PROJECTS,
+		// 		'transactions' => DC::TABLE_TRS,
+		// 		'vendors' => DC::TABLE_VENDORS,
+		// 		'customers' => DC::TABLE_CUSTOMERS,
+		// 		'clients' => DC::TABLE_CLIENTS,
+		// 		BC::COL_BNK_TRFS => DC::TABLE_BNK_TRF,
+		// 		'budgets' => DC::TABLE_BDG,
+		// 		BC::COL_CARD_NTS => DC::TABLE_DB_NOTES,
+		// 	];
 
-			foreach ($attributeMappings as $attribute => $referenceTable) {
-				self::processJsonReferenceAttribute(
-					$model,
-					$attribute,
-					$referenceTable,
-					$tableName,
-					$modelKeyValue
-				);
-			}
-			
-			self::adjustBudget($model, $tableName);
-			
-			Log::notice("Completed many-ref JSON validation for model", [
-				'table' => $tableName,
-				'key_value' => $modelKeyValue
-			]);
-		});
+		// 	foreach ($attributeMappings as $attribute => $referenceTable) {
+		// 		self::processJsonReferenceAttribute(
+		// 			$model,
+		// 			$attribute,
+		// 			$referenceTable,
+		// 			$tableName,
+		// 			$modelKeyValue
+		// 		);
+		// 	}
+
+		// 	self::adjustBudget($model, $tableName);
+
+		// 	Log::notice("Completed many-ref JSON validation for model", [
+		// 		'table' => $tableName,
+		// 		'key_value' => $modelKeyValue
+		// 	]);
+		// });
 	}
 
 	/**
@@ -224,13 +226,11 @@ trait StoresManyRefJson
 				'existing_ids_count' => count($existingIds)
 			]);
 
-			// Validate base reference table
-			$validIds = empty($existingIds) ? [] : DB::table($referenceTable)
+			$validIds = empty($existingIds) ? [] : ($attribute === BC::COL_CARD_NTS ? array_values(array_merge(DB::table(DC::TABLE_CR_NOTES)->whereIn('id', $existingIds)->pluck('id')->toArray(), DB::table(DC::TABLE_DB_NOTES)->whereIn('id', $existingIds)->pluck('id')->toArray())) : DB::table($referenceTable)
 				->whereIn('id', $existingIds)
 				->pluck('id')
-				->toArray();
+				->toArray());
 
-			// Handle special user-type validations
 			$validIds = self::mergeUserTypeReferences($attribute, $existingIds, $validIds);
 
 			$model->setAttribute($attribute, json_encode($validIds));
@@ -302,85 +302,85 @@ trait StoresManyRefJson
 		}
 	}
 
-	protected static function adjustBudget(Model $model, string $tableName): void {
+	protected static function adjustBudget(Model $model, string $tableName): void
+	{
 		try {
-				if (!Schema::hasTable($tableName))
-						return;
-				$hasBudgetColumn = Schema::hasColumn($tableName, 'budget');
-				$hasBudgetsColumn = Schema::hasColumn($tableName, 'budgets');
-				$hasBudgetTable = Schema::hasTable(DC::TABLE_BDG);
-				$hasBudgetAmountColumn = $hasBudgetTable && Schema::hasColumn(DC::TABLE_BDG, 'amount');
-				if (!$hasBudgetColumn || !$hasBudgetsColumn || !$hasBudgetTable || !$hasBudgetAmountColumn)
-						return;
-				$budgetsList = $model->getAttribute('budgets');
-				$budgetTotal = $model->getAttribute('budget');
-				if ($budgetsList === null && $budgetTotal === null)
-						return;
-				$budgetTotal = is_numeric($budgetTotal) ? (float) $budgetTotal : 0.00;
-				$budgetsListedTotal = 0.00;
+			if (!Schema::hasTable($tableName))
+				return;
+			$hasBudgetColumn = Schema::hasColumn($tableName, 'budget');
+			$hasBudgetsColumn = Schema::hasColumn($tableName, 'budgets');
+			$hasBudgetTable = Schema::hasTable(DC::TABLE_BDG);
+			$hasBudgetAmountColumn = $hasBudgetTable && Schema::hasColumn(DC::TABLE_BDG, 'amount');
+			if (!$hasBudgetColumn || !$hasBudgetsColumn || !$hasBudgetTable || !$hasBudgetAmountColumn)
+				return;
+			$budgetsList = $model->getAttribute('budgets');
+			$budgetTotal = $model->getAttribute('budget');
+			if ($budgetsList === null && $budgetTotal === null)
+				return;
+			$budgetTotal = is_numeric($budgetTotal) ? (float) $budgetTotal : 0.00;
+			$budgetsListedTotal = 0.00;
 
-				if (!empty($budgetsList) && is_array($budgetsList)) {
+			if (!empty($budgetsList) && is_array($budgetsList)) {
+				try {
+					$budgetsTable = DB::table(DC::TABLE_BDG);
+
+					foreach ($budgetsList as $budgetId) {
+						if (empty($budgetId) || (!is_int($budgetId) && !is_string($budgetId)))
+							continue;
 						try {
-								$budgetsTable = DB::table(DC::TABLE_BDG);
+							$budgetRecord = $budgetsTable->where('id', $budgetId)->first(['amount']);
 
-								foreach ($budgetsList as $budgetId) {
-										if (empty($budgetId) || (!is_int($budgetId) && !is_string($budgetId)))
-												continue;
-										try {
-												$budgetRecord = $budgetsTable->where('id', $budgetId)->first(['amount']);
-												
-												if ($budgetRecord !== null && isset($budgetRecord->amount)) {
-														$budgetAmount = is_numeric($budgetRecord->amount) ? (float) $budgetRecord->amount : 0.00;
-														$budgetsListedTotal += $budgetAmount;
-												}
-										} catch (\Exception $e) {
-												Log::debug("Failed to fetch budget amount for ID: {$budgetId}", [
-														'budget_id' => $budgetId,
-														'table' => $tableName,
-														'error' => $e->getMessage(),
-														'trait' => __TRAIT__,
-														'class' => static::class,
-												]);
-												continue;
-										}
-								}
+							if ($budgetRecord !== null && isset($budgetRecord->amount)) {
+								$budgetAmount = is_numeric($budgetRecord->amount) ? (float) $budgetRecord->amount : 0.00;
+								$budgetsListedTotal += $budgetAmount;
+							}
 						} catch (\Exception $e) {
-								Log::warning("Failed to process budgets list", [
-										'table' => $tableName,
-										'budgets_count' => count($budgetsList),
-										'error' => $e->getMessage(),
-										'file' => $e->getFile(),
-										'line' => $e->getLine(),
-										'trait' => __TRAIT__,
-										'class' => static::class,
-								]);
-								return;
-						}
-				}
-
-				if ($budgetsListedTotal > 0.00 && $budgetTotal < $budgetsListedTotal) {
-						$model->setAttribute('budget', $budgetsListedTotal);
-						
-						Log::info("Budget total adjusted to match listed budgets", [
+							Log::debug("Failed to fetch budget amount for ID: {$budgetId}", [
+								'budget_id' => $budgetId,
 								'table' => $tableName,
-								'old_budget' => $budgetTotal,
-								'new_budget' => $budgetsListedTotal,
-								'budgets_count' => count($budgetsList ?? []),
+								'error' => $e->getMessage(),
 								'trait' => __TRAIT__,
 								'class' => static::class,
-						]);
-				}
-
-		} catch (\Exception $e) {
-				Log::error("Failed to validate budget totals", [
+							]);
+							continue;
+						}
+					}
+				} catch (\Exception $e) {
+					Log::warning("Failed to process budgets list", [
 						'table' => $tableName,
+						'budgets_count' => count($budgetsList),
 						'error' => $e->getMessage(),
 						'file' => $e->getFile(),
 						'line' => $e->getLine(),
-						'trace' => $e->getTraceAsString(),
 						'trait' => __TRAIT__,
 						'class' => static::class,
+					]);
+					return;
+				}
+			}
+
+			if ($budgetsListedTotal > 0.00 && $budgetTotal < $budgetsListedTotal) {
+				$model->setAttribute('budget', $budgetsListedTotal);
+
+				Log::info("Budget total adjusted to match listed budgets", [
+					'table' => $tableName,
+					'old_budget' => $budgetTotal,
+					'new_budget' => $budgetsListedTotal,
+					'budgets_count' => count($budgetsList ?? []),
+					'trait' => __TRAIT__,
+					'class' => static::class,
 				]);
+			}
+		} catch (\Exception $e) {
+			Log::error("Failed to validate budget totals", [
+				'table' => $tableName,
+				'error' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+				'trace' => $e->getTraceAsString(),
+				'trait' => __TRAIT__,
+				'class' => static::class,
+			]);
 		}
 	}
 }

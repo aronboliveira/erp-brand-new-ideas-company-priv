@@ -2,35 +2,21 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{
-    BillsConstants as BC,
-    DatabaseConstants as DC,
-    ProjectsConstants as PJC,
-    SettingsConstants as SC
-};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
 use App\Enums\{EvaluationStatus, Frequency};
-use App\Traits\{
-    DefinesDates,
-    DescribesCompanyBranch,
-    FiltersSecureAttachments,
-    HasAuditFields,
-    NormalizesArrays,
-    PlansByHierarchy,
-    UsesUuids
-};
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\{Cache, DB, Log, Schema};
+use App\Traits\{DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
 
 class Budget extends Model
 {
-    use UsesUuids, SoftDeletes, HasAuditFields, DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, PlansByHierarchy, NormalizesArrays;
+    use DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, SoftDeletes, UsesUuids;
 
     protected $table = DC::TABLE_BDG;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR, DC::COL_TABLE_UPDATER];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 
     protected $fillable = [
         'code',
@@ -44,7 +30,7 @@ class Budget extends Model
         PJC::COL_E_DT,
         'amount',
         'currency',
-        BC::COL_EXC_RT,
+        'exchange_rate',
         BC::COL_WRN_TRSH,
         BC::COL_CRT_WRN_TH,
         'status',
@@ -65,109 +51,298 @@ class Budget extends Model
         'department',
         BC::COL_BNK_TRFS,
         'transactions',
+        BC::COL_CARD_NTS,
+        'receipts',
         'attachments',
         'metadata',
     ];
 
+    protected $with = ['creator'];
+
+    protected $appends = ['availability_date', 'is_expired'];
+
     protected $casts = [
-        'frequency' => Frequency::class,
-        'status' => EvaluationStatus::class,
+        'from' => 'date',
+        'to'   => 'date',
 
-        'amount' => 'decimal:2',
-        BC::COL_EXC_RT => 'decimal:4',
-        BC::COL_WRN_TRSH => 'decimal:2',
-        BC::COL_CRT_WRN_TH => 'decimal:2',
-
-        'from' => 'date:Y-m-d',
-        PJC::COL_S_DT => 'date:Y-m-d',
-        'to' => 'date:Y-m-d',
-        PJC::COL_E_DT => 'date:Y-m-d',
+        PJC::COL_S_DT => 'date',
+        PJC::COL_E_DT => 'date',
 
         PJC::COL_SBM_AT => 'datetime',
         PJC::COL_APV_AT => 'datetime',
         PJC::COL_REJ_AT => 'datetime',
 
+        'amount'         => 'decimal:2',
+        'exchange_rate'  => 'decimal:6',
+        BC::COL_WRN_TRSH => 'decimal:2',
+        BC::COL_CRT_WRN_TH => 'decimal:2',
+
+        'frequency' => Frequency::class,
+        'status'    => EvaluationStatus::class,
+
         BC::COL_BNK_TRFS => 'array',
-        'transactions' => 'array',
-        'attachments' => 'array',
-        'metadata' => 'array',
-
-        BC::COL_INC_DATA => 'array',
-        BC::COL_EXP_DATA => 'array',
+        'transactions'   => 'array',
+        BC::COL_CARD_NTS => 'array',
+        'receipts'       => 'array',
+        'attachments'    => 'array',
+        'metadata'       => 'array',
     ];
 
-    protected $attributes = [
-        'currency' => SC::DEF_SITE_CURRENCY_ID,
-        BC::COL_EXC_RT => 1.0,
-    ];
-
-    protected $appends = [
-        'availability_date',
-        'income_total',
-        'expense_total',
-        'net_total',
-        'usage_percent',
-        'is_submitted',
-        'is_approved',
-        'is_rejected',
-        'status_label',
-    ];
-
-    protected array $memo = [];
-
-    private const CODE_ATTEMPTS = 25;
-    private const TYPES = ['revenue', 'expense', 'mixed'];
-    private const LIST_JSON_FIELDS = [BC::COL_BNK_TRFS, 'transactions', 'attachments'];
-    private const MAP_JSON_FIELDS = ['metadata', BC::COL_INC_DATA, BC::COL_EXP_DATA];
+    protected array $runtimeCache = [];
 
     protected static function booted(): void
     {
+        static::creating(function (self $m): void {
+            try {
+                $code = trim((string) ($m->getAttribute('code') ?? ''));
+                if ($code !== '')
+                    return;
+
+                $attempts = 0;
+                do {
+                    $attempts++;
+                    $candidate = 'BDG-' . Str::uuid()->toString();
+                    $exists = DB::table($m->getTable())->where('code', $candidate)->exists();
+                    if (!$exists) {
+                        $m->setAttribute('code', $candidate);
+                        return;
+                    }
+                } while ($attempts < 32);
+
+                $m->setAttribute('code', 'BDG-' . Str::uuid()->toString());
+                Log::warning(self::class . ' code generation exceeded attempts', [
+                    'table'    => $m->getTable(),
+                    'attempts' => $attempts,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error(self::class . ' code generation failed', [
+                    'error' => $e->getMessage(),
+                    'file'  => $e->getFile(),
+                    'line'  => $e->getLine(),
+                ]);
+                $m->setAttribute('code', 'BDG-' . Str::uuid()->toString());
+            }
+        });
+
         static::saving(function (self $m): void {
             try {
-                $m->ensureUniqueCode();
-                $m->normalizeTypeField();
-                $m->normalizePeriodField();
-                $m->mirrorLegacyDates();
-                $m->normalizeEnumFields();
-                $m->normalizeCurrencyField();
-                $m->clampThresholdFields();
-                $m->normalizeJsonFields();
-                $m->memo = [];
+                self::normalizePeriod($m);
+                self::syncLegacyDates($m);
+                self::normalizeEnumsAndType($m);
+                self::normalizeThresholds($m);
+
+                self::normalizeJsonLists($m);
+                self::enrichReceiptsFromLinkedEntities($m);
+                self::mergeReceiptsIntoAttachments($m);
             } catch (\Throwable $e) {
-                Log::error(static::class . ' saving normalization failed', [
-                    'model_id' => (string) ($m->getAttribute('id') ?? ''),
-                    'table' => (string) $m->getTable(),
+                Log::error(self::class . ' saving normalization failed', [
+                    'id'    => $m->getAttribute('id'),
+                    'table' => $m->getTable(),
                     'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
+                    'file'  => $e->getFile(),
+                    'line'  => $e->getLine(),
                 ]);
             }
         });
     }
 
-    public function creator(): BelongsTo
+    protected static function normalizePeriod(self $m): void
     {
-        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR);
+        $raw = $m->getAttribute('period');
+        if ($raw === null)
+            return;
+
+        $p = trim((string) $raw);
+        if ($p === '')
+            $m->setAttribute('period', null);
+        elseif (preg_match('/\b(19|20)\d{2}\b/', $p) !== 1)
+            $m->setAttribute('period', null);
+        else
+            $m->setAttribute('period', $p);
     }
 
-    public function updater(): BelongsTo
+    protected static function syncLegacyDates(self $m): void
     {
-        return $this->belongsTo(User::class, DC::COL_TABLE_UPDATER);
+        $hasFrom = Schema::hasColumn($m->getTable(), 'from');
+        $hasTo   = Schema::hasColumn($m->getTable(), 'to');
+
+        $start = $m->getAttribute(PJC::COL_S_DT);
+        $from  = $hasFrom ? $m->getAttribute('from') : null;
+
+        if ($start === null && $hasFrom && $from !== null)
+            $m->setAttribute(PJC::COL_S_DT, $from);
+        elseif ($start !== null && $hasFrom)
+            $m->setAttribute('from', $start);
+
+        $end = $m->getAttribute(PJC::COL_E_DT);
+        $to  = $hasTo ? $m->getAttribute('to') : null;
+
+        if ($end === null && $hasTo && $to !== null)
+            $m->setAttribute(PJC::COL_E_DT, $to);
+        elseif ($end !== null && $hasTo)
+            $m->setAttribute('to', $end);
     }
 
-    public function submittedBy(): BelongsTo
+    protected static function normalizeEnumsAndType(self $m): void
     {
-        return $this->belongsTo(User::class, PJC::COL_SBM_BY);
+        $freq = Frequency::normalize($m->getAttribute('frequency') ?? null) ?? Frequency::Variable;
+        $m->setAttribute('frequency', $freq->value);
+
+        $st = EvaluationStatus::normalize($m->getAttribute('status') ?? null) ?? EvaluationStatus::Pending;
+        $m->setAttribute('status', $st->value);
+
+        $t = strtolower(trim((string) ($m->getAttribute('type') ?? '')));
+        if ($t === '')
+            $m->setAttribute('type', null);
+        elseif (!in_array($t, ['revenue', 'expense', 'mixed'], true))
+            $m->setAttribute('type', null);
+        else
+            $m->setAttribute('type', $t);
+
+        $cur = strtoupper(trim((string) ($m->getAttribute('currency') ?? '')));
+        if ($cur === '')
+            $cur = (string) (defined(SC::class . '::DEF_SITE_CURRENCY_ID') ? SC::DEF_SITE_CURRENCY_ID : 'USD');
+        if (strlen($cur) !== 3)
+            $cur = substr($cur, 0, 3);
+        $m->setAttribute('currency', $cur);
     }
 
-    public function approvedBy(): BelongsTo
+    protected static function normalizeThresholds(self $m): void
     {
-        return $this->belongsTo(User::class, PJC::COL_APV_BY);
+        $warn = $m->getAttribute(BC::COL_WRN_TRSH);
+        $crit = $m->getAttribute(BC::COL_CRT_WRN_TH);
+
+        $warnN = self::normalizePercentOrNull($warn);
+        $critN = self::normalizePercentOrNull($crit);
+
+        if ($warnN !== null)
+            $m->setAttribute(BC::COL_WRN_TRSH, $warnN);
+        else
+            $m->setAttribute(BC::COL_WRN_TRSH, null);
+
+        if ($critN !== null && $warnN !== null && $critN < $warnN)
+            $critN = $warnN;
+
+        if ($critN !== null)
+            $m->setAttribute(BC::COL_CRT_WRN_TH, $critN);
+        else
+            $m->setAttribute(BC::COL_CRT_WRN_TH, null);
     }
 
-    public function rejectedBy(): BelongsTo
+    protected static function normalizePercentOrNull(mixed $value): ?float
     {
-        return $this->belongsTo(User::class, PJC::COL_REJ_BY);
+        if ($value === null)
+            return null;
+
+        if (!is_numeric($value))
+            return null;
+
+        $v = (float) $value;
+        if ($v < 0.0) $v = 0.0;
+        if ($v > 100.0) $v = 100.0;
+        return round($v, 2);
+    }
+
+    protected static function normalizeJsonLists(self $m): void
+    {
+        $m->setAttribute(BC::COL_BNK_TRFS, $m->normalizeStringList($m->getAttribute(BC::COL_BNK_TRFS)) ?? []);
+        $m->setAttribute('transactions', $m->normalizeStringList($m->getAttribute('transactions')) ?? []);
+        $m->setAttribute(BC::COL_CARD_NTS, $m->normalizeStringList($m->getAttribute(BC::COL_CARD_NTS)) ?? []);
+        $m->setAttribute('receipts', $m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('receipts')) ?? []));
+        $m->setAttribute('attachments', $m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('attachments')) ?? []));
+    }
+
+    protected static function enrichReceiptsFromLinkedEntities(self $m): void
+    {
+        $receipts = $m->normalizeStringList($m->getAttribute('receipts')) ?? [];
+        $receipts = array_values(array_unique($receipts));
+
+        $targets = [
+            [DC::TABLE_TRS, $m->normalizeStringList($m->getAttribute('transactions')) ?? []],
+            [DC::TABLE_BNK_TRF, $m->normalizeStringList($m->getAttribute(BC::COL_BNK_TRFS)) ?? []],
+        ];
+
+        if (defined(DC::class . '::TABLE_CR_NOTES'))
+            $targets[] = [DC::TABLE_CR_NOTES, []];
+        if (defined(DC::class . '::TABLE_DB_NOTES'))
+            $targets[] = [DC::TABLE_DB_NOTES, []];
+
+        $cardNoteIds = $m->normalizeStringList($m->getAttribute(BC::COL_CARD_NTS)) ?? [];
+        if (defined(DC::class . '::TABLE_CR_NOTES') && $cardNoteIds)
+            $targets[] = [DC::TABLE_CR_NOTES, $cardNoteIds];
+        if (defined(DC::class . '::TABLE_DB_NOTES') && $cardNoteIds)
+            $targets[] = [DC::TABLE_DB_NOTES, $cardNoteIds];
+
+        foreach ($targets as [$table, $ids]) {
+            if (!$ids)
+                continue;
+            if (!Schema::hasTable($table))
+                continue;
+
+            $cols = [];
+            foreach (['receipt', BC::COL_RCP_MD, 'attachments'] as $c) {
+                if (Schema::hasColumn($table, $c))
+                    $cols[] = $c;
+            }
+            if (!$cols)
+                continue;
+
+            $rows = DB::table($table)->select(array_merge(['id'], $cols))->whereIn('id', $ids)->get();
+            foreach ($rows as $r) {
+                foreach ($cols as $c) {
+                    $receipts = array_merge($receipts, self::extractReceiptTokens($r->{$c} ?? null));
+                }
+            }
+        }
+
+        $receipts = array_values(array_unique($m->sanitizeAttachmentList($receipts)));
+        $m->setAttribute('receipts', $receipts);
+    }
+
+    protected static function extractReceiptTokens(mixed $value): array
+    {
+        if ($value === null)
+            return [];
+        if (is_array($value))
+            return array_values(array_filter(array_map('strval', $value), fn($s) => trim($s) !== ''));
+        if (is_string($value)) {
+            $trim = trim($value);
+            if ($trim === '')
+                return [];
+            if (self::looksLikeJson($trim)) {
+                $decoded = json_decode($trim, true);
+                if (is_array($decoded))
+                    return array_values(array_filter(array_map('strval', $decoded), fn($s) => trim($s) !== ''));
+            }
+            return [$trim];
+        }
+        if (is_scalar($value))
+            return [trim((string) $value)];
+
+        return [];
+    }
+
+    protected static function mergeReceiptsIntoAttachments(self $m): void
+    {
+        $receipts    = $m->normalizeStringList($m->getAttribute('receipts')) ?? [];
+        $attachments = $m->normalizeStringList($m->getAttribute('attachments')) ?? [];
+
+        $merged = array_values(array_unique(array_merge($attachments, $receipts)));
+        $merged = $m->sanitizeAttachmentList($merged);
+
+        $m->setAttribute('attachments', $merged);
+    }
+
+    protected function sanitizeAttachmentList(array $values): array
+    {
+        $out = [];
+        foreach ($values as $v) {
+            $san = static::sanitizeAttachmentValue($v, $this);
+            if ($san === null)
+                continue;
+            $out[] = $san;
+        }
+        return array_values(array_unique($out));
     }
 
     public function project(): BelongsTo
@@ -180,543 +355,96 @@ class Budget extends Model
         return $this->belongsTo(Contract::class, PJC::COL_CTC_ID);
     }
 
+    public function companyUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'company');
+    }
+
+    public function branchModel(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'branch');
+    }
+
+    public function departmentModel(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department');
+    }
+
+    public function submitter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, PJC::COL_SBM_BY);
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, PJC::COL_APV_BY);
+    }
+
+    public function rejecter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, PJC::COL_REJ_BY);
+    }
+
     public function getAvailabilityDateAttribute(): string
     {
-        return $this->getAvailabilityDate();
-    }
-
-    public function getIncomeTotalAttribute(): float
-    {
-        return (float) $this->incomeTotal();
-    }
-
-    public function getExpenseTotalAttribute(): float
-    {
-        return (float) $this->expenseTotal();
-    }
-
-    public function getNetTotalAttribute(): float
-    {
-        return (float) $this->netTotal();
-    }
-
-    public function getUsagePercentAttribute(): ?float
-    {
-        return $this->usagePercent();
-    }
-
-    public function getIsSubmittedAttribute(): bool
-    {
-        return $this->isSubmitted();
-    }
-
-    public function getIsApprovedAttribute(): bool
-    {
-        return $this->isApproved();
-    }
-
-    public function getIsRejectedAttribute(): bool
-    {
-        return $this->isRejected();
-    }
-
-    public function getStatusLabelAttribute(): ?string
-    {
-        try {
-            $lang = (string) config('app.locale', DC::DEFAULT_LANG);
-            $raw = $this->getAttribute('status');
-            if ($raw === null || trim((string) $raw) === '') return null;
-            $enum = EvaluationStatus::normalize($raw);
-            return EvaluationStatus::labels($lang)[$enum->value] ?? $enum->value;
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' failed resolving status label', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            return null;
-        }
-    }
-
-    public function getAvailabilityDate(): string
-    {
         $start = $this->getAttribute(PJC::COL_S_DT);
+        $end   = $this->getAttribute(PJC::COL_E_DT);
+
+        if ($start === null && $end === null)
+            return '';
+
+        $s = $start ? CarbonImmutable::parse($start)->format('Y-m-d') : '';
+        $e = $end ? CarbonImmutable::parse($end)->format('Y-m-d') : '';
+        return trim($s . ($s && $e ? ' → ' : '') . $e);
+    }
+
+    public function getIsExpiredAttribute(): bool
+    {
         $end = $this->getAttribute(PJC::COL_E_DT);
-
-        $out = '';
-        $fmt = 'M-Y';
-
-        if (!empty($start))
-            $out = date($fmt, strtotime((string) $start));
-
-        if (!empty($end))
-            $out .= ' - ' . date($fmt, strtotime((string) $end)) . ' ';
-
-        return $out;
-    }
-
-    public function isSubmitted(): bool
-    {
-        return !empty($this->getAttribute(PJC::COL_SBM_BY));
-    }
-
-    public function isApproved(): bool
-    {
-        return !empty($this->getAttribute(PJC::COL_APV_BY));
-    }
-
-    public function isRejected(): bool
-    {
-        return !empty($this->getAttribute(PJC::COL_REJ_BY));
-    }
-
-    public function incomeTotal(): float
-    {
-        return $this->memoizeFloat(__FUNCTION__, function (): float {
-            return $this->sumStructuredAmounts($this->getAttribute(BC::COL_INC_DATA));
-        });
-    }
-
-    public function expenseTotal(): float
-    {
-        return $this->memoizeFloat(__FUNCTION__, function (): float {
-            return $this->sumStructuredAmounts($this->getAttribute(BC::COL_EXP_DATA));
-        });
-    }
-
-    public function netTotal(): float
-    {
-        return $this->memoizeFloat(__FUNCTION__, function (): float {
-            return (float) $this->incomeTotal() - (float) $this->expenseTotal();
-        });
-    }
-
-    public function usagePercent(): ?float
-    {
-        return $this->memoizeNullableFloat(__FUNCTION__, function (): ?float {
-            $amount = $this->getAttribute('amount');
-            $budget = is_numeric((string) $amount) ? (float) $amount : null;
-            if ($budget === null || $budget <= 0) return null;
-
-            $spent = $this->cachedTransactionAmountSum();
-            $p = ($spent * 100) / $budget;
-            if ($p < 0) $p = 0;
-            return round($p, 2);
-        });
-    }
-
-    public function cachedTransactionAmountSum(string $amountColumn = 'amount', int $ttlSeconds = 60): float
-    {
-        return $this->memoizeFloat(__FUNCTION__ . ':' . $amountColumn, function () use ($amountColumn, $ttlSeconds): float {
-            $id = (string) ($this->getAttribute('id') ?? '');
-            if ($id === '') return $this->sumTransactionsAmount($amountColumn);
-
-            $key = 'budget:' . $id . ':trx_sum:' . $amountColumn;
-
-            try {
-                return (float) Cache::remember($key, $ttlSeconds, function () use ($amountColumn): float {
-                    return $this->sumTransactionsAmount($amountColumn);
-                });
-            } catch (\Throwable $e) {
-                Log::notice(static::class . ' cache remember failed, falling back to direct query', [
-                    'model_id' => $id,
-                    'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
-                ]);
-                return $this->sumTransactionsAmount($amountColumn);
-            }
-        });
-    }
-
-    public function sumTransactionsAmount(string $amountColumn = 'amount'): float
-    {
-        $ids = $this->normalizeStringListField($this->getAttribute('transactions'));
-        if (empty($ids)) return 0.0;
+        if ($end === null)
+            return false;
 
         try {
-            if (!Schema::hasTable(DC::TABLE_TRS)) return 0.0;
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed checking transactions table', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
+            return CarbonImmutable::parse($end)->isPast();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public static function percentage(float|int|null $actual = null, float|int|null $budget = null): string
+    {
+        $a = (float) ($actual ?? 0.0);
+        $b = (float) ($budget ?? 0.0);
+        if ($b <= 0.0)
+            return '0.00';
+        return number_format(($a * 100.0) / $b, 2, '.', '');
+    }
+
+    public function cachedTransactionsSum(string $amountColumn = 'amount'): float
+    {
+        $cacheKey = 'tx_sum:' . $amountColumn;
+        if (array_key_exists($cacheKey, $this->runtimeCache))
+            return (float) $this->runtimeCache[$cacheKey];
+
+        $ids = $this->normalizeStringList($this->getAttribute('transactions')) ?? [];
+        if (!$ids || !Schema::hasTable(DC::TABLE_TRS) || !Schema::hasColumn(DC::TABLE_TRS, $amountColumn)) {
+            $this->runtimeCache[$cacheKey] = 0.0;
             return 0.0;
         }
 
         try {
-            return (float) DB::table(DC::TABLE_TRS)
-                ->whereIn('id', $ids)
-                ->sum($amountColumn);
+            $sum = (float) DB::table(DC::TABLE_TRS)->whereIn('id', $ids)->sum($amountColumn);
+            $this->runtimeCache[$cacheKey] = $sum;
+            return $sum;
         } catch (\Throwable $e) {
-            Log::error(static::class . ' failed summing transactions', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'table' => DC::TABLE_TRS,
-                'amount_column' => $amountColumn,
+            Log::warning(self::class . ' cachedTransactionsSum failed', [
+                'id'    => $this->getAttribute('id'),
                 'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
             ]);
+            $this->runtimeCache[$cacheKey] = 0.0;
             return 0.0;
         }
-    }
-
-    public static function percentage(float $actual, float $budget): string
-    {
-        if ($actual == 0.0)
-            return number_format(0, 2);
-
-        $percentage = $budget * 100 / $actual;
-        return number_format($percentage, 2);
-    }
-
-    public static function safeInsert(array $rows): int
-    {
-        if (empty($rows)) return 0;
-
-        $table = (new self())->getTable();
-        $out = [];
-        $count = 0;
-
-        foreach ($rows as $row) {
-            if (!is_array($row)) continue;
-
-            $m = new self();
-            foreach ($row as $k => $v)
-                $m->setAttribute((string) $k, $v);
-
-            try {
-                $m->ensureUniqueCode();
-                $m->normalizeTypeField();
-                $m->normalizePeriodField();
-                $m->mirrorLegacyDates();
-                $m->normalizeEnumFields();
-                $m->normalizeCurrencyField();
-                $m->clampThresholdFields();
-                $m->normalizeJsonFields();
-            } catch (\Throwable $e) {
-                Log::error(static::class . ' safeInsert row normalization failed', [
-                    'table' => (string) $table,
-                    'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
-                ]);
-                continue;
-            }
-
-            $attrs = $m->getAttributes();
-            if (empty($attrs['id']))
-                $attrs['id'] = (string) Str::uuid();
-
-            $out[] = $attrs;
-        }
-
-        if (empty($out)) return 0;
-
-        try {
-            $ok = DB::table($table)->insert($out);
-            $count = $ok ? count($out) : 0;
-        } catch (\Throwable $e) {
-            Log::error(static::class . ' safeInsert failed', [
-                'table' => (string) $table,
-                'rows' => count($out),
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            return 0;
-        }
-
-        return $count;
-    }
-
-    protected function ensureUniqueCode(): void
-    {
-        $code = trim((string) $this->getAttribute('code'));
-        if ($code === '')
-            $code = $this->generateCodeCandidate();
-
-        $attempts = 0;
-        do {
-            $attempts++;
-
-            $exists = false;
-            try {
-                $exists = DB::table($this->getTable())
-                    ->where('code', $code)
-                    ->where('id', '!=', (string) ($this->getAttribute('id') ?? ''))
-                    ->exists();
-            } catch (\Throwable $e) {
-                Log::error(static::class . ' failed checking code uniqueness', [
-                    'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                    'candidate' => $code,
-                    'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
-                ]);
-                $exists = false;
-            }
-
-            if (!$exists) break;
-
-            $code = $this->generateCodeCandidate();
-        } while ($attempts < self::CODE_ATTEMPTS);
-
-        if ($attempts >= self::CODE_ATTEMPTS) {
-            Log::warning(static::class . ' code generation attempt limit reached', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'last_candidate' => $code,
-                'attempts' => $attempts,
-            ]);
-        }
-
-        $this->setAttribute('code', $code);
-    }
-
-    protected function generateCodeCandidate(): string
-    {
-        return 'BDG-' . (string) Str::uuid();
-    }
-
-    protected function normalizeTypeField(): void
-    {
-        $v = strtolower(trim((string) $this->getAttribute('type')));
-        if ($v === '') $this->setAttribute('type', null);
-        else $this->setAttribute('type', in_array($v, self::TYPES, true) ? $v : null);
-    }
-
-    protected function normalizePeriodField(): void
-    {
-        $p = trim((string) $this->getAttribute('period'));
-        if ($p === '') {
-            $this->setAttribute('period', null);
-            return;
-        }
-
-        $this->setAttribute('period', preg_match('/\b(19|20)\d{2}\b/', $p) === 1 ? $p : null);
-    }
-
-    protected function mirrorLegacyDates(): void
-    {
-        $table = (string) $this->getTable();
-
-        try {
-            $hasFrom = Schema::hasColumn($table, 'from');
-            $hasTo = Schema::hasColumn($table, 'to');
-            $hasStart = Schema::hasColumn($table, PJC::COL_S_DT);
-            $hasEnd = Schema::hasColumn($table, PJC::COL_E_DT);
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' failed checking legacy date columns', [
-                'table' => $table,
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            return;
-        }
-
-        $from = $hasFrom ? $this->getAttribute('from') : null;
-        $to = $hasTo ? $this->getAttribute('to') : null;
-        $start = $hasStart ? $this->getAttribute(PJC::COL_S_DT) : null;
-        $end = $hasEnd ? $this->getAttribute(PJC::COL_E_DT) : null;
-
-        if ($hasFrom && $hasStart) {
-            if (empty($start) && !empty($from)) $this->setAttribute(PJC::COL_S_DT, $from);
-            else if (empty($from) && !empty($start)) $this->setAttribute('from', $start);
-            else if (!empty($start) && !empty($from) && (string) $start !== (string) $from) $this->setAttribute('from', $start);
-        }
-
-        if ($hasTo && $hasEnd) {
-            if (empty($end) && !empty($to)) $this->setAttribute(PJC::COL_E_DT, $to);
-            else if (empty($to) && !empty($end)) $this->setAttribute('to', $end);
-            else if (!empty($end) && !empty($to) && (string) $end !== (string) $to) $this->setAttribute('to', $end);
-        }
-    }
-
-    protected function normalizeEnumFields(): void
-    {
-        $rawStatus = $this->getAttribute('status');
-        if ($rawStatus !== null && trim((string) $rawStatus) !== '')
-            $this->setAttribute('status', EvaluationStatus::normalize($rawStatus)->value);
-
-        $rawFrequency = $this->getAttribute('frequency');
-        if ($rawFrequency !== null && trim((string) $rawFrequency) !== '') {
-            try {
-                $this->setAttribute('frequency', Frequency::normalize($rawFrequency)?->value);
-            } catch (\Throwable $e) {
-                Log::warning(static::class . ' failed normalizing frequency', [
-                    'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                    'frequency' => (string) $rawFrequency,
-                    'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
-                ]);
-            }
-        }
-    }
-
-    protected function normalizeCurrencyField(): void
-    {
-        $cur = strtoupper(trim((string) $this->getAttribute('currency')));
-        if ($cur === '') {
-            $this->setAttribute('currency', null);
-            return;
-        }
-
-        $this->setAttribute('currency', preg_match('/^[A-Z]{3}$/', $cur) === 1 ? $cur : null);
-    }
-
-    protected function clampThresholdFields(): void
-    {
-        $warn = $this->clampPercent($this->getAttribute(BC::COL_WRN_TRSH));
-        $crit = $this->clampPercent($this->getAttribute(BC::COL_CRT_WRN_TH));
-
-        if ($warn !== null) $this->setAttribute(BC::COL_WRN_TRSH, $warn);
-        else $this->setAttribute(BC::COL_WRN_TRSH, null);
-
-        if ($crit !== null && $warn !== null && $crit < $warn) $crit = $warn;
-        $this->setAttribute(BC::COL_CRT_WRN_TH, $crit);
-    }
-
-    protected function clampPercent(mixed $v): ?float
-    {
-        if ($v === null) return null;
-
-        $s = trim((string) $v);
-        if ($s === '' || !is_numeric($s)) return null;
-
-        $f = (float) $s;
-        if ($f < 0) $f = 0;
-        if ($f > 100) $f = 100;
-        return round($f, 2);
-    }
-
-    protected function normalizeJsonFields(): void
-    {
-        foreach (self::LIST_JSON_FIELDS as $field) {
-            $norm = $this->normalizeStringListField($this->getAttribute($field));
-            $this->setAttribute($field, $norm);
-        }
-
-        foreach (self::MAP_JSON_FIELDS as $field) {
-            $raw = $this->getAttribute($field);
-            if ($raw === null) {
-                $this->setAttribute($field, null);
-                continue;
-            }
-
-            try {
-                $arr = self::normalizeArrayField($raw);
-                $this->setAttribute($field, $arr ?: null);
-            } catch (\Throwable $e) {
-                Log::warning(static::class . ' failed normalizing json/map field', [
-                    'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                    'field' => (string) $field,
-                    'error' => $e->getMessage(),
-                    'e_file' => $e->getFile(),
-                    'e_line' => $e->getLine(),
-                ]);
-            }
-        }
-    }
-
-    protected function normalizeStringListField(mixed $value): ?array
-    {
-        $arr = self::normalizeArrayField($value);
-        if (is_string($value) && trim($value) !== '' && empty($arr))
-            $arr = [trim($value)];
-
-        $out = [];
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
-            $s = trim((string) $v);
-            if ($s === '') continue;
-            $out[] = $s;
-        }
-        $out = array_values(array_unique($out));
-        return $out ?: null;
-    }
-
-    protected function sumStructuredAmounts(mixed $raw): float
-    {
-        $data = [];
-        try {
-            $data = self::normalizeArrayField($raw);
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' failed decoding structured amounts', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            return 0.0;
-        }
-
-        $total = 0.0;
-
-        $walk = function (mixed $v) use (&$walk, &$total): void {
-            if (is_array($v)) {
-                foreach ($v as $k => $vv) {
-                    if (is_string($k) && in_array($k, ['amount', 'value', 'total'], true) && is_scalar($vv) && is_numeric((string) $vv))
-                        $total += (float) $vv;
-                    else
-                        $walk($vv);
-                }
-            }
-        };
-
-        $walk($data);
-
-        return round($total, 2);
-    }
-
-    protected function memoizeFloat(string $key, \Closure $fn): float
-    {
-        if (array_key_exists($key, $this->memo))
-            return (float) $this->memo[$key];
-
-        $v = 0.0;
-        try {
-            $v = (float) $fn();
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' memoized computation failed', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'key' => $key,
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            $v = 0.0;
-        }
-
-        $this->memo[$key] = $v;
-        return $v;
-    }
-
-    protected function memoizeNullableFloat(string $key, \Closure $fn): ?float
-    {
-        if (array_key_exists($key, $this->memo))
-            return $this->memo[$key] === null ? null : (float) $this->memo[$key];
-
-        $v = null;
-        try {
-            $v = $fn();
-            if ($v !== null) $v = (float) $v;
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' memoized nullable computation failed', [
-                'model_id' => (string) ($this->getAttribute('id') ?? ''),
-                'key' => $key,
-                'error' => $e->getMessage(),
-                'e_file' => $e->getFile(),
-                'e_line' => $e->getLine(),
-            ]);
-            $v = null;
-        }
-
-        $this->memo[$key] = $v;
-        return $v;
     }
 }

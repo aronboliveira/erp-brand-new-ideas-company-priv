@@ -12,6 +12,7 @@ trait StoresPlanning
 	{
 		$nullableTitle ? $table->string('title')->nullable()->index() : $table->string('title')->index();
 		$nullableFixedDate ? $table->uuid('date')->default(now()->format('Y-m-d'))->nullable()->index() : $table->uuid('date')->default(now()->format('Y-m-d'))->index();
+		$table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
 		$onDeleteDept = strtolower((string) trim($onDeleteDept));
 		$nullableFixedTime ? $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->nullable()->index() : $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->index();
 		switch (true) {
@@ -45,13 +46,18 @@ trait StoresPlanning
 			->references('id')
 			->on(DC::TABLE_DEPARTMENTS)
 			->onDelete($onDeleteDept);
+		$table->foreign(PJC::COL_PLN_SCHD_ID)
+			->references('id')
+			->on(DC::TABLE_PLN_SCHD)
+			->nullOnDelete();
 	}
 
 	protected function dropPlanningColumnForeigns(Blueprint $table, string $tableName): void
 	{
 		foreach (
 			[
-				DC::TABLE_DEPARTMENTS,
+				CC::COL_DEP_ID,
+				PJC::COL_PLN_SCHD_ID,
 			] as $column
 		) {
 			try {

@@ -27,7 +27,7 @@ class CreateContractCommentsTable extends Migration
                     unnullify: [UC::COL_USER_ID, UC::COL_U_TP],
                     userTypeValues: array_column(UserType::cases(), 'value'),
                     defaultUserType: UserType::Client
-                );
+                ); // ? the attachments here can refer to not only a id of a row in DC::TABLE_DOCS, a safe url/file_path (according to FiltersSecureAttachments) but also to a id of a row in DC::TABLE_CTC_ATC
                 $table->foreign(PC::COL_CTC_ID)
                     ->references('id')
                     ->on(DC::TABLE_CONTRACTS)

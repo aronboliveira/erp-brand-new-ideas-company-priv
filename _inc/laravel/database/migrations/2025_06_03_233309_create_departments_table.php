@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
+use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Traits\{BranchConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -22,6 +22,7 @@ class CreateDepartmentsTable extends Migration
             $table->string('phone', 32)->nullable()->index();
             $table->string('email', 254)->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
             $table->decimal('budget', 15, 2)->default(0.00);
             $table->json('budgets')->nullable();
             $table->unsignedDecimal('expenses', 15, 2)->default(0.00);
@@ -29,7 +30,8 @@ class CreateDepartmentsTable extends Migration
             $table->unique([CPC::COL_BRC_ID, CPC::COL_DEP_NM], self::UNQ_BDEP);
             foreach (
                 [
-                    CPC::COL_MNG       => DC::TABLE_USERS,
+                    CPC::COL_MNG => DC::TABLE_USERS,
+                    PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -56,6 +58,7 @@ class CreateDepartmentsTable extends Migration
             foreach (
                 [
                     CPC::COL_MNG,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $column
             ) {
                 try {

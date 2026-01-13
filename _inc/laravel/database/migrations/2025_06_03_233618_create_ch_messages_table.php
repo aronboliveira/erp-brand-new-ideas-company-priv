@@ -3,7 +3,7 @@
 use App\Config\Constants\DatabaseConstants;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{DB, Log, Schema};
-
+//todo the api for chatify needs to be read for this
 class CreateChMessagesTable extends Migration
 {
 	private const TABLE = 'ch_messages';
@@ -19,10 +19,12 @@ class CreateChMessagesTable extends Migration
 				$table->text('message');                       // * text body of message
 				$table->boolean('seen')->default(false);       // * 0 = unseen, 1 = seen
 				$table->timestamps();
-				foreach ([
-					self::FROM_COL                    => DatabaseConstants::TABLE_USERS,
-					self::TO_COL                      => DatabaseConstants::TABLE_USERS,
-				] as $column => $referencedTable)
+				foreach (
+					[
+						self::FROM_COL                    => DatabaseConstants::TABLE_USERS,
+						self::TO_COL                      => DatabaseConstants::TABLE_USERS,
+					] as $column => $referencedTable
+				)
 					$table->foreign($column)
 						->references('id')
 						->on($referencedTable)
@@ -33,10 +35,12 @@ class CreateChMessagesTable extends Migration
 	{
 		if (Schema::hasTable(self::TABLE)) {
 			Schema::table(self::TABLE, function (Blueprint $table): void {
-				foreach ([
-					['column' => self::FROM_COL, 'constraint' => self::TABLE . '_from_id_foreign'],
-					['column' => self::TO_COL,   'constraint' => self::TABLE . '_to_id_foreign'],
-				] as $fk) {
+				foreach (
+					[
+						['column' => self::FROM_COL, 'constraint' => self::TABLE . '_from_id_foreign'],
+						['column' => self::TO_COL,   'constraint' => self::TABLE . '_to_id_foreign'],
+					] as $fk
+				) {
 					try {
 						if ($this->foreignKeyExists(self::TABLE, $fk['constraint'])) {
 							$table->dropForeign([$fk['column']]);

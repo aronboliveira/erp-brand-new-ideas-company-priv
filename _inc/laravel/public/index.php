@@ -21,11 +21,11 @@ $response = null;
 $request = null;
 try {
     error_log('Tapping the Landing Page Kernel at ' . Carbon::now()->toDateTimeString());
-
+    // ! MAIN POINT
     $response = tap($kernel->handle(
         $request = Request::capture()
     ))->send();
-
+    // ! =========
     $output->writeln('No issues tapping the kernel');
     $statusMsg = "[HttpResponse] Status: {$response->getStatusCode()}";
     if ($response->getStatusCode() >= 400)

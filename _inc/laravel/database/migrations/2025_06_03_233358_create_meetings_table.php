@@ -13,7 +13,7 @@ class CreateMeetingsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('code')->unique()->nullable(); // ? nullable for testing purposes
+            $table->string('code')->nullable()->unique(); // ? nullable for testing purposes
             $this->addPlanningColumns($table, nullableTitle: false, nullableFixedDate: false, nullableFixedTime: false, nullableDept: true, onDeleteDept: 'set null');
             $this->addEmployeeColumns($table, false, true);
             $this->addBranchColumns($table, false, true);

@@ -1,42 +1,36 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-
+// * it's not clear why this table exists. Maybe if was attempt on legacy to link information for a User::whereIn('type', ['company', 'vendor']).
 class CreateLocationsTable extends Migration
 {
-	private const TABLE = 'locations';
-	private const COL_COMPANY = 'company_id';
+	use HasNullableAuditColumns;
+	private const TABLE = DC::TABLE_LOC;
 	public function up(): void
 	{
 		Schema::create(self::TABLE, function (Blueprint $table): void {
 			$table->uuid('id')->primary();
-			$table->uuid(self::COL_COMPANY)->index();
-			$table->boolean('is_active')->default(true);
-			$table->timestamps();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
-			foreach (
-				[
-					self::COL_COMPANY               => DatabaseConstants::TABLE_USERS,
-					DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-				] as $column => $referencedTable
-			) {
-				$table->foreign($column)
-					->references('id')
-					->on($referencedTable)
-					->cascadeOnDelete();
-			}
+			$table->uuid(CC::COL_CP_ID)->index();
+			$table->json('location')->nullable();
+			$table->boolean(CC::COL_IA)->default(true);
+			$table->foreign(CC::COL_CP_ID)
+				->references('id')
+				->on(DC::TABLE_USERS)
+				->cascadeOnDelete();
+			$this->addNullableAuditColumns($table);
 		});
 	}
 
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
+			$this->dropAuditColumnForeigns($table);
 			foreach (
 				[
-					self::COL_COMPANY,
-					DatabaseConstants::COL_TABLE_CREATOR,
+					CC::COL_CP_ID,
 				] as $column
 			) {
 				try {

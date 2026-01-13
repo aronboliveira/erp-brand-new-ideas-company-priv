@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\GoalType as GoalTypeEnum;
-use App\Traits\{ChecksLogin, HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{ChecksLogin, HasAuditFields, NormalizesArrays, PlansWithSchedule, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\{Carbon, Str};
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class Goal extends Model
 {
-    use ChecksLogin, HasAuditFields, UsesUuids, NormalizesArrays;
+    use UsesUuids, ChecksLogin, HasAuditFields, NormalizesArrays, PlansWithSchedule;
 
     protected $table = DC::TABLE_GL;
 

@@ -1,48 +1,30 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants, LandingPageConstants};
+use App\Config\Constants\{DatabaseConstants as DC, LandingPageConstants as LPC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLandingPageSettingsTable extends Migration
 {
-
-    private const TABLE = DatabaseConstants::TABLE_LPS;
-
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_LPS;
     public function up(): void
     {
-        if (!Schema::hasTable(self::TABLE)) {
+        if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary(); // ! CHANGED
+                $table->uuid('id')->primary();
                 $table->uuid("query_key")->unique();
-                $table->string(LandingPageConstants::COL_LPS_NM);
-                $table->longtext(LandingPageConstants::COL_LPS_V)->nullable();
-                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
-                $table->timestamps();
-                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
-                    ->references('id')
-                    ->on(DatabaseConstants::TABLE_USERS)
-                    ->cascadeOnDelete();
+                $table->string(LPC::COL_LPS_NM);
+                $table->longtext(LPC::COL_LPS_V)->nullable();
+                $this->addNullableAuditColumns($table);
             });
-        }
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
-            } catch (\Exception $e) {
-                Log::warning(
-                    'Failed to drop foreign key for '
-                        . DatabaseConstants::COL_TABLE_CREATOR
-                        . ' on table '
-                        . self::TABLE
-                        . ': '
-                        . $e->getMessage()
-                );
-            }
+            $this->dropAuditColumnForeigns($table);
         });
         Schema::dropIfExists(self::TABLE);
     }

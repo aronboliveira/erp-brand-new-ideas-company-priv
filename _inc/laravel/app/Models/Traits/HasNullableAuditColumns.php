@@ -24,8 +24,9 @@ trait HasNullableAuditColumns
 	{
 		$this->addAuditColumns($table);
 	}
-	protected function dropAuditColumnForeigns(Blueprint $table, string $tableName): void
+	protected function dropAuditColumnForeigns(Blueprint $table, ?string $tableName = null): void
 	{
+		$tableName = $tableName ?? $table->getTable() ?? '#UNKNOWN_TABLE';
 		foreach (
 			[
 				DC::COL_TABLE_UPDATER,

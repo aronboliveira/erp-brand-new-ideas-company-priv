@@ -25,8 +25,8 @@ class CreateProjectEmailTemplatesTable extends Migration
             $table->json('tags')->nullable();
             foreach (
                 [
-                    EC::COL_TMP                => DC::TABLE_EMAIL_TEMPLATES,
-                    PJC::COL_PJ_ID                    => DC::TABLE_PROJECTS,
+                    EC::COL_TMP => DC::TABLE_EMAIL_TEMPLATES,
+                    PJC::COL_PJ_ID => DC::TABLE_PROJECTS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)

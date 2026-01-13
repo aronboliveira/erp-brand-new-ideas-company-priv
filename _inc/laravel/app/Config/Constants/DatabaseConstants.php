@@ -197,6 +197,19 @@ class DatabaseConstants
 	public const TABLE_PLN_SCHD = 'planning_schedules';
 	public const TABLE_WRH_TRF = 'warehouse_transfers';
 	public const TABLE_PPS_PRD = 'proposal_products';
+	public const TABLE_ZM_MT = 'zoom_meetings';
+	public const TABLE_CTC_ATC = 'contract_attachments';
+	public const TABLE_CTC_NTS = 'contract_notes';
+	public const TABLE_USR_VRF = 'users_verify';
+	public const TABLE_IP_RST = 'ip_restricts';
+	public const TABLE_LOC = 'locations';
+	public const TABLE_LG_DTLS = 'login_details';
+	public const TABLE_JU = 'join_us';
+	public const TABLE_TMP = 'templates';
+	public const TABLE_CLT_PRM = 'client_permissions';
+	public const TABLE_BSC_FV = 'basic_favorites';
+	public const TABLE_CHTF_FV = 'chatify_favorites';
+	public const TABLE_STK_RPT = 'stock_reports';
 
 	// * FIELD NAMES
 	// invoice

@@ -142,6 +142,8 @@ class ProjectsConstants
 	public const COL_COA_ID = 'chart_of_account_id';
 	public const COL_PRD_SERV_CAT_ID = 'product_service_category_id';
 	public const COL_PRD_SERV_ID = 'product_service_id';
+	public const COL_ATC_TP = 'attachment_type';
+	public const COL_PLN_SCHD_ID = 'planning_schedule_id';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

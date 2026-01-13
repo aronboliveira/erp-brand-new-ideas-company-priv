@@ -16,6 +16,7 @@ class CreateProjectsTable extends Migration
             $table->string(PJC::COL_NM);
             $table->date(PJC::COL_S_DT)->nullable();
             $table->date(PJC::COL_E_DT)->nullable();
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index(); // ? must respect the COL_S_DT and COL_E_DT of this schedule if set, else nullified
             $table->uuid(PJC::COL_CLIENT_ID)->index();
             $table->string(PJC::COL_IMG)->nullable();
             $table->decimal(PJC::COL_BUDGET, 15, 2)->nullable();
@@ -28,22 +29,18 @@ class CreateProjectsTable extends Migration
             $table->text(PJC::COL_TAGS)->nullable();
             foreach (
                 [
-                    PJC::COL_STAGE_ID          => DC::TABLE_PROJ_STAGES,
+                    PJC::COL_STAGE_ID => DC::TABLE_PROJ_STAGES,
+                    PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->nullOnDelete();
-            foreach (
-                [
-                    PJC::COL_CLIENT_ID          => DC::TABLE_CLIENTS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
+            $table->foreign(PJC::COL_CLIENT_ID)
+                ->references('id')
+                ->on(DC::TABLE_CLIENTS)
+                ->cascadeOnDelete();
             $table->json('budgets')->nullable();
             $this->addAuditColumns($table);
         });
@@ -57,6 +54,7 @@ class CreateProjectsTable extends Migration
                 [
                     PJC::COL_CLIENT_ID,
                     PJC::COL_STAGE_ID,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $column
             ) {
                 try {

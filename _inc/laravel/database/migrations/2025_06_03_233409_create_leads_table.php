@@ -19,6 +19,7 @@ class CreateLeadsTable extends Migration
             $table->uuid(UC::COL_USER_ID)->nullable()->index(); // ? not every lead is assigned to a user
             $this->addPipelineColumns($table, nullable: true, cascade: false);
             $table->uuid(PJC::COL_STG_ID)->nullable();
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
             $table->string('sources')->nullable(); // ? list of uuids, keys or names for querying into Source
             $table->string('products')->nullable(); // ? list of uuids, keys or names for querying into ProductService
             $table->string('labels')->nullable(); // ? list of uuids, keys or names for querying into Label
@@ -33,6 +34,7 @@ class CreateLeadsTable extends Migration
                     UC::COL_USER_ID => DC::TABLE_USERS,
                     'caller' => DC::TABLE_EMPLOYEES,
                     PJC::COL_STG_ID => DC::TABLE_LEAD_STAGES,
+                    PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -52,6 +54,7 @@ class CreateLeadsTable extends Migration
                     UC::COL_USER_ID,
                     'caller',
                     PJC::COL_STG_ID,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $column
             ) {
                 try {

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, Frequency};
-use App\Traits\{ChecksLogin, DefinesDates, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
+use App\Traits\{ChecksLogin, DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, PlansWithSchedule, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Validator};
@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
 {
-    use UsesUuids, HasAuditFields, PlansByHierarchy, FiltersSecureAttachments, DefinesDates, ChecksLogin;
+    use UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule, ChecksLogin;
 
     public const TABLE = DC::TABLE_CONTRACTS;
 
@@ -64,6 +64,8 @@ class Contract extends Model
         PJC::COL_CO_SIGN_AT,
         PJC::COL_APV_AT,
         PJC::COL_APV_BY,
+        PJC::COL_REJ_AT,
+        PJC::COL_REJ_BY,
         PJC::COL_WT_NM,
         PJC::COL_WT2_NM,
         PJC::COL_WT_IDF,
@@ -75,6 +77,7 @@ class Contract extends Model
         PJC::COL_PJ_ID,
         PJC::COL_F_PATH,
         PJC::COL_ATC_PATHS,
+        'metadata'
     ];
 
     protected $guarded = [
@@ -88,6 +91,7 @@ class Contract extends Model
         PJC::COL_E_DT        => 'date',
         PJC::COL_CL_SIGN_AT  => 'date',
         PJC::COL_APV_AT      => 'date',
+        PJC::COL_REJ_AT      => 'date',
         PJC::COL_CO_SIGN_AT  => 'date',
         PJC::COL_WT_SIGN_AT  => 'date',
         PJC::COL_WT2_SIGN_AT => 'date',
@@ -96,6 +100,7 @@ class Contract extends Model
         'status'             => EvaluationStatus::class,
         'frequency'          => Frequency::class,
         PJC::COL_ATC_PATHS   => 'array',
+        'metadata'           => 'array',
     ];
 
     protected $with = [
@@ -142,6 +147,7 @@ class Contract extends Model
                 if ($t)
                     self::applyTypeConstraints($c, $t);
             }
+            $c->resolveApprovalRejectionWinner();
             $c->applyDynamicStatusFromColumns();
             $v = Validator::make($c->getAttributes(), [
                 'currency' => ['nullable', 'string', 'max:8'],
@@ -150,85 +156,6 @@ class Contract extends Model
             if ($v->fails())
                 throw new ValidationException($v);
         });
-    }
-
-    /**
-     * Apply ContractType constraints to the Contract model
-     *
-     * @param self $contract
-     * @param ContractType $type
-     * @return void
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    private static function applyTypeConstraints(self $contract, ContractType $type): void
-    {
-        $value = $contract->getAttribute('value');
-        $startDate = self::toImmutable($contract->getAttribute(PJC::COL_S_DT));
-        $endDate = self::toImmutable($contract->getAttribute(PJC::COL_E_DT));
-        if ($value !== null && $value !== '') {
-            $numericValue = is_numeric($value) ? (float)$value : null;
-            if ($numericValue !== null) {
-                $minValue = $type->getAttribute(BC::COL_MIN_V);
-                $maxValue = $type->getAttribute(BC::COL_MAX_V);
-                if ($minValue !== null && $numericValue < (float)$minValue) {
-                    Log::warning([
-                        'value' => "O valor do contrato não pode ser menor que " . number_format($minValue, 2, ',', '.'),
-                    ]);
-                    $contract->setAttribute('value', number_format((float)$minValue, 2, '.', ''));
-                }
-                if ($maxValue !== null && $numericValue > (float)$maxValue) {
-                    Log::warning([
-                        'value' => "O valor do contrato não pode ser maior que " . number_format($maxValue, 2, ',', '.'),
-                    ]);
-                    $contract->setAttribute('value', number_format((float)$maxValue, 2, '.', ''));
-                }
-            }
-        }
-        if ($startDate && $endDate) {
-            $durationMonths = $startDate->diffInMonths($endDate);
-            $minMonths = $type->getAttribute(BC::COL_MIN_M);
-            $maxMonths = $type->getAttribute(BC::COL_MAX_M);
-            if ($minMonths !== null && $durationMonths < (int)$minMonths) {
-                Log::warning([
-                    PJC::COL_E_DT => "A duração do contrato deve ser de pelo menos {$minMonths} " . ($minMonths === 1 ? 'mês' : 'meses'),
-                ]);
-                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$minMonths)->toDateString()); // todo for now set, but later throw error
-            }
-            if ($maxMonths !== null && $durationMonths > (int)$maxMonths) {
-                Log::warning([
-                    PJC::COL_E_DT => "A duração do contrato não pode exceder {$maxMonths} " . ($maxMonths === 1 ? 'mês' : 'meses'),
-                ]);
-                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$maxMonths)->toDateString());
-            }
-        }
-        $renewable = $contract->getAttribute('renewable');
-        $allowsRenegotiation = $type->getAttribute(BC::COL_RNGT);
-        if ($allowsRenegotiation === false && $renewable === true) {
-            Log::warning([
-                'renewable' => 'Este tipo de contrato não permite renovação.',
-            ]);
-            $contract->setAttribute('renewable', false);
-        }
-        $allowsSeveranceGuarantee = $type->getAttribute(BC::COL_SVR_GRT);
-        if ($allowsSeveranceGuarantee === false) {
-            // todo work on this later
-        }
-        $definesTermination = $type->getAttribute(BC::COL_DEF_TRMC);
-        if ($definesTermination === true) {
-            // todo work on this later
-        }
-        $typeTerms = $type->getAttribute(BC::COL_TC);
-        $contractDescription = $contract->getAttribute('description');
-        if ($typeTerms && (!$contractDescription || trim($contractDescription) === ''))
-            $contract->setAttribute('description', $typeTerms);
-    }
-    /** @var \Carbon\CarbonImmutable|null */
-    private static function toImmutable($date)
-    {
-        if ($date instanceof \Carbon\CarbonImmutable) return $date;
-        if ($date instanceof \Carbon\Carbon) return \Carbon\CarbonImmutable::instance($date);
-        if (is_string($date) && $date !== '') return \Carbon\CarbonImmutable::parse($date);
-        return null;
     }
 
     public function getDurationMonthsAttribute(): ?int
@@ -273,7 +200,6 @@ class Contract extends Model
         $norm = EvaluationStatus::normalize($v) ?? EvaluationStatus::Pending;
         $this->attributes['status'] = $norm->value;
     }
-
 
     public static function status(): array
     {
@@ -380,6 +306,139 @@ class Contract extends Model
             && $this->end_date->greaterThanOrEqualTo($today);
     }
 
+    protected function pushAutomaticEditHistory(string $event, array $payload = []): void
+    {
+        try {
+            $meta = self::normalizeArrayField($this->getAttribute('metadata'));
+            $hist = $meta['automatic_edit_history'] ?? [];
+            if (!is_array($hist)) $hist = [];
+
+            $hist[] = array_merge([
+                'at'    => now()->toIso8601String(),
+                'event' => $event,
+                'id'    => (string) ($this->getAttribute('id') ?? ''),
+            ], $payload);
+
+            $meta['automatic_edit_history'] = array_values($hist);
+            $this->setAttribute('metadata', $meta);
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to push automatic_edit_history', [
+                'id'    => $this->getAttribute('id'),
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+        }
+    }
+
+    protected function setStatusAutomatically(EvaluationStatus|string|null $next, string $reason, array $ctx = []): void
+    {
+        try {
+            $nextEnum = $next instanceof EvaluationStatus ? $next : EvaluationStatus::normalize($next);
+            if (!$nextEnum) return;
+
+            $curEnum = EvaluationStatus::normalize($this->getAttribute('status'));
+            $curVal  = $curEnum?->value ?? (string) ($this->getAttribute('status') ?? '');
+
+            if ($curVal === $nextEnum->value) return;
+
+            $this->setAttribute('status', $nextEnum->value);
+            $this->pushAutomaticEditHistory('status_auto_set', [
+                'reason' => $reason,
+                'from'   => $curVal,
+                'to'     => $nextEnum->value,
+                'ctx'    => $ctx,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to set status automatically', [
+                'id'    => $this->getAttribute('id'),
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+        }
+    }
+
+    protected function resolveApprovalRejectionWinner(): void
+    {
+        try {
+            $apvBy = $this->getAttribute(PJC::COL_APV_BY);
+            $apvAt = $this->toImmutableSafe($this->getAttribute(PJC::COL_APV_AT));
+
+            $rejBy = $this->getAttribute(PJC::COL_REJ_BY);
+            $rejAt = $this->toImmutableSafe($this->getAttribute(PJC::COL_REJ_AT));
+
+            $apvByOk = is_string($apvBy) ? trim($apvBy) !== '' : !empty($apvBy);
+            $rejByOk = is_string($rejBy) ? trim($rejBy) !== '' : !empty($rejBy);
+
+            $hasApv = $apvByOk || (bool) $apvAt;
+            $hasRej = $rejByOk || (bool) $rejAt;
+
+            if (!$hasApv && !$hasRej) return;
+
+            if ($hasApv && !$hasRej) {
+                $this->setAttribute(PJC::COL_REJ_BY, null);
+                $this->setAttribute(PJC::COL_REJ_AT, null);
+                return;
+            }
+
+            if ($hasRej && !$hasApv) {
+                $this->setAttribute(PJC::COL_APV_BY, null);
+                $this->setAttribute(PJC::COL_APV_AT, null);
+                return;
+            }
+
+            $winner = 'reject';
+
+            switch (true) {
+                case $apvAt && $rejAt:
+                    $winner = $apvAt->greaterThan($rejAt) ? 'approve' : 'reject';
+                    if ($apvAt->equalTo($rejAt)) $winner = 'reject';
+                    break;
+
+                case $apvAt && !$rejAt:
+                    $winner = 'approve';
+                    break;
+
+                case !$apvAt && $rejAt:
+                    $winner = 'reject';
+                    break;
+
+                default:
+                    $winner = 'reject';
+            }
+
+            if ($winner === 'reject') {
+                $this->setAttribute(PJC::COL_APV_BY, null);
+                $this->setAttribute(PJC::COL_APV_AT, null);
+
+                $this->setStatusAutomatically(EvaluationStatus::Suspended, 'approval_rejection_conflict_resolved', [
+                    'winner' => 'reject',
+                    'apv_at' => $apvAt?->toIso8601String(),
+                    'rej_at' => $rejAt?->toIso8601String(),
+                ]);
+
+                return;
+            }
+
+            $this->setAttribute(PJC::COL_REJ_BY, null);
+            $this->setAttribute(PJC::COL_REJ_AT, null);
+
+            $this->setStatusAutomatically(EvaluationStatus::Accept, 'approval_rejection_conflict_resolved', [
+                'winner' => 'approve',
+                'apv_at' => $apvAt?->toIso8601String(),
+                'rej_at' => $rejAt?->toIso8601String(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to resolve approval/rejection winner', [
+                'id'    => $this->getAttribute('id'),
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+        }
+    }
+
     /**
      * Call from booted()->saving() AFTER other trait normalizations have run.
      * This method ONLY mutates the "status" attribute.
@@ -387,12 +446,21 @@ class Contract extends Model
     protected function applyDynamicStatusFromColumns(): void
     {
         try {
+            $cur = EvaluationStatus::normalize($this->getAttribute('status'));
             $next = $this->inferDynamicStatusFromColumns();
             if (!$next) return;
 
-            $cur = EvaluationStatus::normalize($this->getAttribute('status'));
-            if ($cur->value !== $next->value)
-                $this->setAttribute('status', $next->value);
+            $curVal = $cur?->value ?? (string) ($this->getAttribute('status') ?? '');
+            if ($curVal === $next->value) return;
+
+            $reason = ($curVal === EvaluationStatus::Expired->value && $next->value !== EvaluationStatus::Expired->value)
+                ? 'expired_reverted_by_system'
+                : 'dynamic_status_inference';
+
+            $this->setStatusAutomatically($next, $reason, [
+                'cur'  => $curVal,
+                'next' => $next->value,
+            ]);
         } catch (\Throwable $e) {
             Log::warning(static::class . ' failed to apply dynamic status', [
                 'id'    => $this->getAttribute('id'),
@@ -427,38 +495,40 @@ class Contract extends Model
 
         $start = $this->toImmutableSafe($this->getAttribute(PJC::COL_S_DT));
         $end   = $this->toImmutableSafe($this->getAttribute(PJC::COL_E_DT));
-
-        $now = now();
+        $now   = now();
 
         $hasStart = (bool) $start;
         $hasEnd   = (bool) $end;
 
-        if ($hasEnd && $end->lessThanOrEqualTo($now))
+        if ($hasEnd && $end->lessThan($now))
             return EvaluationStatus::Expired;
 
-        $approved = $this->contractIsApproved();
+        if ($this->contractIsRejected())
+            return EvaluationStatus::Suspended;
 
-        if (!$approved) {
-            if (!$hasStart && !$hasEnd) return EvaluationStatus::Draft;
-            return EvaluationStatus::Pending;
-        }
+        if ($this->contractIsApproved())
+            return EvaluationStatus::Accept;
 
-        if ($hasStart && $start->greaterThan($now))
-            return EvaluationStatus::NotStarted;
-
-        if (($hasStart && $start->lessThanOrEqualTo($now)) && (!$hasEnd || $end->greaterThan($now)))
-            return EvaluationStatus::Active;
-
-        if (!$hasStart && $hasEnd && $end->greaterThan($now))
-            return EvaluationStatus::Active;
-
-        return EvaluationStatus::InProgress;
+        if (!$hasStart && !$hasEnd) return EvaluationStatus::Draft;
+        return EvaluationStatus::Pending;
     }
+
 
     protected function contractIsApproved(): bool
     {
         $by = $this->getAttribute(PJC::COL_APV_BY);
         $at = $this->getAttribute(PJC::COL_APV_AT);
+
+        $byOk = is_string($by) ? trim($by) !== '' : !empty($by);
+        $atOk = $this->toImmutableSafe($at) !== null;
+
+        return $byOk && $atOk;
+    }
+
+    protected function contractIsRejected(): bool
+    {
+        $by = $this->getAttribute(PJC::COL_REJ_BY);
+        $at = $this->getAttribute(PJC::COL_REJ_AT);
 
         $byOk = is_string($by) ? trim($by) !== '' : !empty($by);
         $atOk = $this->toImmutableSafe($at) !== null;
@@ -545,5 +615,85 @@ class Contract extends Model
             ]);
             return false;
         }
+    }
+
+    /**
+     * Apply ContractType constraints to the Contract model
+     *
+     * @param self $contract
+     * @param ContractType $type
+     * @return void
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    private static function applyTypeConstraints(self $contract, ContractType $type): void
+    {
+        $value = $contract->getAttribute('value');
+        $startDate = self::toImmutable($contract->getAttribute(PJC::COL_S_DT));
+        $endDate = self::toImmutable($contract->getAttribute(PJC::COL_E_DT));
+        if ($value !== null && $value !== '') {
+            $numericValue = is_numeric($value) ? (float)$value : null;
+            if ($numericValue !== null) {
+                $minValue = $type->getAttribute(BC::COL_MIN_V);
+                $maxValue = $type->getAttribute(BC::COL_MAX_V);
+                if ($minValue !== null && $numericValue < (float)$minValue) {
+                    Log::warning([
+                        'value' => "O valor do contrato não pode ser menor que " . number_format($minValue, 2, ',', '.'),
+                    ]);
+                    $contract->setAttribute('value', number_format((float)$minValue, 2, '.', ''));
+                }
+                if ($maxValue !== null && $numericValue > (float)$maxValue) {
+                    Log::warning([
+                        'value' => "O valor do contrato não pode ser maior que " . number_format($maxValue, 2, ',', '.'),
+                    ]);
+                    $contract->setAttribute('value', number_format((float)$maxValue, 2, '.', ''));
+                }
+            }
+        }
+        if ($startDate && $endDate) {
+            $durationMonths = $startDate->diffInMonths($endDate);
+            $minMonths = $type->getAttribute(BC::COL_MIN_M);
+            $maxMonths = $type->getAttribute(BC::COL_MAX_M);
+            if ($minMonths !== null && $durationMonths < (int)$minMonths) {
+                Log::warning([
+                    PJC::COL_E_DT => "A duração do contrato deve ser de pelo menos {$minMonths} " . ($minMonths === 1 ? 'mês' : 'meses'),
+                ]);
+                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$minMonths)->toDateString()); // todo for now set, but later throw error
+            }
+            if ($maxMonths !== null && $durationMonths > (int)$maxMonths) {
+                Log::warning([
+                    PJC::COL_E_DT => "A duração do contrato não pode exceder {$maxMonths} " . ($maxMonths === 1 ? 'mês' : 'meses'),
+                ]);
+                $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$maxMonths)->toDateString());
+            }
+        }
+        $renewable = $contract->getAttribute('renewable');
+        $allowsRenegotiation = $type->getAttribute(BC::COL_RNGT);
+        if ($allowsRenegotiation === false && $renewable === true) {
+            Log::warning([
+                'renewable' => 'Este tipo de contrato não permite renovação.',
+            ]);
+            $contract->setAttribute('renewable', false);
+        }
+        $allowsSeveranceGuarantee = $type->getAttribute(BC::COL_SVR_GRT);
+        if ($allowsSeveranceGuarantee === false) {
+            // todo work on this later
+        }
+        $definesTermination = $type->getAttribute(BC::COL_DEF_TRMC);
+        if ($definesTermination === true) {
+            // todo work on this later
+        }
+        $typeTerms = $type->getAttribute(BC::COL_TC);
+        $contractDescription = $contract->getAttribute('description');
+        if ($typeTerms && (!$contractDescription || trim($contractDescription) === ''))
+            $contract->setAttribute('description', $typeTerms);
+    }
+
+    /** @var \Carbon\CarbonImmutable|null */
+    private static function toImmutable($date)
+    {
+        if ($date instanceof \Carbon\CarbonImmutable) return $date;
+        if ($date instanceof \Carbon\Carbon) return \Carbon\CarbonImmutable::instance($date);
+        if (is_string($date) && $date !== '') return \Carbon\CarbonImmutable::parse($date);
+        return null;
     }
 }

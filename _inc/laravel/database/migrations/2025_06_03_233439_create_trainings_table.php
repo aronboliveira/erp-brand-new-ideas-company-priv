@@ -18,6 +18,7 @@ class CreateTrainingsTable extends Migration
             $this->addBranchColumns($table, unique: false, nullable: true, prefixed: false); // ? nullable to allow for company-wide trainings
             $this->addEmployeeColumns($table, unique: false, nullable: false, cascade: false);
             $table->uuid('trainer')->index();
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index(); // ? must respect the COL_S_DT and COL_E_DT of the schedule if set, else nullified
             $table->unsignedTinyInteger(CC::COL_TRAINER_OPT)->default(0)->index(); // * should be clamped according to the cases of the WorkActivityScope enum, which actually returns strings, but we store as int in accordance to the index (0 => internal, for instance)
             $table->uuid(CC::COL_TRN_TP)->index();
             $table->unsignedDecimal(CC::COL_TRN_CST, 10, 2)->default(0.00); // * enforced at boot/save to be never negative

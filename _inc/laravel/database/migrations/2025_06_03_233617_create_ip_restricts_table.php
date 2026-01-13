@@ -1,24 +1,24 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-
+// todo this will change after meeting with DevOps and Sec team
 class CreateIpRestrictsTable extends Migration
 {
-	private const TABLE = 'ip_restricts';
+	private const TABLE = DC::TABLE_IP_RST;
 
 	public function up(): void
 	{
 		if (!Schema::hasTable(self::TABLE))
 			Schema::create(self::TABLE, function (Blueprint $table) {
-				$table->uuid('id')->primary();           // ! CHANGED
-				$table->string('ip', 45);
-				$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);              // ! CHANGED
+				$table->uuid('id')->primary();
+				$table->ipAddress('ip')->index();
+				$table->uuid(DC::COL_TABLE_CREATOR);
 				$table->timestamps();
-				$table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
+				$table->foreign(DC::COL_TABLE_CREATOR)
 					->references('id')
-					->on(DatabaseConstants::TABLE_USERS)
+					->on(DC::TABLE_USERS)
 					->onDelete('cascade');
 			});
 	}
@@ -27,12 +27,12 @@ class CreateIpRestrictsTable extends Migration
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
 			try {
-				Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
-					&& $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
+				Schema::hasColumn(self::TABLE, DC::COL_TABLE_CREATOR)
+					&& $table->dropForeign([DC::COL_TABLE_CREATOR]);
 			} catch (\Exception $e) {
 				Log::warning(
 					'Failed to execute down for '
-						. DatabaseConstants::COL_TABLE_CREATOR
+						. DC::COL_TABLE_CREATOR
 						. ' foreign key column: '
 						. $e->getMessage()
 				);

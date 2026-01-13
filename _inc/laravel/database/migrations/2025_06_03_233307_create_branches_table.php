@@ -2,7 +2,8 @@
 
 use App\Config\Constants\{
     CompaniesConstants as CPC,
-    DatabaseConstants as DC
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
 };
 use App\Enums\CountryName;
 use App\Traits\HasNullableAuditColumns;
@@ -31,6 +32,7 @@ class CreateBranchesTable extends Migration
                 $table->string(CPC::COL_FND)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_MNG)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_ADM)->nullable()->default(DC::DEFAULT_UUID);
+                $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
                 $table->text('description')->nullable();
                 $table->text('departments')->nullable();
                 $table->decimal('budget', 15, 2)->default(0.00);
@@ -43,6 +45,10 @@ class CreateBranchesTable extends Migration
                         ->references('id')
                         ->on(DC::TABLE_USERS)
                         ->nullOnDelete();
+                $table->foreign(PJC::COL_PLN_SCHD_ID)
+                    ->references('id')
+                    ->on(DC::TABLE_PLN_SCHD)
+                    ->nullOnDelete();
             });
         DB::statement('ALTER TABLE ' . self::TABLE . ' ADD INDEX idx_address (address(255))');
     }
@@ -52,7 +58,7 @@ class CreateBranchesTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
             try {
-                foreach (['company', CPC::COL_ADM, CPC::COL_MNG] as $col) {
+                foreach (['company', CPC::COL_ADM, CPC::COL_MNG, PJC::COL_PLN_SCHD_ID] as $col) {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
                 }

@@ -2,18 +2,17 @@
 <?php
 
 define('LARAVEL_START', microtime(true));
-
-require __DIR__.'/vendor/autoload.php';
-
-$app = require_once __DIR__.'/bootstrap/app.php';
-
+require __DIR__ . '/vendor/autoload.php';
+$app = require_once __DIR__ . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-
+/**
+ * ? Will call the bootstrap to create the Http and Console Kernels + the Debug wrappers, then
+ * ? Calls ./index.php to parse_url + urldecode to get to the ./public/index.php, then
+ * ? it taps the HttpKernel to handle the Request and send the Response.
+ */
 $status = $kernel->handle(
     $input = new Symfony\Component\Console\Input\ArgvInput,
     new Symfony\Component\Console\Output\ConsoleOutput
 );
-
 $kernel->terminate($input, $status);
-
 exit($status);

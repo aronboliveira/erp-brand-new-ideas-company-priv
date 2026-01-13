@@ -933,6 +933,11 @@ class SeedersTemplating
 		['name' => 'move deal'],
 		['name' => 'show contract'],
 	];
+	public const CLIENTLIKE_PERMS = [
+		...self::CLIENT_PERMS,
+		...self::VENDOR_PERMS,
+		...self::CUSTOMER_PERMS,
+	];
 	public const PERMISSIONS = [
 		...self::USER_PERMS,
 		...self::LP_PERMS,

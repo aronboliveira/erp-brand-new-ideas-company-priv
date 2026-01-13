@@ -96,6 +96,7 @@ class DatabaseSeeder extends Seeder
             }
             foreach (
                 [
+                    ScheduleSeeder::class,
                     BranchSeeder::class,
                     DepartmentSeeder::class,
                     ClientSeeder::class,
@@ -181,7 +182,9 @@ class DatabaseSeeder extends Seeder
                     OtherPaymentSeeder::class,
                     ContractTypeSeeder::class,
                     ContractSeeder::class,
+                    ContractAttachmentSeeder::class,
                     ContractCommentSeeder::class,
+                    ContractNoteSeeder::class,
                     PerformanceTypeSeeder::class,
                     PayslipSeeder::class,
                     ProjectTaskSeeder::class,
@@ -196,6 +199,7 @@ class DatabaseSeeder extends Seeder
                     BankAccountSeeder::class,
                     BankTransferSeeder::class,
                     VendorSeeder::class,
+                    ClientPermissionSeeder::class,
                     AnnouncementSeeder::class,
                     InterviewScheduleSeeder::class,
                     OrderSeeder::class,
@@ -206,6 +210,7 @@ class DatabaseSeeder extends Seeder
                     LeaveSeeder::class,
                     MeetingSeeder::class,
                     MeetingEmployeeSeeder::class,
+                    ZoomMeetingSeeder::class,
                     EventSeeder::class,
                     EventEmployeeSeeder::class,
                     BillSeeder::class,
@@ -240,6 +245,7 @@ class DatabaseSeeder extends Seeder
                     ProposalSeeder::class,
                     HolidaySeeder::class,
                     TimeTrackerSeeder::class,
+                    PlanningScheduleSeeder::class,
                     BasicFavoritesSeeder::class,
                     JournalEntrySeeder::class,
                     JournalItemSeeder::class,
@@ -266,7 +272,7 @@ class DatabaseSeeder extends Seeder
                     $duration = $endTime - $startTime;
                     Log::warning('Seeder ' . $mockSeeder . ' completed in ' . round($duration, 2) . ' segundos.');
                     sleep(1);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');
                     Log::warning('Seeding mocks for ' . $mockSeeder . ' failed: ', ['message' => substr($e->getMessage(), 0, 1024)]);
                 }

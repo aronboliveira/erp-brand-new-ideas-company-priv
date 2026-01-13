@@ -13,7 +13,7 @@ use Laravel\Fortify\Fortify;
 
 final class AppServiceProvider extends ServiceProvider
 {
-    private const DEFAULT_STRING_LENGTH = 191;
+    private const DEFAULT_STRING_LENGTH = 252;
 
     public function register(): void
     {
@@ -37,9 +37,6 @@ final class AppServiceProvider extends ServiceProvider
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' booting...');
         try {
             Schema::defaultStringLength(self::DEFAULT_STRING_LENGTH);
-            Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' set defaultStringLength', [
-                'length' => self::DEFAULT_STRING_LENGTH
-            ]);
             Fortify::requestPasswordResetLinkView(function () {
                 return view(ViewsConstants::AUT . '.forgot_password');
             });

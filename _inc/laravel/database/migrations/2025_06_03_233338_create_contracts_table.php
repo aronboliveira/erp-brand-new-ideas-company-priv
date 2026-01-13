@@ -51,6 +51,8 @@ class CreateContractsTable extends Migration
             $table->date(PJC::COL_CO_SIGN_AT)->nullable(); // ? nullable for initial tests
             $table->uuid(PJC::COL_APV_BY)->nullable(); // ? nullable for initial tests
             $table->date(PJC::COL_APV_AT)->nullable(); // ? nullable for initial tests
+            $table->uuid(PJC::COL_REJ_BY)->nullable(); // ? nullable for initial tests
+            $table->date(PJC::COL_REJ_AT)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT_NM)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT2_NM)->nullable(); // ? nullable for initial tests
             $table->string(PJC::COL_WT_IDF)->nullable(); // ? CNPJ or CPF
@@ -60,16 +62,19 @@ class CreateContractsTable extends Migration
             $table->date(PJC::COL_WT_SIGN_AT)->nullable(); // ? nullable for initial tests
             $table->date(PJC::COL_WT2_SIGN_AT)->nullable(); // ? nullable for initial tests
             $table->uuid(PJC::COL_PJ_ID)->nullable();
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index(); // ? the PJC::COL_S_DT and PJC::COL_E_DT should be inside the contract limit period, else this is nullified at boot/save
             $table->string(PJC::COL_F_PATH)->nullable(); // ? nullable for initial tests
             $table->json(PJC::COL_ATC_PATHS)->nullable();
             foreach (
                 [
-                    'company'                   => DC::TABLE_USERS,
-                    PJC::COL_CLIENT_ID           => DC::TABLE_USERS,
-                    'type'    => DC::TABLE_CONTRACT_TYPES,
-                    PJC::COL_PJ_ID          => DC::TABLE_PROJECTS,
-                    PJC::COL_F_PATH            => DC::TABLE_DOCS,
-                    PJC::COL_APV_BY            => DC::TABLE_USERS,
+                    'company' => DC::TABLE_USERS,
+                    PJC::COL_CLIENT_ID => DC::TABLE_USERS,
+                    'type' => DC::TABLE_CONTRACT_TYPES,
+                    PJC::COL_PJ_ID => DC::TABLE_PROJECTS,
+                    PJC::COL_F_PATH => DC::TABLE_DOCS,
+                    PJC::COL_APV_BY => DC::TABLE_USERS,
+                    PJC::COL_REJ_BY => DC::TABLE_USERS,
+                    PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
                 ] as $column => $referencedTable
             )
                 $fk = $table->foreign($column)
@@ -77,6 +82,7 @@ class CreateContractsTable extends Migration
                     ->on($referencedTable)
                     ->nullOnDelete();
             $this->addAuditColumns($table);
+            $table->json('metadata')->nullable();
         });
     }
 
@@ -91,6 +97,8 @@ class CreateContractsTable extends Migration
                     PJC::COL_PJ_ID,
                     PJC::COL_F_PATH,
                     PJC::COL_APV_BY,
+                    PJC::COL_REJ_BY,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $col
             ) {
                 try {

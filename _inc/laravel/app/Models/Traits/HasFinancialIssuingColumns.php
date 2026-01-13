@@ -157,7 +157,7 @@ trait HasFinancialIssuingColumns
 		$table->uuid(BC::COL_PRD_SV_UNT)->nullable()->index();
 		foreach (
 			[
-				'loan'           => DC::TABLE_LN,
+				'loan' => DC::TABLE_LN,
 				BC::COL_PRD_SV_UNT => DC::TABLE_PROD_SERV_UNITS,
 			] as $column => $referencedTable
 		)

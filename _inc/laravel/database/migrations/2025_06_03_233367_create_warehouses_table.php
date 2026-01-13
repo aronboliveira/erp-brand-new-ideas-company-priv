@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\CountryName;
 use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
@@ -29,6 +29,7 @@ class CreateWarehousesTable extends Migration
             $table->string('email', 254)->nullable(); // ? nullable for tests
             $table->uuid(CC::COL_OWN_ID)->nullable(); // * not every warehouse owner should be registered
             $table->string(CC::COL_OWN_NM)->nullable(); // ? nullable for tests, because the owner should be at least a company or an employee or the company
+            $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
             $table->boolean(CC::COL_IA)->default(true)->nullable(); // ? nullable for tests
             $table->boolean(CC::COL_IS_SHP)->default(true)->nullable(); // ? nullable for tests
             $table->date(CC::COL_FD_DT)->nullable(); // ? nullable for tests
@@ -48,6 +49,7 @@ class CreateWarehousesTable extends Migration
                 [
                     CC::COL_CP_ID => DC::TABLE_USERS,
                     CC::COL_OWN_ID => DC::TABLE_USERS,
+                    PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
                 ] as $col => $referencedTable
             )
                 $table->foreign($col)
@@ -66,6 +68,7 @@ class CreateWarehousesTable extends Migration
                 [
                     CC::COL_CP_ID,
                     CC::COL_OWN_ID,
+                    PJC::COL_PLN_SCHD_ID,
                 ] as $col
             ) Schema::hasColumn(self::TABLE, $col) &&
                 $table->dropForeign([$col]);

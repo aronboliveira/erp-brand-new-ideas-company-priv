@@ -236,6 +236,7 @@ class BillsConstants
 	public const COL_BNK_TRFS = 'bank_transfers';
 	public const COL_WRN_TRSH = 'warn_threshold';
 	public const COL_CRT_WRN_TH = 'critical_warning_threshold';
+	public const COL_CARD_NTS = 'card_notes';
 
 	// * VALORES
 

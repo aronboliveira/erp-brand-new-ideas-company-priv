@@ -255,6 +255,7 @@ trait HasPaymentColumns
 				->references('id')
 				->on($referencedTable)
 				->nullOnDelete();
+		$table->json('qr')->nullable(); // ? QR code data
 	}
 
 	protected function dropBasicPaymentColumnForeigns(Blueprint $table, ?string $tableName = null): void

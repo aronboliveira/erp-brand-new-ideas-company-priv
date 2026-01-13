@@ -1,43 +1,38 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-
+// todo this will change after meeting with DevOps and Sec team
 class CreateLoginDetailsTable extends Migration
 {
-	private const TABLE = 'login_details';
-	private const COL_USER = 'user_id';
+	use HasNullableAuditColumns;
+	private const TABLE = DC::TABLE_LG_DTLS;
 	public function up(): void
 	{
 		Schema::create(self::TABLE, function (Blueprint $table) {
-			$table->uuid('id')->primary(); // ! CHANGED
-			$table->uuid(self::COL_USER)->index(); // ! CHANGED
-			$table->string('ip');
-			$table->string('date');
+			$table->uuid('id')->primary();
+			$table->uuid(UC::COL_USER_ID)->index();
+			$table->ipAddress('ip')->index();
+			$table->timestamp('date')->index();
+			$table->string('user_agent')->nullable();
 			$table->text('details');
-			$table->timestamps();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
-			foreach (
-				[
-					self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-					DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-				] as $column => $referencedTable
-			)
-				$table->foreign($column)
-					->references('id')
-					->on($referencedTable)
-					->cascadeOnDelete();
+			$table->foreign(UC::COL_USER_ID)
+				->references('id')
+				->on(DC::TABLE_USERS)
+				->cascadeOnDelete();
+			$this->addNullableAuditColumns($table);
 		});
 	}
 
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
+			$this->dropAuditColumnForeigns($table, self::TABLE);
 			foreach (
 				[
-					self::COL_USER,
-					DatabaseConstants::COL_TABLE_CREATOR,
+					UC::COL_USER_ID,
 				] as $column
 			) {
 				try {

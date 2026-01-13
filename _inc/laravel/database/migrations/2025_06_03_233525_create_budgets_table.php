@@ -44,8 +44,10 @@ class CreateBudgetsTable extends Migration
             $table->uuid('company')->index()->nullable();
             $table->uuid('branch')->index()->nullable();
             $table->uuid('department')->index()->nullable();
-            $table->json(BC::COL_BNK_TRFS)->nullable(); // ? string[] of rows in DC::TABLE_BNK_TRF
-            $table->json('transactions')->nullable(); // ? string[] of rows in DC::TABLE_TRS
+            $table->json(BC::COL_BNK_TRFS)->nullable(); // ? string[] of id of rows in DC::TABLE_BNK_TRF
+            $table->json('transactions')->nullable(); // ? string[] of id of rows in DC::TABLE_TRS
+            $table->json(BC::COL_CARD_NTS)->nullable(); // ? string[] of id of rows in DC::TABLE_CD_NOTES (credit_notes) or DC::TABLE_DB_NOTES (debit_notes)
+            $table->json('receipts')->nullable(); // ? string[] of id of rows in DC::TABLE_DOCUMENTS, urls or local file paths. Kept separate from 'attachments' for easier querying. Should be merged into 'attachments' through the model booted save. Check the Schema of DC::TABLE_TRS, DC::TABLE_BNK_TRF, DC::TABLE_CD_NOTES and DC::TABLE_DB_NOTES for 'receipt' or BC::COL_ADD_RCP ('receipt_attached')
             $table->json('attachments')->nullable();
             $table->json('metadata')->nullable();
             $table->softDeletes();

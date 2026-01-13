@@ -17,7 +17,7 @@ class CreatePosPaymentsTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid(BC::COL_POS_ID);
-                $table->uuid('payment')->nullable();
+                $table->uuid('payment')->nullable(); // ? nullable for tests
                 $table->uuid(BC::COL_BACC_ID)->nullable(); // * this should be nullable for cases where the payment method is cash or pix, and managed at controller level
                 $table->date('date')->default(now()->format('Y-m-d'))->nullable();
                 $table->unsignedDecimal('amount', 16, 2)->default('0.00');
