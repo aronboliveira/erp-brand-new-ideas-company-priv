@@ -16,11 +16,13 @@ use Illuminate\Support\Facades\Log;
 class EmailTemplateLangsSeeder extends Seeder
 {
 	private const SEED = 20251215;
+	private const HARD_CAP = 2048 * 8;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	public function run(): void
 	{
 		fake()->seed(self::SEED);
-
+		$clock = microtime(true);
 		if (!DB::getSchemaBuilder()->hasTable(DC::TABLE_EMAIL_TEMPLATES)) {
 			$this->command?->warn(static::class . ': email templates table missing, seeder aborted.');
 			return;
@@ -45,7 +47,7 @@ class EmailTemplateLangsSeeder extends Seeder
 		}
 
 		$totalCreated = 0;
-
+		$cap = self::HARD_CAP;
 		foreach ($parents as $parent) {
 			$parentId = (string) $parent->id;
 
@@ -55,6 +57,15 @@ class EmailTemplateLangsSeeder extends Seeder
 			);
 
 			foreach ($langsForParent as $langValue) {
+				$cap--;
+				if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+					$this->command?->warn(static::class . ': time limit reached, aborting.');
+					break 2;
+				}
+				if ($cap <= 0 || !$cap) {
+					$this->command?->warn(static::class . ': creation limit reached, aborting.');
+					break 2;
+				}
 				$langValue = trim((string) $langValue);
 				if ($langValue === '') {
 					continue;

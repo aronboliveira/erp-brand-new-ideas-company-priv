@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    BillsConstants,
-    DatabaseConstants,
+    BanksConstants as BKC,
+    BillsConstants as BC,
+    DatabaseConstants as DC,
     MiddlewaresConstants,
     PermissionsConstants,
     SettingsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants
 };
 use App\Models\{
@@ -68,13 +69,13 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] listing expenses", [UsersConstants::COL_USER_ID => $request->user()->id, 'filters' => $request->only(['vendor', 'bill_date', 'category']), 'method' => $method]);
+            Log::info("[{$base}::{$action}] listing expenses", [UC::COL_USER_ID => $request->user()->id, 'filters' => $request->only(['vendor', 'bill_date', 'category']), 'method' => $method]);
             try {
                 $uidStart = microtime(true);
                 $uid = $request->user()->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $qryStart = microtime(true);
-                $q = Bill::where('type', 'Expense')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid);
+                $q = Bill::where('type', 'Expense')->where(DC::COL_TABLE_CREATOR, $uid);
                 if ($request->filled('vendor')) $q->where('vendor_id', $request->vendor);
                 if ($request->filled('bill_date')) {
                     $parts = explode(' to ', $request->bill_date);
@@ -87,10 +88,10 @@ final class ExpenseController extends Controller
                 $this->logExecutionTime($qryStart, $action, 'queryExpenses');
                 Log::info("[{$base}::{$action}] expenses loaded", ['count' => $expenses->count()]);
                 $venStart = microtime(true);
-                $vendorLst = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendorLst = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $catStart = microtime(true);
-                $catLst = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $catLst = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $viewPath = ViewsConstants::EXP . '.index';
                 if (!ViewFacade::exists($viewPath)) {
@@ -121,37 +122,37 @@ final class ExpenseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($g = self::guard($req, 'create bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] showing expense create form", [UsersConstants::COL_USER_ID => $user?->id, 'reference' => $refId, 'method' => $method]);
+            Log::info("[{$base}::{$action}] showing expense create form", [UC::COL_USER_ID => $user?->id, 'reference' => $refId, 'method' => $method]);
             try {
                 $uidStart = microtime(true);
                 $uid = $user?->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
+                $employees = Employee::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Employee', '');
                 $this->logExecutionTime($empStart, $action, 'loadEmployees');
                 $cusStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($cusStart, $action, 'loadCustomers');
                 $venStart = microtime(true);
-                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendors = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $numStart = microtime(true);
                 $num = $user?->expenseNumberFormat($this->expenseNumber());
                 $this->logExecutionTime($numStart, $action, 'formatExpenseNumber');
                 $itmStart = microtime(true);
-                $items = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('Select Item', '');
+                $items = ProductService::where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('Select Item', '');
                 $this->logExecutionTime($itmStart, $action, 'loadItems');
                 $catStart = microtime(true);
-                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $categories = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
+                $customFields = CustomField::where([[DC::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $accStart = microtime(true);
-                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
+                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'num' => $num, 'items' => $items, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks, 'id' => $refId];
                 $viewPath = ViewsConstants::EXP . '.create';
@@ -169,7 +170,7 @@ final class ExpenseController extends Controller
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
-        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'ref_id' => $refId]);
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, BC::COL_REF_ID => $refId]);
     }
 
     public function store(Request $r): RedirectResponse
@@ -182,7 +183,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'create bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'input' => $request->all(), 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'input' => $request->all(), 'method' => $method]);
             $valStart = microtime(true);
             if ($resp = self::validateOrRedirect($request, ['payment_date' => 'required|date'])) {
                 $this->logExecutionTime($valStart, $action, 'validateRequest');
@@ -208,7 +209,7 @@ final class ExpenseController extends Controller
                     'user_type' => $request->type,
                     'category_id' => $request->category_id ?? '0',
                     'order_id' => '0',
-                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
+                    DC::COL_TABLE_CREATOR => $request->user()->creatorId(),
                 ]);
                 $bill->save();
                 $this->logExecutionTime($buildStart, $action, 'createBill');
@@ -251,7 +252,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'show bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", ['enc_id' => $encId, UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", ['enc_id' => $encId, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $decStart = microtime(true);
                 $id = Crypt::decryptString($encId);
@@ -259,9 +260,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::with(['items', 'accounts', 'payments'])->findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
-                    Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
+                if ($exp[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
+                    Log::warning("[{$base}::{$action}] unauthorized", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $assocStart = microtime(true);
@@ -300,7 +301,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'edit bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", ['enc_id' => $encId, UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", ['enc_id' => $encId, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $decStart = microtime(true);
                 $id = Crypt::decryptString($encId);
@@ -308,9 +309,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::with(['items', 'accounts'])->findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
-                    Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
+                if ($exp[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
+                    Log::warning("[{$base}::{$action}] unauthorized", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $uidStart = microtime(true);
@@ -320,28 +321,28 @@ final class ExpenseController extends Controller
                 $num = $request->user()->expenseNumberFormat($exp->bill_id);
                 $this->logExecutionTime($numStart, $action, 'formatExpenseNumber');
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
+                $employees = Employee::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Employee', '');
                 $this->logExecutionTime($empStart, $action, 'loadEmployees');
                 $cusStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($cusStart, $action, 'loadCustomers');
                 $venStart = microtime(true);
-                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendors = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $prdStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $products = ProductService::where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($prdStart, $action, 'loadProducts');
                 $catStart = microtime(true);
-                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $categories = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
+                $customFields = CustomField::where([[DC::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $accStart = microtime(true);
-                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
+                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['exp' => $exp, 'num' => $num, 'employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'products' => $products, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks];
                 Log::info("[{$base}::{$action}] loaded", ['bill_id' => $id]);
@@ -386,9 +387,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
-                    Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
+                if ($exp[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
+                    Log::warning("[{$base}::{$action}] unauthorized", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $updStart = microtime(true);
@@ -427,7 +428,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill product')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", ['product_id' => $request->id, UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", ['product_id' => $request->id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
                 DB::beginTransaction();
@@ -465,16 +466,16 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", ['bill_id' => $id, UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", ['bill_id' => $id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
                 DB::beginTransaction();
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
-                    Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
+                if ($exp[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
+                    Log::warning("[{$base}::{$action}] unauthorized", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $payLoopStart = microtime(true);
@@ -496,7 +497,7 @@ final class ExpenseController extends Controller
                 BillProduct::where('bill_id', $exp->id)->delete();
                 $this->logExecutionTime($delProdStart, $action, 'deleteBillProducts');
                 $delAccStart = microtime(true);
-                BillAccount::where('ref_id', $exp->id)->delete();
+                BillAccount::where(BC::COL_REF_ID, $exp->id)->delete();
                 $this->logExecutionTime($delAccStart, $action, 'deleteBillAccounts');
                 $delExpStart = microtime(true);
                 $exp->delete();
@@ -524,7 +525,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'employee_id' => $request->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'employee_id' => $request->id, 'method' => $method]);
             try {
                 $findStart = microtime(true);
                 $emp = Employee::find($request->id);
@@ -601,7 +602,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'vendor_id' => $request->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'vendor_id' => $request->id, 'method' => $method]);
             try {
                 $findStart = microtime(true);
                 $vendor = Vendor::find($request->id);
@@ -637,7 +638,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'customer_id' => $request->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'customer_id' => $request->id, 'method' => $method]);
             try {
                 $findStart = microtime(true);
                 $customer = Customer::find($request->id);
@@ -673,7 +674,7 @@ final class ExpenseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $request->bill_id, 'product_id' => $request->product_id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $request->bill_id, 'product_id' => $request->product_id, 'method' => $method]);
             try {
                 $buildStart = microtime(true);
                 $query = BillProduct::where('bill_id', $request->bill_id)->where('product_id', $request->product_id);
@@ -697,7 +698,7 @@ final class ExpenseController extends Controller
         $class = static::class;
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
-            Log::info("[{$base}::expense] start", ['enc_id' => $encId, UsersConstants::COL_USER_ID => $request->user()?->id]);
+            Log::info("[{$base}::expense] start", ['enc_id' => $encId, UC::COL_USER_ID => $request->user()?->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             try {
                 $decStart = microtime(true);
@@ -706,10 +707,10 @@ final class ExpenseController extends Controller
                 $fetchStart = microtime(true);
                 $expense = Bill::with(['items.product.unit', 'items.product'])->whereKey($id)->firstOrFail();
                 $this->logExecutionTime($fetchStart, $action, 'fetchExpense');
-                if ($expense[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action);
+                if ($expense[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action);
                 $setStart = microtime(true);
-                $settings = Utility::settings($expense[DatabaseConstants::COL_TABLE_CREATOR]);
-                DB::table(DatabaseConstants::TABLE_SETTINGS)->where(DatabaseConstants::COL_TABLE_CREATOR, $expense[DatabaseConstants::COL_TABLE_CREATOR])->get()->each(fn($row) => $settings[$row->name] = $row->value);
+                $settings = Utility::settings($expense[DC::COL_TABLE_CREATOR]);
+                DB::table(DC::TABLE_SETTINGS)->where(DC::COL_TABLE_CREATOR, $expense[DC::COL_TABLE_CREATOR])->get()->each(fn($row) => $settings[$row->name] = $row->value);
                 $this->logExecutionTime($setStart, $action, 'loadSettings');
                 $prepStart = microtime(true);
                 $totals = ['quantity' => 0, 'rate' => 0, 'discount' => 0, 'taxPrice' => 0];
@@ -744,7 +745,7 @@ final class ExpenseController extends Controller
                 $expense->customField = CustomField::getData($expense, 'bill');
                 $logoStart = microtime(true);
                 $logoDir = Storage::url('uploads/logo');
-                $settingsData = Utility::settingsById($expense[DatabaseConstants::COL_TABLE_CREATOR]);
+                $settingsData = Utility::settingsById($expense[DC::COL_TABLE_CREATOR]);
                 $logoFile = $settingsData['bill_logo'] ?? $settings[SettingsConstants::CPN_LG_DK] ?? SettingsConstants::CPN_LG_DK_DEF;
                 $img = asset("$logoDir/$logoFile");
                 $this->logExecutionTime($logoStart, $action, 'resolveLogo');
@@ -755,11 +756,11 @@ final class ExpenseController extends Controller
                 $viewPath = ViewsConstants::BIL . ".templates.{$settings[BillsConstants::COL_BIL_TMP]}";
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::expense] missing view", ['view_path' => $viewPath]);
-                    Log::debug("[{$base}::expense] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['expense', DatabaseConstants::TABLE_SETTINGS, 'img', 'fontColor']]);
+                    Log::debug("[{$base}::expense] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['expense', DC::TABLE_SETTINGS, 'img', 'fontColor']]);
                     return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
                 $renderStart = microtime(true);
-                $resp = view($viewPath, compact('expense', DatabaseConstants::TABLE_SETTINGS, 'img', 'fontColor'));
+                $resp = view($viewPath, compact('expense', DC::TABLE_SETTINGS, 'img', 'fontColor'));
                 $this->logExecutionTime($renderStart, $action, 'renderExpense');
                 return $resp;
             } catch (DecryptException $e) {
@@ -777,7 +778,7 @@ final class ExpenseController extends Controller
     {
         if (!$r->user()->can($perm)) {
             Log::warning("ExpenseController::authorize failed", [
-                UsersConstants::COL_USER_ID   => $r->user()->id,
+                UC::COL_USER_ID   => $r->user()->id,
                 'permission' => $perm
             ]);
             return defaultPermissionDenial(
@@ -807,7 +808,7 @@ final class ExpenseController extends Controller
     private function syncLines(Bill $bill, array $lines): void
     {
         BillProduct::where('bill_id', $bill->id)->delete();
-        BillAccount::where('ref_id', $bill->id)->where('type', 'Bill')->delete();
+        BillAccount::where(BC::COL_REF_ID, $bill->id)->where('type', 'Bill')->delete();
         $total = 0;
         foreach ($lines as $itm) {
             if (!empty($itm['item'])) {
@@ -830,24 +831,24 @@ final class ExpenseController extends Controller
                 );
                 $total += $itm['quantity'] * $itm['price'];
             }
-            if (!empty($itm['chart_account_id'])) {
+            if (!empty($itm[BKC::COL_COA])) {
                 BillAccount::create([
-                    'chart_account_id' => $itm['chart_account_id'],
+                    BKC::COL_COA => $itm[BKC::COL_COA],
                     'price'            => $itm['amount'],
                     'description'      => $itm['description'],
                     'type'             => 'Bill',
-                    'ref_id'           => $bill->id,
+                    BC::COL_REF_ID     => $bill->id,
                 ]);
                 $total += $itm['amount'];
             }
         }
         // sync "Bill Category" account if provided
-        if (!empty(request('chart_account_id'))) {
+        if (!empty(request(BKC::COL_COA))) {
             $cat = ProductServiceCategory::find(request('category_id'));
             BillAccount::updateOrCreate(
-                ['type' => 'Bill Category', 'ref_id' => $bill->id],
+                ['type' => 'Bill Category', BC::COL_REF_ID => $bill->id],
                 [
-                    'chart_account_id' => $cat->chart_account_id ?? null,
+                    BKC::COL_COA => $cat->chart_account_id ?? null,
                     'price'           => $total,
                     'description'     => request('description'),
                 ]
@@ -864,7 +865,7 @@ final class ExpenseController extends Controller
             return $userOrRedirect;
         $user = $userOrRedirect;
         return optional(
-            Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+            Bill::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                 ->latest('bill_id')->first()
         )->bill_id + 1 ?? 1;
     }
@@ -878,7 +879,7 @@ final class ExpenseController extends Controller
             return $userOrRedirect;
         $user = $userOrRedirect;
         $creatorId = $user?->creatorId();
-        $latest   = Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+        $latest   = Bill::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'Bill')
             ->latest('bill_id')
             ->first();

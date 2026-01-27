@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Config\Constants\{
     ActivitiesConstants as AC,
     BanksConstants as BKC,
+    BillsConstants as BC,
     DatabaseConstants as DC
 };
 use App\Enums\ConsumableType;
+use App\Services\ProductOrServiceRequestService;
 use App\Traits\{
-    ChecksLogin,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -25,7 +26,7 @@ use Illuminate\Http\RedirectResponse;
 
 class ProductServiceCategory extends Model
 {
-    use ChecksLogin, HasAuditFields, NormalizesArrays, UsesUuids;
+    use HasAuditFields, NormalizesArrays, UsesUuids;
 
     public const TABLE = DC::TABLE_PROD_SERV_CATS;
 
@@ -79,7 +80,6 @@ class ProductServiceCategory extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (self $m): void {
             foreach (['name', 'code', 'color', 'icon'] as $field)
                 if (!empty($m->getAttribute($field)) && is_string($m->getAttribute($field)))
@@ -157,87 +157,23 @@ class ProductServiceCategory extends Model
 
     public function categories(): HasMany
     {
-        return $this->hasMany(Revenue::class, 'category_id', 'id');
+        return $this->hasMany(Revenue::class, BC::COL_CAT_ID, 'id');
         // * relação original mantida para compatibilidade
     }
 
     public function incomeCategoryRevenueAmount(): float|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        )
-            return $userOrRedirect;
-
-        $user   = $userOrRedirect;
-        $userId = $user?->creatorId();
-        $year   = date('Y');
-
-        $revenue = $this->categories()
-            ->where(DC::COL_TABLE_CREATOR, $userId)
-            ->whereYear('date', $year)
-            ->sum('amount');
-
-        $invoices = Invoice::where('category_id', $this->id)
-            ->where(DC::COL_TABLE_CREATOR, $userId)
-            ->whereYear('send_date', $year)
-            ->get();
-
-        $totals = $invoices
-            ->map(fn(Invoice $inv) => $inv->getTotal())
-            ->all();
-
-        return ($revenue ?: 0) + array_sum($totals);
+        return app(ProductOrServiceRequestService::class)->getIncomeCategoryRevenueAmount($this);
     }
 
     public function expenseCategoryAmount(): float|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        )
-            return $userOrRedirect;
-
-        $user   = $userOrRedirect;
-        $userId = $user?->creatorId();
-        $year   = date('Y');
-
-        $payment = Payment::where('category_id', $this->id)
-            ->where(DC::COL_TABLE_CREATOR, $userId)
-            ->whereYear('date', $year)
-            ->sum('amount');
-
-        $bills = Bill::where('category_id', $this->id)
-            ->where(DC::COL_TABLE_CREATOR, $userId)
-            ->whereYear('send_date', $year)
-            ->get();
-
-        $totals = $bills
-            ->map(fn(Bill $bill) => $bill->getTotal())
-            ->all();
-
-        return ($payment ?: 0) + array_sum($totals);
+        return app(ProductOrServiceRequestService::class)->getExpenseCategoryAmount($this);
     }
 
     public static function getAllCategories(): Collection|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        )
-            return $userOrRedirect;
-
-        $user    = $userOrRedirect;
-        $creator = $user?->creatorId();
-
-        return DB::table(self::TABLE . ' as c')
-            ->select('c.*', DB::raw('COUNT(p.category_id) as product_services'))
-            ->leftJoin('product_services as p', 'c.id', '=', 'p.category_id')
-            ->where('c.' . DC::COL_TABLE_CREATOR, $creator)
-            ->where('c.type', 0)
-            ->groupBy('c.id')
-            ->orderBy('c.id', 'desc')
-            ->get();
+        return app(ProductOrServiceRequestService::class)->getAllCategories();
     }
 
     public function chartAccount(): BelongsTo

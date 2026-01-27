@@ -19,6 +19,7 @@ use App\Models\{
     SaturationDeduction
 };
 use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{
     Collection,
     Model,
@@ -311,8 +312,19 @@ class Employee extends Model
 
     public function documents(): Collection
     {
-        return $this->hasMany(EmployeeDocument::class, 'employee_id', 'employee_id')->get();
+        return $this->employeeDocuments()->get();
     }
+
+    public function termination(): HasOne
+    {
+        return $this->hasOne(Termination::class, UC::COL_EMP_ID, 'id');
+    }
+
+    public function resignation(): HasOne
+    {
+        return $this->hasOne(Resignation::class, UC::COL_EMP_ID, 'id');
+    }
+
 
     public function getSalaryTypeNameAttribute(): ?string
     {
@@ -354,37 +366,37 @@ class Employee extends Model
 
     public function salaryTypeName(): mixed
     {
-        return $this->hasOne(PayslipType::class, 'id', 'salary_type')->pluck('name')->first();
+        return $this->hasOne(PayslipType::class, 'id', UC::COL_SLR_TP)->value('name');
     }
 
     public function allowances(): HasMany
     {
-        return $this->hasMany(Allowance::class);
+        return $this->hasMany(Allowance::class, UC::COL_EMP_ID, 'id');
     }
 
     public function commissions(): HasMany
     {
-        return $this->hasMany(Commission::class);
+        return $this->hasMany(Commission::class, UC::COL_EMP_ID, 'id');
     }
 
     public function loans(): HasMany
     {
-        return $this->hasMany(Loan::class);
+        return $this->hasMany(Loan::class, UC::COL_EMP_ID, 'id');
     }
 
     public function saturationDeductions(): HasMany
     {
-        return $this->hasMany(SaturationDeduction::class);
+        return $this->hasMany(SaturationDeduction::class, UC::COL_EMP_ID, 'id');
     }
 
     public function otherPayments(): HasMany
     {
-        return $this->hasMany(OtherPayment::class);
+        return $this->hasMany(OtherPayment::class, UC::COL_EMP_ID, 'id');
     }
 
     public function overtimes(): HasMany
     {
-        return $this->hasMany(Overtime::class);
+        return $this->hasMany(Overtime::class, UC::COL_EMP_ID, 'id');
     }
 
     public function getNetSalary(): float
@@ -425,9 +437,9 @@ class Employee extends Model
 
     public static function allowance(string|int $id): string|false
     {
-        $allowances = Allowance::where('employee_id', $id)->get();
-        return json_encode($allowances);
+        return Allowance::where(UC::COL_EMP_ID, $id)->get()->toJson();
     }
+
 
     public static function commission(string|int $id): string|false
     {
@@ -459,6 +471,11 @@ class Employee extends Model
         return json_encode($ots);
     }
 
+    public function employeeDocuments(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class, UC::COL_EMP_ID, 'id');
+    }
+
     public static function employeeId(): string|int
     {
         $e = self::latest()->first();
@@ -471,7 +488,7 @@ class Employee extends Model
 
     public function paySlip(): HasOne
     {
-        return $this->hasOne(Payslip::class, 'id', 'employee_id');
+        return $this->hasOne(Payslip::class, UC::COL_EMP_ID, 'id');
     }
 
     public function presentStatus($employee_id, $date): mixed
@@ -481,9 +498,9 @@ class Employee extends Model
             ->first();
     }
 
-    public static function employeeSalary($salary): float
+    public static function employeeSalary($salary): float|string
     {
         $e = self::where('salary', $salary)->first();
-        return $e && $e->salary > 0 ? $e->salary : '-';
+        return $e && $e->salary > 0 ? (float) $e->salary : '-';
     }
 }

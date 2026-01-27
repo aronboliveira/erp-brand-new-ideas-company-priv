@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Helpers\AppModuleTypeCast;
 use App\Enums\AppModuleType;
 use App\Models\Utility;
 use App\Traits\{HasAuditFields, UsesUuids};
@@ -27,7 +28,7 @@ class BasicFavorite extends Model
 	];
 
 	protected $casts = [
-		'module' => AppModuleType::class,
+		'module' => AppModuleTypeCast::class,
 	];
 
 	private static ?array $allowedTablesCache = null;
@@ -39,7 +40,7 @@ class BasicFavorite extends Model
 
 			try {
 				$module = $m->getAttribute('module');
-				$module = $module instanceof AppModuleType ? $module->value : trim((string) $module);
+				$module = $module instanceof AppModuleType ? $module->value : (empty($module) ? AppModuleType::Other->value : (in_array($module, array_column(AppModuleType::cases(), 'value'), true) ? (string) $module : AppModuleType::Other->value));
 				$moduleEnum = null;
 				try {
 					$moduleEnum = AppModuleType::tryFrom($module) ?? AppModuleType::Other;
@@ -60,10 +61,8 @@ class BasicFavorite extends Model
 
 				$favId = $m->getAttribute(AC::COL_FV_ID);
 				$favId = is_scalar($favId) ? trim((string) $favId) : '';
-				if ($favId === '' || !Utility::looksLikeUuid($favId)) {
-					$m->setAttribute(AC::COL_FV_ID, null);
-					return;
-				}
+				if (empty($favId))
+					throw new \RuntimeException('BasicFavorite favorite_id cannot be empty');
 
 				$userId = $m->getAttribute(UC::COL_USER_ID);
 				$userId = is_scalar($userId) ? trim((string) $userId) : '';
@@ -74,12 +73,12 @@ class BasicFavorite extends Model
 
 				if (Schema::hasTable(DC::TABLE_USERS) && Schema::hasColumn(DC::TABLE_USERS, 'id')) {
 					$okUser = (bool) DB::selectOne('SELECT 1 FROM ' . DC::TABLE_USERS . ' WHERE id = ? LIMIT 1', [$userId]);
-					if (!$okUser) $m->setAttribute(UC::COL_USER_ID, null);
+					if (!$okUser) throw new \RuntimeException('BasicFavorite invalid user_id: ' . $userId);
 				}
 
 				if (Schema::hasTable($tb) && Schema::hasColumn($tb, 'id')) {
 					$okTarget = (bool) DB::selectOne('SELECT 1 FROM ' . $tb . ' WHERE id = ? LIMIT 1', [$favId]);
-					if (!$okTarget) $m->setAttribute(AC::COL_FV_ID, null);
+					if (!$okTarget) throw new \RuntimeException('BasicFavorite invalid favorite_id: ' . $favId);
 				}
 
 				$selfId = (string) ($m->getKey() ?? '');

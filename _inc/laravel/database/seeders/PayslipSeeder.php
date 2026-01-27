@@ -21,10 +21,11 @@ use Illuminate\Support\Facades\Log;
 final class PayslipSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 	public function run(): void
 	{
 		DB::transaction(function (): void {
+			$clock = microtime(true);
 			$systemUserId = $this->ensureSystemUser();
 
 			$tz  = 'America/Sao_Paulo';
@@ -56,12 +57,17 @@ final class PayslipSeeder extends Seeder
 			Employee::query()
 				->select(['id', UC::COL_EMP_ID])
 				->orderBy('id')
-				->chunkById(200, function ($employees) use ($now, $tz, $idPool, $attachProb, $systemUserId, &$created, &$updated) {
+				->chunkById(200, function ($employees) use ($now, $tz, $idPool, $attachProb, $systemUserId, &$created, &$updated, &$clock): void {
 					foreach ($employees as $emp) {
 						// Gera de 2 a 12 folhas (meses recentes)
 						$monthsBack = random_int(2, 12);
 
 						for ($i = 0; $i < $monthsBack; $i++) {
+
+							if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+								Log::warning(self::class . ' seeding time limit reached, stopping early');
+								return;
+							}
 							$empRef = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
 							(new \Symfony\Component\Console\Output\ConsoleOutput
 							)->writeln("Criando Folha de Pagamento para Funcionário ID: {$empRef}");

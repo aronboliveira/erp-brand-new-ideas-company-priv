@@ -7,51 +7,41 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
-use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
+use App\Services\PipelineRequestService;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
+use Illuminate\Database\Eloquent\{Collection, Model};
 
 class Pipeline extends Model
 {
-    use ChecksLogin, UsesUuids, HasAuditFields;
+    use UsesUuids, HasAuditFields;
 
     private const CREATED_BY     = DC::COL_TABLE_CREATOR;
     private const ORDER          = AC::COL_OD;
-    private const FILLABLE_FIELDS = [
-        'id', //! REMOVE AFTER TESTS
-        PJC::COL_PPL_NM,
-        self::CREATED_BY //! REMOVE AFTER TESTS
-    ];
     // protected $guarded = [ //! UNCOMMENT AFTER TESTS
     //     'id',
     //     DC::COL_TABLE_CREATOR,
     // ];
 
-    protected $fillable = self::FILLABLE_FIELDS;
+    protected $fillable = [
+        'id', //! REMOVE AFTER TESTS
+        PJC::COL_PPL_NM,
+        self::CREATED_BY //! REMOVE AFTER TESTS
+    ];
 
-    public function stages(): HasMany|RedirectResponse
+    /**
+     * Get stages for this pipeline
+     */
+    public function stages(): Collection|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        )
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        return $this->hasMany(Stage::class, PJC::COL_PPL_ID, 'id')
-            ->where(self::CREATED_BY, '=', $user?->ownerId())
-            ->orderBy(self::ORDER);
+        return app(PipelineRequestService::class)->getStagesForPipeline($this);
     }
 
-    public function leadStages(): HasMany|RedirectResponse
+    /**
+     * Get lead stages for this pipeline
+     */
+    public function leadStages(): Collection|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        )
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        return $this->hasMany(LeadStage::class, PJC::COL_PPL_ID, 'id')
-            ->where(self::CREATED_BY, '=', $user?->ownerId())
-            ->orderBy(self::ORDER);
+        return app(PipelineRequestService::class)->getLeadStagesForPipeline($this);
     }
 }

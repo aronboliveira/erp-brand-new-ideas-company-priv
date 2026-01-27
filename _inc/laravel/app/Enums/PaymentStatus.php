@@ -86,6 +86,7 @@ enum PaymentStatus: string
 			array_map(fn($value) => self::getIndex($value), self::values())
 		);
 	}
+
 	public static function values(): array
 	{
 		return [

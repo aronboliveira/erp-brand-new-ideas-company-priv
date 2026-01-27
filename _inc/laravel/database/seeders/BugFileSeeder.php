@@ -23,7 +23,8 @@ final class BugFileSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
-	private const HARD_CAP = 6400;
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const HARD_CAP = 800;
 
 	// “Mesmo loop” do TaskFile: por bug, 1..16 “grupos” variando user_type + mime_type
 	private const GROUPS_PER_BUG_MIN = 1;
@@ -42,6 +43,7 @@ final class BugFileSeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$cout = new ConsoleOutput();
 		$io = $this->makeIo($cout);
 		$faker = FakerFactory::create('pt_BR');
@@ -114,7 +116,8 @@ final class BugFileSeeder extends Seeder
 			$target,
 			$required,
 			$foreigns,
-			$fkPools
+			$fkPools,
+			&$clock
 		): void {
 			$created = 0;
 
@@ -146,6 +149,11 @@ final class BugFileSeeder extends Seeder
 						: random_int(self::NON_DOC_MIN, self::NON_DOC_MAX);
 
 					for ($i = 0; $i < $count; $i++) {
+
+						if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+							Log::warning(self::class . ' seeding time limit reached, stopping early');
+							return;
+						}
 						$this->createOne(
 							$cout,
 							$faker,

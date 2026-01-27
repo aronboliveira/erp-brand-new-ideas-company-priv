@@ -16,7 +16,7 @@ class CreateWarningsTable extends Migration
             $this->addEmployeeColumns($table, nullable: true);
             $table->uuid(CC::COL_WRN_BY)->nullable();
             $table->uuid(CC::COL_WRN_TO)->nullable();
-            $table->date(CC::COL_WRN_DATE)->default(now()->format('Y-m-d'))->index();
+            $table->date(CC::COL_WRN_DATE)->useCurrent()->index();
             $table->string('subject')->nullable();
             $table->text('description')->nullable();
             foreach ([CC::COL_WRN_TO => DC::TABLE_EMPLOYEES, CC::COL_WRN_BY => DC::TABLE_EMPLOYEES] as $column => $referencedTable) $table->foreign($column)->references('id')->on($referencedTable)->nullOnDelete();

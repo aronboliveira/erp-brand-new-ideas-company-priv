@@ -1,25 +1,57 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
-use App\Traits\UsesUuids;
 
-class PurchaseProduct extends Model
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Traits\{ExtendsProductServiceTable, HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+final class PurchaseProduct extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields, ExtendsProductServiceTable;
 
     protected $fillable = [
-        'product_id',
-        'purchase_id',
+        BC::COL_PRD_ID,
+        BC::COL_PRC_ID,
         'quantity',
         'tax',
         'discount',
         'total',
     ];
 
-    public function product(): HasOne
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+    ];
+
+    protected $with = [
+        'purchase',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'discount' => 'decimal:2',
+        'total'    => 'decimal:2',
+    ];
+
+    public function purchase(): BelongsTo
     {
-        // * consider belongsTo if inverted relation
-        return $this->hasOne(ProductService::class, 'id', 'product_id');
+        return $this->belongsTo(Purchase::class, BC::COL_PRC_ID);
+    }
+
+    public function productProduct(): ?BelongsTo
+    {
+        return $this->belongsTo(Product::class, BC::COL_PRD_ID);
+    }
+
+    public function productService(): BelongsTo
+    {
+        return $this->belongsTo(ProductService::class, BC::COL_PRD_ID);
+    }
+
+    public function product(): ?BelongsTo
+    {
+        return Utility::getProduct($this);
     }
 }

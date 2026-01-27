@@ -12,11 +12,13 @@ class SupportReplySeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$this->out = new ConsoleOutput();
 
-		$cap = 32000;
+		$cap = 3200;
 
 		$supportRows = $this->fetchSupportsForSeeding();
 		$supportCount = count($supportRows);
@@ -72,12 +74,20 @@ class SupportReplySeeder extends Seeder
 
 		foreach ($plannedRepliesPerSupport as [$support, $planned]) {
 			if ($created >= $targetTotal) break;
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				$this->out->writeln('<comment>[SupportReplySeeder]</comment> Seeding time limit reached, stopping early.');
+				return;
+			}
 
 			$remaining = $targetTotal - $created;
 			$toCreate = $planned > $remaining ? $remaining : $planned;
 			if ($toCreate <= 0) continue;
 
 			for ($i = 0; $i < $toCreate; $i++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					$this->out->writeln('<comment>[SupportReplySeeder]</comment> Seeding time limit reached, stopping early.');
+					return;
+				}
 				$attrs = $this->buildReplyAttributes($support, $eligibleReplierIds);
 
 				$this->out->writeln(

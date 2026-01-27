@@ -29,9 +29,11 @@ use Illuminate\Support\Str;
 
 class BillSeeder extends Seeder
 {
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 5 minutos
 	public function run(): void
 	{
 		// Dependências mínimas para respeitar FKs
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
 		$vendorIds = DB::table(DC::TABLE_VENDORS)->pluck('id');
 		$catIds    = DB::table(DC::TABLE_PROD_SERV_CATS)->pluck('id');
 		$orderIds  = DB::table(DC::TABLE_ORDERS)->pluck('id');
@@ -47,7 +49,8 @@ class BillSeeder extends Seeder
 			return;
 		}
 
-		$count = 15; // ajuste conforme necessário
+		$count = 512;
+		$clock = microtime(true);
 		$today = Carbon::today();
 		$customerPool = DB::table(DC::TABLE_CUSTOMERS)->inRandomOrder()->get()->toArray();
 		if (empty($customerPool)) {
@@ -58,6 +61,11 @@ class BillSeeder extends Seeder
 		}
 		for ($i = 0; $i < $count; $i++) {
 			try {
+				if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+					$out->writeln('[BillSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+					$this->command?->warn('[BillSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+					return;
+				}
 				$vendorId = $vendorIds->random();
 				$catId    = $catIds->random();
 				$orderId  = $orderIds->random();
@@ -236,6 +244,7 @@ class BillSeeder extends Seeder
 						'Referência: ' . fake()->sentence(3),
 					]),
 				]);
+				$out->writeln("Creating bill {$i} / {$count} succeeded, vendor {$vendorId}, order {$orderId}, amount {$amount}");
 			} catch (\Exception $e) {
 				Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 				continue;

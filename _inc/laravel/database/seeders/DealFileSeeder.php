@@ -23,7 +23,7 @@ final class DealFileSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
-	private const HARD_CAP = 6400;
+	private const HARD_CAP = 800;
 
 	private const GROUPS_PER_DEAL_MIN = 1;
 	private const GROUPS_PER_DEAL_MAX = 16;
@@ -38,11 +38,14 @@ final class DealFileSeeder extends Seeder
 	private const UNIQUE_PAIR_MAX_ATTEMPTS = 16;
 	private const FILL_MAX_ATTEMPTS_MULT = 64;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
+
 	private $output = null;
 
 	public function run(): void
 	{
 		$this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
+		$clock = microtime(true);
 		$io = $this->makeIo();
 		$faker = FakerFactory::create('pt_BR');
 
@@ -110,7 +113,8 @@ final class DealFileSeeder extends Seeder
 			$foreigns,
 			$fkPools,
 			$shuffledMimes,
-			$nonDocMimes
+			$nonDocMimes,
+			&$clock
 		): void {
 			$created = 0;
 			$mimeCursor = 0;
@@ -130,6 +134,11 @@ final class DealFileSeeder extends Seeder
 						: random_int(self::NON_DOC_MIN, self::NON_DOC_MAX);
 
 					for ($i = 0; $i < $count; $i++) {
+
+						if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+							Log::warning(self::class . ' seeding time limit reached, stopping early');
+							return;
+						}
 						$this->createOne(
 							$faker,
 							$io,

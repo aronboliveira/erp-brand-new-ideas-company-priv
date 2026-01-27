@@ -373,7 +373,7 @@ enum CountryName: string
 		$country = self::normalize($countryName);
 		if ($country === null)
 			return null;
-		Log::debug('Normalized country name to enum case', ['input' => $countryName, 'enum_case' => $country->value]);
+		if ($countryName !== $country->value) Log::debug('Normalized country name to enum case', ['input' => $countryName, 'enum_case' => $country->value]);
 		return match ($country) {
 			self::Brazil        => 'BR',
 			self::UnitedStates  => 'US',

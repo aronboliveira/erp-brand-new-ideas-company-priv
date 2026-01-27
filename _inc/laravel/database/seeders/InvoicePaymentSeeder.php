@@ -17,8 +17,13 @@ use Carbon\CarbonImmutable as Carbon;
 
 class InvoicePaymentSeeder extends Seeder
 {
+	private const HARD_CAP = 1024;
+	private const SECONDS_LIMIT = 300; // 5 minutos
 	public function run(): void
 	{
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
+		$cap = self::HARD_CAP;
+		$clock = microtime(true);
 		// Verificações de existência
 		if (!Schema::hasTable(DC::TABLE_INV_PAY) || !Schema::hasTable(DC::TABLE_INVS)) {
 			$this->command?->warn('Tabelas necessárias (invoice_payments/invoices) ausentes. Pulando.');
@@ -127,6 +132,16 @@ class InvoicePaymentSeeder extends Seeder
 
 			for ($i = 0; $i < $desired; $i++) {
 				try {
+					if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+						$out->writeln('[InvoicePaymentSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+						$this->command?->warn('[InvoicePaymentSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+						return;
+					}
+					if (--$cap < 0) {
+						$out->writeln('[InvoicePaymentSeeder] Limite máximo de pagamentos atingido, interrompendo a execução do seeder.');
+						$this->command?->warn('[InvoicePaymentSeeder] Limite máximo de pagamentos atingido, interrompendo a execução do seeder.');
+						return;
+					}
 					// Encerra se já atingiu alvo global
 					if ($targetCount > 0 && $totalPlanned >= $targetCount) {
 						break 2;
@@ -282,7 +297,7 @@ class InvoicePaymentSeeder extends Seeder
 						'created_at'      => $createdAt->toDateTimeString(),
 						'updated_at'      => $updatedAt->toDateTimeString(),
 					];
-
+					$out->writeln("[InvoicePaymentSeeder] {$i} - Plano de pagamento criado para Invoice ID {$inv->id}, amount {$amount}.");
 					$totalPlanned++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());

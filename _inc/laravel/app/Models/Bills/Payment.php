@@ -11,8 +11,10 @@ use App\Config\Constants\{
 use App\Enums\{
     PaymentMethod,
     PaymentStatus,
-    TransferType
+    TransferType,
+    UserType
 };
+use App\Helpers\ErrorHandler;
 use App\Traits\{
     DefinesDates,
     HasAuditFields,
@@ -27,7 +29,7 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\BelongsTo
 };
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Payment extends Model
 {
@@ -55,7 +57,6 @@ class Payment extends Model
         UC::COL_VD_ID,
         BC::COL_CAT_ID,
 
-        // emissão / financiamento
         BC::COL_SVC_FEE,
         BC::COL_TXS_FEE,
         'reference',
@@ -69,7 +70,6 @@ class Payment extends Model
         'loan',
         BC::COL_PRD_SV_UNT,
 
-        // pagamento
         BC::COL_IS_SCD,
         BC::COL_CAN_CHG_BK,
         BC::COL_PPS_CD,
@@ -89,7 +89,6 @@ class Payment extends Model
         BC::COL_ADD_RCP,
         BC::COL_RCP_MD,
 
-        // billing (addBillingColumns)
         BC::COL_BL_NAME,
         BC::COL_BL_EMAIL,
         BC::COL_BL_TEL,
@@ -107,7 +106,7 @@ class Payment extends Model
         BC::COL_NFE_PROTOCOL,
         BC::COL_NFE_AUTH_AT,
 
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [
@@ -156,6 +155,8 @@ class Payment extends Model
         DC::COL_ER_LG           => 'array',
     ];
 
+    protected static array $paymentsErrors = [];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -175,90 +176,205 @@ class Payment extends Model
     protected static function booted(): void
     {
         parent::booted();
-
-        static::saving(function (self $m): void {
-            $ownerId = $m->getAttribute(UC::COL_VD_ID) ?? null;
-            $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
-            $isNormalizeEmailCallable && $m->setAttribute(BC::COL_BL_EMAIL, static::normalizeEmail(
-                $m->getAttribute(BC::COL_BL_EMAIL) ?? null,
-                'payment_billing',
-                $ownerId
-            ));
-            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
-            $isNormalizePhoneCallable && $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
-                $m->getAttribute(BC::COL_BL_TEL) ?? null,
-                'payment_billing',
-                $ownerId
-            ));
-            $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
-            $isNormalizeZipCallable && $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
-                $m->getAttribute(BC::COL_BL_ZIP) ?? null,
-                $m->getAttribute(BC::COL_BL_CTR) ?? null,
-                'payment_billing',
-                $ownerId
-            ));
-            $isNormalizeBillingCallable = is_callable([self::class, 'normalizeBillingCountry']);
-            $isNormalizeBillingCallable && self::normalizeBillingCountry($m);
-            if ($m->getAttribute('discount') !== null) {
-                $disc = (float) $m->getAttribute('discount');
-                if ($disc < 0.0) $disc = 0.0;
-                $m->setAttribute('discount', $disc);
-            }
-
-            foreach (['amount', BC::COL_SVC_FEE, BC::COL_TXS_FEE] as $field) {
-                if ($m->getAttribute($field) !== null) {
-                    $val = (float) $m->getAttribute($field);
-                    if ($val < 0.0) $val = 0.0;
-                    $m->setAttribute($field, $val);
-                }
-            }
-
-            if ($m->getAttribute(BC::COL_CUR_ID) ?? null)
-                $m->setAttribute(BC::COL_CUR_ID, strtoupper(trim((string) $m->getAttribute(BC::COL_CUR_ID))));
-
-            foreach ([BC::COL_N_INTR, BC::COL_CURR_N_INTR] as $field) {
-                if ($m->getAttribute($field) !== null) {
-                    $n = (int) $m->getAttribute($field);
-                    if ($n < 1) $n = 1;
-                    $m->setAttribute($field, $n);
-                }
-            }
-
-            if ($m->getAttribute('status') !== null)
-                $m->setAttribute('status', PaymentStatus::normalize($m->getAttribute('status')));
-
-            if ($m->getAttribute(BC::COL_PAY_STT) ?? null)
-                $m->setAttribute(BC::COL_PAY_STT, PaymentStatus::normalize($m->getAttribute(BC::COL_PAY_STT)));
-
-            $methodLabel = $m->getAttribute(BC::COL_PAY_MTD_LB) ?? null;
-            if ($methodLabel !== null && !($methodLabel instanceof PaymentMethod))
-                $m->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::normalize((string) $methodLabel));
-
-            $trf = $m->getAttribute(BC::COL_TRF_TP) ?? null;
-            if ($trf !== null && !($trf instanceof TransferType) && \method_exists(TransferType::class, 'normalize'))
-                $m->setAttribute(BC::COL_TRF_TP, TransferType::normalize((string) $trf));
-        });
+        // todo too heavy for mocking, use only in production  
+        // static::saving(function (self $m): void {
+        //     try {
+        //         $ownerId = $m->getAttribute(UC::COL_VD_ID) ?? null;
+        //         try {
+        //             $isNormalizeEmailCallable = is_callable([self::class, 'normalizeEmail']);
+        //             $isNormalizeEmailCallable && $m->setAttribute(BC::COL_BL_EMAIL, static::normalizeEmail(
+        //                 $m->getAttribute(BC::COL_BL_EMAIL) ?? null,
+        //                 'payment_billing',
+        //                 $ownerId
+        //             ));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize billing email',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         try {
+        //             $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+        //             $isNormalizePhoneCallable && $m->setAttribute(BC::COL_BL_TEL, static::normalizePhone(
+        //                 $m->getAttribute(BC::COL_BL_TEL) ?? null,
+        //                 'payment_billing',
+        //                 $ownerId
+        //             ));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize billing phone',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         try {
+        //             $isNormalizeZipCallable = is_callable([self::class, 'normalizeZip']);
+        //             $isNormalizeZipCallable && $m->setAttribute(BC::COL_BL_ZIP, static::normalizeZip(
+        //                 $m->getAttribute(BC::COL_BL_ZIP) ?? null,
+        //                 $m->getAttribute(BC::COL_BL_CTR) ?? null,
+        //                 'payment_billing',
+        //                 $ownerId
+        //             ));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize billing zip',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         try {
+        //             $isNormalizeBillingCallable = is_callable([self::class, 'normalizeBillingCountry']);
+        //             $isNormalizeBillingCallable && self::normalizeBillingCountry($m);
+        //             if ($m->getAttribute('discount') !== null) {
+        //                 $disc = (float) $m->getAttribute('discount');
+        //                 if ($disc < 0.0) $disc = 0.0;
+        //                 $m->setAttribute('discount', $disc);
+        //             }
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize billing country',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         foreach (['amount', BC::COL_SVC_FEE, BC::COL_TXS_FEE] as $field) {
+        //             if ($m->getAttribute($field) !== null) {
+        //                 $val = (float) $m->getAttribute($field);
+        //                 if ($val < 0.0) $val = 0.0;
+        //                 $m->setAttribute($field, $val);
+        //             }
+        //         }
+        //         if ($m->getAttribute(BC::COL_CUR_ID) ?? null)
+        //             $m->setAttribute(BC::COL_CUR_ID, strtoupper(trim((string) $m->getAttribute(BC::COL_CUR_ID))));
+        //         foreach ([BC::COL_N_INTR, BC::COL_CURR_N_INTR] as $field) {
+        //             if ($m->getAttribute($field) !== null) {
+        //                 $n = (int) $m->getAttribute($field);
+        //                 if ($n < 1) $n = 1;
+        //                 $m->setAttribute($field, $n);
+        //             }
+        //         }
+        //         try {
+        //             if ($m->getAttribute('status') !== null)
+        //                 $m->setAttribute('status', PaymentStatus::normalize($m->getAttribute('status')));
+        //             if ($m->getAttribute(BC::COL_PAY_STT) ?? null)
+        //                 $m->setAttribute(BC::COL_PAY_STT, PaymentStatus::normalize($m->getAttribute(BC::COL_PAY_STT)));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize payment status type',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         try {
+        //             $methodLabel = $m->getAttribute(BC::COL_PAY_MTD_LB) ?? null;
+        //             if ($methodLabel !== null && !($methodLabel instanceof PaymentMethod))
+        //                 $m->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::normalize((string) $methodLabel));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize payment method',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //         try {
+        //             $trf = $m->getAttribute(BC::COL_TRF_TP) ?? null;
+        //             if ($trf !== null && !($trf instanceof TransferType) && \method_exists(TransferType::class, 'normalize'))
+        //                 $m->setAttribute(BC::COL_TRF_TP, TransferType::normalize((string) $trf));
+        //         } catch (\Throwable $e) {
+        //             ErrorHandler::evaluateExistenceToLogChannel(
+        //                 'payment_errors',
+        //                 candidate: [
+        //                     'message' => 'Payment model saving hook failed to normalize transfer type',
+        //                     'context' => [
+        //                         'id'    => $m->id ?? null,
+        //                         'err'   => $e->getMessage(),
+        //                         'file'  => $e->getFile(),
+        //                         'line'  => $e->getLine(),
+        //                     ]
+        //                 ],
+        //             );
+        //         }
+        //     } catch (\Throwable $e) {
+        //         ErrorHandler::evaluateExistenceToLogChannel(
+        //             'payment_errors',
+        //             candidate: [
+        //                 'message' => 'Payment model saving hook failed',
+        //                 'context' => [
+        //                     'id'    => $m->id ?? null,
+        //                     'err'   => $e->getMessage(),
+        //                     'file'  => $e->getFile(),
+        //                     'line'  => $e->getLine(),
+        //                 ]
+        //             ],
+        //         );
+        //     }
+        // });
     }
 
-    public function category(): BelongsTo
+    public function productServiceCategory(): ?BelongsTo
     {
-        return $this->belongsTo(
-            ProductServiceCategory::class,
-            BC::COL_CAT_ID,
-            'id'
-        );
+        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
     }
 
-    public function vendor(): BelongsTo
+    public function productCategory(): ?BelongsTo
     {
-        return $this->belongsTo(
-            Vendor::class,
-            UC::COL_VD_ID,
-            'id'
-        );
+        return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
     }
 
-    // compat com legado
+    public function category(): ?BelongsTo
+    {
+        return Utility::getCategory($this);
+    }
+
+    public function vendor(): ?BelongsTo
+    {
+        return Utility::getVendor($this);
+    }
+
+    // * compat com legado
     public function vender(): BelongsTo
     {
         return $this->vendor();

@@ -64,6 +64,7 @@ trait StoresManyRefJson
 		// 		'departments' => DC::TABLE_DEPARTMENTS,
 		// 		'designations' => DC::TABLE_DESIGNS,
 		// 		'taxes' => DC::TABLE_TAXES,
+		//    BC::COL_TXS_LST => DC::TABLE_TAXES,
 		// 		'jobs' => DC::TABLE_JOBS,
 		// 		'projects' => DC::TABLE_PROJECTS,
 		// 		'transactions' => DC::TABLE_TRS,

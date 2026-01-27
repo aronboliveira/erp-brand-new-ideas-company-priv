@@ -1,50 +1,46 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-
+// * this model just be a "bridge" that links purchases to the products made with them
 class CreatePurchaseProductsTable extends Migration
 {
-    private const PC = 'purchase';
-    private const PD = 'product';
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_PRC_PRD;
-    private const COL_PURCHASE = self::PC . '_id';
-    private const COL_PROD = self::PD . '_id';
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(self::COL_PURCHASE);
-            $table->uuid(self::COL_PROD);
+            $table->uuid(BC::COL_PRC_ID)->index();
+            $table->uuid(BC::COL_PRD_ID)->index();
             $table->integer('quantity');
             $table->string('tax', 50)->nullable();
-            $table->decimal('discount', 15, 2)->default(0.00);
-            $table->decimal('total', 15, 2)->default(0.00); // ! CHANGED from price to total
-            $table->timestamps();
-            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
+            $table->decimal('discount', 16, 2)->default(0.00);
+            $table->decimal('total', 16, 2)->default(0.00);
             foreach (
                 [
-                    self::COL_PURCHASE => DC::TABLE_PURCHASES,
-                    self::COL_PROD     => DC::TABLE_PROD_SERVS,
-                    DC::COL_TABLE_CREATOR => DC::TABLE_USERS,
+                    BC::COL_PRC_ID => DC::TABLE_PURCHASES,
+                    BC::COL_PRD_ID => DC::TABLE_PROD_SERVS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->onDelete('cascade');
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_PURCHASE,
-                    self::COL_PROD,
-                    DC::COL_TABLE_CREATOR
+                    BC::COL_PRC_ID,
+                    BC::COL_PRD_ID,
                 ] as $column
             ) {
                 try {

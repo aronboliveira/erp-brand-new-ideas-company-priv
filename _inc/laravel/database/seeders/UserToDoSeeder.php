@@ -29,6 +29,7 @@ class UserToDoSeeder extends Seeder
 	private bool $hasNotificationsTable = false;
 	private bool $hasNotificationsUserCol = false;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutos
 	private const HARD_CAP = 800;
 
 	/**
@@ -47,6 +48,7 @@ class UserToDoSeeder extends Seeder
 	protected function seedUserToDos(): void
 	{
 		try {
+			$clock = microtime(true);
 			$counter = 0;
 			$this->out()->writeln('<info>[UserToDoSeeder]</info> Starting seeding user_to_dos...');
 
@@ -95,6 +97,11 @@ class UserToDoSeeder extends Seeder
 					// foreach (task in the project); if none, then add more 2 to 8 iterations
 					if (!empty($taskIds)) {
 						foreach ($taskIds as $taskId) {
+							if (microtime(true) - $clock > self::SECONDS_LIMIT) {
+								$this->out()->writeln('[UserToDoSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+								$this->command?->warn('[UserToDoSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+								return;
+							}
 							if ($counter > self::HARD_CAP) break 3;
 							$counter += 1;
 							if ($cap > 0 && $created >= $cap) break 3;

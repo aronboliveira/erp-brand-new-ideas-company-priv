@@ -4,6 +4,8 @@ namespace App\Config\Constants;
 
 class ChartsConstants
 {
+	// * ==== COLUMNS =====
+	#region
 	public const COL_NM = 'name';
 	public const COL_CD = 'code';
 	public const COL_TP = 'type';
@@ -11,6 +13,9 @@ class ChartsConstants
 	public const COL_SUBTP = 'sub_type';
 	public const COL_ENB = 'is_enabled';
 	public const COL_DESC = 'description';
+	#endregion
+	// * ==== MISCELLANEOUS =====
+	#region
 	public const TP_ASSETS =
 	'e0f9ce71-8b28-4ddc-a5b3-682059eeec4d';
 	public const TP_LIABILITIES =
@@ -71,6 +76,9 @@ class ChartsConstants
 		self::CGS => 'Costs of Goods Sold',
 		self::EXP => 'Expenses',
 	];
+	#endregion
+	// * ==== ARRAYS =====
+	#region
 	public const COA_SBTPS = array(
 		self::TP_ASSETS => array(
 			self::ST_CURRENT_ASSET => 'Current Asset',
@@ -1447,4 +1455,5 @@ class ChartsConstants
 		],
 
 	);
+	#endregion
 }

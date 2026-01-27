@@ -4,6 +4,12 @@ namespace App\Config\Constants;
 
 use App\Config\Constants\PermissionsConstants as PC;
 
+/**
+ * * This is the list of the permissions registered via             
+ * * Permission::firstOrCreate 
+ * * and $role->givePermissionTo(...)
+ * * and DB::table(DC::TABLE_SETTINGS)->insert(collect($settingsToInsert)->unique('name')*->values()->all())
+ */
 class SeedersTemplating
 {
 	public const SCAPE_MSG = 'There was an excessive number of attempts to generate the id. Breaking Loop.';
@@ -765,7 +771,7 @@ class SeedersTemplating
 		...self::COM_PERMS,
 		...self::DPT_PERMS,
 		...self::DSG_PERMS,
-    ...self::BRC_PERMS,
+		...self::BRC_PERMS,
 		...self::DOC_PERMS,
 		...self::PAY_SLP_PERMS,
 		...self::ALW_PERMS,
@@ -1000,7 +1006,7 @@ class SeedersTemplating
 		...self::EMP_PERMS,
 		...self::DPT_PERMS,
 		...self::DSG_PERMS,
-    ...self::BRC_PERMS,
+		...self::BRC_PERMS,
 		...self::COM_PERMS,
 		...self::DOC_PERMS,
 		...self::PAY_SLP_PERMS,

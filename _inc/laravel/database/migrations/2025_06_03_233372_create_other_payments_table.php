@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{EmployeeConnected, HasNfeColumns, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +24,11 @@ class CreateOtherPaymentsTable extends Migration
             $table->string('description')->nullable();
             $table->string('notes')->nullable();
             $this->addNfeColumns($table);
+            $table->uuid(BC::COL_PAY_ID)->nullable()->unique();
+            $table->foreign(BC::COL_PAY_ID)
+                ->references('id')
+                ->on(DC::TABLE_PAY)
+                ->nullOnDelete();
             $this->addAuditColumns($table);
         });
     }

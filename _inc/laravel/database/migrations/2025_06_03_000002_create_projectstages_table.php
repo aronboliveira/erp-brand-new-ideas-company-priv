@@ -24,11 +24,11 @@ class CreateProjectStagesTable extends Migration
             $table->text('description')->nullable();
             $table->string('color', 15)->default('#11ff3388')->nullable();
             $table->integer('order')->default(0);
-            $this->addAuditColumns($table);
             $table->json('notes')->nullable();
             $table->json('involved')->nullable(); // ? ids/names of users involved in this stage
             $table->json('metadata')->nullable();
             $table->json('positioning')->nullable(); // ? metadata for ui positioning
+            $this->addAuditColumns($table);
         });
     }
 

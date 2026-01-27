@@ -20,7 +20,7 @@ class CreatePaymentsTable extends Migration
             $table->uuid(UC::COL_VD_ID)->nullable()->index();
             $table->uuid(BC::COL_CAT_ID)->nullable()->index();
             $table->string('recurring')->nullable();
-            $this->addPaymentColumns($table);
+            $this->addPaymentColumns($table, includePayslip: false);
             $this->addNfeColumns($table);
             $table->string(BC::COL_ADD_RCP)->nullable(); // * this is not clear in the old implementation, so keeping it as is for now for compatibility
             $table->json(BC::COL_RCP_MD)->nullable();

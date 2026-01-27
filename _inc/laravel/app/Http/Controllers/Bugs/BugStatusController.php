@@ -14,6 +14,7 @@ use App\{
     Models\BugStatus,
     Traits\ChecksLogin
 };
+use App\Services\BugReportService;
 use App\Traits\ChecksPermissions;
 use Illuminate\{
     Auth\Access\AuthorizationException,
@@ -34,13 +35,15 @@ use Illuminate\Support\Facades\View as ViewFacade;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-class BugStatusController extends Controller
+final class BugStatusController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    public function __construct()
+    private BugReportService $bugReportService;
+    public function __construct(BugReportService $bugReportService)
     {
         $this->middleware(MiddlewaresConstants::AUTH);
+        $this->bugReportService = $bugReportService;
     }
 
     public function index(Request $request): View|RedirectResponse|JsonResponse

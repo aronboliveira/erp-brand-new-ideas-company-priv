@@ -8,7 +8,14 @@ use Illuminate\Database\Eloquent\{Relations\BelongsTo, SoftDeletes};
 class EmployeeDocument extends AbstractDocument
 {
     use SoftDeletes;
+
     protected $table = DC::TABLE_EDOCS;
+
+    protected $with = [
+        'employee',
+        'document',
+    ];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -18,26 +25,19 @@ class EmployeeDocument extends AbstractDocument
             TC::COL_DC_V,
         ]);
     }
-    protected $with = [
-        'employee',
-        'document',
-    ];
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
-        // * Alternatively: return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
     }
 
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class, TC::COL_DC_ID, 'id');
-        // * If your “document” records live in some other table (e.g. `documents`), adjust the class name/path accordingly.
     }
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
-        // * Optionally fetch the User who uploaded/created this record
     }
 }

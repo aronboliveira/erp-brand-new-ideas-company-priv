@@ -14,7 +14,7 @@ class CreateAnnouncementsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title')->nullable()->index();
-            $table->date(PJC::COL_S_DT)->default(now()->format('Y-m-d'));
+            $table->date(PJC::COL_S_DT)->useCurrent();
             $table->date(PJC::COL_E_DT)->nullable();
             $table->uuid(CC::COL_BRC_ID)->index();
             $table->uuid(CC::COL_DEP_ID)->nullable()->index();
@@ -23,7 +23,7 @@ class CreateAnnouncementsTable extends Migration
             $table->text('description')->nullable();
             $table->boolean(UC::COL_IA)->default(true)->nullable()->index(); // ? nullable for tests
             $table->boolean(UC::COL_IS_RD)->default(true)->nullable()->index(); // ? nullable for tests
-            $table->date(PJC::COL_PLN_ST)->default(now()->format('Y-m-d'))->nullable(); // ? nullable for tests, when the job is planned to start
+            $table->date(PJC::COL_PLN_ST)->useCurrent()->nullable(); // ? nullable for tests, when the job is planned to start
             $table->json('requirements')->nullable();
             $table->json('tags')->nullable();
             $table->json('steps')->nullable();

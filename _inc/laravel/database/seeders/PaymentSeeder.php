@@ -9,6 +9,7 @@ use App\Config\Constants\{
 	UsersConstants as UC
 };
 use App\Enums\{PaymentMethod, PaymentStatus, TransferType};
+use App\Helpers\ErrorHandler;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -19,10 +20,13 @@ use Illuminate\Support\Str;
 
 final class PaymentSeeder extends Seeder
 {
-	private const PER_BANK_ACCOUNT = 64;
-
+	private const PER_BANK_ACCOUNT = 32;
+	private const HARD_CAP = 2048;
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+	private array $errorsData = [];
 	public function run(): void
 	{
+		$clock = microtime(true);
 		if (!Schema::hasTable(DC::TABLE_PAY)) {
 			$this->command?->warn('Tabela de pagamentos ausente. Seeder abortado.');
 			return;
@@ -68,7 +72,8 @@ final class PaymentSeeder extends Seeder
 			$payslipIds,
 			$target,
 			&$created,
-			&$failed
+			&$failed,
+			&$clock
 		) {
 			$taxUniverse = [
 				['ISS', 5.0],
@@ -80,8 +85,16 @@ final class PaymentSeeder extends Seeder
 			$statusCol = Schema::hasColumn(DC::TABLE_PAY, BC::COL_PAY_STT)
 				? BC::COL_PAY_STT
 				: 'status';
-
+			$cap = self::HARD_CAP;
+			$targetResult = min($target, $cap);
 			for ($i = 0; $i < $target; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
+				if ($cap <= 0 || !$cap) break;
+				$cap--;
 				try {
 					$createdAt = Carbon::now()
 						->subDays(random_int(0, 90))
@@ -286,7 +299,6 @@ final class PaymentSeeder extends Seeder
 						DC::COL_ER_LG      => $this->encodeJson($errorLog),
 
 						'invoice'          => $this->maybe($invoiceIds),
-						'payslip'          => $this->maybe($payslipIds),
 
 						DC::COL_TABLE_CREATOR => $this->maybe($userIds),
 						DC::COL_TABLE_UPDATER => $this->maybe($userIds),
@@ -294,25 +306,41 @@ final class PaymentSeeder extends Seeder
 						DC::COL_U_AT          => $createdAt->copy()->addMinutes(random_int(5, 400)),
 					];
 					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Pagamento de {$fromAcc} para {$toAcc} com método {$methodEnum->value} no valor de {$amount}");
+					)->writeln("({$i}/{$targetResult}) Criando Pagamento de {$fromAcc} para {$toAcc} com método {$methodEnum->value} no valor de {$amount}");
 					try {
 						Payment::query()->create($data);
 						$created++;
 					} catch (\Throwable $e) {
 						$failed++;
-						Log::warning(self::class . ' failed to insert Payment row', [
-							'error'   => $e->getMessage(),
-							'method'  => $methodEnum->value,
-							'status'  => $statusEnum->value,
-							'trfType' => $trfEnum->value,
-						]);
+						ErrorHandler::evaluateExistenceToLogChannel(
+							'payment_seeder_errors',
+							candidate: [
+								'message' => self::class . ' failed to insert Payment row',
+								'context' => [
+									'error'   => $e->getMessage(),
+									'method'  => $methodEnum->value,
+									'status'  => $statusEnum->value,
+									'trfType' => $trfEnum->value,
+								],
+							],
+							seed: "from={$fromAcc},to={$toAcc},i={$i}"
+						);
 					}
 				} catch (\Exception $e) {
-					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+					ErrorHandler::evaluateExistenceToLogChannel(
+						'payment_seeder_errors',
+						candidate: [
+							'message' => self::class . ' failed during Payment seeding loop',
+							'context' => [
+								'error' => $e->getMessage(),
+							],
+						],
+						seed: "i={$i}"
+					);
+					$failed++;
 					continue;
 				}
 			}
-
 			Log::info(self::class . " finished: created={$created}, failed={$failed}");
 		});
 	}

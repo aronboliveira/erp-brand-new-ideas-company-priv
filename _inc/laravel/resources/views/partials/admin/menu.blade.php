@@ -85,7 +85,7 @@
             'crm' => $userPlan->{PLC::COL_CRM},
             'hrm' => $userPlan->{PLC::COL_HRM},
             'pos' => $userPlan->{PLC::COL_POS},
-            'prj' => $userPlan->{PLC::COL_PRJ}
+            'prj' => $userPlan->{PLC::COL_PJ}
         ]);
     } else Log::notice('No plan found!');
     if ($user instanceof User)

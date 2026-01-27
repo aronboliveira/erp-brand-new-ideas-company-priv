@@ -4,23 +4,17 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\{AttachmentModuleType, EvaluationStatus, MimeType};
-use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, PlansByHierarchy, UsesUuids};
-use Illuminate\Database\Eloquent\Model;
+use App\Helpers\ErrorHandler;
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
-class ContractAttachment extends Model
+final class ContractAttachment extends AbstractFile
 {
-    use UsesUuids, HasAuditFields, DefinesDates, FiltersSecureAttachments, PlansByHierarchy;
+    use UsesUuids, HasAuditFields, DefinesDates, NormalizesArrays, FiltersSecureAttachments, PlansByHierarchy;
 
     protected $table = DC::TABLE_CTC_ATC;
-
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
 
     protected $fillable = [
         'code',
@@ -31,25 +25,7 @@ class ContractAttachment extends Model
         PJC::COL_APV_AT,
         PJC::COL_REJ_BY,
         PJC::COL_REJ_AT,
-
-        DC::COL_FL_PT,
-        'url',
-        'name',
-        'extension',
-        DC::COL_MM_TP,
-        DC::COL_LA,
-        'size',
-        'description',
-        'notes',
-        DC::COL_DL_CT,
-        DC::COL_FL_SZ,
-        DC::COL_PERM_RLS,
-        'executors',
-        'editors',
-        'viewers',
-        DC::COL_EXP_DT,
-        'type',
-
+        ...self::ABSTRACT_FILE_FILLABLE,
         PJC::COL_ATC_TP,
         'files',
         'metadata'
@@ -59,16 +35,10 @@ class ContractAttachment extends Model
         PJC::COL_SBM_AT => 'datetime',
         PJC::COL_APV_AT => 'datetime',
         PJC::COL_REJ_AT => 'datetime',
-        DC::COL_LA      => 'datetime',
-        DC::COL_EXP_DT  => 'datetime',
-
-        'size'          => 'integer',
-        DC::COL_DL_CT   => 'decimal:0',
-        DC::COL_FL_SZ   => 'decimal:4',
-
-        DC::COL_MM_TP   => MimeType::class,
         PJC::COL_ATC_TP => AttachmentModuleType::class,
         'metadata'      => 'array',
+        ...self::ABSTRACT_FILE_CASTS,
+
     ];
 
     protected $with = [
@@ -81,29 +51,36 @@ class ContractAttachment extends Model
         'files_list',
         'is_approved',
         'is_rejected',
+        ...self::ABSTRACT_FILE_APPENDS,
     ];
+
+    protected static array $contractAttachmentErrors = [];
 
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (self $m): void {
             try {
                 $m->ensureCodeIsPresentAndUnique();
                 $m->normalizeAttachmentType();
                 $m->normalizeFilesList();
                 $m->importApprovalRejectionFromContractIfApplicable();
-                $m->resolveApprovalRejectionWinnerAndApplyStatus();
-
+                $m->resolveApprovalRejectionWinner();
                 if (method_exists($m, 'ensureJsonAttributesAreEncoded'))
                     $m->ensureJsonAttributesAreEncoded(['metadata']);
             } catch (\Throwable $e) {
-                Log::warning(static::class . ' booted()->saving failed', [
-                    'id' => $m->getAttribute('id'),
-                    'error' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                ]);
+                ErrorHandler::evaluateExistenceToLogChannel(
+                    'contract_attachment_errors',
+                    candidate: [
+                        'message' => 'saving hook failed on ContractAttachment model',
+                        'context' => [
+                            'id' => $m->getAttribute('id'),
+                            'error' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine()
+                        ]
+                    ]
+                );
             }
         });
     }
@@ -159,7 +136,7 @@ class ContractAttachment extends Model
         if ($code !== '' && str_starts_with($code, 'CTC-ATC-')) {
             $uuidPart = substr($code, 8);
             $isValid = $uuidPart !== false
-                && \Illuminate\Support\Str::isUuid($uuidPart)
+                && Str::isUuid($uuidPart)
                 && preg_match('/^CTC\-ATC\-[0-9a-fA-F\-]{36}$/', $code) === 1;
         }
 
@@ -184,7 +161,7 @@ class ContractAttachment extends Model
         $max = 250;
         do {
             $attempts++;
-            $candidate = 'CTC-ATC-' . strtoupper((string) \Illuminate\Support\Str::uuid());
+            $candidate = 'CTC-ATC-' . strtoupper((string) Str::uuid());
 
             try {
                 $exists = DB::table($this->getTable())
@@ -394,7 +371,7 @@ class ContractAttachment extends Model
         $ctcIdKey = PJC::COL_CTC_ID;
         $contractId = $this->getAttribute($ctcIdKey);
 
-        if (!is_string($contractId) || trim($contractId) === '' || !\Illuminate\Support\Str::isUuid($contractId))
+        if (!is_string($contractId) || trim($contractId) === '' || !Str::isUuid($contractId))
             return;
 
         $contractsTable = DC::TABLE_CONTRACTS;
@@ -470,6 +447,110 @@ class ContractAttachment extends Model
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+        }
+    }
+
+    protected function pushAutomaticEditHistory(string $event, array $payload = []): void
+    {
+        try {
+            $meta = self::normalizeArrayField($this->getAttribute('metadata'));
+            $hist = $meta['automatic_edit_history'] ?? [];
+            if (!is_array($hist)) $hist = [];
+
+            $hist[] = array_merge([
+                'at'    => now()->toIso8601String(),
+                'event' => $event,
+                'id'    => (string) ($this->getAttribute('id') ?? ''),
+            ], $payload);
+
+            $meta['automatic_edit_history'] = array_values($hist);
+            $this->setAttribute('metadata', $meta);
+        } catch (\Throwable $e) {
+            Log::warning(static::class . ' failed to push automatic_edit_history', [
+                'id'    => $this->getAttribute('id'),
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+        }
+    }
+
+    protected function resolveApprovalRejectionWinner(): void
+    {
+        try {
+            $apvBy = $this->getAttribute(PJC::COL_APV_BY);
+            $apvAt = $this->toImmutableSafe($this->getAttribute(PJC::COL_APV_AT));
+            $rejBy = $this->getAttribute(PJC::COL_REJ_BY);
+            $rejAt = $this->toImmutableSafe($this->getAttribute(PJC::COL_REJ_AT));
+            $apvByOk = is_string($apvBy) ? trim($apvBy) !== '' : !empty($apvBy);
+            $rejByOk = is_string($rejBy) ? trim($rejBy) !== '' : !empty($rejBy);
+            $hasApv = $apvByOk || (bool) $apvAt;
+            $hasRej = $rejByOk || (bool) $rejAt;
+            if (!$hasApv && !$hasRej) return;
+            if ($hasApv && !$hasRej) {
+                $this->setAttribute(PJC::COL_REJ_BY, null);
+                $this->setAttribute(PJC::COL_REJ_AT, null);
+                return;
+            }
+            if ($hasRej && !$hasApv) {
+                $this->setAttribute(PJC::COL_APV_BY, null);
+                $this->setAttribute(PJC::COL_APV_AT, null);
+                return;
+            }
+            $winner = 'reject';
+            switch (true) {
+                case $apvAt && $rejAt:
+                    $winner = $apvAt->greaterThan($rejAt) ? 'approve' : 'reject';
+                    if ($apvAt->equalTo($rejAt)) $winner = 'reject';
+                    break;
+                case $apvAt && !$rejAt:
+                    $winner = 'approve';
+                    break;
+                case !$apvAt && $rejAt:
+                    $winner = 'reject';
+                    break;
+                default:
+                    $winner = 'reject';
+            }
+            if ($winner === 'reject') {
+                $this->setAttribute(PJC::COL_APV_BY, null);
+                $this->setAttribute(PJC::COL_APV_AT, null);
+                return;
+            }
+            $this->setAttribute(PJC::COL_REJ_BY, null);
+            $this->setAttribute(PJC::COL_REJ_AT, null);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'contract_attachment_errors',
+                candidate: [
+                    'message' => 'failed to resolve approval/rejection winner',
+                    'context' => [
+                        'id' => $this->getAttribute('id'),
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ]
+                ]
+            );
+        }
+    }
+
+    protected function toImmutableSafe(mixed $date): ?\Carbon\CarbonImmutable
+    {
+        try {
+            if ($date instanceof \Carbon\CarbonImmutable) return $date;
+            if ($date instanceof \Carbon\Carbon) return \Carbon\CarbonImmutable::instance($date);
+            if (is_string($date) && trim($date) !== '') return \Carbon\CarbonImmutable::parse($date);
+            return null;
+        } catch (\Throwable $e) {
+            Log::debug(static::class . ' failed to parse date for status inference', [
+                'id'    => $this->getAttribute('id'),
+                'raw'   => $date,
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+            return null;
         }
     }
 }

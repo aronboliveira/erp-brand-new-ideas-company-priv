@@ -7,16 +7,17 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     EmailsConstants as EC,
     MessagesConstants as MC,
-    UsersConstants as UC
 };
 use App\Enums\EmailTemplateType;
+use App\Services\EmailRequestService;
 use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Model,
     Relations\BelongsTo,
-    Relations\HasOne
+    Relations\HasOne,
+    Relations\HasMany
 };
-use Illuminate\Support\Facades\{Auth, DB};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class EmailTemplate extends Model
@@ -95,10 +96,11 @@ class EmailTemplate extends Model
     protected static function booted(): void
     {
         static::creating(function (self $model): void {
-            $rawSlug = $model->getAttribute('slug');
+            $rawSlug  = $model->getAttribute(EC::COL_SLG);
             $baseSlug = empty($rawSlug) && $model->getAttribute(EC::COL_TT)
                 ? Str::slug((string) $model->getAttribute(EC::COL_TT))
                 : Str::slug((string) $rawSlug);
+
             $acc = 0;
             do {
                 $candidateSlug = $acc === 0
@@ -107,39 +109,38 @@ class EmailTemplate extends Model
                 $acc++;
             } while (
                 DB::table($model->getTable())
-                ->where('slug', $candidateSlug)
+                ->where(EC::COL_SLG, $candidateSlug)
                 ->where('id', '!=', $model->getAttribute('id') ?? '')
                 ->exists()
-                && $acc < 64000
+                && $acc < 256
             );
-            if ($acc >= 64000)
-                throw new \RuntimeException('Failed to generate unique slug for EmailTemplate after 64000 attempts');
-            $model->setAttribute('slug', $candidateSlug);
+            if ($acc >= 256)
+                throw new \RuntimeException(
+                    'Failed to generate unique slug for EmailTemplate after 256 attempts'
+                );
+            $model->setAttribute(EC::COL_SLG, $candidateSlug);
             if (!$model->getAttribute(AC::COL_AV_FROM))
                 $model->setAttribute(AC::COL_AV_FROM, now());
             if ($model->getAttribute(AC::COL_DSB) === null)
                 $model->setAttribute(AC::COL_DSB, false);
             if (!$model->getAttribute(MC::COL_AV_LG))
                 $model->setAttribute(MC::COL_AV_LG, [DC::DEFAULT_LANG]);
-            if (!$model->getAttribute(DC::COL_TABLE_CREATOR) && Auth::check())
-                $model->setAttribute(DC::COL_TABLE_CREATOR, Auth::id());
             $from = $model->getAttribute(EC::COL_FROM);
-            // * for now we cannot be sure that it will match an email address
-            if ($model->getAttribute(EC::COL_FROM) && preg_match('/.+@.+\..+/', $from))
-                $model->setAttribute(
-                    EC::COL_FROM,
-                    self::normalizeEmail($from)
-                );
+            if ($from && preg_match('/.+@.+\..+/', $from))
+                $model->setAttribute(EC::COL_FROM, self::normalizeEmail($from));
             foreach (['categories', MC::COL_EX_PLN, 'rules', 'tags', MC::COL_AV_LG, 'variables', 'settings', DC::COL_PLT_AV] as $attr) {
                 $value = $model->getAttribute($attr);
-                if (is_array($value)) {
-                    $normalized = [];
-                    foreach ($value as $tag)
-                        $trimmed = trim($tag);
-                    if ($trimmed !== '')
-                        $normalized[] = $trimmed;
-                    $model->setAttribute($attr, array_values(array_unique($normalized)));
-                } else $model->setAttribute($attr, []);
+                if (!is_array($value)) {
+                    $model->setAttribute($attr, []);
+                    continue;
+                }
+                $normalized = [];
+                foreach ($value as $item) {
+                    if (!is_scalar($item)) continue;
+                    $trimmed = trim((string) $item);
+                    if ($trimmed !== '') $normalized[] = $trimmed;
+                }
+                $model->setAttribute($attr, array_values(array_unique($normalized)));
             }
         });
 
@@ -153,8 +154,6 @@ class EmailTemplate extends Model
                     EC::COL_SLG,
                     Str::slug((string) $model->getAttribute(EC::COL_TT))
                 );
-            if (Auth::check())
-                $model->setAttribute(DC::COL_TABLE_UPDATER, Auth::id());
         });
 
         static::saving(function (self $model): void {
@@ -163,10 +162,30 @@ class EmailTemplate extends Model
                 $model->setAttribute('type', EmailTemplateType::normalize(null));
                 return;
             }
-
-            if (! $rawType instanceof EmailTemplateType)
+            if (!$rawType instanceof EmailTemplateType)
                 $model->setAttribute('type', EmailTemplateType::normalize((string) $rawType));
         });
+    }
+
+    public static function emailTemplateData(): ?self
+    {
+        if (self::$templateData instanceof self)
+            return self::$templateData;
+        self::$templateData = app(EmailRequestService::class)
+            ->getAvailableTemplates()
+            ->sortBy(DC::COL_C_AT)
+            ->first();
+        return self::$templateData;
+    }
+
+    /**
+     * Recupera um template padrão para um tipo específico.
+     */
+    public static function defaultForType(EmailTemplateType|string|null $type): ?self
+    {
+        return app(EmailRequestService::class)->getTemplatesByType($type)
+            ->sortBy(DC::COL_C_AT)
+            ->first();
     }
 
     public function notificationTemplate(): BelongsTo
@@ -183,14 +202,22 @@ class EmailTemplate extends Model
      */
     public function template(): HasOne
     {
-        return $this
-            ->hasOne(UserEmailTemplate::class, EC::COL_TMP, 'id')
-            ->where(UC::COL_USER_ID, '=', Auth::id());
+        return app(EmailRequestService::class)->getUserTemplate($this);
     }
 
     public function userTemplate(): HasOne
     {
         return $this->template();
+    }
+
+    public function templates(): HasMany
+    {
+        return $this->hasMany(UserEmailTemplate::class, EC::COL_TMP, 'id');
+    }
+
+    public function userTemplates(): HasMany
+    {
+        return $this->templates();
     }
 
     public function getIsActiveAttribute(): bool
@@ -273,12 +300,6 @@ class EmailTemplate extends Model
             : null;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Scopes
-    |--------------------------------------------------------------------------
-    */
-
     public function scopeAvailable($query)
     {
         return $query
@@ -342,45 +363,6 @@ class EmailTemplate extends Model
         }
 
         return $query->whereIn('type', $values);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Métodos de conveniência / negócio
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Mantém assinatura original, mas agora considera apenas templates ativos.
-     */
-    public static function emailTemplateData(): ?self
-    {
-        if (self::$templateData instanceof self) {
-            return self::$templateData;
-        }
-
-        self::$templateData = self::query()
-            ->available()
-            ->orderBy(DC::COL_C_AT)
-            ->first();
-
-        return self::$templateData;
-    }
-
-    /**
-     * Recupera um template padrão para um tipo específico.
-     */
-    public static function defaultForType(EmailTemplateType|string|null $type): ?self
-    {
-        $enum = $type instanceof EmailTemplateType
-            ? $type
-            : EmailTemplateType::normalize($type);
-
-        return self::query()
-            ->available()
-            ->ofType($enum)
-            ->orderBy(DC::COL_C_AT)
-            ->first();
     }
 
     /**

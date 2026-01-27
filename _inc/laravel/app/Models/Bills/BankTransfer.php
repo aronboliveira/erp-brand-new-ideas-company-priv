@@ -52,7 +52,7 @@ class BankTransfer extends Model
         'invoice',
         'payslip',
         BC::COL_PRD_SV_UNT,
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

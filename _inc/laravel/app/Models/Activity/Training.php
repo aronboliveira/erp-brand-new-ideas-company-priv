@@ -128,6 +128,30 @@ class Training extends Model
         'doc_exists' => [],
     ];
 
+    protected static function booted(): void
+    {
+        // todo too heavy for testing, only use in production
+        // static::saving(function (self $m): void {
+        //     try {
+        //         $m->normalizeBooleans();
+        //         $m->normalizeMoney();
+        //         $m->normalizeJsonFields();
+        //         $m->enforceCompanyOrBranchAndInferCompany();
+        //         $m->validateDates();
+        //         $m->validateDurationsAgainstSelfAndType();
+        //         $m->ensureName();
+        //     } catch (ValidationException $ex) {
+        //         throw $ex;
+        //     } catch (\Throwable $ex) {
+        //         Log::error(static::class . ' saving() failed', [
+        //             'id' => (string) ($m->getAttribute('id') ?? ''),
+        //             'error' => $ex->getMessage(),
+        //         ]);
+        //         throw $ex;
+        //     }
+        // });
+    }
+
     public function companyUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'company', 'id');
@@ -324,29 +348,6 @@ class Training extends Model
     public function isRequired(): bool
     {
         return (bool) ($this->getAttribute('required') ?? false);
-    }
-
-    protected static function booted(): void
-    {
-        static::saving(function (self $m): void {
-            try {
-                $m->normalizeBooleans();
-                $m->normalizeMoney();
-                $m->normalizeJsonFields();
-                $m->enforceCompanyOrBranchAndInferCompany();
-                $m->validateDates();
-                $m->validateDurationsAgainstSelfAndType();
-                $m->ensureName();
-            } catch (ValidationException $ex) {
-                throw $ex;
-            } catch (\Throwable $ex) {
-                Log::error(static::class . ' saving() failed', [
-                    'id' => (string) ($m->getAttribute('id') ?? ''),
-                    'error' => $ex->getMessage(),
-                ]);
-                throw $ex;
-            }
-        });
     }
 
     private function normalizeBooleans(): void

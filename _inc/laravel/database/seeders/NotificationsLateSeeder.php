@@ -82,7 +82,7 @@ class NotificationsLateSeeder extends Seeder
 			? max(1, (int) $this->command->option('count'))
 			: max(1, $baseTypesCount);
 
-		$targetTotal = 64 * $multiplier;
+		$targetTotal = 4 * $multiplier;
 
 		$faker   = fake();
 		$created = 0;
@@ -92,8 +92,8 @@ class NotificationsLateSeeder extends Seeder
 				break;
 			}
 
-			// Para cada type: entre 4 e 32 "blocos" de notificações
-			$blocksForType = $faker->numberBetween(4, 32);
+			// Para cada type: entre 2 e 8 "blocos" de notificações
+			$blocksForType = $faker->numberBetween(2, 8);
 
 			for ($block = 0; $block < $blocksForType && $created < $targetTotal; $block++) {
 				// Para cada bloco, iteramos as plataformas
@@ -102,8 +102,8 @@ class NotificationsLateSeeder extends Seeder
 						break 2;
 					}
 
-					// Para cada plataforma, criar entre 2 e 16 notificações
-					$perPlatformCount = $faker->numberBetween(2, 16);
+					// Para cada plataforma, criar entre 2 e 8 notificações
+					$perPlatformCount = $faker->numberBetween(2, 8);
 
 					for ($i = 0; $i < $perPlatformCount && $created < $targetTotal; $i++) {
 						// -------- Montagem do payload da Notification --------

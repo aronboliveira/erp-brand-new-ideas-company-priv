@@ -5,14 +5,14 @@ namespace App\Models;
 use App\Config\Constants\{
     BillsConstants as BC,
     DatabaseConstants as DC,
-    ProjectsConstants as PJC
+    ProjectsConstants as PJC,
 };
 use App\Enums\{
     BillStatus,
     FinancialEstimationStatus
 };
+use App\Services\BusinessRequestService;
 use App\Traits\{
-    ChecksLogin,
     DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
@@ -28,13 +28,12 @@ use Illuminate\Database\Eloquent\Relations\{
 };
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Estimation extends Model
 {
     use UsesUuids,
         HasAuditFields,
-        ChecksLogin,
         NormalizesAddresses,
         UsesCountryRegions,
         StoresManyRefJson,
@@ -139,7 +138,6 @@ class Estimation extends Model
     ];
 
     protected $with = [
-        'client',
         'project',
         'tax',
     ];
@@ -252,9 +250,9 @@ class Estimation extends Model
         }
     }
 
-    public function client(): BelongsTo
+    public function client(): ?BelongsTo
     {
-        return $this->belongsTo(Client::class, PJC::COL_CLIENT_ID, 'id');
+        return Utility::getClient($this);
     }
 
     public function project(): BelongsTo
@@ -272,17 +270,226 @@ class Estimation extends Model
         return $this->belongsTo(User::class, BC::COL_SIGN_BY, 'id');
     }
 
-    public function products(): BelongsToMany
+    /**
+     * Get product services through junction table
+     * 
+     * @return BelongsToMany
+     */
+    public function productServices(): BelongsToMany
     {
-        return $this->belongsToMany(
-            ProductService::class,
-            'estimation_products',
-            BC::COL_EST_ID,
-            BC::COL_PRD_ID
-        )->withPivot('id', 'price', 'quantity', 'description');
+        try {
+            $junctionTable = 'estimation_products';
+            $estimationColumnName = null;
+            $productServiceColumnName = null;
+
+            if (Schema::hasColumn($junctionTable, BC::COL_EST_ID))
+                $estimationColumnName = BC::COL_EST_ID;
+            elseif (Schema::hasColumn($junctionTable, 'estimation'))
+                $estimationColumnName = 'estimation';
+
+            if (Schema::hasColumn($junctionTable, BC::COL_PRD_SV_ID))
+                $productServiceColumnName = BC::COL_PRD_SV_ID;
+            elseif (Schema::hasColumn($junctionTable, 'product_service'))
+                $productServiceColumnName = 'product_service';
+
+            if (!$estimationColumnName || !$productServiceColumnName) {
+                Log::error('Estimation::productServices - Missing required columns in junction table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $junctionTable,
+                    'estimation_column' => $estimationColumnName,
+                    'product_service_column' => $productServiceColumnName
+                ]);
+                return $this->belongsToMany(ProductService::class, $junctionTable, BC::COL_EST_ID, BC::COL_PRD_SV_ID)
+                    ->withPivot('id', 'price', 'quantity', 'description');
+            }
+
+            Log::debug('Estimation::productServices - Using columns for belongsToMany', [
+                'class' => static::class,
+                'estimation_column' => $estimationColumnName,
+                'product_service_column' => $productServiceColumnName
+            ]);
+
+            return $this->belongsToMany(ProductService::class, $junctionTable, $estimationColumnName, $productServiceColumnName)
+                ->withPivot('id', 'price', 'quantity', 'description');
+        } catch (\Throwable $e) {
+            Log::error('Estimation::productServices - Failed to determine junction columns', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->belongsToMany(ProductService::class, 'estimation_products', BC::COL_EST_ID, BC::COL_PRD_SV_ID)
+                ->withPivot('id', 'price', 'quantity', 'description');
+        }
     }
 
-    public function getProducts(): BelongsToMany
+    /**
+     * Get products through junction table
+     * 
+     * @return BelongsToMany
+     */
+    public function productProducts(): BelongsToMany
+    {
+        try {
+            $junctionTable = 'estimation_products';
+            $estimationColumnName = null;
+            $productColumnName = null;
+
+            if (Schema::hasColumn($junctionTable, BC::COL_EST_ID))
+                $estimationColumnName = BC::COL_EST_ID;
+            elseif (Schema::hasColumn($junctionTable, 'estimation'))
+                $estimationColumnName = 'estimation';
+
+            if (Schema::hasColumn($junctionTable, BC::COL_PRD_ID))
+                $productColumnName = BC::COL_PRD_ID;
+            elseif (Schema::hasColumn($junctionTable, 'product'))
+                $productColumnName = 'product';
+
+            if (!$estimationColumnName || !$productColumnName) {
+                Log::error('Estimation::productProducts - Missing required columns in junction table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $junctionTable,
+                    'estimation_column' => $estimationColumnName,
+                    'product_column' => $productColumnName
+                ]);
+                return $this->belongsToMany(Product::class, $junctionTable, BC::COL_EST_ID, BC::COL_PRD_ID)
+                    ->withPivot('id', 'price', 'quantity', 'description');
+            }
+
+            Log::debug('Estimation::productProducts - Using columns for belongsToMany', [
+                'class' => static::class,
+                'estimation_column' => $estimationColumnName,
+                'product_column' => $productColumnName
+            ]);
+
+            return $this->belongsToMany(Product::class, $junctionTable, $estimationColumnName, $productColumnName)
+                ->withPivot('id', 'price', 'quantity', 'description');
+        } catch (\Throwable $e) {
+            Log::error('Estimation::productProducts - Failed to determine junction columns', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->belongsToMany(Product::class, 'estimation_products', BC::COL_EST_ID, BC::COL_PRD_ID)
+                ->withPivot('id', 'price', 'quantity', 'description');
+        }
+    }
+
+    /**
+     * Get all products (merged from both Product and ProductService via UNION)
+     * 
+     * @return BelongsToMany
+     */
+    public function products(): BelongsToMany
+    {
+        try {
+            $junctionTable = 'estimation_products';
+            $productServicesTable = (new ProductService)->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $estimationForeignKeyAlias = BC::COL_EST_ID;
+
+            $estimationForeignKeyInJunction = Schema::hasColumn($junctionTable, BC::COL_EST_ID)
+                ? BC::COL_EST_ID
+                : (Schema::hasColumn($junctionTable, 'estimation') ? 'estimation' : null);
+
+            $productServiceForeignKeyInJunction = Schema::hasColumn($junctionTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($junctionTable, 'product_service') ? 'product_service' : null);
+
+            $productForeignKeyInJunction = Schema::hasColumn($junctionTable, BC::COL_PRD_ID)
+                ? BC::COL_PRD_ID
+                : (Schema::hasColumn($junctionTable, 'product') ? 'product' : null);
+
+            if (!$estimationForeignKeyInJunction || (!$productServiceForeignKeyInJunction && !$productForeignKeyInJunction)) {
+                Log::error('Estimation::products - Missing required FK columns in junction table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'junction_table' => $junctionTable,
+                    'estimation_fk' => $estimationForeignKeyInJunction,
+                    'product_service_fk' => $productServiceForeignKeyInJunction,
+                    'product_fk' => $productForeignKeyInJunction,
+                ]);
+
+                return $this->belongsToMany(Product::class, $junctionTable, $estimationForeignKeyAlias, BC::COL_PRD_ID)
+                    ->withPivot('id', 'price', 'quantity', 'description');
+            }
+
+            $productServicesColumns = Schema::getColumnListing($productServicesTable);
+            $productsColumns = Schema::getColumnListing($productsTable);
+
+            $unionColumns = array_values(array_unique(array_merge(
+                $productServicesColumns,
+                $productsColumns,
+                ['_source']
+            )));
+
+            if (!\in_array('id', $unionColumns, true)) $unionColumns[] = 'id';
+
+            $productServicesSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $productServicesSelect[] = "'product_services' as `_source`";
+                    continue;
+                }
+                $productServicesSelect[] = \in_array($column, $productServicesColumns, true)
+                    ? "`{$productServicesTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $productsSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $productsSelect[] = "'products' as `_source`";
+                    continue;
+                }
+                $productsSelect[] = \in_array($column, $productsColumns, true)
+                    ? "`{$productsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $derivedAlias = 'products_union';
+
+            $unionSql =
+                "SELECT " . implode(', ', $productServicesSelect) . " FROM `{$productServicesTable}` " .
+                "UNION ALL " .
+                "SELECT " . implode(', ', $productsSelect) . " FROM `{$productsTable}`";
+
+            $relation = $this->belongsToMany(Product::class, $junctionTable, $estimationForeignKeyInJunction, 'id', 'id', 'id')
+                ->withPivot('id', 'price', 'quantity', 'description');
+
+            $relation->getQuery()
+                ->join(DB::raw("({$unionSql}) as `{$derivedAlias}`"), function ($join) use ($junctionTable, $productServiceForeignKeyInJunction, $productForeignKeyInJunction, $derivedAlias) {
+                    if ($productServiceForeignKeyInJunction)
+                        $join->on("{$junctionTable}.{$productServiceForeignKeyInJunction}", '=', "{$derivedAlias}.id");
+                    if ($productForeignKeyInJunction)
+                        $join->orOn("{$junctionTable}.{$productForeignKeyInJunction}", '=', "{$derivedAlias}.id");
+                });
+
+            return $relation;
+        } catch (\Throwable $e) {
+            Log::error('Estimation::products - Failed to build union-backed BelongsToMany', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'estimation_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->belongsToMany(Product::class, 'estimation_products', BC::COL_EST_ID, BC::COL_PRD_ID)
+                ->withPivot('id', 'price', 'quantity', 'description');
+        }
+    }
+
+    public function getProducts(): Collection
     {
         return $this->products();
     }
@@ -381,14 +588,6 @@ class Estimation extends Model
 
     public static function getEstimationSummary(iterable $estimates): string|RedirectResponse
     {
-        $userOrRedirect = self::_checkLogin();
-
-        if ($userOrRedirect instanceof RedirectResponse)
-            return $userOrRedirect;
-
-        $user  = $userOrRedirect;
-        $total = collect($estimates)->sum(fn(self $e): float => $e->getTotal());
-
-        return $user?->priceFormat($total);
+        return app(BusinessRequestService::class)->getEstimationSummary($estimates);
     }
 }

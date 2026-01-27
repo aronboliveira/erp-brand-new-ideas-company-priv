@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CaseStatus;
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\{DB, Log};
-use Illuminate\Support\Str as Str;
+use Illuminate\Support\Str;
 
 use App\Config\Constants\{
 	DatabaseConstants as DC,
@@ -23,33 +24,66 @@ final class BugStatusSeeder extends Seeder
 			$systemUserId = $this->ensureSystemUser();
 
 			$rows = [
-				['ord' => 0, 'title' => 'Aberto'],
-				['ord' => 1, 'title' => 'Em andamento'],
-				['ord' => 2, 'title' => 'Em revisão'],
-				['ord' => 3, 'title' => 'Bloqueado'],
-				['ord' => 4, 'title' => 'Resolvido'],
-				['ord' => 5, 'title' => 'Fechado'],
-				['ord' => 6, 'title' => 'Não será corrigido'],
-				['ord' => 7, 'title' => 'Duplicado'],
+				['title' => 'Aberto', 'description' => 'O relato de bug foi criado e está aguardando triagem.'],
+				['title' => 'Em andamento', 'description' => 'O relato de bug está sendo analisado ou corrigido.'],
+				['title' => 'Em revisão', 'description' => 'A correção do relato de bug está em fase de revisão ou testes.'],
+				['title' => 'Bloqueado', 'description' => 'O relato de bug está bloqueado por algum motivo e não pode avançar no momento.'],
+				['title' => 'Resolvido', 'description' => 'O relato de bug foi corrigido e aguarda validação final.'],
+				['title' => 'Fechado', 'description' => 'O relato de bug foi corrigido e validado, estando oficialmente encerrado.'],
+				['title' => 'Não será corrigido', 'description' => 'O relato de bug não será corrigido devido a decisões técnicas ou de negócio.'],
+				['title' => 'Duplicado', 'description' => 'O relato de bug é um duplicado de outro relato já existente.'],
+				['title' => 'Rejeitado', 'description' => 'O relato de bug foi analisado e rejeitado por não ser considerado um problema.']
 			];
 
+			foreach (CaseStatus::cases() as $status) {
+				$title = is_callable([$status, 'label'])
+					? $status->label()
+					: fake(fake()->boolean(80) ? 'pt_BR' : (fake()->boolean(50) ? 'en_US' : 'es_ES'))
+					->words(fake()->boolean(50) ? 1 : 2, true);
+
+				if (!in_array($title, array_column($rows, 'title'))) {
+					$rows[] = [
+						'title' => $title,
+						'description' => fake(fake()->boolean(80) ? 'pt_BR' : (fake()->boolean(50) ? 'en_US' : 'es_ES'))->sentence(),
+					];
+				}
+			}
+
+			while (log(count($rows), 2) % 1 !== 0 || count($rows) < 32) {
+				$titleCandidate = fake(fake()->boolean(80) ? 'pt_BR' : (fake()->boolean(50) ? 'en_US' : 'es_ES'))
+					->words(fake()->boolean(50) ? 1 : 2, true);
+
+				if (!in_array($titleCandidate, array_column($rows, 'title'))) {
+					$rows[] = [
+						'title' => $titleCandidate,
+						'description' => fake(fake()->boolean(80) ? 'pt_BR' : (fake()->boolean(50) ? 'en_US' : 'es_ES'))->sentence(),
+					];
+				}
+			}
+
+			$order = 0;
 			foreach ($rows as $r) {
 				try {
-					if (Bst::where(AC::COL_TT, $r['title'])->exists()) {
-						continue;
+					$title = $r['title'];
+					if (Bst::where(AC::COL_TT, $title)->exists()) {
+						do {
+							$title = fake(fake()->boolean(80) ? 'pt_BR' : (fake()->boolean(50) ? 'en_US' : 'es_ES'))
+								->words(fake()->boolean(50) ? 1 : 2, true);
+						} while (Bst::where(AC::COL_TT, $title)->exists());
 					}
 
-					do $statusId = Str::uuid()->toString();
-					while (Bst::where('id', $statusId)->exists());
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Status de Bug: {$r['title']}");
+					(new \Symfony\Component\Console\Output\ConsoleOutput())
+						->writeln("Criando Status de Bug [{$order}]: {$title}");
+
 					$bs = new Bst();
-					$bs->id                   = $statusId;
-					$bs->{AC::COL_OD}         = $r['ord'];
-					$bs->{AC::COL_TT}         = $r['title'];
-					$bs->{DC::COL_TABLE_CREATOR}  = $systemUserId;
+					$bs->{AC::COL_OD} = $order;
+					$bs->{AC::COL_TT} = $title;
+					$bs->description = $r['description'] ?? null;
+					$bs->{DC::COL_TABLE_CREATOR} = $systemUserId;
 					$bs->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$bs->save();
+
+					$order++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;

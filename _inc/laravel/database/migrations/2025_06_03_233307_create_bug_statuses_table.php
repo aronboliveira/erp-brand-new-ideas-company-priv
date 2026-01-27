@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBugStatusesTable extends Migration
 {
-    // ! Se AC::COL_TSK_STT na tabela de bugs for string/código e BugStatus.id for UUID, há desencontro de tipos/semântica.
     use HasNullableAuditColumns;
-    private const TABLE = 'bug_statuses';
+    private const TABLE = DC::TABLE_BG_STT;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string(AC::COL_TT)->index();
             $table->integer(AC::COL_OD)->default(0);
-            $table->string(AC::COL_TT);
+            $table->text('description')->nullable();
             $this->addAuditColumns($table);
         });
     }

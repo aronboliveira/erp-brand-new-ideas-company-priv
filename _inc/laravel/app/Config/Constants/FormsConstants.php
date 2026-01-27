@@ -4,6 +4,8 @@ namespace App\Config\Constants;
 
 class FormsConstants
 {
+	// * ==== COLUMNS =====
+	#region
 	public const COL_FM_ID = 'form_id';
 	public const COL_CT_FD_ID = 'custom_field_id';
 	public const COL_CT_QT_ID = 'custom_question_id';
@@ -47,6 +49,9 @@ class FormsConstants
 	public const COL_SBM_EML = 'submission_email';
 	public const COL_SBM_IP = 'submission_ip';
 	public const COL_SBM_UA = 'submission_user_agent';
+	#endregion
+	// * ==== ARRAYS =====
+	#region
 	public const PERMISSIONS = [
 		PermissionsConstants::MNG_FM_BD,
 		'create form builder',
@@ -138,4 +143,5 @@ class FormsConstants
 		PermissionsConstants::ED_WHK,
 		PermissionsConstants::DEL_WHK,
 	];
+	#endregion
 }

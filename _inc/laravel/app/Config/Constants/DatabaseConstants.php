@@ -2,15 +2,10 @@
 
 namespace App\Config\Constants;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\{DB, Schema};
-
 class DatabaseConstants
 {
-
-	// * TABLE NAMES
-
-	public const COA = 'chart_of_account';
+	// * ==== TABLE NAMES =====
+	#region
 	public const TABLE_USERS = 'users';
 	public const COL_TABLE_CREATOR = 'created_by';
 	public const COL_TABLE_UPDATER = 'updated_by';
@@ -185,7 +180,7 @@ class DatabaseConstants
 	public const TABLE_CMPT = 'competencies';
 	public const TABLE_TRK_PHT = 'track_photos';
 	public const TABLE_PLAN_REQUESTS = 'plan_requests';
-	public const TABLE_FM_FLD_RSP = 'fm_field_responses';
+	public const TABLE_FM_FLD_RSP = 'fm_field_responses'; // todo change
 	public const TABLE_BDG = 'budgets';
 	public const TABLE_PRC_PRD = 'purchase_products';
 	public const TABLE_PRC_PAY = 'purchase_payments';
@@ -210,14 +205,18 @@ class DatabaseConstants
 	public const TABLE_BSC_FV = 'basic_favorites';
 	public const TABLE_CHTF_FV = 'chatify_favorites';
 	public const TABLE_STK_RPT = 'stock_reports';
-
-	// * FIELD NAMES
-	// invoice
+	public const TABLE_BG_STT = 'bug_statuses';
+	public const TABLE_PW_RST = 'password_resets';
+	public const TABLE_CLT_DLS = 'client_deals';
+	public const TABLE_USR_DLS = 'user_deals';
+	#endregion
+	// * ==== FIELD NAMES =====
+	#region
 	public const INV_BANK_TRANSFER_INV = 'invoice_id';
 	public const INV_BANK_TRANSFER_ORDER = 'order_id';
-
-	// * DEFAULTS
-
+	#endregion
+	// * ==== DEFAULTS ========
+	#region
 	public const DEFAULT_UUID = 'a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7';
 	public const DEFAULT_PIPELINE = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
 	public const DEFAULT_PLAN = 'b04d7e2c-9a15-4f38-8c62-3e01f5a7b9d6';
@@ -226,6 +225,9 @@ class DatabaseConstants
 	public const DEFAULT_TT = 'No given title';
 	public const DEFAULT_DESC = 'No given description';
 	public const DEFAULT_NOTES = 'No notes taken';
+	#endregion
+	// * ==== COLUMNS =========
+	#region
 	public const COL_C_AT = 'created_at';
 	public const COL_U_AT = 'updated_at';
 	public const COL_FL_AT = 'failed_at';
@@ -260,9 +262,14 @@ class DatabaseConstants
 	public const COL_IS_DEF = 'is_default';
 	public const COL_CRT_USR = 'created_user';
 	public const COL_LEGAL_REP = 'legal_representants';
-
+	public const COL_UA = 'user_agent';
+	#endregion
+	// * ==== MISCELLANEOUS ========
+	#region
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';
 	public const MININUM_WAGE_BR = 1518.00; // TODO RECUPERAR DE API REAL POSTERIORMENTE
+	public const COA = 'chart_of_account';
+	#endregion
 }

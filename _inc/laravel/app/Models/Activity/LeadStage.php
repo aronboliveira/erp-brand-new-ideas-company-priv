@@ -5,21 +5,18 @@ namespace App\Models;
 use App\Config\Constants\{
     ActivitiesConstants as AC,
     DatabaseConstants as DC,
-    PermissionsConstants as PMC,
     ProjectsConstants as PJC,
-    UsersConstants as UC
 };
+use App\Services\LeadRequestService;
 use App\Traits\{
-    ChecksLogin,
     HasAuditFields,
     UsesUuids
 };
-use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model, Relations\BelongsTo, Relations\HasMany};
 use Illuminate\Http\RedirectResponse;
 
 class LeadStage extends Model
 {
-    use ChecksLogin;
     use HasAuditFields;
     use HasFactory;
     use UsesUuids;
@@ -55,34 +52,14 @@ class LeadStage extends Model
         return $this->belongsTo(Pipeline::class, PJC::COL_PPL_ID);
     }
 
-    public function leads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function leads(): HasMany
     {
         return $this->hasMany(Lead::class, PJC::COL_STG_ID);
     }
 
     public function lead(): Collection|RedirectResponse
     {
-        $userOrRedirect = self::_checkLogin();
-        if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
-
-        $user = $userOrRedirect;
-
-        if ($user->type === PMC::CPN)
-            return Lead::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-                ->where(PJC::COL_STG_ID, $this->id)
-                ->orderBy(AC::COL_OD)
-                ->get();
-
-        return Lead::join(
-            DC::TABLE_USR_LD,
-            DC::TABLE_USR_LD . '.' . PJC::COL_LD_ID,
-            '=',
-            DC::TABLE_LEADS . '.id'
-        )
-            ->where(DC::TABLE_USR_LD . '.' . UC::COL_USER_ID, $user?->id)
-            ->where(PJC::COL_STG_ID, $this->id)
-            ->orderBy(DC::TABLE_LEADS . '.' . AC::COL_OD)
-            ->get();
+        return app(LeadRequestService::class)->getLeadsForStage($this);
     }
 
     public function isCritical(): bool

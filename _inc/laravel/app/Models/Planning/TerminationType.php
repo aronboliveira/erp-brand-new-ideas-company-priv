@@ -5,22 +5,16 @@ namespace App\Models;
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\User;
 use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class TerminationType extends Model
 {
     use HasAuditFields, UsesUuids;
-    private const COL_CREATED_BY = DC::COL_TABLE_CREATOR;
-    private const COL_NAME      = 'name';
+    protected $fillable = ['name', 'description'];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 
-    protected $table = DC::TABLE_TERMINATION_TYPES;
-    protected $fillable = [self::COL_NAME];
-    protected $guarded = ['id', self::COL_CREATED_BY];
-
-    public function createdBy(): HasOne
+    public function createdBy(): BelongsTo
     {
-        return $this
-            ->hasOne(User::class, 'id', self::COL_CREATED_BY);
-        // * consider using belongsTo(User::class, self::COL_CREATED_BY)
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
     }
 }

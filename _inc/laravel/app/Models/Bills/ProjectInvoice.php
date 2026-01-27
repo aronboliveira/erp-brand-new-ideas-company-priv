@@ -4,11 +4,9 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\PaymentStatus;
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{ExtendsInvoiceTable, HasAuditFields, UsesUuids};
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\{DB, Log};
 
 class ProjectInvoice extends Model
@@ -16,6 +14,7 @@ class ProjectInvoice extends Model
 	use UsesUuids;
 	use HasAuditFields;
 	use SoftDeletes;
+	use ExtendsInvoiceTable;
 
 	protected $table = DC::TABLE_PRJ_INV;
 

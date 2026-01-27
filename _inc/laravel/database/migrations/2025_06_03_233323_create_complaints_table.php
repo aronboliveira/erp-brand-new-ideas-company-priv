@@ -18,7 +18,7 @@ class CreateComplaintsTable extends Migration
             $table->string('reason')->nullable();
             $table->uuid(CC::COL_CPT_FRM)->nullable();
             $table->uuid(CC::COL_CPT_AGST)->nullable();
-            $table->date(CC::COL_CPT_DT)->default(now()->format('Y-m-d'))->index();
+            $table->date(CC::COL_CPT_DT)->useCurrent()->index();
             $table->string('description')->nullable();
             $table->string('notes')->nullable();
             foreach ([CC::COL_CPT_FRM => DC::TABLE_EMPLOYEES, CC::COL_CPT_AGST => DC::TABLE_EMPLOYEES] as $column => $referencedTable) $table->foreign($column)->references('id')->on($referencedTable)->nullOnDelete();

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
+    BanksConstants as BKC,
+    BillsConstants as BC,
+    DatabaseConstants as DC,
     MiddlewaresConstants,
     PermissionsConstants,
     SettingsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants as VW
 };
 use App\Models\{
@@ -47,7 +49,7 @@ final class PaymentController extends Controller
         $cls = __CLASS__;
         return $this->measureProfile($action, function () use ($req, $action, $cls) {
             Log::debug($action . ' start', [
-                UsersConstants::COL_USER_ID => $req->user()?->id ?? null,
+                UC::COL_USER_ID => $req->user()?->id ?? null,
                 'filters' => $req->only('date', 'vendor', 'account', 'category'),
             ]);
 
@@ -57,20 +59,20 @@ final class PaymentController extends Controller
             $uid = $req->user()?->creatorId() ?? null;
 
             $t = microtime(true);
-            $vendors  = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
-                ->pluck(UsersConstants::COL_NM, 'id')
+            $vendors  = Vendor::where(DC::COL_TABLE_CREATOR, $uid)
+                ->pluck(UC::COL_NM, 'id')
                 ->prepend('Select Vendor', '');
-            $accounts = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            $accounts = BankAccount::where(DC::COL_TABLE_CREATOR, $uid)
                 ->pluck('holder_name', 'id')
                 ->prepend('Select Account', '');
-            $cats     = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            $cats     = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
                 ->where('type', 'expense')
                 ->pluck('name', 'id')
                 ->prepend('Select Category', '');
             $this->logExecutionTime($t, $action, 'loadFilters');
 
             $t2 = microtime(true);
-            $payments = Payment::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            $payments = Payment::where(DC::COL_TABLE_CREATOR, $uid)
                 ->when($req->filled('date'), function ($q) use ($req) {
                     $range = preg_split('/\s+to\s+/i', $req->date);
                     $q->whereBetween('date', count($range) > 1 ? $range : [$req->date, $req->date]);
@@ -83,36 +85,36 @@ final class PaymentController extends Controller
 
             Log::info($cls . '::index loaded', ['count' => $payments->count()]);
             return view(VW::PAY . '.index', compact('payments', 'vendors', 'accounts', 'cats'));
-        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
+        }, [UC::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
     public function create(Request $req)
     {
         $action = __METHOD__;
         return $this->measureProfile($action, function () use ($req, $action) {
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $req->user()?->id ?? null]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($deny = self::guard($req, self::PERM_CREATE, VW::PAY . '.index')) !== true) return $deny;
 
             $uid = $req->user()?->creatorId() ?? null;
 
             $t = microtime(true);
-            $vendors  = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
-            $cats     = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            $vendors  = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
+            $cats     = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
                 ->whereNotIn('type', ['product & service', 'income'])
                 ->pluck('name', 'id')
                 ->prepend('Select Category', '');
             $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) as name")
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+                ->where(DC::COL_TABLE_CREATOR, $uid)
                 ->pluck('name', 'id');
             $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) as code_name")
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+                ->where(DC::COL_TABLE_CREATOR, $uid)
                 ->pluck('code_name', 'id')
                 ->prepend('Select Account', '');
             $this->logExecutionTime($t, $action, 'loadCreateFormData');
 
             return view(VW::PAY . '.create', compact('vendors', 'cats', 'accounts', 'chartAcc'));
-        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
+        }, [UC::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
     public function store(Request $req): RedirectResponse
@@ -121,7 +123,7 @@ final class PaymentController extends Controller
         $cls = __CLASS__;
         return $this->measureProfile($action, function () use ($req, $action, $cls) {
             Log::debug($action . ' start', [
-                UsersConstants::COL_USER_ID => $req->user()?->id ?? null,
+                UC::COL_USER_ID => $req->user()?->id ?? null,
                 'input' => $req->all()
             ]);
 
@@ -146,7 +148,7 @@ final class PaymentController extends Controller
                         'payment_method' => 0,
                         'reference'      => $req->reference,
                         'description'    => $req->description,
-                        DatabaseConstants::COL_TABLE_CREATOR => $req->user()?->creatorId() ?? null,
+                        DC::COL_TABLE_CREATOR => $req->user()?->creatorId() ?? null,
                     ]);
 
                     if ($req->hasFile('add_receipt')) {
@@ -164,11 +166,11 @@ final class PaymentController extends Controller
                     Log::info($cls . '::store payment saved', ['payment_id' => $p->id]);
 
                     BillAccount::create([
-                        'chart_account_id' => $req->account_id,
+                        BKC::COL_COA       => $req->account_id,
                         'price'            => $p->amount,
                         'description'      => $p->description,
                         'type'             => 'Payment',
-                        'ref_id'           => $p->id,
+                        BC::COL_REF_ID     => $p->id,
                     ]);
 
                     $cat = ProductServiceCategory::find($p->category_id);
@@ -176,7 +178,7 @@ final class PaymentController extends Controller
                         'payment_id' => $p->id,
                         'type'       => 'Payment',
                         'category'   => $cat?->name ?? null,
-                        UsersConstants::COL_USER_ID => $p->vendor_id,
+                        UC::COL_USER_ID => $p->vendor_id,
                         'user_type'  => 'Vendor',
                         'account'    => $p->account_id,
                     ]);
@@ -216,7 +218,7 @@ final class PaymentController extends Controller
                 ]);
                 return defaultUndefinedException($req, $e, $cls . '::store');
             }
-        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
+        }, [UC::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
     public function edit(Request $req, Payment $payment)
@@ -230,16 +232,16 @@ final class PaymentController extends Controller
             $uid = $req->user()?->creatorId() ?? null;
 
             $t = microtime(true);
-            $vendors  = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
-            $cats     = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            $vendors  = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
+            $cats     = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
                 ->whereNotIn('type', ['product & service', 'income'])
                 ->pluck('name', 'id')
                 ->prepend('Select Category', '');
             $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) AS name")
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+                ->where(DC::COL_TABLE_CREATOR, $uid)
                 ->pluck('name', 'id');
             $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) AS code_name")
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+                ->where(DC::COL_TABLE_CREATOR, $uid)
                 ->pluck('code_name', 'id')
                 ->prepend('Select Account', '');
             $this->logExecutionTime($t, $action, 'loadEditFormData');
@@ -345,10 +347,10 @@ final class PaymentController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($deny = self::guard($req, self::PERM_DELETE, VW::PAY . '.index')) !== true) return $deny;
 
-            if (($payment[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== ($req->user()?->creatorId() ?? null)) {
+            if (($payment[DC::COL_TABLE_CREATOR] ?? null) !== ($req->user()?->creatorId() ?? null)) {
                 Log::warning($cls . '::destroy forbidden owner mismatch', [
                     'payment_id' => $payment->id ?? null,
-                    UsersConstants::COL_USER_ID => $req->user()?->id ?? null
+                    UC::COL_USER_ID => $req->user()?->id ?? null
                 ]);
                 return redirect()->back()->with('error', __('Permission denied.'));
             }
@@ -406,7 +408,7 @@ final class PaymentController extends Controller
         $cls = __CLASS__;
         if (!$req->user()->can($permission)) {
             Log::warning($cls . "::{$action} — permission denied", [
-                UsersConstants::COL_USER_ID    => $req->user()->id,
+                UC::COL_USER_ID    => $req->user()->id,
                 'permission' => $permission,
             ]);
             return defaultPermissionDenial(

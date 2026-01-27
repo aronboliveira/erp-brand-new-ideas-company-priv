@@ -10,21 +10,25 @@ use Illuminate\Support\Str;
 
 class FormFieldResponseSeeder extends Seeder
 {
-	private const HARD_CAP = 16000;
+	private const HARD_CAP = 1600;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	public function run(): void
 	{
 		$created = 0;
-
+		$clock = microtime(true);
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
 		try {
 			$formIds = DB::table(DC::TABLE_FORM_BUILD)->pluck('id')->all();
 			if (!$formIds) {
+				$out->writeln('<comment>FormFieldResponseSeeder: no forms found, skipping seeding.</comment>');
 				Log::warning(static::class . ' aborting: no forms found', ['table' => DC::TABLE_FORM_BUILD]);
 				return;
 			}
 
 			$fieldIds = DB::table(DC::TABLE_FORM_FIELDS)->pluck('id')->all();
 			if (!$fieldIds) {
+				$out->writeln('<comment>FormFieldResponseSeeder: no form fields found, skipping seeding.</comment>');
 				Log::warning(static::class . ' aborting: no form fields found', ['table' => DC::TABLE_FORM_FIELDS]);
 				return;
 			}
@@ -42,11 +46,23 @@ class FormFieldResponseSeeder extends Seeder
 
 			$now = now();
 			$rows = [];
-
+			$cap = self::HARD_CAP;
 			foreach ($pickedFieldIds as $fieldId) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					$out->writeln('<comment>[FormFieldResponseSeeder]</comment> Seeding time limit reached, stopping early.');
+					break;
+				}
 				$iterations = random_int(1, 8);
 
 				for ($i = 1; $i <= $iterations; $i++) {
+					if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+						$out->writeln('<comment>[FormFieldResponseSeeder]</comment> Seeding time limit reached, stopping early.');
+						break 2;
+					}
+					if (--$cap <= 0) {
+						$out->writeln('<comment>[FormFieldResponseSeeder]</comment> Reached hard cap of ' . self::HARD_CAP . ' records, stopping seeding.');
+						break 2;
+					}
 					if ($created >= self::HARD_CAP) break 2;
 
 					$type = FieldType::cases()[array_rand(FieldType::cases())];

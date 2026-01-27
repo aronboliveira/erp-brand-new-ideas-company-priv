@@ -28,11 +28,12 @@ final class TimeTrackerSeeder extends Seeder
 
 	private const DEFAULT_POOL_LIMIT = 1600;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	public function run(): void
 	{
 		$out = $this->output();
 		$out->writeln('<info>[TimeTrackerSeeder]</info> start');
-
+		$clock = microtime(true);
 		if (!Schema::hasTable(DC::TABLE_TM_TRK)) {
 			$out->writeln('<comment>[TimeTrackerSeeder]</comment> missing table: ' . DC::TABLE_TM_TRK);
 			return;
@@ -81,7 +82,11 @@ final class TimeTrackerSeeder extends Seeder
 			$guard++;
 			if ($guard > self::MAX_LOOP_GUARD) {
 				$out->writeln('<error>[TimeTrackerSeeder]</error> guard stop (MAX_LOOP_GUARD)');
-				break;
+				return;
+			}
+			if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+				$out->writeln('<error>[TimeTrackerSeeder]</error> time limit reached, stopping early');
+				return;
 			}
 
 			// ---- FK selection (make most not-null when pools exist) ----

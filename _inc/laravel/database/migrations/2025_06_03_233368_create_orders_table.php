@@ -35,7 +35,7 @@ class CreateOrdersTable extends Migration
             $table->string(BC::COL_PIX_KEY)->nullable()->index(); // * pix key can be email, phone, cpf/cnpj or random key (max 36 characters) => model should constrain length according to its type
             // ? should be stored encrypted in the model
 
-            $table->uuid(BC::COL_PSLP_ID)->nullable()->index();
+            $table->uuid(BC::COL_PSLP_ID)->nullable()->index(); // todo maybe this should be removed
 
             $table->enum(BC::COL_PAY_STT, PaymentStatus::values())->default(PaymentStatus::Undefined->value)->nullable()->index(); // * model should ensure valid transitions between statuses
             $table->enum(BC::COL_PAY_TP, PaymentMethod::values())->default(PaymentMethod::Other->value)->index();
@@ -47,7 +47,6 @@ class CreateOrdersTable extends Migration
                 ->cascadeOnDelete();
             foreach (
                 [
-                    BC::COL_PSLP_ID             => DC::TABLE_PSLP,
                     BC::COL_TAX_ID              => DC::TABLE_TAXES,
                     UC::COL_USER_ID             => DC::TABLE_USERS,
                 ] as $column => $referencedTable
@@ -67,7 +66,6 @@ class CreateOrdersTable extends Migration
             foreach (
                 [
                     UC::COL_PLAN_ID,
-                    BC::COL_PSLP_ID,
                     BC::COL_TAX_ID,
                     UC::COL_USER_ID,
                 ] as $col

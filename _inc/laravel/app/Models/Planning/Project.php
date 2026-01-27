@@ -5,21 +5,21 @@ namespace App\Models;
 use App\Config\Constants\{
     ActivitiesConstants as AC,
     DatabaseConstants as DC,
-    PermissionsConstants as PMC,
     ProjectsConstants as PJC,
     UsersConstants as UC,
     ViewsConstants as VW
 };
-use App\Traits\{ChecksLogin, DefinesDates, HasAuditFields, PlansWithSchedule, StoresManyRefJson, UsesUuids};
+use App\Services\ProjectRequestService;
+use App\Traits\{DefinesDates, HasAuditFields, PlansWithSchedule, StoresManyRefJson, UsesUuids};
 use Carbon\Carbon;
-use Illuminate\Support\Facades\{Auth, Storage};
-use Illuminate\{Database\Eloquent\Model, Support\Collection};
-use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne, BelongsToMany};
+use Illuminate\Support\Facades\{Storage};
+use Illuminate\{Database\Eloquent\Builder, Database\Eloquent\Model, Support\Collection};
+use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo, BelongsToMany};
 use Illuminate\Http\RedirectResponse;
 
 class Project extends Model
 {
-    use ChecksLogin, UsesUuids, HasAuditFields, DefinesDates, StoresManyRefJson, PlansWithSchedule;
+    use UsesUuids, HasAuditFields, DefinesDates, StoresManyRefJson, PlansWithSchedule;
 
     protected $fillable = [
         PJC::COL_NM,
@@ -67,7 +67,7 @@ class Project extends Model
 
     public function milestones(): HasMany
     {
-        return $this->hasMany(\App\Models\Milestone::class, PJC::COL_PJ_ID, 'id');
+        return $this->hasMany(Milestone::class, PJC::COL_PJ_ID, 'id');
         // * consider belongsTo(User::class,'client_id','id')
     }
 
@@ -135,17 +135,16 @@ class Project extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(
-            \App\Models\User::class,
+            User::class,
             'project_users',
             PJC::COL_PJ_ID,
             UC::COL_USER_ID
         );
     }
 
-    public function client(): HasOne
+    public function client(): ?BelongsTo
     {
-        return $this->hasOne(\App\Models\User::class, 'id', 'client_id');
-        // * consider belongsTo(User::class,'client_id','id')
+        return Utility::getClient($this);
     }
 
     public function activities(): HasMany
@@ -164,7 +163,7 @@ class Project extends Model
         $projectsTimesheet = null,
         array $timesheets = [],
         array $days = [],
-        int|string $projectId = null
+        int|string|null $projectId = null
     ): string {
         $allProjects = $projectId === '0';
         $timesheetArray = [];
@@ -276,39 +275,35 @@ class Project extends Model
         ))->render();
     }
 
-    public function taskSections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function taskSections(): HasMany
     {
         return $this->hasMany(
-            \App\Models\Milestone::class,
+            Milestone::class,
             PJC::COL_PJ_ID,
             'id'
         )->orderBy('id', 'desc');
     }
 
+    /**
+     * Get assigned project tasks
+     * Pure alias to ProjectRequestService - handles auth internally
+     */
     public static function getAssignedProjectTasks(
-        int|string $projectId = null,
-        int|string $stageId = null,
+        int|string|null $projectId = null,
+        int|string|null $stageId = null,
         array $filterData = []
-    ): \Illuminate\Database\Eloquent\Builder {
-        $project = self::find($projectId);
-        $user = Auth::user()
-            ?: User::where('id', $project[DC::COL_TABLE_CREATOR])->first();
-        $ids = $user?->tasks()->pluck('id')->toArray();
-        $q = ProjectTask::whereIn('id', $ids);
-        $q = $project
-            ? $q->where(PJC::COL_PJ_ID, $projectId)
-            : $q;
-        if ($stageId) $q->where(PJC::COL_STAGE_ID, $stageId);
-        foreach ($filterData as $col => $val)
-            if ($val !== null && $val !== '')
-                $q->where($col, $val);
-        return $q;
+    ): Builder {
+        return app(ProjectRequestService::class)->getAssignedProjectTasks(
+            $projectId,
+            $stageId,
+            $filterData
+        );
     }
 
-    public function timesheets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function timesheets(): HasMany
     {
         return $this->hasMany(
-            \App\Models\Timesheet::class,
+            Timesheet::class,
             PJC::COL_PJ_ID,
             'id'
         )->orderBy('id', 'desc');
@@ -330,91 +325,49 @@ class Project extends Model
         $project->delete();
     }
 
-    public function label(): ?\App\Models\Label
+    public function label(): ?Label
     {
         return $this->hasOne(
-            \App\Models\Label::class,
+            Label::class,
             'id',
             AC::COL_TSK_STT
         )->first();
     }
 
-    public function projectUser(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function projectUser(): HasMany
     {
         return $this->hasMany(
-            \App\Models\ProjectUser::class,
+            ProjectUser::class,
             UC::COL_USER_ID,
             'id'
         );
     }
 
+    /**
+     * Count tasks for project
+     * Pure alias to ProjectRequestService - handles auth internally
+     */
     public function countTask(int|string $userId = 0): string
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
-            return $userOrRedirect;
-        $authUser = $userOrRedirect;
-        $userString = is_string($authUser->checkProject($this->id));
-        $isOwner = $userString
-            && strtolower($userString) === 'owner';
-        $complete = $isOwner
-            ? $this->tasks->where(PJC::COL_IS_CP, 1)->count()
-            : $this->tasks()
-            ->where(PJC::COL_IS_CP, 1)
-            ->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
-            ->count();
-        $total = $isOwner
-            ? $this->tasks->count()
-            : $this->tasks()
-            ->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
-            ->count();
-        return "{$complete}/{$total}";
+        return app(ProjectRequestService::class)->countTask($this, $userId) ?? '';
     }
 
+    /**
+     * Get project status statistics
+     * Pure alias to ProjectRequestService - handles auth internally
+     */
     public static function getProjectStatus(): array
     {
-        $u = Auth::user();
-        $type = $u->type;
-        $keys = array_keys(PJC::$projectStatus);
-        $counts = [];
-        foreach ($keys as $status) {
-            $counts[$status] = match ($type) {
-                PMC::CPN => self::where(AC::COL_TSK_STT, $status)
-                    ->where(DC::COL_TABLE_CREATOR, $u->id)->count(),
-                PMC::CL => self::where(AC::COL_TSK_STT, $status)
-                    ->where('client_id', $u->id)->count(),
-                default => \App\Models\ProjectUser::join(
-                    DC::TABLE_PROJECTS,
-                    'project_users.' . PJC::COL_PJ_ID,
-                    '=',
-                    DC::TABLE_PROJECTS . '.id'
-                )->where(DC::TABLE_PROJECTS . '.' .
-                    AC::COL_TSK_STT, $status)
-                    ->where(UC::COL_USER_ID, $u->id)->count()
-            };
-        }
-        $total = array_sum($counts);
-        return array_map(
-            fn($c) => $total
-                ? round(($c / $total) * 100, 2)
-                : 0,
-            $counts
-        );
+        return app(ProjectRequestService::class)->getProjectStatus();
     }
 
-    public function projectLastStage(): \App\Models\TaskStage|RedirectResponse|null
+    /**
+     * Get last task stage for project creator
+     * Pure alias to ProjectRequestService - handles auth internally
+     */
+    public function projectLastStage(): TaskStage|RedirectResponse|null
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        return TaskStage::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-            ->orderBy('order', 'desc')
-            ->first();
+        return app(ProjectRequestService::class)->getProjectLastStage();
     }
 
     public function projectTotalTask(int|string $projectId): int
@@ -433,7 +386,7 @@ class Project extends Model
 
     public function projectMilestoneProgress(): array
     {
-        $milestones = \App\Models\Milestone::query()
+        $milestones = Milestone::query()
             ->where(PJC::COL_PJ_ID, $this->id);
         $total = $milestones->count();
         $sum = $milestones->sum(PJC::COL_PGR);

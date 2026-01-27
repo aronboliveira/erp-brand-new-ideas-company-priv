@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
-use App\Enums\{BillStatus, ProposalStatus};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Enums\{BillStatus, ProposalStatus, UserType};
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
-use Illuminate\Support\{Carbon, Facades\Log, Str};
+use Illuminate\Support\{Carbon, Collection, Str};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Proposal extends Model
 {
@@ -111,10 +112,8 @@ class Proposal extends Model
     ];
 
     protected $with = [
-        'customer',
         'tax',
         'lead',
-        'productServiceCategory',
         'productServiceUnit',
         'invoice',
     ];
@@ -203,23 +202,579 @@ class Proposal extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(ProposalProduct::class, BC::COL_PPS_ID, 'id');
+        return $this->products();
     }
 
-    public function customer(): BelongsTo
+    public function proposalProducts(): HasMany
     {
-        return $this->belongsTo(Customer::class, BC::COL_CST_ID, 'id');
+        try {
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProposalProducts) {
+                Log::error('Proposal::proposalProducts - No valid proposal FK column found in proposal_products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $proposalProductsTable,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return $this->hasMany(ProposalProduct::class, BC::COL_PPS_ID, $this->getKeyName());
+            }
+
+            return $this->hasMany(ProposalProduct::class, $proposalForeignKeyInProposalProducts, $this->getKeyName());
+        } catch (\Throwable $e) {
+            Log::error('Proposal::proposalProducts - Failed to determine proposal FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(ProposalProduct::class, BC::COL_PPS_ID, $this->getKeyName());
+        }
     }
 
-    public function category(): BelongsTo
+    public function productProducts(): HasMany
+    {
+        try {
+            $productsTable = (new Product)->getTable();
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProducts) {
+                Log::error('Proposal::productProducts - No valid proposal FK column found in products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $productsTable,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return $this->hasMany(Product::class, BC::COL_PPS_ID, $this->getKeyName());
+            }
+
+            return $this->hasMany(Product::class, $proposalForeignKeyInProducts, $this->getKeyName());
+        } catch (\Throwable $e) {
+            Log::error('Proposal::productProducts - Failed to determine proposal FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(Product::class, BC::COL_PPS_ID, $this->getKeyName());
+        }
+    }
+
+    public function products(): HasMany
+    {
+        try {
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $proposalForeignKeyAlias = BC::COL_PPS_ID;
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProposalProducts || !$proposalForeignKeyInProducts) {
+                Log::error('Proposal::products - Missing proposal FK column in one or both source tables', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'proposal_products_table' => $proposalProductsTable,
+                    'products_table' => $productsTable,
+                    'proposal_products_fk' => $proposalForeignKeyInProposalProducts,
+                    'products_fk' => $proposalForeignKeyInProducts,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return $this->hasMany(Product::class, $proposalForeignKeyAlias, $this->getKeyName());
+            }
+
+            $proposalProductsColumns = Schema::getColumnListing($proposalProductsTable);
+            $productsColumns = Schema::getColumnListing($productsTable);
+
+            $unionColumns = array_values(array_unique(array_merge(
+                $proposalProductsColumns,
+                $productsColumns,
+                [$proposalForeignKeyAlias, '_source']
+            )));
+
+            if (!\in_array('id', $unionColumns, true)) $unionColumns[] = 'id';
+
+            $proposalProductsSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $proposalProductsSelect[] = "'proposal_products' as `_source`";
+                    continue;
+                }
+                if ($column === $proposalForeignKeyAlias) {
+                    $proposalProductsSelect[] = "`{$proposalProductsTable}`.`{$proposalForeignKeyInProposalProducts}` as `{$proposalForeignKeyAlias}`";
+                    continue;
+                }
+                $proposalProductsSelect[] = \in_array($column, $proposalProductsColumns, true)
+                    ? "`{$proposalProductsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $productsSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $productsSelect[] = "'products' as `_source`";
+                    continue;
+                }
+                if ($column === $proposalForeignKeyAlias) {
+                    $productsSelect[] = "`{$productsTable}`.`{$proposalForeignKeyInProducts}` as `{$proposalForeignKeyAlias}`";
+                    continue;
+                }
+                $productsSelect[] = \in_array($column, $productsColumns, true)
+                    ? "`{$productsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $derivedAlias = 'proposal_products_union';
+
+            $unionSql =
+                "SELECT " . implode(', ', $proposalProductsSelect) . " FROM `{$proposalProductsTable}` " .
+                "UNION ALL " .
+                "SELECT " . implode(', ', $productsSelect) . " FROM `{$productsTable}`";
+
+            $relation = $this->hasMany(Product::class, $proposalForeignKeyAlias, $this->getKeyName());
+            $relation->getQuery()->from(DB::raw("({$unionSql}) as `{$derivedAlias}`"));
+
+            Log::debug('Proposal::products - Using union-backed HasMany', [
+                'class' => static::class,
+                'proposal_products_table' => $proposalProductsTable,
+                'products_table' => $productsTable,
+                'proposal_fk_alias' => $proposalForeignKeyAlias,
+                'proposal_products_fk' => $proposalForeignKeyInProposalProducts,
+                'products_fk' => $proposalForeignKeyInProducts,
+                'columns' => \count($unionColumns),
+                'alias' => $derivedAlias,
+            ]);
+
+            return $relation;
+        } catch (\Throwable $e) {
+            Log::error('Proposal::products - Failed to build union-backed HasMany', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(Product::class, BC::COL_PPS_ID, $this->getKeyName());
+        }
+    }
+
+    public function productServices(): HasMany
+    {
+        try {
+            $proposalId = $this->getKey();
+
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+            $productServicesTable = (new ProductService)->getTable();
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            $serviceForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($proposalProductsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($proposalProductsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($proposalProductsTable, 'service') ? 'service' : null)));
+
+            $serviceForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($productsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($productsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($productsTable, 'service') ? 'service' : null)));
+
+            if ((!$proposalForeignKeyInProposalProducts && !$proposalForeignKeyInProducts) || (!$serviceForeignKeyInProposalProducts && !$serviceForeignKeyInProducts)) {
+                Log::debug('Proposal::productServices - No source available for product_service ids', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'proposal_products_fk' => $proposalForeignKeyInProposalProducts,
+                    'products_fk' => $proposalForeignKeyInProducts,
+                    'proposal_products_service_fk' => $serviceForeignKeyInProposalProducts,
+                    'products_service_fk' => $serviceForeignKeyInProducts,
+                ]);
+
+                return $this->hasMany(ProductService::class, 'id', $this->getKeyName())->whereRaw('1=0');
+            }
+
+            $proposalProductsServiceIdsQuery = null;
+
+            if ($proposalForeignKeyInProposalProducts && $serviceForeignKeyInProposalProducts) {
+                $proposalProductsServiceIdsQuery = DB::table($proposalProductsTable)
+                    ->selectRaw("`{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}` as `service_id`")
+                    ->where("{$proposalProductsTable}.{$proposalForeignKeyInProposalProducts}", $proposalId)
+                    ->whereNotNull("{$proposalProductsTable}.{$serviceForeignKeyInProposalProducts}");
+            }
+
+            $productsServiceIdsQuery = null;
+
+            if ($proposalForeignKeyInProducts && $serviceForeignKeyInProducts) {
+                $productsServiceIdsQuery = DB::table($productsTable)
+                    ->selectRaw("`{$productsTable}`.`{$serviceForeignKeyInProducts}` as `service_id`")
+                    ->where("{$productsTable}.{$proposalForeignKeyInProducts}", $proposalId)
+                    ->whereNotNull("{$productsTable}.{$serviceForeignKeyInProducts}");
+
+                if ($proposalProductsServiceIdsQuery && $proposalForeignKeyInProposalProducts && $serviceForeignKeyInProposalProducts) {
+                    $proposalProductsServiceIdsSubquery = DB::table($proposalProductsTable)
+                        ->selectRaw("`{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}`")
+                        ->where("{$proposalProductsTable}.{$proposalForeignKeyInProposalProducts}", $proposalId)
+                        ->whereNotNull("{$proposalProductsTable}.{$serviceForeignKeyInProposalProducts}");
+
+                    $productsServiceIdsQuery->whereNotIn("{$productsTable}.{$serviceForeignKeyInProducts}", $proposalProductsServiceIdsSubquery);
+                }
+            }
+
+            $serviceIdsUnionQuery = $proposalProductsServiceIdsQuery
+                ? ($productsServiceIdsQuery ? $proposalProductsServiceIdsQuery->unionAll($productsServiceIdsQuery) : $proposalProductsServiceIdsQuery)
+                : $productsServiceIdsQuery;
+
+            if (!$serviceIdsUnionQuery) {
+                return $this->hasMany(ProductService::class, 'id', $this->getKeyName())->whereRaw('1=0');
+            }
+
+            $servicesForProposalQuery = DB::table("{$productServicesTable} as ps")
+                ->joinSub($serviceIdsUnionQuery, 'src', 'src.service_id', '=', 'ps.id')
+                ->selectRaw("ps.*, ? as `" . BC::COL_PPS_ID . "`", [$proposalId])
+                ->distinct();
+
+            $derivedAlias = 'proposal_product_services_union';
+
+            $related = new ProductService();
+            $related->setTable($derivedAlias);
+
+            $derivedQuery = $related->newQuery()->fromSub($servicesForProposalQuery, $derivedAlias);
+
+            Log::debug('Proposal::productServices - Using derived HasMany for product services', [
+                'class' => static::class,
+                'proposal_id' => $proposalId,
+                'proposal_products_table' => $proposalProductsTable,
+                'products_table' => $productsTable,
+                'product_services_table' => $productServicesTable,
+                'proposal_products_fk' => $proposalForeignKeyInProposalProducts,
+                'products_fk' => $proposalForeignKeyInProducts,
+                'proposal_products_service_fk' => $serviceForeignKeyInProposalProducts,
+                'products_service_fk' => $serviceForeignKeyInProducts,
+                'products_filtered_against_proposal_products' => (bool) $proposalProductsServiceIdsQuery && (bool) $productsServiceIdsQuery,
+                'alias' => $derivedAlias,
+            ]);
+
+            return $this->newHasMany($derivedQuery, $this, "{$derivedAlias}." . BC::COL_PPS_ID, $this->getKeyName());
+        } catch (\Throwable $e) {
+            Log::error('Proposal::productServices - Failed to build derived HasMany', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(ProductService::class, 'id', $this->getKeyName())->whereRaw('1=0');
+        }
+    }
+
+    public function proposalProductsRaw(): Collection
+    {
+        try {
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProposalProducts) {
+                Log::error('Proposal::proposalProductsRaw - No valid proposal FK column found in proposal_products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $proposalProductsTable,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return collect([]);
+            }
+
+            $sql = "SELECT * FROM `{$proposalProductsTable}` WHERE `{$proposalForeignKeyInProposalProducts}` = ?";
+            return collect(DB::select($sql, [$this->getKey()]));
+        } catch (\Throwable $e) {
+            Log::error('Proposal::proposalProductsRaw - Failed to retrieve proposal products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productProductsRaw(): Collection
+    {
+        try {
+            $productsTable = (new Product)->getTable();
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProducts) {
+                Log::error('Proposal::productProductsRaw - No valid proposal FK column found in products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $productsTable,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return collect([]);
+            }
+
+            $sql = "SELECT * FROM `{$productsTable}` WHERE `{$proposalForeignKeyInProducts}` = ?";
+            return collect(DB::select($sql, [$this->getKey()]));
+        } catch (\Throwable $e) {
+            Log::error('Proposal::productProductsRaw - Failed to retrieve products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productsRaw(): Collection
+    {
+        try {
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            if (!$proposalForeignKeyInProposalProducts || !$proposalForeignKeyInProducts) {
+                Log::error('Proposal::productsRaw - Missing proposal FK column in one or both source tables', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'proposal_products_table' => $proposalProductsTable,
+                    'products_table' => $productsTable,
+                    'proposal_products_fk' => $proposalForeignKeyInProposalProducts,
+                    'products_fk' => $proposalForeignKeyInProducts,
+                    'checked_columns' => [BC::COL_PPS_ID, 'proposal'],
+                ]);
+
+                return collect([]);
+            }
+
+            $proposalId = $this->getKey();
+
+            $proposalProductsColumns = Schema::getColumnListing($proposalProductsTable);
+            $productsColumns = Schema::getColumnListing($productsTable);
+
+            $unionColumns = array_values(array_unique(array_merge(
+                $proposalProductsColumns,
+                $productsColumns,
+                [BC::COL_PPS_ID, '_source']
+            )));
+
+            if (!\in_array('id', $unionColumns, true)) $unionColumns[] = 'id';
+
+            $proposalProductsSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $proposalProductsSelect[] = "'proposal_products' as `_source`";
+                    continue;
+                }
+                if ($column === BC::COL_PPS_ID) {
+                    $proposalProductsSelect[] = "`{$proposalProductsTable}`.`{$proposalForeignKeyInProposalProducts}` as `" . BC::COL_PPS_ID . "`";
+                    continue;
+                }
+                $proposalProductsSelect[] = \in_array($column, $proposalProductsColumns, true)
+                    ? "`{$proposalProductsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $productsSelect = [];
+            foreach ($unionColumns as $column) {
+                if ($column === '_source') {
+                    $productsSelect[] = "'products' as `_source`";
+                    continue;
+                }
+                if ($column === BC::COL_PPS_ID) {
+                    $productsSelect[] = "`{$productsTable}`.`{$proposalForeignKeyInProducts}` as `" . BC::COL_PPS_ID . "`";
+                    continue;
+                }
+                $productsSelect[] = \in_array($column, $productsColumns, true)
+                    ? "`{$productsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $sql =
+                "SELECT " . implode(', ', $proposalProductsSelect) . " FROM `{$proposalProductsTable}` WHERE `{$proposalForeignKeyInProposalProducts}` = ? " .
+                "UNION ALL " .
+                "SELECT " . implode(', ', $productsSelect) . " FROM `{$productsTable}` WHERE `{$proposalForeignKeyInProducts}` = ?";
+
+            return collect(DB::select($sql, [$proposalId, $proposalId]));
+        } catch (\Throwable $e) {
+            Log::error('Proposal::productsRaw - Failed to retrieve merged products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productServicesRaw(): Collection
+    {
+        try {
+            $proposalId = $this->getKey();
+
+            $proposalProductsTable = (new ProposalProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+            $productServicesTable = (new ProductService)->getTable();
+
+            $proposalForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($proposalProductsTable, 'proposal') ? 'proposal' : null);
+
+            $proposalForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PPS_ID)
+                ? BC::COL_PPS_ID
+                : (Schema::hasColumn($productsTable, 'proposal') ? 'proposal' : null);
+
+            $serviceForeignKeyInProposalProducts = Schema::hasColumn($proposalProductsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($proposalProductsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($proposalProductsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($proposalProductsTable, 'service') ? 'service' : null)));
+
+            $serviceForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($productsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($productsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($productsTable, 'service') ? 'service' : null)));
+
+            if ((!$proposalForeignKeyInProposalProducts && !$proposalForeignKeyInProducts) || (!$serviceForeignKeyInProposalProducts && !$serviceForeignKeyInProducts)) {
+                return collect([]);
+            }
+
+            $selectFromProposalProducts = null;
+
+            if ($proposalForeignKeyInProposalProducts && $serviceForeignKeyInProposalProducts) {
+                $selectFromProposalProducts =
+                    "SELECT `{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}` as `service_id` " .
+                    "FROM `{$proposalProductsTable}` " .
+                    "WHERE `{$proposalProductsTable}`.`{$proposalForeignKeyInProposalProducts}` = ? " .
+                    "AND `{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}` IS NOT NULL";
+            }
+
+            $selectFromProducts = null;
+
+            if ($proposalForeignKeyInProducts && $serviceForeignKeyInProducts) {
+                $selectFromProducts =
+                    "SELECT `{$productsTable}`.`{$serviceForeignKeyInProducts}` as `service_id` " .
+                    "FROM `{$productsTable}` " .
+                    "WHERE `{$productsTable}`.`{$proposalForeignKeyInProducts}` = ? " .
+                    "AND `{$productsTable}`.`{$serviceForeignKeyInProducts}` IS NOT NULL";
+
+                if ($selectFromProposalProducts) {
+                    $selectFromProducts .=
+                        " AND `{$productsTable}`.`{$serviceForeignKeyInProducts}` NOT IN (" .
+                        "SELECT `{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}` " .
+                        "FROM `{$proposalProductsTable}` " .
+                        "WHERE `{$proposalProductsTable}`.`{$proposalForeignKeyInProposalProducts}` = ? " .
+                        "AND `{$proposalProductsTable}`.`{$serviceForeignKeyInProposalProducts}` IS NOT NULL" .
+                        ")";
+                }
+            }
+
+            if (!$selectFromProposalProducts && !$selectFromProducts) return collect([]);
+
+            $bindings = [];
+            $serviceIdsSql = null;
+
+            if ($selectFromProposalProducts && $selectFromProducts) {
+                $serviceIdsSql = "({$selectFromProposalProducts}) UNION ALL ({$selectFromProducts})";
+                $bindings = $selectFromProposalProducts
+                    ? ($selectFromProducts
+                        ? [$proposalId, $proposalId, $proposalId]
+                        : [$proposalId])
+                    : [$proposalId];
+            } elseif ($selectFromProposalProducts) {
+                $serviceIdsSql = $selectFromProposalProducts;
+                $bindings = [$proposalId];
+            } else {
+                $serviceIdsSql = $selectFromProducts;
+                $bindings = $selectFromProposalProducts ? [$proposalId, $proposalId] : [$proposalId];
+            }
+
+            $finalSql =
+                "SELECT DISTINCT ps.* " .
+                "FROM `{$productServicesTable}` ps " .
+                "JOIN ({$serviceIdsSql}) src ON src.`service_id` = ps.`id`";
+
+            return collect(DB::select($finalSql, $bindings));
+        } catch (\Throwable $e) {
+            Log::error('Proposal::productServicesRaw - Failed to retrieve product services', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'proposal_id' => $this->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function customer(): ?BelongsTo
+    {
+        return Utility::getCustomer($this);
+    }
+
+    public function productServiceCategory(): ?BelongsTo
     {
         return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
     }
 
-    public function productServiceCategory(): BelongsTo
+    public function productCategory(): ?BelongsTo
     {
-        return $this->category();
+        return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
     }
+
+    public function category(): ?BelongsTo
+    {
+        return Utility::getCategory($this);
+    }
+
 
     public function productServiceUnit(): BelongsTo
     {

@@ -29,7 +29,7 @@ class UserContactSeeder extends Seeder
 
 	public function run(): void
 	{
-		$out = $this->getOut();
+		$out = new ConsoleOutput();
 
 		$users = $this->fetchUsersRaw();
 		$totalUsers = count($users);
@@ -101,6 +101,9 @@ class UserContactSeeder extends Seeder
 						emailIds: $emailIds
 					);
 
+					$out->writeln(
+						'Creating contact for owner ' . $ownerId . ' contact ' . $contactUserId . ' role ' . $role->value
+					);
 					UserContact::create($payload);
 
 					$created++;

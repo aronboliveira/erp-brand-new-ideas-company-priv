@@ -26,7 +26,7 @@ class CreateTransactionsTable extends Migration
                 $this->addPaymentColumns($table);
                 $this->addScheduleColumns($table);
                 $table->string('type')->nullable()->index(); // ? this referes to the source, like a payment service
-                $table->date('date')->default(now()->format('Y-m-d'));
+                $table->date('date')->useCurrent();
                 foreach (
                     [
                         'account'         => DC::TABLE_BANK_ACC,

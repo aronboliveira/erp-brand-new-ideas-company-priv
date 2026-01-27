@@ -40,7 +40,7 @@ class ActivityLog extends Model
         'timestamp',
         'metadata',
 
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $casts = [

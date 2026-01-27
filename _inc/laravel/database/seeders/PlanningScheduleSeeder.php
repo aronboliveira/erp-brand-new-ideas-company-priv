@@ -13,12 +13,14 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class PlanningScheduleSeeder extends Seeder
 {
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	private ConsoleOutput $out;
 
 	private array $tableIdCache = [];
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$this->out = new ConsoleOutput();
 
 		if (!Schema::hasTable(DC::TABLE_PLN_SCHD)) {
@@ -48,6 +50,10 @@ class PlanningScheduleSeeder extends Seeder
 		$now = Carbon::now();
 
 		for ($i = 0; $i < $targetTotal; $i++) {
+			if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+				$this->out->writeln('[PlanningScheduleSeeder] time limit reached, stopping early');
+				return;
+			}
 			$tp = $typeValues[$i % max(1, count($typeValues))] ?? PlanningScheduleType::Other->value;
 			$mt = $moduleValues[$i % max(1, count($moduleValues))] ?? AppModuleType::Other->value;
 			$startMode = $startModes[$i % 2];

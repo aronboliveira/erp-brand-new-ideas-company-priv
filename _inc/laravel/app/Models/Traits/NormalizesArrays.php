@@ -2,19 +2,30 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\Log;
+
 trait NormalizesArrays
 {
 	public static function normalizeArrayField(mixed $value): array
 	{
-		if ($value === null)
-			return [];
-
-		if (is_string($value)) {
-			$decoded = json_decode($value, true);
-			return is_array($decoded) ? $decoded : [];
+		try {
+			if ($value === null)
+				return [];
+			if (is_string($value)) {
+				$decoded = json_decode($value, true);
+				return is_array($decoded) ? $decoded : [];
+			}
+			return is_array($value) ? $value : (array) $value;
+		} catch (\Throwable) {
+			Log::debug('NormalizesArrays::normalizeArrayField - Failed to decode array field', [
+				'value' => $value,
+				'class' => static::class,
+				'trait' => __TRAIT__,
+				'method' => __METHOD__,
+				'line' => __LINE__,
+			]);
+			return is_array($value) ? $value : (empty($value) ? [] : (array) $value);
 		}
-
-		return is_array($value) ? $value : (array) $value;
 	}
 
 	/**
@@ -32,7 +43,6 @@ trait NormalizesArrays
 				return $trimmed;
 			$value = [$trimmed];
 		}
-
 		if (!is_array($value) && !is_object($value))
 			$value = [$value];
 		try {

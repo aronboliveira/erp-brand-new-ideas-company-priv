@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Config\Constants\{
     CompaniesConstants as CC,
     DatabaseConstants as DC,
-    ProjectsConstants as PJC
+    ProjectsConstants as PJC,
+    UsersConstants as UC
 };
 use App\Traits\{
     DefinesDates,
@@ -34,7 +35,7 @@ class Leave extends Model
     protected $table = DC::TABLE_LV;
 
     protected $fillable = [
-        'employee_id',
+        UC::COL_EMP_ID,
         CC::COL_LV_TP_ID,
         PJC::COL_APL_ON,
         PJC::COL_S_DT,
@@ -157,7 +158,7 @@ class Leave extends Model
 
     public function employee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'employee_id', 'id');
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 
     public function leaveType(): BelongsTo

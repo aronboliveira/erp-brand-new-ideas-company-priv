@@ -9,6 +9,7 @@ use App\Config\Constants\{
 };
 use App\Models\User;
 use App\Traits\{
+    ExtendsProductServiceTable,
     FiltersSecureAttachments,
     HasAuditFields,
     NormalizesArrays,
@@ -22,11 +23,12 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 
-class BillProduct extends Model
+final class BillProduct extends Model
 {
     use UsesUuids;
     use HasAuditFields;
     use HasFactory;
+    use ExtendsProductServiceTable;
     use NormalizesArrays;
     use FiltersSecureAttachments;
 

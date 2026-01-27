@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{PaymentMethod, PaymentStatus, PaymentType};
-use App\Traits\{DefinesDates, HasAuditFields, HasPaymentColumns, UsesUuids};
+use App\Traits\{DefinesDates, ExtendsPaymentTable, HasAuditFields, HasPaymentColumns, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -19,6 +19,7 @@ class BillPayment extends Model
     use HasFactory;
     use HasPaymentColumns;
     use DefinesDates;
+    use ExtendsPaymentTable;
 
     protected $table = DC::TABLE_BL_PAY;
 
@@ -145,10 +146,21 @@ class BillPayment extends Model
         return $this->belongsTo(BankAccount::class, BC::COL_BACC_ID);
     }
 
-    public function category(): BelongsTo
+    public function productServiceCategory(): ?BelongsTo
     {
-        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID);
+        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
     }
+
+    public function productCategory(): ?BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function category(): ?BelongsTo
+    {
+        return Utility::getCategory($this);
+    }
+
 
     public function getGrossAmount(): float
     {

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    BillsConstants,
-    DatabaseConstants,
+    BanksConstants as BKC,
+    BillsConstants as BC,
+    DatabaseConstants as DC,
     MiddlewaresConstants,
     PermissionsConstants,
     SettingsConstants,
@@ -60,7 +61,7 @@ final class BillController extends Controller
         $request = $req;
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
-            Log::info("[{$base}::{$action}] listing bills", [UsersConstants::COL_USER_ID => $request->user()->id, 'filters' => $request->all(), 'method' => $method]);
+            Log::info("[{$base}::{$action}] listing bills", [UC::COL_USER_ID => $request->user()->id, 'filters' => $request->all(), 'method' => $method]);
             try {
                 $uidStart = microtime(true);
                 $uid = $request->user()->creatorId();
@@ -72,7 +73,7 @@ final class BillController extends Controller
                 $status = Bill::$statuses;
                 $this->logExecutionTime($stStart, $action, 'loadStatuses');
                 $qryStart = microtime(true);
-                $bills = Bill::where('type', 'Bill')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->when($request->vendor, fn($q) => $q->where('vendor_id', $request->vendor))->when($request->bill_date, function ($q) use ($request) {
+                $bills = Bill::where('type', 'Bill')->where(DC::COL_TABLE_CREATOR, $uid)->when($request->vendor, fn($q) => $q->where('vendor_id', $request->vendor))->when($request->bill_date, function ($q) use ($request) {
                     $parts = array_map('trim', explode('to', $request->bill_date));
                     $range = count($parts) > 1 ? $parts : [$request->bill_date, $request->bill_date];
                     $q->whereBetween('bill_date', $range);
@@ -82,11 +83,11 @@ final class BillController extends Controller
                 $viewPath = VW::BIL . '.index';
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
-                    Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [DatabaseConstants::TABLE_BILLS, 'vendor', 'status']]);
+                    Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [DC::TABLE_BILLS, 'vendor', 'status']]);
                     return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
                 $renderStart = microtime(true);
-                $resp = view($viewPath, compact(DatabaseConstants::TABLE_BILLS, 'vendor', 'status'));
+                $resp = view($viewPath, compact(DC::TABLE_BILLS, 'vendor', 'status'));
                 $this->logExecutionTime($renderStart, $action, 'renderIndex');
                 return $resp;
             } catch (\Throwable $e) {
@@ -108,16 +109,16 @@ final class BillController extends Controller
             $user = $userOrRedirect;
             $request = request();
             if (($g = self::guard($request, 'create bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] showing bill create form", [UsersConstants::COL_USER_ID => $user?->id, 'vendor_id' => $vendorId, 'method' => $method]);
+            Log::info("[{$base}::{$action}] showing bill create form", [UC::COL_USER_ID => $user?->id, 'vendor_id' => $vendorId, 'method' => $method]);
             try {
                 $cfStart = microtime(true);
-                $cf = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
+                $cf = CustomField::where([[DC::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $venStart = microtime(true);
                 $vendors = self::_vendors()->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $psStart = microtime(true);
-                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Item', '');
+                $productServices = ProductService::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Item', '');
                 $this->logExecutionTime($psStart, $action, 'loadProductServices');
                 $catStart = microtime(true);
                 $category = self::_categories()->prepend('Select Category', '');
@@ -128,7 +129,7 @@ final class BillController extends Controller
                 $numStart = microtime(true);
                 $billNumber = $user?->billNumberFormat(self::_billNumber());
                 $this->logExecutionTime($numStart, $action, 'formatBillNumber');
-                $data = [DatabaseConstants::TABLE_VENDORS => $vendors, 'billNumber' => $billNumber, 'productServices' => $productServices, 'category' => $category, 'customFields' => $cf, 'vendorId' => $vendorId, 'chartAccounts' => $chartAccounts];
+                $data = [DC::TABLE_VENDORS => $vendors, 'billNumber' => $billNumber, 'productServices' => $productServices, 'category' => $category, 'customFields' => $cf, 'vendorId' => $vendorId, 'chartAccounts' => $chartAccounts];
                 $viewPath = VW::BIL . '.create';
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath, 'vendor_id' => $vendorId]);
@@ -156,7 +157,7 @@ final class BillController extends Controller
         $request = $req;
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($g = self::guard($request, 'create bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] storing new bill", [UsersConstants::COL_USER_ID => $request->user()->id, 'input' => $request->all(), 'method' => $method]);
+            Log::info("[{$base}::{$action}] storing new bill", [UC::COL_USER_ID => $request->user()->id, 'input' => $request->all(), 'method' => $method]);
             $valStart = microtime(true);
             $request->validate(['vendor_id' => 'required|exists:vendors,id', 'bill_date' => 'required|date', 'due_date' => 'required|date']);
             $this->logExecutionTime($valStart, $action, 'validateInput');
@@ -177,7 +178,7 @@ final class BillController extends Controller
                         'user_type' => 'vendor',
                         'category_id' => $request->category_id ?: '0',
                         'order_id' => $request->order_id ?: '0',
-                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                        DC::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createBill');
                     Log::info("[{$base}::{$action}] bill created", ['bill_id' => $bill->id]);
@@ -204,14 +205,14 @@ final class BillController extends Controller
                             $total += $bp->quantity * $bp->price;
                             Log::info("[{$base}::{$action}] bill product created", ['bp_id' => $bp->id]);
                         }
-                        if (!empty($item['chart_account_id'])) {
+                        if (!empty($item[BKC::COL_COA])) {
                             $baStart = microtime(true);
                             $ba = BillAccount::create([
-                                'chart_account_id' => $item['chart_account_id'],
+                                BKC::COL_COA => $item[BKC::COL_COA],
                                 'price' => $item['amount'],
                                 'description' => $item['description'],
                                 'type' => 'Bill',
-                                'ref_id' => $bill->id,
+                                BC::COL_REF_ID => $bill->id,
                             ]);
                             $this->logExecutionTime($baStart, $action, 'createBillAccount');
                             $total += $ba->price;
@@ -225,11 +226,11 @@ final class BillController extends Controller
                         $this->logExecutionTime($catStart, $action, 'findCategory');
                         $bacStart = microtime(true);
                         $bac = BillAccount::create([
-                            'chart_account_id' => $cat->chart_account_id ?? 0,
+                            BKC::COL_COA => $cat->chart_account_id,
                             'price' => $total,
                             'description' => $request->description,
                             'type' => 'Bill Category',
-                            'ref_id' => $bill->id,
+                            BC::COL_REF_ID => $bill->id,
                         ]);
                         $this->logExecutionTime($bacStart, $action, 'createCategoryBillAccount');
                         Log::info("[{$base}::{$action}] category bill account created", ['ba_id' => $bac->id, 'total' => $total]);
@@ -271,11 +272,11 @@ final class BillController extends Controller
                 $bill = Bill::with('debitNote')->findOrFail($id);
                 $this->logExecutionTime($billStart, $action, 'findBill');
                 if (!self::_isOwner($bill)) {
-                    Log::warning("[{$base}::{$action}] unauthorized show bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => $user?->id, 'bill_creator' => $bill->{DatabaseConstants::COL_TABLE_CREATOR} ?? null]);
+                    Log::warning("[{$base}::{$action}] unauthorized show bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => $user?->id, 'bill_creator' => $bill->{DC::COL_TABLE_CREATOR} ?? null]);
                     throw new \Illuminate\Auth\Access\AuthorizationException;
                 }
-                Log::info("[{$base}::{$action}] showing bill detail", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
+                Log::info("[{$base}::{$action}] showing bill detail", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
                 $venStart = microtime(true);
                 $vendor = $bill->vendor;
                 $this->logExecutionTime($venStart, $action, 'loadVendor');
@@ -286,7 +287,7 @@ final class BillController extends Controller
                 $items = $this->_mergeItemsAccounts($bill);
                 $this->logExecutionTime($itemsStart, $action, 'mergeItemsAccounts');
                 $cfStart = microtime(true);
-                $cf = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
+                $cf = CustomField::where([[DC::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $viewPath = VW::BIL . '.view';
                 if (!ViewFacade::exists($viewPath)) {
@@ -327,16 +328,16 @@ final class BillController extends Controller
                 $bill = Bill::findOrFail($id);
                 $this->logExecutionTime($billStart, $action, 'findBill');
                 if (!self::_isOwner($bill)) {
-                    Log::warning("[{$base}::{$action}] unauthorized edit bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => $user?->id, 'bill_creator' => $bill->{DatabaseConstants::COL_TABLE_CREATOR} ?? null]);
+                    Log::warning("[{$base}::{$action}] unauthorized edit bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
+                    Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => $user?->id, 'bill_creator' => $bill->{DC::COL_TABLE_CREATOR} ?? null]);
                     throw new AuthorizationException;
                 }
-                Log::info("[{$base}::{$action}] editing bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $id, 'method' => $method]);
+                Log::info("[{$base}::{$action}] editing bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $id, 'method' => $method]);
                 $venStart = microtime(true);
                 $vendors = self::_vendors();
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $psStart = microtime(true);
-                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                $productServices = ProductService::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
                 $this->logExecutionTime($psStart, $action, 'loadProductServices');
                 $numStart = microtime(true);
                 $billNumber = $user->billNumberFormat($bill->bill_id);
@@ -345,7 +346,7 @@ final class BillController extends Controller
                 $category = self::_categories()->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
+                $customFields = CustomField::where([[DC::COL_TABLE_CREATOR, $user?->creatorId()], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $accStart = microtime(true);
                 $chartAccounts = self::_chartAccounts()->prepend('Select Account', '');
@@ -353,7 +354,7 @@ final class BillController extends Controller
                 $itemsStart = microtime(true);
                 $items = $this->_mergeItemsAccounts($bill);
                 $this->logExecutionTime($itemsStart, $action, 'mergeItemsAccounts');
-                $data = [DatabaseConstants::TABLE_VENDORS => $vendors, 'productServices' => $productServices, 'bill' => $bill, 'billNumber' => $billNumber, 'category' => $category, 'customFields' => $customFields, 'chartAccounts' => $chartAccounts, 'items' => $items];
+                $data = [DC::TABLE_VENDORS => $vendors, 'productServices' => $productServices, 'bill' => $bill, 'billNumber' => $billNumber, 'category' => $category, 'customFields' => $customFields, 'chartAccounts' => $chartAccounts, 'items' => $items];
                 $viewPath = VW::BIL . '.edit';
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath, 'bill_id' => $id]);
@@ -382,11 +383,11 @@ final class BillController extends Controller
         return $this->measureProfile($action, function () use ($request, $bill, $action, $method, $class, $base) {
             if (($g = self::guard($request, 'edit bill')) !== true) return $g;
             if (!self::_isOwner($bill)) {
-                Log::warning("[{$base}::{$action}] unauthorized update bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
-                Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => auth()->id(), 'bill_creator' => $bill->{DatabaseConstants::COL_TABLE_CREATOR} ?? null]);
+                Log::warning("[{$base}::{$action}] unauthorized update bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
+                Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => auth()->id(), 'bill_creator' => $bill->{DC::COL_TABLE_CREATOR} ?? null]);
                 return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
             }
-            Log::info("[{$base}::{$action}] updating bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'input' => $request->all(), 'method' => $method]);
+            Log::info("[{$base}::{$action}] updating bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'input' => $request->all(), 'method' => $method]);
             $valStart = microtime(true);
             $request->validate(['vendor_id' => 'required|exists:vendors,id', 'bill_date' => 'required|date', 'due_date' => 'required|date']);
             $this->logExecutionTime($valStart, $action, 'validateInput');
@@ -437,11 +438,11 @@ final class BillController extends Controller
                         }
                         $total += $bp->quantity * $bp->price;
                         $seenIds[] = $bp->id;
-                        if (!empty($row['chart_account_id'])) {
+                        if (!empty($row[BKC::COL_COA])) {
                             $baStart = microtime(true);
                             $ba = BillAccount::updateOrCreate(
-                                ['id' => $row['id'] ?? null, 'type' => 'Bill', 'ref_id' => $bill->id],
-                                ['chart_account_id' => $row['chart_account_id'], 'price' => $row['amount'] ?? 0, 'description' => $newDesc]
+                                ['id' => $row['id'] ?? null, 'type' => 'Bill', BC::COL_REF_ID => $bill->id],
+                                [BKC::COL_COA => $row[BKC::COL_COA], 'price' => $row['amount'] ?? 0, 'description' => $newDesc]
                             );
                             $this->logExecutionTime($baStart, $action, 'saveBillAccount');
                             $total += $ba->price;
@@ -463,11 +464,11 @@ final class BillController extends Controller
                         $total += $bp->quantity * $bp->price;
                         $seenIds[] = $bp->id;
                         Log::info("[{$base}::{$action}] bill product created", ['bp_id' => $bp->id, 'bill_id' => $bill->id]);
-                        if (!empty($row['chart_account_id'])) {
+                        if (!empty($row[BKC::COL_COA])) {
                             $baStart = microtime(true);
                             $ba = BillAccount::updateOrCreate(
-                                ['id' => $row['id'] ?? null, 'type' => 'Bill', 'ref_id' => $bill->id],
-                                ['chart_account_id' => $row['chart_account_id'], 'price' => $row['amount'] ?? 0, 'description' => $newDesc]
+                                ['id' => $row['id'] ?? null, 'type' => 'Bill', BC::COL_REF_ID => $bill->id],
+                                [BKC::COL_COA => $row[BKC::COL_COA], 'price' => $row['amount'] ?? 0, 'description' => $newDesc]
                             );
                             $this->logExecutionTime($baStart, $action, 'saveBillAccount');
                             $total += $ba->price;
@@ -490,8 +491,8 @@ final class BillController extends Controller
                     $this->logExecutionTime($catStart, $action, 'findCategory');
                     $bacStart = microtime(true);
                     $bac = BillAccount::updateOrCreate(
-                        ['type' => 'Bill Category', 'ref_id' => $bill->id],
-                        ['chart_account_id' => $cat->chart_account_id ?? 0, 'price' => $total, 'description' => $request->description]
+                        ['type' => 'Bill Category', BC::COL_REF_ID => $bill->id],
+                        [BKC::COL_COA => $cat->chart_account_id, 'price' => $total, 'description' => $request->description]
                     );
                     $this->logExecutionTime($bacStart, $action, 'saveCategoryBillAccount');
                     Log::info("[{$base}::{$action}] category bill account saved", ['ba_id' => $bac->id, 'bill_id' => $bill->id, 'total' => $total]);
@@ -520,11 +521,11 @@ final class BillController extends Controller
             $req = request();
             if (($g = self::guard($req, 'delete bill')) !== true) return $g;
             if (!self::_isOwner($bill)) {
-                Log::warning("[{$base}::{$action}] unauthorized destroy bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
-                Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => auth()->id(), 'bill_creator' => $bill->{DatabaseConstants::COL_TABLE_CREATOR} ?? null]);
+                Log::warning("[{$base}::{$action}] unauthorized destroy bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
+                Log::debug("[{$base}::{$action}] ownership check failed", ['expected_user_id' => auth()->id(), 'bill_creator' => $bill->{DC::COL_TABLE_CREATOR} ?? null]);
                 return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
             }
-            Log::info("[{$base}::{$action}] destroying bill", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] destroying bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
                 DB::beginTransaction();
@@ -552,7 +553,7 @@ final class BillController extends Controller
                 BillProduct::where('bill_id', $bill->id)->delete();
                 $this->logExecutionTime($delProdStart, $action, 'deleteBillProducts');
                 $delAccStart = microtime(true);
-                BillAccount::where('ref_id', $bill->id)->delete();
+                BillAccount::where(BC::COL_REF_ID, $bill->id)->delete();
                 $this->logExecutionTime($delAccStart, $action, 'deleteBillAccounts');
                 $delDNStart = microtime(true);
                 DebitNote::where('bill', $bill->id)->delete();
@@ -562,7 +563,7 @@ final class BillController extends Controller
                 $this->logExecutionTime($delBillStart, $action, 'deleteBill');
                 DB::commit();
                 $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                Log::info("[{$base}::{$action}] bill deleted", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
+                Log::info("[{$base}::{$action}] bill deleted", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id]);
                 return redirect()->route(VW::BIL . '.index')->with('success', __('Bill successfully deleted.'));
             } catch (\Throwable $e) {
                 DB::rollBack();
@@ -615,7 +616,7 @@ final class BillController extends Controller
         $base   = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($g = self::guard($req, 'delete bill product')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'product_id' => $req->id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $req->user()?->id, 'product_id' => $req->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($req, $action, $base) {
@@ -652,7 +653,7 @@ final class BillController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($g = self::guard($req, 'send bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'bill_id' => $id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'bill_id' => $id, 'method' => $method]);
             try {
                 $findStart = microtime(true);
                 $bill = Bill::findOrFail($id);
@@ -700,7 +701,7 @@ final class BillController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($g = self::guard($req, 'send bill')) !== true) return $g;
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'bill_id' => $id, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'bill_id' => $id, 'method' => $method]);
             try {
                 $setStart = microtime(true);
                 $settings = Utility::settings() ?? [];
@@ -747,7 +748,7 @@ final class BillController extends Controller
         $base   = class_basename($class);
         $req    = request();
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
-            Log::info("[{$base}::{$action}] generating", [UsersConstants::COL_USER_ID => auth()->id(), 'method' => $method]);
+            Log::info("[{$base}::{$action}] generating", [UC::COL_USER_ID => auth()->id(), 'method' => $method]);
             $userOrRedirect = self::_checkLogin();
             if ($userOrRedirect instanceof RedirectResponse) {
                 Log::warning("[{$base}::{$action}] called without authentication");
@@ -756,12 +757,12 @@ final class BillController extends Controller
             try {
                 $user = $userOrRedirect;
                 $qStart = microtime(true);
-                $last = Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->latest('bill_id')->value('bill_id');
+                $last = Bill::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->latest('bill_id')->value('bill_id');
                 $this->logExecutionTime($qStart, $action, 'fetchLastBillId');
                 $calcStart = microtime(true);
                 $next = $last ? (is_numeric($last) ? $last + 1 : $last) : 1;
                 $this->logExecutionTime($calcStart, $action, 'computeNextNumber');
-                Log::info("[{$base}::{$action}] next determined", [UsersConstants::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
+                Log::info("[{$base}::{$action}] next determined", [UC::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
                 return $next;
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
@@ -780,10 +781,10 @@ final class BillController extends Controller
         $viewPath = VW::BIL . '.payment';
         return $this->measureProfile($action, function () use ($req, $billId, $action, $method, $class, $base, $viewPath) {
             if (($g = self::guard($req, 'create payment bill')) !== true) {
-                Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $req->user()?->id, 'bill_id' => $billId, 'method' => $method]);
+                Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $req->user()?->id, 'bill_id' => $billId, 'method' => $method]);
                 return $g;
             }
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'bill_id' => $billId, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $req->user()?->id, 'bill_id' => $billId, 'method' => $method]);
             try {
                 $findStart = microtime(true);
                 $bill = Bill::findOrFail($billId);
@@ -792,9 +793,9 @@ final class BillController extends Controller
                 $dataStart = microtime(true);
                 $data = [
                     'bill' => $bill,
-                    DatabaseConstants::TABLE_VENDORS => self::_vendors()->prepend('Select Vendor', ''),
-                    'categories' => ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id'),
-                    'accounts' => BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id'),
+                    DC::TABLE_VENDORS => self::_vendors()->prepend('Select Vendor', ''),
+                    'categories' => ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id'),
+                    'accounts' => BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id'),
                 ];
                 $this->logExecutionTime($dataStart, $action, 'buildData');
                 if (!ViewFacade::exists($viewPath)) {
@@ -829,10 +830,10 @@ final class BillController extends Controller
             }
             $user = $userOrRedirect;
             if ($r = self::_deny($req, 'create payment bill')) {
-                Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $user?->id]);
                 return $r;
             }
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'bill_id' => $billId, 'method' => $method, 'input' => $req->only(['date', 'amount', 'account_id'])]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'bill_id' => $billId, 'method' => $method, 'input' => $req->only(['date', 'amount', 'account_id'])]);
             $valStart = microtime(true);
             $req->validate(['date' => 'required|date', 'amount' => 'required|numeric', 'account_id' => 'required|numeric']);
             $this->logExecutionTime($valStart, $action, 'validateRequest');
@@ -856,7 +857,7 @@ final class BillController extends Controller
                         $recStart = microtime(true);
                         $size = $req->file('add_receipt')->getSize();
                         if (Utility::updateStorageLimit($user?->creatorId(), $size) != 1) {
-                            Log::error("[{$base}::{$action}] storage limit exceeded", [UsersConstants::COL_USER_ID => $user?->id]);
+                            Log::error("[{$base}::{$action}] storage limit exceeded", [UC::COL_USER_ID => $user?->id]);
                             throw new \RuntimeException('storage');
                         }
                         $fname = time() . '_' . $req->file('add_receipt')->getClientOriginalName();
@@ -881,10 +882,10 @@ final class BillController extends Controller
                     Log::info("[{$base}::{$action}] bill updated post-payment", ['bill_id' => $bill->id, 'status' => $bill->status]);
                     $fillStart = microtime(true);
                     $bp->fill([
-                        UsersConstants::COL_USER_ID => $bill->vendor_id,
+                        UC::COL_USER_ID => $bill->vendor_id,
                         'user_type' => 'Vendor',
                         'type' => 'Partial',
-                        DatabaseConstants::COL_TABLE_CREATOR => auth()->id(),
+                        DC::COL_TABLE_CREATOR => auth()->id(),
                         'payment_id' => $bp->id,
                         'category' => 'Bill',
                         'account' => $req->account_id,
@@ -944,10 +945,10 @@ final class BillController extends Controller
             }
             $user = $userOrRedirect;
             if ($r = self::_deny($req, 'delete payment bill')) {
-                Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $user?->id]);
                 return $r;
             }
-            Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'payment_id' => $paymentId, 'bill_id' => $billId, 'method' => $method]);
+            Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'payment_id' => $paymentId, 'bill_id' => $billId, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($billId, $paymentId, $user, $action, $base) {
@@ -999,13 +1000,13 @@ final class BillController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             $guard = self::guard($req, 'manage vendor bill');
             if ($guard !== true) {
-                Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $req->user()?->id]);
+                Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $req->user()?->id]);
                 return $guard;
             }
             Log::info("[{$base}::{$action}] start", ['vendor_id' => $req->user()?->vendor_id, 'method' => $method]);
             $buildStart = microtime(true);
             $status = Bill::$statuses;
-            $bills = Bill::where([['vendor_id', $req->user()->vendor_id], ['status', '!=', 0], [DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId()]])
+            $bills = Bill::where([['vendor_id', $req->user()->vendor_id], ['status', '!=', 0], [DC::COL_TABLE_CREATOR, $req->user()->creatorId()]])
                 ->when($req->vendor, fn($q) => $q->where('id', $req->vendor))
                 ->when($req->bill_date, function ($q) use ($req) {
                     $range = array_map('trim', explode(' - ', $req->bill_date));
@@ -1017,11 +1018,11 @@ final class BillController extends Controller
             Log::info("[{$base}::{$action}] loaded vendor bills", ['count' => $bills->count()]);
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
-                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [DatabaseConstants::TABLE_BILLS, 'status']]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => [DC::TABLE_BILLS, 'status']]);
                 return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             }
             $renderStart = microtime(true);
-            $resp = view($viewPath, compact(DatabaseConstants::TABLE_BILLS, 'status'));
+            $resp = view($viewPath, compact(DC::TABLE_BILLS, 'status'));
             $this->logExecutionTime($renderStart, $action, 'renderVendorBill');
             return $resp;
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'vendor_id' => $req->user()?->vendor_id]);
@@ -1046,7 +1047,7 @@ final class BillController extends Controller
                 $bill = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findBill');
                 if (!self::_isOwner($bill)) {
-                    Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
+                    Log::warning("[{$base}::{$action}] unauthorized", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $id]);
                     throw new AuthorizationException;
                 }
                 Log::info("[{$base}::{$action}] showing vendor bill", ['bill_id' => $id, 'method' => $method]);
@@ -1136,7 +1137,7 @@ final class BillController extends Controller
             $valStart = microtime(true);
             $req->validate(['email' => 'required|email']);
             $this->logExecutionTime($valStart, $action, 'validateRequest');
-            Log::info("[{$base}::{$action}] validation passed", [UsersConstants::COL_USER_ID => $user?->id, 'bill_id' => $billId, 'to' => $req->email, 'method' => $method]);
+            Log::info("[{$base}::{$action}] validation passed", [UC::COL_USER_ID => $user?->id, 'bill_id' => $billId, 'to' => $req->email, 'method' => $method]);
             try {
                 $fetchStart = microtime(true);
                 $bill = Bill::with('vendor')->findOrFail($billId);
@@ -1148,7 +1149,7 @@ final class BillController extends Controller
             }
             $vendor = $bill->vendor;
             $fmtStart = microtime(true);
-            $bill->name = $vendor[UsersConstants::COL_NM] ?? '';
+            $bill->name = $vendor[UC::COL_NM] ?? '';
             $bill->bill = $user?->billNumberFormat($bill->bill_id);
             $bill->url = route(VW::BIL . '.pdf', Crypt::decrypt(Crypt::encrypt($bill->id)));
             $this->logExecutionTime($fmtStart, $action, 'formatPayload');
@@ -1251,7 +1252,7 @@ final class BillController extends Controller
                 $items = collect(range(1, 3))->map(fn($i) => (object)['name' => "Item $i", 'quantity' => 1, 'tax' => 5, 'discount' => 50, 'price' => 100, 'unit' => 1, 'itemTax' => [['name' => 'Tax', 'rate' => '10 %', 'price' => '$10', 'tax_price' => 10]]]);
                 $this->logExecutionTime($itemsStart, $action, 'buildItems');
                 $billStart = microtime(true);
-                $bill = new Bill(['bill_id' => 1, 'issue_date' => now(), 'due_date' => now(), 'itemData' => $items, 'totalTaxPrice' => 60, 'totalQuantity' => 3, 'totalRate' => 300, 'totalDiscount' => 10, 'taxesData' => [], DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()]);
+                $bill = new Bill(['bill_id' => 1, 'issue_date' => now(), 'due_date' => now(), 'itemData' => $items, 'totalTaxPrice' => 60, 'totalQuantity' => 3, 'totalRate' => 300, 'totalDiscount' => 10, 'taxesData' => [], DC::COL_TABLE_CREATOR => $user?->creatorId()]);
                 $this->logExecutionTime($billStart, $action, 'buildBill');
                 $logoStart = microtime(true);
                 $img = Utility::getLogo('bill_logo', SettingsConstants::CPN_LG_DK);
@@ -1299,17 +1300,17 @@ final class BillController extends Controller
                 $this->logExecutionTime($fetchStart, $action, 'fetchBill');
                 if (!self::_isOwner($bill)) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
                 $setStart = microtime(true);
-                $settings = Utility::settingsById($bill[DatabaseConstants::COL_TABLE_CREATOR]);
+                $settings = Utility::settingsById($bill[DC::COL_TABLE_CREATOR]);
                 $this->logExecutionTime($setStart, $action, 'loadSettings');
                 $statsStart = microtime(true);
                 [$items, $taxesData, $totTax, $totQty, $totRate, $totDisc] = Utility::billItemStats($bill, $settings);
                 $bill->fill(['itemData' => $items, 'taxesData' => $taxesData, 'totalTaxPrice' => $totTax, 'totalQuantity' => $totQty, 'totalRate' => $totRate, 'totalDiscount' => $totDisc, 'customField' => CustomField::getData($bill, 'bill')]);
                 $this->logExecutionTime($statsStart, $action, 'computeStats');
                 $logoStart = microtime(true);
-                $img = Utility::getLogo('bill_logo', SettingsConstants::CPN_LG_DK, $bill[DatabaseConstants::COL_TABLE_CREATOR]);
+                $img = Utility::getLogo('bill_logo', SettingsConstants::CPN_LG_DK, $bill[DC::COL_TABLE_CREATOR]);
                 $this->logExecutionTime($logoStart, $action, 'getLogo');
                 $billColor = '#' . (($settings['bill_color'] ?? 'ffffff'));
-                $templateSlug = ($settings[BillsConstants::COL_BIL_TMP] ?? 'template1');
+                $templateSlug = ($settings[BC::COL_BIL_TMP] ?? 'template1');
                 $viewPath = VW::BIL_TMP . "{$templateSlug}";
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -1317,7 +1318,7 @@ final class BillController extends Controller
                     return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
                 $renderStart = microtime(true);
-                $resp = view($viewPath, ['bill' => $bill, 'color' => $billColor, 'settings' => $settings, 'vendor' => $bill->vendor, 'img' => $img, 'font_color' => Utility::getFontColor($billColor), 'customFields' => CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $bill[DatabaseConstants::COL_TABLE_CREATOR])->where('module', 'bill')->get()]);
+                $resp = view($viewPath, ['bill' => $bill, 'color' => $billColor, 'settings' => $settings, 'vendor' => $bill->vendor, 'img' => $img, 'font_color' => Utility::getFontColor($billColor), 'customFields' => CustomField::where(DC::COL_TABLE_CREATOR, $bill[DC::COL_TABLE_CREATOR])->where('module', 'bill')->get()]);
                 $this->logExecutionTime($renderStart, $action, 'renderBill');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1349,7 +1350,7 @@ final class BillController extends Controller
                     $data['bill_logo'] = ($req->user()?->id ?? 'user') . '_bill_logo.png';
                 }
                 $insStart = microtime(true);
-                $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
+                $creatorCol = DC::COL_TABLE_CREATOR;
                 foreach ($data as $k => $v) DB::insert('INSERT INTO settings (`value`,`name`,`' . $creatorCol . '`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$v, $k, $req->user()->creatorId()]);
                 $this->logExecutionTime($insStart, $action, 'upsertSettings');
                 Log::info("[{$base}::{$action}] settings updated", ['user_id' => $req->user()?->id, 'count' => count($data), 'method' => $method]);
@@ -1417,7 +1418,7 @@ final class BillController extends Controller
                 $billPayment = BillPayment::where('bill_id', $bill->id)->get();
                 $this->logExecutionTime($bpStart, $action, 'fetchBillPayments');
                 $usrStart = microtime(true);
-                $user = User::find($bill[DatabaseConstants::COL_TABLE_CREATOR]);
+                $user = User::find($bill[DC::COL_TABLE_CREATOR]);
                 $this->logExecutionTime($usrStart, $action, 'fetchCreator');
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -1463,7 +1464,7 @@ final class BillController extends Controller
 
     private function _authorize(Request $req, string $perm): RedirectResponse|JsonResponse|null
     {
-        Log::info('Authorizing permission', [UsersConstants::COL_USER_ID => $req->user()?->id, 'permission' => $perm]);
+        Log::info('Authorizing permission', [UC::COL_USER_ID => $req->user()?->id, 'permission' => $perm]);
         return $req->user()?->can($perm)
             ? null
             : defaultPermissionDenial($req, new AuthorizationException($perm), __CLASS__ . '::' . __FUNCTION__);
@@ -1471,7 +1472,7 @@ final class BillController extends Controller
 
     private static function _deny(Request $req, string $perm): RedirectResponse|JsonResponse|null
     {
-        Log::info('Checking permission', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'permission' => $perm]);
+        Log::info('Checking permission', [UC::COL_USER_ID => $req->user()?->id ?? null, 'permission' => $perm]);
         return $req->user()?->can($perm)
             ? null
             : defaultPermissionDenial($req, new AuthorizationException($perm), __CLASS__ . '::' . debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function']);
@@ -1485,8 +1486,8 @@ final class BillController extends Controller
             throw new AuthorizationException;
         }
         $user = $userOrRedirect;
-        $owner = $model[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
-        Log::info('Owner check', [UsersConstants::COL_USER_ID => $user?->id, 'model_id' => $model->id ?? null, 'is_owner' => $owner]);
+        $owner = $model[DC::COL_TABLE_CREATOR] === $user?->creatorId();
+        Log::info('Owner check', [UC::COL_USER_ID => $user?->id, 'model_id' => $model->id ?? null, 'is_owner' => $owner]);
         return $owner;
     }
 
@@ -1494,14 +1495,14 @@ final class BillController extends Controller
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        return Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id');
+        return Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id');
     }
 
     private static function _categories(): Collection
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        return ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+        return ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
             ->whereNotIn('type', ['product & service', 'income'])
             ->pluck('name', 'id');
     }
@@ -1511,7 +1512,7 @@ final class BillController extends Controller
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
         return ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')
-            ->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)
+            ->where(DC::COL_TABLE_CREATOR, $uid)
             ->pluck('code_name', 'id');
     }
 
@@ -1519,14 +1520,14 @@ final class BillController extends Controller
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        $last = Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->latest('bill_id')->value('bill_id');
+        $last = Bill::where(DC::COL_TABLE_CREATOR, $uid)->latest('bill_id')->value('bill_id');
         if (!$last) {
             $next = 1;
-            Log::info('Next Bill Identifier', [UsersConstants::COL_USER_ID => $user?->id, 'next' => $next]);
+            Log::info('Next Bill Identifier', [UC::COL_USER_ID => $user?->id, 'next' => $next]);
             return $next;
         }
         $next = is_numeric($last) ? ((int)$last + 1) : $last;
-        Log::info('Next Bill Identifier', [UsersConstants::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
+        Log::info('Next Bill Identifier', [UC::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
         return $next;
     }
 }

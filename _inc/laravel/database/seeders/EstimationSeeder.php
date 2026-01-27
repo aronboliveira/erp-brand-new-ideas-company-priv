@@ -20,6 +20,8 @@ final class EstimationSeeder extends Seeder
 {
 	private const BASE_MULTIPLIER = 2;
 	private const MAX_MULTIPLIER  = 16;
+	private const HARD_CAP = 1024;
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutos
 
 	public function run(): void
 	{
@@ -63,12 +65,22 @@ final class EstimationSeeder extends Seeder
 			&$created,
 			&$failed
 		) {
+			$cap = min(self::HARD_CAP, count($clientIds) * self::MAX_MULTIPLIER);
+			$clock = microtime(true);
 			// For each client, create a random number of estimations
 			foreach ($clientIds as $clientId) {
 				$quadraticRange = (self::MAX_MULTIPLIER - self::BASE_MULTIPLIER + 1) ** 2;
 				$estimationsForClient = self::MAX_MULTIPLIER - ((int)sqrt(random_int(1, $quadraticRange)) - 1);
 				for ($i = 0; $i < $estimationsForClient; $i++) {
 					try {
+						if (--$cap < 0) {
+							Log::warning('EstimationSeeder reached hard cap, stopping early');
+							return;
+						}
+						if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+							Log::warning('EstimationSeeder time limit reached, stopping early');
+							return;
+						}
 						$projectId = $this->maybe($projectIds);
 
 						$issuedAt = Carbon::now()
@@ -195,7 +207,7 @@ final class EstimationSeeder extends Seeder
 						$estimation->{DC::COL_TABLE_UPDATER} = $this->maybe($userIds);
 						$estimation->{DC::COL_C_AT}          = $issuedAt;
 						$estimation->{DC::COL_U_AT}          = $issuedAt->addMinutes(random_int(10, 720));
-						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando relatório de Estimativa Financeira {$estId} para {$clientId} sobre{$projectId}");
+						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("[EstimationSeeder] {$i}/{$estimationsForClient} Criando relatório de Estimativa Financeira {$estId} para {$clientId} sobre{$projectId}");
 						try {
 							$estimation->save();
 							$created++;

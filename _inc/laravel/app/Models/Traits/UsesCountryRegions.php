@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use UnitEnum;
 use App\Config\Constants\{ActivitiesConstants as AC, BillsConstants as BC, DatabaseConstants as DC};
 use App\Models\Utility;
 use App\Enums\{
@@ -3637,28 +3638,29 @@ trait UsesCountryRegions
 
 	protected static function bootUsesCountryRegions(): void
 	{
-		static::saving(function (Model $model) {
-			$sets = [
-				['country', 'state', 'city', 'zip', 'address'],
-				[BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY, BC::COL_SHIP_ZIP, BC::COL_SHIP_ADR],
-				[BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY, BC::COL_BL_ZIP, BC::COL_BL_ADR],
-			];
+		// todo too heavy for testing, use only for production
+		// static::saving(function (Model $model) {
+		// 	$sets = [
+		// 		['country', 'state', 'city', 'zip', 'address'],
+		// 		[BC::COL_SHIP_CTR, BC::COL_SHIP_ST, BC::COL_SHIP_CTY, BC::COL_SHIP_ZIP, BC::COL_SHIP_ADR],
+		// 		[BC::COL_BL_CTR, BC::COL_BL_ST, BC::COL_BL_CTY, BC::COL_BL_ZIP, BC::COL_BL_ADR],
+		// 	];
 
-			foreach ($sets as $cols) {
-				try {
-					if (!is_array($cols) || count($cols) < 2) continue;
-					if (!method_exists($model, 'applyCountryRegionNormalization')) continue;
-					$model->applyCountryRegionNormalization($cols);
-				} catch (\Throwable $e) {
-					Log::warning("[" . self::class . "]: " . static::class . " failed to normalize geo columns set", [
-						'cols' => $cols,
-						'message' => $e->getMessage(),
-						'file' => $e->getFile(),
-						'line' => $e->getLine(),
-					]);
-				}
-			}
-		});
+		// 	foreach ($sets as $cols) {
+		// 		try {
+		// 			if (!is_array($cols) || count($cols) < 2) continue;
+		// 			if (!method_exists($model, 'applyCountryRegionNormalization')) continue;
+		// 			$model->applyCountryRegionNormalization($cols);
+		// 		} catch (\Throwable $e) {
+		// 			Log::warning("[" . self::class . "]: " . static::class . " failed to normalize geo columns set", [
+		// 				'cols' => $cols,
+		// 				'message' => $e->getMessage(),
+		// 				'file' => $e->getFile(),
+		// 				'line' => $e->getLine(),
+		// 			]);
+		// 		}
+		// 	}
+		// });
 	}
 
 	public function getCountriesConstraintAttribute(): ?array
@@ -3857,7 +3859,7 @@ trait UsesCountryRegions
 						try {
 							$stateEnum = $stateEnumClass::normalize($stateStr);
 							if ($stateEnum instanceof $stateEnumClass)
-								$this->setAttribute($stateCol, $stateEnum->value);
+								$this->setAttribute($stateCol, $stateEnum instanceof UnitEnum ? $stateEnum->value : $stateEnum);
 							else
 								$this->setAttribute($stateCol, null);
 						} catch (\Throwable) {

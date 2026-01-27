@@ -86,6 +86,7 @@ class BasicFavoritesSeeder extends Seeder
 		$total = $this->normalizeTo64MultipleNotExceeding($total, min(self::HARD_CAP, count($targets)));
 		if ($total <= 0) return;
 
+		/** @var array<string, bool> */
 		$usedFavIds = [];
 		$created = 0;
 
@@ -96,29 +97,40 @@ class BasicFavoritesSeeder extends Seeder
 
 			$favId = (string) ($t['id'] ?? '');
 			$tb = (string) ($t['table'] ?? '');
-			if ($favId === '' || $tb === '') continue;
+			if (empty($favId) || empty($tb)) {
+				$this->out->writeln('BasicFavoritesSeeder: skipping invalid target at index ' . $i);
+				continue;
+			}
 
-			if (isset($usedFavIds[$favId])) continue;
+			if (isset($usedFavIds[$favId])) {
+				$this->out->writeln('BasicFavoritesSeeder: skipping already used fav ID at index ' . $i);
+				continue;
+			}
 
 			$attempts = 0;
-			$maxAttempts = 12;
+			$maxAttempts = 16;
 			while ($attempts++ < $maxAttempts) {
 				$exists = (bool) DB::selectOne(
 					'SELECT 1 FROM ' . DC::TABLE_BSC_FV . ' WHERE ' . AC::COL_FV_ID . ' = ? LIMIT 1',
 					[$favId]
 				);
 				if (!$exists) break;
-
 				$swapIdx = random_int(0, min(count($targets) - 1, $total - 1));
 				$t2 = $targets[$swapIdx] ?? null;
 				$favId2 = (string) ($t2['id'] ?? '');
 				$tb2 = (string) ($t2['table'] ?? '');
-				if ($t2 && $favId2 !== '' && $tb2 !== '' && !isset($usedFavIds[$favId2])) {
+				if ($t2 && !empty($favId2) && !empty($tb2) && !isset($usedFavIds[$favId2])) {
 					$favId = $favId2;
 					$tb = $tb2;
 				}
+				if (isset($usedFavIds[$favId])) $usedFavIds[$favId] = true;
+				if (isset($usedFavIds[$favId2])) $usedFavIds[$favId2] = true;
 			}
-			if ($attempts >= $maxAttempts) continue;
+
+			if ($attempts >= $maxAttempts) {
+				$this->out->writeln('BasicFavoritesSeeder: skipping, could not find unused fav ID at index ' . $i);
+				continue;
+			}
 
 			$usedFavIds[$favId] = true;
 
@@ -133,14 +145,20 @@ class BasicFavoritesSeeder extends Seeder
 				substr($favId, 0, 8)
 			));
 
-			BasicFavorite::create([
-				'module' => $module->value,
-				AC::COL_FV_TB => $tb,
-				AC::COL_FV_ID => $favId,
-				UC::COL_USER_ID => $userId,
-				'notes' => $notes,
-			]);
+			try {
+				BasicFavorite::create([
+					AC::COL_FV_ID => $favId,
+					'module' => $module->value,
+					AC::COL_FV_TB => $tb,
+					UC::COL_USER_ID => $userId,
+					'notes' => $notes,
+				]);
 
+				$this->out->writeln("<info>[BasicFavoritesSeeder] created favorite for user " . substr($userId, 0, 8) . " fav " . substr($favId, 0, 8) . "</info>");
+			} catch (\Throwable $e) {
+				$this->out->writeln("<error>[BasicFavoritesSeeder] failed to create favorite for user " . substr($userId, 0, 8) . " fav " . substr($favId, 0, 8) . ": " . $e->getMessage() . "</error>");
+				continue;
+			}
 			$created++;
 		}
 

@@ -4,6 +4,8 @@ namespace App\Config\Constants;
 
 class ProjectsConstants
 {
+	// * ==== COLUMNS =====
+	#region
 	public const COL_PJ_ID = 'project_id';
 	public const COL_PJ_TSK_ID = 'project_task_id';
 	public const COL_ASGN = 'assign_to';
@@ -144,7 +146,9 @@ class ProjectsConstants
 	public const COL_PRD_SERV_ID = 'product_service_id';
 	public const COL_ATC_TP = 'attachment_type';
 	public const COL_PLN_SCHD_ID = 'planning_schedule_id';
-
+	#endregion
+	// * ==== VALUES =====
+	#region
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';
 	public const STT_CPT_K					 = 'complete';
@@ -157,6 +161,9 @@ class ProjectsConstants
 	public const STT_DEF_CL					 = self::STT_INF;
 	public const VST_PPS = 'purpose_of_visit';
 	public const VST_PLC = 'place_of_visit';
+	#endregion
+	// * ==== ARRAYS =====
+	#region
 	public static array $projectStatus = [
 		self::STT_INP_K => 'In Progress',
 		self::STT_ONH_K     => 'On Hold',
@@ -169,4 +176,5 @@ class ProjectsConstants
 		self::STT_CPT_K    => self::STT_SCS,
 		self::STT_CCL_K    => self::STT_DGR,
 	];
+	#endregion
 }

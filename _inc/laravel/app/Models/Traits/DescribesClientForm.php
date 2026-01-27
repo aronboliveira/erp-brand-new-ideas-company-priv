@@ -288,7 +288,7 @@ trait DescribesClientForm
 		if (!static::hasFormColumnCached($table, 'allowed_methods')) return;
 
 		$raw = $model->getAttribute('allowed_methods');
-		$list = static::normalizeStringList($raw);
+		$list = static::staticNormalizeStringList($raw);
 
 		// store as normalized lowercase tokens; keep nullable
 		if (!$list) {
@@ -313,7 +313,7 @@ trait DescribesClientForm
 		if (!static::hasFormColumnCached($table, 'allowed_enctypes')) return;
 
 		$raw = $model->getAttribute('allowed_enctypes');
-		$list = static::normalizeStringList($raw);
+		$list = static::staticNormalizeStringList($raw);
 
 		if (!$list) {
 			$model->setAttribute('allowed_enctypes', null);
@@ -392,7 +392,7 @@ trait DescribesClientForm
 	public function formAllowlistMethods(): ?array
 	{
 		$list = $this->getAttribute('allowed_methods');
-		$list = static::normalizeStringList($list);
+		$list = static::staticNormalizeStringList($list);
 		if (!$list) return null;
 
 		$out = [];
@@ -407,7 +407,7 @@ trait DescribesClientForm
 	public function formAllowlistEnctypes(): ?array
 	{
 		$list = $this->getAttribute('allowed_enctypes');
-		$list = static::normalizeStringList($list);
+		$list = static::staticNormalizeStringList($list);
 		if (!$list) return null;
 
 		$out = [];
@@ -513,7 +513,7 @@ trait DescribesClientForm
 		};
 	}
 
-	protected static function normalizeStringList(mixed $value): ?array
+	protected static function staticNormalizeStringList(mixed $value): ?array
 	{
 		if ($value === null || $value === '') return null;
 

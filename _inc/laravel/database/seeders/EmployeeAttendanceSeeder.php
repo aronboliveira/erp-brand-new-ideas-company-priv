@@ -56,7 +56,7 @@ class EmployeeAttendanceSeeder extends Seeder
 		$perEmpMax   = self::PER_EMP_MAX;
 		if ($perEmpMax < $perEmpMin) $perEmpMax = $perEmpMin;
 
-		$target   = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
+		$target   = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : min(2048, count($employees)));
 		$inserted = 0;
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;

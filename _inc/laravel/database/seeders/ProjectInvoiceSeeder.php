@@ -15,6 +15,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ProjectInvoiceSeeder extends Seeder
 {
+	private const SECONDS_LIMIT = 300; // 5 minutos
+	private const HARD_CAP = 1024;
 	private const PROJECT_FRACTION = 0.20;
 	private const INVOICE_FRACTION = 0.20;
 
@@ -23,7 +25,9 @@ class ProjectInvoiceSeeder extends Seeder
 
 	public function run(): void
 	{
-		$out = $this->out();
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
+		$clock = microtime(true);
+		$cap = self::HARD_CAP;
 
 		if (!Schema::hasTable(DC::TABLE_PROJECTS) || !Schema::hasTable(DC::TABLE_INVS) || !Schema::hasTable(DC::TABLE_PRJ_INV)) {
 			$out->writeln('<comment>[ProjectInvoiceSeeder]</comment> Missing required tables. Aborting.');
@@ -90,6 +94,16 @@ class ProjectInvoiceSeeder extends Seeder
 		// Se já existiam muitos pares no banco, tenta preencher até o target com pares aleatórios dentro do MESMO universo amostrado.
 		$attempts = 0;
 		while ($created < $target && $attempts++ < self::MAX_FILL_ATTEMPTS) {
+			if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+				$out->writeln('[ProjectInvoiceSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+				$this->command?->warn('[ProjectInvoiceSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+				return;
+			}
+			if (--$cap < 0) {
+				$out->writeln('[ProjectInvoiceSeeder] Limite máximo de itens atingido, interrompendo a execução do seeder.');
+				$this->command?->warn('[ProjectInvoiceSeeder] Limite máximo de itens atingido, interrompendo a execução do seeder.');
+				return;
+			}
 			$pjId = $pickedProjects[random_int(0, count($pickedProjects) - 1)] ?? '';
 			$inv  = $pickedInvoices[random_int(0, count($pickedInvoices) - 1)] ?? null;
 
@@ -113,7 +127,7 @@ class ProjectInvoiceSeeder extends Seeder
 			} while ($this->pairExistsRaw($invId, $pjId));
 
 			if ($tries > self::MAX_EXISTS_ATTEMPTS) continue;
-
+			$out->writeln("[ProjectInvoiceSeeder] {$created}/{$target} Attempting to create pair invoice_id={$invId} project_id={$pjId} after {$tries} tries.");
 			if ($this->createRow($inv, $pjId)) {
 				$created++;
 				if ($created % 64 === 0) {

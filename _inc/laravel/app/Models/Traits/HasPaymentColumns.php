@@ -214,7 +214,7 @@ trait HasPaymentColumns
 			->restrictOnDelete();
 	}
 
-	protected function addPaymentColumns(Blueprint $table, bool $nullableReconcile = true, bool $nullableInvoice = true): void
+	protected function addPaymentColumns(Blueprint $table, bool $nullableReconcile = true, bool $nullableInvoice = true, bool $includePayslip = true): void
 	{
 		$this->addFinancialIssuingColumns($table, $nullableReconcile);
 		// ? a transfer can be scheduled for a future date
@@ -236,7 +236,7 @@ trait HasPaymentColumns
 		$table->uuid(BC::COL_RCC_BY)->nullable();
 		// * Possíveis ponteiros de relação
 		$nullableInvoice ? $table->uuid('invoice')->nullable()->index() : $table->uuid(BC::COL_INV_ID)->index(); // todo this should be changed later, keeping for tests
-		$table->uuid('payslip')->nullable()->index();
+		$includePayslip && $table->uuid('payslip')->nullable()->index();
 		$nullableInvoice ? $table->foreign('invoice')
 			->references('id')
 			->on(DC::TABLE_INVS)
@@ -245,16 +245,14 @@ trait HasPaymentColumns
 			->references('id')
 			->on(DC::TABLE_INVS)
 			->restrictOnDelete();
-		foreach (
-			[
-				BC::COL_RCC_BY  => DC::TABLE_USERS,
-				'payslip'      => DC::TABLE_PAY_SLP,
-			] as $column => $referencedTable
-		)
-			$table->foreign($column)
-				->references('id')
-				->on($referencedTable)
-				->nullOnDelete();
+		$table->foreign(BC::COL_RCC_BY)
+			->references('id')
+			->on(DC::TABLE_USERS)
+			->nullOnDelete();
+		$includePayslip && $table->foreign('payslip')
+			->references('id')
+			->on(DC::TABLE_PAY_SLP)
+			->nullOnDelete();
 		$table->json('qr')->nullable(); // ? QR code data
 	}
 
@@ -280,7 +278,6 @@ trait HasPaymentColumns
 			[
 				BC::COL_RCC_BY,
 				'invoice',
-				'payslip',
 			] as $col
 		) {
 			try {
@@ -291,6 +288,16 @@ trait HasPaymentColumns
 					'Failed to drop foreign key for '
 						. $col
 						. ': '
+						. $e->getMessage()
+				);
+			}
+		}
+		if (Schema::hasColumn($tableName ?? $table->getTable(), 'payslip')) {
+			try {
+				$table->dropForeign(['payslip']);
+			} catch (\Exception $e) {
+				Log::warning(
+					'Failed to drop foreign key for payslip: '
 						. $e->getMessage()
 				);
 			}

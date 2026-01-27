@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{AppModuleType, EvaluationStatus, PriorityLevel};
-use App\Traits\{ChecksLogin, DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
+use App\Services\ActivitysAndLogsRequestService;
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Model};
 use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
-use Illuminate\Http\Request;
+use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class ProjectTask extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments, PlansByHierarchy, ChecksLogin, DefinesDates;
+    use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments, PlansByHierarchy, DefinesDates;
 
     protected $table = DC::TABLE_PROJ_TSKS;
 
@@ -273,13 +274,10 @@ class ProjectTask extends Model
                 foreach ($taskIds as $id) {
                     $task = self::find($id);
                     if (!$task) continue;
-
                     $files = TaskFile::where(AC::COL_TSK_ID, $task->id)
                         ->pluck('file')
                         ->toArray();
-
                     Utility::checkFileExistsAndDelete($files);
-
                     TaskFile::where(AC::COL_TSK_ID, $task->id)->delete();
                     $task->timesheets()->delete();
                     TaskChecklist::where(AC::COL_TSK_ID, $task->id)->delete();
@@ -287,7 +285,6 @@ class ProjectTask extends Model
                     $task->delete();
                 }
             });
-
             return true;
         } catch (\Throwable $e) {
             Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed: {$e->getMessage()}");
@@ -295,21 +292,10 @@ class ProjectTask extends Model
         }
     }
 
-    public function activityLog()
+    public function activityLog(): Collection|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        ) {
-            return $userOrRedirect;
-        }
-
-        $user = $userOrRedirect;
-
-        return ActivityLog::where(UC::COL_USER_ID, $user::id())
-            ->where(PJC::COL_PJ_ID, $this[PJC::COL_PJ_ID])
-            ->where(AC::COL_TSK_ID, $this->id)
-            ->get();
+        return app(ActivitysAndLogsRequestService::class)
+            ->getActivityLogForTask($this);
     }
 
     public function timesheets(): HasMany

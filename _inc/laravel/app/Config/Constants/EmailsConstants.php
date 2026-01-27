@@ -4,6 +4,8 @@ namespace App\Config\Constants;
 
 class EmailsConstants
 {
+	// * ==== COLUMNS =====
+	#region
 	public const COL_TT  = 'title';
 	public const COL_TMP	= 'template_id';
 	public const COL_SLG 	= 'slug';
@@ -19,6 +21,9 @@ class EmailsConstants
 	public const COL_RCV_TMP = 'received_template';
 	public const COL_SBM_TMP = 'submitted_template';
 	public const COL_FLD_TMP = 'failed_template';
+	#endregion
+	// * ==== ARRAYS =====
+	#region
 	public const STATUS_MAP = [
 		'new_user' => 'New User',
 		'new_client' => 'New Client',
@@ -44,4 +49,5 @@ class EmailsConstants
 		'warning_sent' => 'Warning Sent',
 		'new_contract' => 'New Contract',
 	];
+	#endregion
 }

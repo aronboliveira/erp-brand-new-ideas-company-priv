@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class TaskStageSeeder extends Seeder
 {
-	private const DEFAULT_MULTIPLIER = 8;
+	private const DEFAULT_MULTIPLIER = 2;
 
 	// Break-out safety
 	private const MAX_PICK_ATTEMPTS = 64;
@@ -22,7 +22,7 @@ class TaskStageSeeder extends Seeder
 
 	public function run(): void
 	{
-		$output = $this->command?->getOutput() ?? new ConsoleOutput();
+		$output = new ConsoleOutput();
 		$io     = new SymfonyStyle(new ArrayInput([]), $output);
 
 		$projectIds = $this->pluckIdsSafe(DC::TABLE_PROJECTS);
@@ -114,7 +114,7 @@ class TaskStageSeeder extends Seeder
 								strtolower($requestedPriority),
 								strtolower($requestedStatus),
 							]);
-
+							$output->writeln('Creating TaskStage for project ' . $projectId . ', task ' . ($taskId ?? 'null') . ', priority ' . $requestedPriority . ', status ' . $requestedStatus);
 							$stage->save();
 							$made++;
 

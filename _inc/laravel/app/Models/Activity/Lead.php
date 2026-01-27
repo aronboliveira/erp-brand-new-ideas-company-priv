@@ -188,7 +188,9 @@ class Lead extends Model
     {
         if (!$this->products) return collect();
 
-        return ProductService::whereIn('id', explode(',', $this->products))->get();
+        return ProductService::whereIn('id', explode(',', $this->products))->get()->merge(
+            Product::whereIn('id', explode(',', $this->products))->get()
+        );
     }
 
     public function sources(): Collection

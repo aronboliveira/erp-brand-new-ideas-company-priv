@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{AppModuleType, PlanningScheduleType};
-use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
+use App\Traits\{DefinesDates, HasAuditFields, NormalizesArrays, PlansWithSchedule, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 class PlanningSchedule extends Model
 {
-	use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays;
+	use UsesUuids, HasFactory, HasAuditFields, NormalizesArrays, DefinesDates, PlansWithSchedule;
 
 	protected $table = DC::TABLE_PLN_SCHD;
 
@@ -51,8 +51,8 @@ class PlanningSchedule extends Model
 		AC::COL_SCHD_TP => PlanningScheduleType::class,
 		PJC::COL_S_DT => 'date',
 		PJC::COL_E_DT => 'date',
-		AC::COL_ST_TIME => 'time',
-		AC::COL_E_TIME => 'time',
+		AC::COL_ST_TIME => 'datetime:H:i:s',
+		AC::COL_E_TIME => 'datetime:H:i:s',
 
 		'events' => 'array',
 		'meetings' => 'array',

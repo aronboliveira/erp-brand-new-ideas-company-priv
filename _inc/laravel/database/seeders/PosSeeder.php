@@ -23,9 +23,12 @@ final class PosSeeder extends Seeder
 	 */
 	private const TOTAL = 256;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+
 	public function run(): void
 	{
 		DB::transaction(function () {
+			$clock = microtime(true);
 			$faker = \Faker\Factory::create('pt_BR');
 
 			// FKs obrigatórias (a tabela/migration exige)
@@ -45,6 +48,11 @@ final class PosSeeder extends Seeder
 
 			for ($i = 0; $i < self::TOTAL; $i++) {
 				try {
+
+					if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						return;
+					}
 					// Identificador para vínculo com itens/pagamento (se existirem)
 					$posPublicId = 'POS-' . Str::upper(Str::random(10));
 

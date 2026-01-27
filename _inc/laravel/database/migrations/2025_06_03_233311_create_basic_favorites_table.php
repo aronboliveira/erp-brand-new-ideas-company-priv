@@ -14,7 +14,7 @@ class CreateBasicFavoritesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->enum('module', array_column(AppModuleType::cases(), 'value'))->default(AppModuleType::Other->value)->index();
+            $table->string('module')->default(AppModuleType::Other->value)->nullable()->index();
             $table->string(AC::COL_FV_TB)->default(DC::TABLE_NOTES)->nullable()->index(); // * can refer to the name of the any DC::TABLE_, in DatabaseConstants.php
             $table->uuid(AC::COL_FV_ID)->index(); // * polymorphic relation to the id in the table defined in AC::COL_FV_TB
             $table->uuid(UC::COL_USER_ID)->index();

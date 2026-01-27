@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class PosPaymentSeeder extends Seeder
 {
+	public const HARD_CAP = 1024;
+	public const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutos
 	/**
 	 * Gera registros em pos_payments, vinculando a POS e, na maioria dos casos,
 	 * a um Payment existente. Usa Eloquent::create() para disparar eventos
@@ -20,6 +22,11 @@ class PosPaymentSeeder extends Seeder
 		// Coleta IDs existentes para manter integridade referencial
 		$posIds       = DB::table(DC::TABLE_POS)->pluck('id')->all();
 		$paymentIds   = DB::table(DC::TABLE_PAY)->pluck('id')->all();
+		$usedPaymentIds = DB::table(DC::TABLE_POS_PAY)
+			->whereNotNull('payment')
+			->pluck('payment')
+			->all();
+		$paymentIds = array_values(array_diff($paymentIds, $usedPaymentIds));
 		$bankAccountIds = DB::table(DC::TABLE_BANK_ACC)->pluck('id')->all();
 
 		if (empty($posIds)) {
@@ -31,14 +38,26 @@ class PosPaymentSeeder extends Seeder
 		$target = min(max(count($posIds) * 32, 16), 160);
 
 		DB::transaction(function () use ($posIds, $paymentIds, $bankAccountIds, $target) {
+			$availablePaymentIds = $paymentIds;
+			shuffle($availablePaymentIds);
+			$cap = self::HARD_CAP;
+			$clock = microtime(true);
 			for ($i = 0; $i < $target; $i++) {
+				if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+					Log::warning(get_class($this) . ' aborted: time limit exceeded.');
+					return;
+				}
+				if (--$cap < 0) {
+					Log::warning(get_class($this) . ' aborted: hard cap reached.');
+					return;
+				}
 				try {
 					$posId = $posIds[array_rand($posIds)];
 					(new \Symfony\Component\Console\Output\ConsoleOutput
 					)->writeln("Criando Pagamento para Ponto de Venda: {$posId}");
 					// 80% dos registros terão um Payment associado (em produção deveria ser 100%)
-					$paymentId = (!empty($paymentIds) && random_int(1, 100) <= 80)
-						? $paymentIds[array_rand($paymentIds)]
+					$paymentId = (!empty($availablePaymentIds) && random_int(1, 100) <= 80)
+						? array_pop($availablePaymentIds)
 						: null;
 
 					// 70% terão conta bancária (pode ser nula p/ PIX/dinheiro em specs antigas)

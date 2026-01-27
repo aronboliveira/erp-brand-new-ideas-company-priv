@@ -8,7 +8,7 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
-    Relations\HasOne
+    Relations\BelongsTo
 };
 
 class Overtime extends Model
@@ -77,12 +77,8 @@ class Overtime extends Model
         return $this->type === PaymentPatternType::Percentage;
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(
-            Employee::class,
-            'id',
-            UC::COL_EMP_ID
-        );
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 }

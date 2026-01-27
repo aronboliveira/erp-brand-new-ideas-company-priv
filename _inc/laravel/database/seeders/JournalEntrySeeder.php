@@ -22,6 +22,7 @@ class JournalEntrySeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 	public function __construct()
 	{
 		$this->out = new ConsoleOutput();
@@ -29,6 +30,7 @@ class JournalEntrySeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$table = DC::TABLE_JOURNAL_ENTRIES;
 
 		if (!Schema::hasTable($table)) {
@@ -51,7 +53,7 @@ class JournalEntrySeeder extends Seeder
 
 		$rawTotal = $rawTotal + ($rawTotal % 64 === 0 ? 0 : (64 - ($rawTotal % 64)));
 
-		$hardCap = 6400;
+		$hardCap = 1024;
 
 		$existing = $this->safeCount($table);
 		$remainingCap = max(0, $hardCap - $existing);
@@ -169,6 +171,11 @@ class JournalEntrySeeder extends Seeder
 		$linkModes = ['invoice', 'bill', 'pos', 'mixed'];
 
 		for ($i = 0; $i < $total; $i++) {
+
+			if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				return;
+			}
 			$status = $statuses[$i % count($statuses)];
 			$payType = $payTypes[$i % count($payTypes)];
 			$bookType = $bookTypes[$i % count($bookTypes)];

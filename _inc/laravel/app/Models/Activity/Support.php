@@ -5,14 +5,12 @@ namespace App\Models;
 use App\Config\Constants\{
 	ActivitiesConstants as AC,
 	DatabaseConstants as DC,
-	MessagesConstants as MC,
 	ProjectsConstants as PJC,
 	SupportsConstants as SC,
-	UsersConstants as UC
 };
 use App\Enums\{AppModuleType, CaseStatus, PriorityLevel, Visibility};
+use App\Services\SupportHelperService;
 use App\Traits\{
-	ChecksLogin,
 	DefinesDates,
 	FiltersSecureAttachments,
 	HasAuditFields,
@@ -25,12 +23,12 @@ use Illuminate\Database\Eloquent\{
 	Model,
 	Relations\BelongsTo
 };
-use Illuminate\Support\Facades\{Auth, DB, Log, Schema};
+use Illuminate\Support\Facades\{Log, Schema};
 use Illuminate\Support\Str;
 
 class Support extends Model
 {
-	use UsesUuids, HasAuditFields, ChecksLogin, FiltersSecureAttachments, HasFactory, NormalizesArrays, PlansByHierarchy, DefinesDates;
+	use UsesUuids, HasAuditFields, FiltersSecureAttachments, HasFactory, NormalizesArrays, PlansByHierarchy, DefinesDates;
 
 	protected $table = DC::TABLE_SUPPORTS;
 
@@ -294,9 +292,15 @@ class Support extends Model
 		return is_array($others) && count($others) > 0;
 	}
 
+	/**
+	 * Get unread replies count
+	 * Pure alias to SupportHelperService - handles auth internally
+	 */
 	public function getUnreadRepliesCountAttribute(): int
 	{
-		return $this->replyUnread();
+		return app(SupportHelperService::class)->getUnreadRepliesCount(
+			$this->getKey()
+		);
 	}
 
 	public static function status(): array
@@ -374,48 +378,32 @@ class Support extends Model
 		return $this->belongsTo(Bug::class, 'bug', 'id');
 	}
 
+	/**
+	 * Get unread replies count (legacy method name)
+	 * Pure alias to SupportHelperService - handles auth internally
+	 */
 	public function replyUnread(): int
 	{
-		$user = Auth::user();
-		if (!$user) return 0;
-
-		$isEmployee = strtolower((string) ($user[UC::COL_TP] ?? '')) === 'employee';
-
-		$q = SupportReply::where(SC::COL_SPT_ID, $this->getKey())
-			->where(MC::COL_IS_RD, 0);
-
-		return $isEmployee
-			? $q->where('user', '!=', $user->id)->count('id')
-			: $q->count('id');
+		return app(SupportHelperService::class)->getUnreadRepliesCount(
+			$this->getKey()
+		);
 	}
 
-	public function scopeOpenCases($q)
+	/**
+	 * Scope to filter open cases
+	 * Pure alias to SupportHelperService
+	 */
+	public function scopeOpenCases($query)
 	{
-		return $q->whereIn(SC::COL_STT_LB, array_map(fn($c) => $c->value, array_values(array_filter(CaseStatus::cases(), fn($c) => $c->isActive()))));
+		return app(SupportHelperService::class)->applyOpenCasesScope($query);
 	}
 
+	/**
+	 * Touch closed_by and closed_at fields when case is closed
+	 * Pure alias to SupportHelperService - handles auth internally
+	 */
 	public function touchClosedByPolicy(?string $userId = null): void
 	{
-		try {
-			$table = $this->getTable();
-			if (!Schema::hasColumn($table, SC::COL_CLSD_BY) || !Schema::hasColumn($table, SC::COL_CLSD_AT)) return;
-
-			$st = $this->getAttribute(SC::COL_STT_LB);
-			if (!($st instanceof CaseStatus) || !$st->isTerminal()) return;
-
-			$uid = trim((string) ($userId ?? Auth::id() ?? ''));
-			if ($uid === '') return;
-
-			$this->setAttribute(SC::COL_CLSD_BY, $uid);
-			if (empty($this->getAttribute(SC::COL_CLSD_AT)))
-				$this->setAttribute(SC::COL_CLSD_AT, now());
-		} catch (\Throwable $e) {
-			Log::error(static::class . ' touchClosedByPolicy failed', [
-				'id' => $this->getKey(),
-				'error' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		}
+		app(SupportHelperService::class)->touchClosedByPolicy($this, $userId);
 	}
 }

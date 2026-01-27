@@ -10,118 +10,202 @@ use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-class ContractAttachmentSeeder extends Seeder
+final class ContractAttachmentSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const HARD_CAP = 32000;
-	private const MAX_PER_CONTRACT = 8;
+	private const HARD_CAP = 2048;
+	private const MIN_TOTAL = 128;
+	private const COVERAGE_RATIO = 0.80;
+
+	// Keep a sane default, but allow rising to satisfy MIN_TOTAL on small datasets
+	private const DEFAULT_MAX_PER_CONTRACT = 8;
+	private const ABS_MAX_PER_CONTRACT = 256;
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
 
-		$contracts = $this->fetchContracts();
-		if (!$contracts) {
-			$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> No contracts found. Skipping.');
-			return;
-		}
+		DB::transaction(function (): void {
+			$clock = microtime(true);
+			$contracts = $this->fetchContracts();
+			$contractCount = count($contracts);
 
-		$userIds = $this->fetchUserIds();
-		$docIds  = $this->fetchDocIds();
+			if ($contractCount <= 0) {
+				$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> No contracts found. Skipping.');
+				return;
+			}
 
-		$types = AttachmentModuleType::cases();
+			$userIds = $this->fetchUserIds();
+			$docIds  = $this->fetchDocIds();
 
-		$contractsCol = collect($contracts)->shuffle()->values();
-		$take = max(1, (int) floor($contractsCol->count() * 0.5));
-		$selected = $contractsCol->take($take)->values();
+			$coverageWanted = (int) ceil($contractCount * self::COVERAGE_RATIO);
 
-		$plan = $this->planCounts($selected);
-		$rawTotal = $plan['raw_total'];
-		$countsByContract = $plan['counts'];
+			// Target total: >= MIN_TOTAL and >= coverageWanted, then clamp to HARD_CAP
+			$rawTarget = max(self::MIN_TOTAL, $coverageWanted);
+			$target = min(self::HARD_CAP, $this->roundUpTo64($rawTarget));
+			if ($target > self::HARD_CAP) $target = self::HARD_CAP;
 
-		$maxPossible = $selected->count() * self::MAX_PER_CONTRACT;
-		$target = $this->computeTargetTotal($rawTotal, $maxPossible);
+			if ($target <= 0) {
+				$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> Target total is 0. Skipping.');
+				return;
+			}
 
-		if ($target <= 0) {
-			$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> Target total is 0. Skipping.');
-			return;
-		}
+			$maxPerContract = $this->computeMaxPerContract($contractCount, $target);
 
-		$countsByContract = $this->adjustCountsToTarget($countsByContract, $target, self::MAX_PER_CONTRACT);
-
-		$hasStatusCol = $this->hasColumnSafe(DC::TABLE_CTC_ATC, 'status');
-		$hasMetadataCol = $this->hasColumnSafe(DC::TABLE_CTC_ATC, 'metadata');
-
-		$created = 0;
-		$attempts = 0;
-		$attemptLimit = max(2000, $target * 4);
-
-		foreach ($selected as $cRow) {
-			$contractId = (string) ($cRow->id ?? '');
-			if ($contractId === '') continue;
-
-			$qty = (int) ($countsByContract[$contractId] ?? 0);
-			if ($qty <= 0) continue;
-
-			for ($k = 0; $k < $qty; $k++) {
-				if ($created >= $target) break 2;
-
-				$attempts++;
-				if ($attempts > $attemptLimit) {
-					$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> Attempt limit reached. Breaking early.');
-					break 2;
-				}
-
-				$created++;
-				$variationIndex = $created - 1;
-
-				$attrs = $this->buildAttachmentAttrs(
-					$variationIndex,
-					$cRow,
-					$userIds,
-					$docIds,
-					$types,
-					$hasStatusCol,
-					$hasMetadataCol
-				);
-
+			$maxPossible = $contractCount * $maxPerContract;
+			if ($maxPossible < $target) {
+				// Best-effort adjustment: reduce target if truly impossible (very small datasets)
+				$target = min(self::HARD_CAP, $maxPossible);
 				$this->out->writeln(sprintf(
-					'<info>[CTC_ATC]</info> %d/%d contract=%s type=%s apv=%s rej=%s main=%s',
-					$created,
+					'<comment>[ContractAttachmentSeeder]</comment> Max possible (%d) < requested target. Adjusted target to %d (maxPerContract=%d).',
+					$maxPossible,
 					$target,
-					$contractId,
-					(string) ($attrs[PJC::COL_ATC_TP] ?? 'n/a'),
-					empty($attrs[PJC::COL_APV_BY] ?? null) ? '0' : '1',
-					empty($attrs[PJC::COL_REJ_BY] ?? null) ? '0' : '1',
-					(string) ($this->firstFileTokenFromCsv($attrs['files'] ?? null) ?? 'none')
+					$maxPerContract
 				));
+			}
 
-				try {
-					ContractAttachment::create($attrs);
-				} catch (\Throwable $e) {
-					Log::error(static::class . ' failed creating ContractAttachment', [
-						'file' => $e->getFile(),
-						'line' => $e->getLine(),
-						'error' => $e->getMessage(),
-						'contract_id' => $contractId,
-						'attrs' => $this->safeLogAttrs($attrs),
-					]);
+			$coveragePossible = min($coverageWanted, $target, $contractCount);
+			$coverageAchieved = $contractCount > 0 ? ($coveragePossible / $contractCount) : 0.0;
+
+			if ($coverageAchieved + 1e-9 < self::COVERAGE_RATIO) {
+				$this->out->writeln(sprintf(
+					'<comment>[ContractAttachmentSeeder]</comment> Coverage cannot be fully satisfied under cap=%d. Desired=%.2f, achieved=%.3f.',
+					self::HARD_CAP,
+					self::COVERAGE_RATIO,
+					$coverageAchieved
+				));
+			}
+
+			// Index contracts by id for fast lookup and stable behavior
+			$contractsById = [];
+			$contractIds = [];
+
+			foreach ($contracts as $r) {
+				$id = (string) ($r->id ?? '');
+				if ($id === '') continue;
+				$contractsById[$id] = $r;
+				$contractIds[] = $id;
+			}
+
+			$contractIds = array_values(array_unique($contractIds));
+			if (!$contractIds) {
+				$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> Contracts found, but none had valid ids. Skipping.');
+				return;
+			}
+
+			$countsByContract = $this->planCountsByContract(
+				$contractIds,
+				$target,
+				$coveragePossible,
+				$maxPerContract
+			);
+
+			$types = AttachmentModuleType::cases();
+			$hasMetadata = $this->hasColumnSafe(DC::TABLE_CTC_ATC, 'metadata');
+
+			$created = 0;
+			$attempts = 0;
+			$attemptLimit = max(4096, $target * 8);
+
+			foreach ($countsByContract as $contractId => $qty) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
+				if ($created >= $target) break;
+				if ($qty <= 0) continue;
+
+				$cRow = $contractsById[$contractId] ?? null;
+				if (!$cRow) continue;
+
+				for ($k = 0; $k < $qty; $k++) {
+					if ($created >= $target) break 2;
+
+					$attempts++;
+					if ($attempts > $attemptLimit) {
+						$this->out->writeln('<comment>[ContractAttachmentSeeder]</comment> Attempt limit reached. Breaking early.');
+						break 2;
+					}
+
+					$variation = $created;
+					$attrs = $this->buildAttachmentAttrs(
+						$variation,
+						$cRow,
+						$userIds,
+						$docIds,
+						$types,
+						$hasMetadata
+					);
+
+					$this->out->writeln(sprintf(
+						'<info>[CTC_ATC]</info> %d/%d contract=%s atc_tp=%s main=%s code=%s',
+						$created + 1,
+						$target,
+						$contractId,
+						(string) ($attrs[PJC::COL_ATC_TP] ?? 'n/a'),
+						(string) ($this->firstFileTokenFromCsv($attrs['files'] ?? null) ?? 'none'),
+						(string) ($attrs['code'] ?? 'null')
+					));
+
+					try {
+						ContractAttachment::create($attrs);
+						$created++;
+					} catch (\Throwable $e) {
+						Log::error(static::class . ' failed creating ContractAttachment', [
+							'file' => $e->getFile(),
+							'line' => $e->getLine(),
+							'error' => $e->getMessage(),
+							'contract_id' => $contractId,
+							'attrs' => $this->safeLogAttrs($attrs),
+						]);
+					}
 				}
 			}
-		}
 
-		$this->out->writeln("<comment>[ContractAttachmentSeeder]</comment> Done. Created {$created} rows.");
+			$this->out->writeln(sprintf(
+				'<comment>[ContractAttachmentSeeder]</comment> Done. Created %d rows (target=%d, contracts=%d, maxPerContract=%d).',
+				$created,
+				$target,
+				$contractCount,
+				$maxPerContract
+			));
+		}, 3);
 	}
 
+	private function computeMaxPerContract(int $contractCount, int $target): int
+	{
+		$contractCount = max(1, $contractCount);
+
+		$requiredAvg = (int) ceil($target / $contractCount);
+		$maxPer = max(self::DEFAULT_MAX_PER_CONTRACT, $requiredAvg);
+
+		$maxPer = min(self::ABS_MAX_PER_CONTRACT, $maxPer);
+		$maxPer = min(self::HARD_CAP, $maxPer);
+
+		return max(1, $maxPer);
+	}
+
+	/**
+	 * Reading-only via raw SQL, with tolerance for schema variation.
+	 *
+	 * @return array<int,object>
+	 */
 	private function fetchContracts(): array
 	{
 		try {
-			$sql = 'SELECT id, status, '
-				. PJC::COL_APV_BY . ' AS apv_by, ' . PJC::COL_APV_AT . ' AS apv_at, '
-				. PJC::COL_REJ_BY . ' AS rej_by, ' . PJC::COL_REJ_AT . ' AS rej_at '
-				. 'FROM ' . DC::TABLE_CONTRACTS;
+			$cols = ['id'];
 
+			if ($this->hasColumnSafe(DC::TABLE_CONTRACTS, 'status')) $cols[] = 'status';
+
+			if ($this->hasColumnSafe(DC::TABLE_CONTRACTS, PJC::COL_APV_BY)) $cols[] = PJC::COL_APV_BY . ' AS apv_by';
+			if ($this->hasColumnSafe(DC::TABLE_CONTRACTS, PJC::COL_APV_AT)) $cols[] = PJC::COL_APV_AT . ' AS apv_at';
+			if ($this->hasColumnSafe(DC::TABLE_CONTRACTS, PJC::COL_REJ_BY)) $cols[] = PJC::COL_REJ_BY . ' AS rej_by';
+			if ($this->hasColumnSafe(DC::TABLE_CONTRACTS, PJC::COL_REJ_AT)) $cols[] = PJC::COL_REJ_AT . ' AS rej_at';
+
+			$sql = 'SELECT ' . implode(', ', $cols) . ' FROM ' . DC::TABLE_CONTRACTS;
 			return DB::select($sql) ?? [];
 		} catch (\Throwable $e) {
 			Log::error(static::class . ' failed fetching contracts', [
@@ -174,134 +258,118 @@ class ContractAttachmentSeeder extends Seeder
 		}
 	}
 
-	private function planCounts($selected): array
+	/**
+	 * Plan counts:
+	 * - Guarantee $coverageContracts contracts have at least 1 attachment.
+	 * - Fill until reaching $target, respecting $maxPerContract.
+	 *
+	 * @param array<int,string> $contractIds
+	 * @return array<string,int>
+	 */
+	private function planCountsByContract(array $contractIds, int $target, int $coverageContracts, int $maxPerContract): array
 	{
+		$contractIds = array_values($contractIds);
+
 		$counts = [];
-		$rawTotal = 0;
+		foreach ($contractIds as $id) $counts[(string) $id] = 0;
 
-		foreach ($selected as $cRow) {
-			$id = (string) ($cRow->id ?? '');
-			if ($id === '') continue;
+		$pool = collect($contractIds)->shuffle()->values();
+		$covered = $pool->take(max(0, $coverageContracts))->values()->all();
 
-			$n = random_int(0, self::MAX_PER_CONTRACT);
-			$counts[$id] = $n;
-			$rawTotal += $n;
+		foreach ($covered as $id) {
+			$id = (string) $id;
+			$counts[$id] = 1;
 		}
 
-		$maxPossible = count($counts) * self::MAX_PER_CONTRACT;
-
-		if ($rawTotal === 0 && $maxPossible > 0) {
-			$need = min(64, $maxPossible);
-			$keys = array_values(array_keys($counts));
-			$i = 0;
-			$attempts = 0;
-			$attemptLimit = max(256, $need * 8);
-
-			while ($need > 0 && $attempts < $attemptLimit) {
-				$attempts++;
-				$key = $keys[$i % max(1, count($keys))] ?? null;
-				if (!$key) break;
-
-				if (($counts[$key] ?? 0) < self::MAX_PER_CONTRACT) {
-					$counts[$key] = (int) ($counts[$key] ?? 0) + 1;
-					$rawTotal++;
-					$need--;
-				}
-
-				$i++;
-			}
-		}
-
-		return ['raw_total' => $rawTotal, 'counts' => $counts];
-	}
-
-	private function computeTargetTotal(int $rawTotal, int $maxPossible): int
-	{
-		$cap = self::HARD_CAP;
-		$cap = $cap - ($cap % 64);
-
-		$maxPossible64 = $this->roundDownTo64($maxPossible);
-		if ($maxPossible64 <= 0) return 0;
-
-		$raw = min($rawTotal, $cap);
-		$target = $this->roundUpTo64($raw);
-
-		if ($target > $cap) $target = $cap;
-		if ($target > $maxPossible64) $target = $maxPossible64;
-
-		return $target;
-	}
-
-	private function adjustCountsToTarget(array $counts, int $target, int $maxPer): array
-	{
-		$current = array_sum($counts);
-		$keys = array_values(array_keys($counts));
+		$current = count($covered);
+		$remaining = max(0, $target - $current);
 
 		$attempts = 0;
-		$attemptLimit = max(2048, $target * 8);
+		$attemptLimit = max(1024, $target * 6);
 
-		while ($current < $target && $attempts < $attemptLimit) {
+		while ($remaining > 0 && $attempts < $attemptLimit) {
 			$attempts++;
 
 			$advanced = false;
-			foreach ($keys as $k) {
-				if ($current >= $target) break;
+			$shuffled = collect($contractIds)->shuffle()->values()->all();
 
-				$v = (int) ($counts[$k] ?? 0);
-				if ($v < $maxPer) {
-					$counts[$k] = $v + 1;
-					$current++;
-					$advanced = true;
-				}
+			foreach ($shuffled as $id) {
+				if ($remaining <= 0) break;
+
+				$id = (string) $id;
+				$v = (int) ($counts[$id] ?? 0);
+				if ($v >= $maxPerContract) continue;
+
+				$inc = ($remaining >= 2 && random_int(0, 100) < 15) ? 2 : 1;
+				$inc = min($inc, $remaining);
+				$inc = min($inc, $maxPerContract - $v);
+				if ($inc <= 0) continue;
+
+				$counts[$id] = $v + $inc;
+				$remaining -= $inc;
+				$advanced = true;
 			}
 
 			if (!$advanced) break;
 		}
 
-		$attempts = 0;
-		$attemptLimit = max(2048, $target * 8);
-
-		while ($current > $target && $attempts < $attemptLimit) {
-			$attempts++;
-
-			$advanced = false;
-			foreach ($keys as $k) {
-				if ($current <= $target) break;
-
-				$v = (int) ($counts[$k] ?? 0);
-				if ($v > 0) {
-					$counts[$k] = $v - 1;
-					$current--;
-					$advanced = true;
-				}
-			}
-
-			if (!$advanced) break;
+		if ($remaining > 0) {
+			$this->out->writeln(sprintf(
+				'<comment>[ContractAttachmentSeeder]</comment> Planning could not reach target: remaining=%d (attempts=%d, maxPerContract=%d).',
+				$remaining,
+				$attempts,
+				$maxPerContract
+			));
 		}
 
 		return $counts;
 	}
 
+	/**
+	 * @param array<int,string> $userIds
+	 * @param array<int,string> $docIds
+	 * @param array<int,\App\Enums\AttachmentModuleType> $types
+	 */
 	private function buildAttachmentAttrs(
 		int $i,
 		object $contractRow,
 		array $userIds,
 		array $docIds,
 		array $types,
-		bool $hasStatusCol,
-		bool $hasMetadataCol
+		bool $hasMetadata
 	): array {
 		$contractId = (string) ($contractRow->id ?? '');
 		$contractStatus = (string) ($contractRow->status ?? '');
 
-		$type = $types[$i % max(1, count($types))] ?? AttachmentModuleType::Other;
+		$tp = $types[$i % max(1, count($types))] ?? AttachmentModuleType::Other;
+
+		if (random_int(0, 100) < 55) {
+			$contractLike = [
+				AttachmentModuleType::Contract,
+				AttachmentModuleType::Agreement,
+				AttachmentModuleType::Addendum,
+				AttachmentModuleType::Amendment,
+				AttachmentModuleType::Schedule,
+				AttachmentModuleType::Annex,
+				AttachmentModuleType::Exhibit,
+				AttachmentModuleType::Appendix,
+				AttachmentModuleType::NDA,
+				AttachmentModuleType::Disclosure,
+				AttachmentModuleType::Waiver,
+			];
+			$tp = $contractLike[random_int(0, count($contractLike) - 1)];
+		}
 
 		$submitter = $this->pickUserId($userIds);
 		$approver  = $this->pickUserId($userIds);
 		$rejecter  = $this->pickUserId($userIds);
 
-		$now = now();
-		$submittedAt = random_int(0, 100) < 70 ? $now->copy()->subDays(random_int(0, 60))->subMinutes(random_int(0, 1440)) : null;
+		if (random_int(0, 100) < 18) $submitter = null;
+
+		$now = now('America/Sao_Paulo');
+		$submittedAt = random_int(0, 100) < 75
+			? $now->copy()->subDays(random_int(0, 120))->subMinutes(random_int(0, 1440))
+			: null;
 
 		$scenario = $i % 6;
 
@@ -310,50 +378,47 @@ class ContractAttachmentSeeder extends Seeder
 		$rejBy = null;
 		$rejAt = null;
 
-		if ($scenario === 0) {
-			// pending-like: none set
-		} elseif ($scenario === 1) {
+		if ($scenario === 1) {
 			$apvBy = $approver;
-			$apvAt = $submittedAt ? $now->copy()->subMinutes(random_int(1, 600)) : $now->copy()->subMinutes(random_int(1, 1440));
+			$apvAt = $submittedAt ? $submittedAt->copy()->addMinutes(random_int(1, 600)) : $now->copy()->subMinutes(random_int(1, 1440));
 		} elseif ($scenario === 2) {
 			$rejBy = $rejecter;
-			$rejAt = $submittedAt ? $now->copy()->subMinutes(random_int(1, 600)) : $now->copy()->subMinutes(random_int(1, 1440));
+			$rejAt = $submittedAt ? $submittedAt->copy()->addMinutes(random_int(1, 600)) : $now->copy()->subMinutes(random_int(1, 1440));
 		} elseif ($scenario === 3) {
 			$apvBy = $approver;
 			$apvAt = $now->copy()->subMinutes(120);
 			$rejBy = $rejecter;
-			$rejAt = $now->copy()->subMinutes(30); // rej later => should win
+			$rejAt = $now->copy()->subMinutes(30);
 		} elseif ($scenario === 4) {
 			$rejBy = $rejecter;
 			$rejAt = $now->copy()->subMinutes(120);
 			$apvBy = $approver;
-			$apvAt = $now->copy()->subMinutes(30); // apv later => should win
-		} else {
+			$apvAt = $now->copy()->subMinutes(30);
+		} elseif ($scenario === 5) {
 			$ts = $now->copy()->subMinutes(45);
 			$apvBy = $approver;
-			$apvAt = $ts; // same timestamp => rej wins by rule
+			$apvAt = $ts;
 			$rejBy = $rejecter;
 			$rejAt = $ts;
 		}
 
-		$isContractAcceptLike = in_array(EvaluationStatus::normalize($contractStatus)->value, [
-			EvaluationStatus::Accept->value,
-			EvaluationStatus::Active->value,
-		], true);
+		// Allow boot/save "import" logic to be exercised by nulling sometimes
+		$norm = EvaluationStatus::normalize($contractStatus)->value;
 
-		$isContractRejectLike = in_array(EvaluationStatus::normalize($contractStatus)->value, [
+		$isAcceptLike = in_array($norm, [EvaluationStatus::Accept->value, EvaluationStatus::Active->value], true);
+		$isRejectLike = in_array($norm, [
 			EvaluationStatus::Suspended->value,
 			EvaluationStatus::Cancelled->value,
 			EvaluationStatus::Expired->value,
 			EvaluationStatus::Decline->value,
 		], true);
 
-		if ($isContractAcceptLike && random_int(0, 100) < 35) {
+		if ($isAcceptLike && random_int(0, 100) < 40) {
 			$apvBy = null;
 			$apvAt = null;
 		}
 
-		if ($isContractRejectLike && random_int(0, 100) < 35) {
+		if ($isRejectLike && random_int(0, 100) < 40) {
 			$rejBy = null;
 			$rejAt = null;
 		}
@@ -361,7 +426,7 @@ class ContractAttachmentSeeder extends Seeder
 		$filePack = $this->buildFilePack($i, $docIds, $userIds);
 
 		$attrs = [
-			'code' => $this->uniqueCodeOrNull(30),
+			'code' => $this->uniqueCodeOrNull(40),
 			PJC::COL_CTC_ID => $contractId,
 			UC::COL_USER_ID => $submitter,
 			PJC::COL_SBM_AT => $submittedAt,
@@ -370,38 +435,29 @@ class ContractAttachmentSeeder extends Seeder
 			PJC::COL_REJ_BY => $rejBy,
 			PJC::COL_REJ_AT => $rejAt,
 
-			DC::COL_FL_PT => $filePack['file_path'],
+			DC::COL_FL_PT => $filePack[DC::COL_FL_PT],
 			'url' => $filePack['url'],
 			'name' => $filePack['name'],
 			'extension' => $filePack['extension'],
-			DC::COL_MM_TP => $filePack['mime_type'],
-			DC::COL_LA => $filePack['last_access'],
+			DC::COL_MM_TP => $filePack[DC::COL_MM_TP],
+			DC::COL_LA => $filePack[DC::COL_LA],
 			'size' => $filePack['size'],
 			'description' => $filePack['description'],
 			'notes' => $filePack['notes'],
-			DC::COL_DL_CT => $filePack['download_count'],
-			DC::COL_FL_SZ => $filePack['file_size_bytes'],
-			DC::COL_PERM_RLS => $filePack['perm_release'],
+			DC::COL_DL_CT => $filePack[DC::COL_DL_CT],
+			DC::COL_FL_SZ => $filePack[DC::COL_FL_SZ],
+			DC::COL_PERM_RLS => $filePack[DC::COL_PERM_RLS],
 			'executors' => $filePack['executors'],
 			'editors' => $filePack['editors'],
 			'viewers' => $filePack['viewers'],
-			DC::COL_EXP_DT => $filePack['expires_at'],
-			'type' => $filePack['doc_kind'],
+			DC::COL_EXP_DT => $filePack[DC::COL_EXP_DT],
+			'type' => $filePack['type'],
 
-			PJC::COL_ATC_TP => $type->value,
-			'files' => $filePack['files_csv'],
+			PJC::COL_ATC_TP => $tp->value,
+			'files' => $filePack['files'],
 		];
 
-		if ($hasStatusCol) {
-			$attrs['status'] = match ($scenario) {
-				0 => EvaluationStatus::Pending->value,
-				1 => EvaluationStatus::Accept->value,
-				2 => EvaluationStatus::Suspended->value,
-				default => EvaluationStatus::Pending->value,
-			};
-		}
-
-		if ($hasMetadataCol) {
+		if ($hasMetadata) {
 			$attrs['metadata'] = [
 				'seed' => [
 					'seeder' => static::class,
@@ -414,27 +470,38 @@ class ContractAttachmentSeeder extends Seeder
 		return $attrs;
 	}
 
+	/**
+	 * Builds file columns + "files" CSV (main token first when possible).
+	 *
+	 * @param array<int,string> $docIds
+	 * @param array<int,string> $userIds
+	 */
 	private function buildFilePack(int $i, array $docIds, array $userIds): array
 	{
 		$appUrl = (string) config('app.url');
-		$now = now();
+		$now = now('America/Sao_Paulo');
 
-		$mode = $i % 10;
+		$mode = $i % 12;
 
 		$url = null;
 		$filePath = null;
 		$docId = null;
 
-		if ($mode <= 2 && $docIds) {
-			$docId = $docIds[random_int(0, max(0, count($docIds) - 1))] ?? null;
-		} elseif ($mode <= 5 && $appUrl !== '') {
-			$uuid = (string) Str::uuid();
-			$url = rtrim($appUrl, '/') . '/storage/mock/contracts/ctc_atc_' . $uuid . '.pdf';
-		} else {
+		// Prefer url/file_path to exercise "main file" rule
+		if ($mode <= 4 && $appUrl !== '') {
+			$url = rtrim($appUrl, '/') . '/storage/mock/contracts/ctc_atc_' . (string) Str::uuid() . '.pdf';
+		} elseif ($mode <= 8) {
 			$filePath = 'contracts/mock/ctc_atc_' . (string) Str::uuid() . '.pdf';
+		} elseif ($docIds) {
+			$docId = $docIds[random_int(0, max(0, count($docIds) - 1))] ?? null;
+		} elseif ($appUrl !== '') {
+			$url = rtrim($appUrl, '/') . '/storage/mock/contracts/ctc_atc_' . (string) Str::uuid() . '.txt';
+		} else {
+			$filePath = 'contracts/mock/ctc_atc_' . (string) Str::uuid() . '.txt';
 		}
 
-		$main = $url ?: ($docId ?: $filePath);
+		// Main token: url first, then file_path, then doc id
+		$mainToken = $url ?: ($filePath ?: $docId);
 
 		$extras = [];
 		$extraCount = random_int(0, 3);
@@ -450,43 +517,48 @@ class ContractAttachmentSeeder extends Seeder
 			}
 		}
 
-		$tokens = collect([$main, ...$extras])
+		$tokens = collect([$mainToken, ...$extras])
 			->filter(fn($v) => is_string($v) && trim($v) !== '')
 			->values()
 			->all();
 
 		$filesCsv = $tokens ? implode(',', $tokens) : null;
 
-		$name = 'FILE_' . strtoupper(Str::random(6)) . '_' . $now->format('Ymd_His') . '_' . $i;
-		$extension = $this->inferExtension($url, $filePath) ?? 'pdf';
+		$extension = $this->inferExtension($url, $filePath)
+			?? ($mainToken ? $this->inferExtension(null, (string) $mainToken) : null)
+			?? 'pdf';
 
 		$mime = $this->inferMimeTypeFromExtension($extension);
 
+		$name = random_int(0, 100) < 25
+			? null
+			: 'FILE_' . strtoupper(Str::random(6)) . '_' . $now->format('Ymd_His') . '_' . $i;
+
 		return [
-			'file_path' => $filePath,
+			DC::COL_FL_PT => $filePath,
 			'url' => $url,
-			'name' => random_int(0, 100) < 20 ? null : $name,
+			'name' => $name,
 			'extension' => $extension,
-			'mime_type' => $mime,
-			'last_access' => random_int(0, 100) < 40 ? $now->copy()->subDays(random_int(0, 30)) : null,
+			DC::COL_MM_TP => $mime,
+			DC::COL_LA => random_int(0, 100) < 45 ? $now->copy()->subDays(random_int(0, 30)) : null,
 			'size' => random_int(0, 100) < 70 ? random_int(512, 15_000_000) : null,
 			'description' => random_int(0, 100) < 35 ? fake()->sentence(10) : null,
 			'notes' => random_int(0, 100) < 25 ? fake()->sentence(14) : null,
-			'download_count' => random_int(0, 100) < 60 ? (string) random_int(0, 5000) : null,
-			'file_size_bytes' => random_int(0, 100) < 60 ? (string) number_format((float) random_int(0, 20_000_000), 4, '.', '') : null,
-			'perm_release' => random_int(0, 100) < 80 ? '776444' : null,
+			DC::COL_DL_CT => random_int(0, 100) < 65 ? (string) random_int(0, 5000) : null,
+			DC::COL_FL_SZ => random_int(0, 100) < 65 ? number_format((float) random_int(0, 25_000_000), 4, '.', '') : null,
+			DC::COL_PERM_RLS => random_int(0, 100) < 85 ? '776444' : null,
 			'executors' => $this->randomUserList($userIds, 4),
 			'editors' => $this->randomUserList($userIds, 4),
 			'viewers' => $this->randomUserList($userIds, 6),
-			'expires_at' => random_int(0, 100) < 10 ? $now->copy()->addDays(random_int(1, 365)) : null,
-			'doc_kind' => random_int(0, 100) < 20 ? 'document' : null,
-			'files_csv' => $filesCsv,
+			DC::COL_EXP_DT => random_int(0, 100) < 10 ? $now->copy()->addDays(random_int(1, 365)) : null,
+			'type' => random_int(0, 100) < 20 ? 'document' : null,
+			'files' => $filesCsv,
 		];
 	}
 
 	private function uniqueCodeOrNull(int $attemptLimit): ?string
 	{
-		if (random_int(0, 100) < 15) return null;
+		if (random_int(0, 100) < 18) return null;
 
 		$attempts = 0;
 
@@ -494,8 +566,7 @@ class ContractAttachmentSeeder extends Seeder
 			$attempts++;
 			$code = 'CTC-ATC-' . strtoupper((string) Str::uuid());
 
-			if (!$this->existsBySql(DC::TABLE_CTC_ATC, 'code', $code))
-				return $code;
+			if (!$this->existsBySql(DC::TABLE_CTC_ATC, 'code', $code)) return $code;
 		} while ($attempts < max(1, $attemptLimit));
 
 		return null;
@@ -554,18 +625,19 @@ class ContractAttachmentSeeder extends Seeder
 	private function inferMimeTypeFromExtension(string $ext): string
 	{
 		$ext = strtolower(trim($ext));
-		$map = [
+
+		$raw = match ($ext) {
 			'pdf' => 'application/pdf',
 			'png' => 'image/png',
-			'jpg' => 'image/jpeg',
-			'jpeg' => 'image/jpeg',
+			'jpg', 'jpeg' => 'image/jpeg',
 			'gif' => 'image/gif',
-			'txt' => 'text/plain',
+			'svg' => 'image/svg+xml',
+			'webp' => 'image/webp',
+			'txt', 'log' => 'text/plain',
 			'csv' => 'text/csv',
 			'json' => 'application/json',
-		];
-
-		$raw = $map[$ext] ?? null;
+			default => null,
+		};
 
 		try {
 			if ($raw) {
@@ -590,12 +662,6 @@ class ContractAttachmentSeeder extends Seeder
 		if ($n <= 0) return 0;
 		$r = $n % 64;
 		return $r === 0 ? $n : ($n + (64 - $r));
-	}
-
-	private function roundDownTo64(int $n): int
-	{
-		if ($n <= 0) return 0;
-		return $n - ($n % 64);
 	}
 
 	private function hasTableSafe(string $table): bool

@@ -23,6 +23,9 @@ class JournalItem extends Model
     use DefinesDates;
     use SoftDeletes;
 
+    public const JIT_PATTERN = '/^JIT\-[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12}\-\d+$/i';
+
+
     protected $table = DC::TABLE_JRN_IT;
 
     protected $guarded = [
@@ -133,9 +136,9 @@ class JournalItem extends Model
         static::saving(function (self $model): void {
             try {
                 $model->normalizeBeforeSave();
-                $pattern = JournalEntry::JIT_PATTERN;
+                $pattern = self::JIT_PATTERN;
                 if (!preg_match($pattern, (string) ($model->getAttribute('code') ?? ''))) {
-                    $maxAttempts = 160000;
+                    $maxAttempts = 64;
                     do {
                         $maxAttempts--;
                         $uuid = Str::uuid();

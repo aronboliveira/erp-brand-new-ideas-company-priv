@@ -1,47 +1,49 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{BillsConstants as BC, BanksConstants as BKC, DatabaseConstants as DC};
+use App\Enums\BillReferenceType;
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBillAccountsTable extends Migration
 {
+	use HasNullableAuditColumns;
 	private const TABLE = DC::TABLE_BL_ACC;
-	private const COL_COA = 'chart_account_id';
-	private const COL_REF = 'ref_id';
 	public function up(): void
 	{
 		Schema::create(self::TABLE, function (Blueprint $table) {
-			$table->uuid('id')->primary();              // ! CHANGED
-			$table->uuid(self::COL_COA);            // ! CHANGED
-			$table->decimal('price', 15, 2)->default(0);
+			$table->uuid('id')->primary();
+			$table->uuid(BKC::COL_COA)->index(); // ? chart_account_id, as in chart of account id
+			$table->uuid(BC::COL_REF_ID)->index();
+			$table->enum('type', array_column(BillReferenceType::cases(), 'value'))->default(BillReferenceType::Bill->value);
+			$table->decimal('price', 16, 2)->default(0.00); // ? this should be overwritten from the 'amount' field in the connect row of DC::TABLE_BILLS if the later is not empty
 			$table->text('description')->nullable();
-			$table->string('type');
-			$table->uuid(self::COL_REF);                      // ! CHANGED
-			$table->timestamps();
-			$table->uuid(DC::COL_TABLE_CREATOR)->nullable();
+			$table->text('notes')->nullable();
+			$table->json('attachments')->nullable();
+			$table->json('metadata')->nullable();
 			foreach (
 				[
-					self::COL_COA                      => DC::TABLE_COAS,
-					self::COL_REF                      => DC::TABLE_BILLS,
-					DC::COL_TABLE_CREATOR   => DC::TABLE_USERS,
+					BKC::COL_COA => DC::TABLE_COAS,
+					BC::COL_REF_ID => DC::TABLE_BILLS,
 				] as $column => $referencedTable
 			)
 				$table->foreign($column)
 					->references('id')
 					->on($referencedTable)
 					->cascadeOnDelete();
+			$this->addAuditColumns($table);
 		});
 	}
 
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
+			$this->dropAuditColumnForeigns($table, self::TABLE);
 			foreach (
 				[
-					self::COL_COA,
-					self::COL_REF,
-					DC::COL_TABLE_CREATOR,
+					BKC::COL_COA,
+					BC::COL_REF_ID,
 				] as $column
 			) {
 				try {

@@ -54,7 +54,7 @@ class EventSeeder extends Seeder
 			$this->command?->warn('EventSeeder: tabela de departments ausente; department_id ficará sempre nulo.');
 		}
 
-		$defaultCount = 64;
+		$defaultCount = 512;
 		$count        = $defaultCount;
 
 		if ($this->command instanceof Command && $this->command->hasOption('count')) {

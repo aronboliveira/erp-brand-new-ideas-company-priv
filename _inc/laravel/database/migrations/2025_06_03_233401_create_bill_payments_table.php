@@ -16,7 +16,9 @@ class CreateBillPaymentsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid('code')->unique()->nullable(); // ? nullable for tests, should be booted/created at model level if null
             $table->uuid(BC::COL_BL_ID)->index();
-            $table->uuid(BC::COL_OD_ID)->nullable();
+            $table->uuid(BC::COL_OD_ID)->nullable()->index();
+            $table->uuid(BC::COL_PAY_ID)->nullable()->unique();
+            $table->unique([BC::COL_PAY_ID, BC::COL_BL_ID, BC::COL_OD_ID], 'uniq_bl_pay_pay_bl_od');
             $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: true);
             $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');
             $this->addNfeColumns($table);
@@ -25,10 +27,16 @@ class CreateBillPaymentsTable extends Migration
                 ->references('id')
                 ->on(DC::TABLE_BILLS)
                 ->restrictOnDelete();
-            $table->foreign(BC::COL_OD_ID)
-                ->references('id')
-                ->on(DC::TABLE_ORDERS)
-                ->nullOnDelete();
+            foreach (
+                [
+                    BC::COL_PAY_ID => DC::TABLE_PAY,
+                    BC::COL_OD_ID => DC::TABLE_ORDERS,
+                ] as $column => $referencedTable
+            )
+                $table->foreign($column)
+                    ->references('id')
+                    ->on($referencedTable)
+                    ->nullOnDelete();
             $this->addAuditColumns($table);
         });
     }
@@ -43,6 +51,7 @@ class CreateBillPaymentsTable extends Migration
                 [
                     BC::COL_BL_ID,
                     BC::COL_OD_ID,
+                    BC::COL_PAY_ID
                 ] as $col
             ) {
                 try {

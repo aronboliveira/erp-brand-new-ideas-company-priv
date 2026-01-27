@@ -12,8 +12,9 @@ class CreateAwardTypesTable extends Migration
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // ! CHANGED
+            $table->uuid('id')->primary();
             $table->string('name');
+            $table->text('description')->nullable();
             $this->addAuditColumns($table);
         });
     }

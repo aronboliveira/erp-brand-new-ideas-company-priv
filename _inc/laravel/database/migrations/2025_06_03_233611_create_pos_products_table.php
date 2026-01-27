@@ -1,55 +1,47 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePosProductsTable extends Migration
 {
-    private const TABLE            = DC::TABLE_POS_PRD;
-    private const COL_DESCRIPTION  = 'description';
-    private const COL_DISCOUNT     = 'discount';
-    private const COL_PRICE        = 'price';
-    private const COL_POS_ID       = 'pos_id';
-    private const COL_PRODUCT_ID   = 'product_id';
-    private const COL_QUANTITY     = 'quantity';
-    private const COL_TAX          = 'tax';
-
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_POS_PRD;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                             // ! CHANGED
-            $table->uuid(self::COL_POS_ID);                            // ! CHANGED
-            $table->uuid(self::COL_PRODUCT_ID);                        // ! CHANGED
-            $table->integer(self::COL_QUANTITY)->default(0);
-            $table->string(self::COL_TAX)->default('0.00');
-            $table->float(self::COL_DISCOUNT, 15, 2)->default(0.00)->nullable();
-            $table->decimal(self::COL_PRICE, 15, 2)->default(0.00);    // ! CHANGED
-            $table->text(self::COL_DESCRIPTION)->nullable();           // * matches model
-            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
-            $table->timestamps();
+            $table->uuid('id')->primary();
+            $table->uuid(BC::COL_POS_ID)->index();
+            $table->uuid(BC::COL_PRD_ID)->unique();
+            $table->unsignedInteger('quantity')->default(0);
+            $table->unsignedDecimal('tax', 15, 2)->default(0.00);
+            $table->float('discount', 15, 2)->default(0.00)->nullable();
+            $table->decimal('price', 15, 2)->default(0.00);
+            $table->text('description')->nullable();
             foreach (
                 [
-                    self::COL_POS_ID                  => DC::TABLE_POS,
-                    self::COL_PRODUCT_ID              => DC::TABLE_PROD_SERVS,
-                    DC::COL_TABLE_CREATOR  => DC::TABLE_USERS,
+                    BC::COL_POS_ID => DC::TABLE_POS,
+                    BC::COL_PRD_ID => DC::TABLE_PROD_SERVS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_POS_ID,
-                    self::COL_PRODUCT_ID,
-                    DC::COL_TABLE_CREATOR,
+                    BC::COL_POS_ID,
+                    BC::COL_PRD_ID,
                 ] as $column
             ) {
                 try {

@@ -17,6 +17,8 @@ class CreateBankTransfersTable extends Migration
             $table->string(BKC::COL_TRF_CD)->unique()->nullable(); // ? nullable for testing purposes
             $table->uuid(BC::COL_ACC_FROM)->nullable()->index(); // * these should be prevented from being deleted at Controller level, according to HTTP method called and user calling
             $table->uuid(BC::COL_ACC_TO)->nullable()->index();
+            $table->uuid(BC::COL_PAY_ID)->nullable()->index();
+            $table->unique([BC::COL_ACC_FROM, BC::COL_ACC_TO, BC::COL_PAY_ID], 'bnk_trf_acc_from_acc_to_pay_id_unique');
             $this->addPaymentColumns($table);
             $this->addScheduleColumns($table);
             $this->addFailureTrackingColumns($table);
@@ -25,6 +27,7 @@ class CreateBankTransfersTable extends Migration
                 [
                     BC::COL_ACC_FROM       => DC::TABLE_BANK_ACC,
                     BC::COL_ACC_TO         => DC::TABLE_BANK_ACC,
+                    BC::COL_PAY_ID         => DC::TABLE_PAY,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)

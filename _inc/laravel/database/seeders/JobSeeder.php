@@ -14,9 +14,11 @@ class JobSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
+		$clock = microtime(true);
 		$faker = FakerFactory::create();
 
 		$jobCats = $this->readJobCategories();
@@ -52,8 +54,8 @@ class JobSeeder extends Seeder
 		}));
 		$rawTotal = 0;
 		foreach ($jobCats as $cat)
-			$rawTotal += random_int(1, 64);
-		$hardCap = 256000;
+			$rawTotal += random_int(1, 16);
+		$hardCap = 512;
 		$targetTotal = min($countJobCats * 4, $this->toNextMultipleOf64($rawTotal));
 		$targetTotalFirst = max($countJobCats * 2, (int) floor($targetTotal * 0.1));
 		$targetTotalSecond = $targetTotal - $targetTotalFirst;
@@ -71,20 +73,26 @@ class JobSeeder extends Seeder
 		$createdBrazilFirst = 0;
 		$createdBrazilSecond = 0;
 		$withAnn = 0;
-		$maxRetryTolerance = 128;
+		$maxRetryTolerance = 32;
 
 		$catIdx = 0;
 		$catCount = count($jobCats);
 
 		Log::warning("Job categories count={$countJobCats}, Branches count={$countBranches}, Brazil branches count=" . count($brBranches) . ", Target total first={$targetTotalFirst}, Target total second={$targetTotalSecond}, Target Brazil First={$targetBrazilFirst}, Target Brazil Second={$targetBrazilSecond}, Announcement IDs count=" . count($annIds) . ", Announcement target={$annTarget}");
+		$targetResult = min($targetTotal, $hardCap);
 		while ($createdFirst < $targetTotalFirst && $maxRetryTolerance > 0) {
-			$hardCap--;
-			if (!$hardCap) break;
 			$maxRetryTolerance--;
 			$cat = $jobCats[$catIdx % $catCount];
 			$catIdx++;
 			$iterations = random_int(1, 32);
 			for ($i = 0; $i < $iterations && $createdFirst < $targetTotalFirst; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
+				$hardCap--;
+				if (!$hardCap) break;
 				$maxRetryTolerance = 128;
 				$needBrazil = $createdBrazilFirst < $targetBrazilFirst;
 
@@ -236,7 +244,7 @@ class JobSeeder extends Seeder
 				}
 
 				$this->out->writeln(
-					'[JobSeeder] Creating job: cat=' . ($payload['category'] ?? 'null')
+					'[JobSeeder] (' . $createdFirst . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
 						. ' branch=' . ($payload['branch'] ?? 'null')
 						. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
 						. ' title="' . ($payload['title'] ?? '') . '"'
@@ -413,7 +421,7 @@ class JobSeeder extends Seeder
 				}
 
 				$this->out->writeln(
-					'[JobSeeder] Creating job: cat=' . ($payload['category'] ?? 'null')
+					'[JobSeeder] (' . ($createdFirst + $createdSecond) . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
 						. ' branch=' . ($payload['branch'] ?? 'null')
 						. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
 						. ' title="' . ($payload['title'] ?? '') . '"'

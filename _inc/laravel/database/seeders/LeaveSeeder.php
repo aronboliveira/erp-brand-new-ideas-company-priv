@@ -21,10 +21,12 @@ use Illuminate\Support\Facades\Log;
 final class LeaveSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-
+	private $clock = 0;
+	private const SECONDS_LIMIT = 4 * 10 ** 2;
 	public function run(): void
 	{
 		DB::transaction(function (): void {
+			$this->clock = microtime(true);
 			$tz           = 'America/Sao_Paulo';
 			$today        = CarbonImmutable::now($tz)->startOfDay();
 			$faker        = \Faker\Factory::create('pt_BR');
@@ -62,7 +64,7 @@ final class LeaveSeeder extends Seeder
 			$employees = Employee::query()
 				->select(['id'])
 				->inRandomOrder()
-				->limit(12)
+				->limit(256)
 				->get();
 
 			if ($employees->isEmpty()) {
@@ -89,6 +91,10 @@ final class LeaveSeeder extends Seeder
 				for ($i = 0; $i < $count; $i++) {
 					try {
 						/** @var LeaveType $lt */
+						if ((microtime(true) - $this->clock) > self::SECONDS_LIMIT) {
+							Log::warning('LeaveSeeder: tempo de execução excedeu limite seguro, abortando semeadura restante.');
+							return;
+						}
 						$lt = $leaveTypes->random();
 						$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
 						(new \Symfony\Component\Console\Output\ConsoleOutput

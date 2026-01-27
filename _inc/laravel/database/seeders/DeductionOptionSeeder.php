@@ -84,18 +84,6 @@ final class DeductionOptionSeeder extends Seeder
 					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 2,
 				],
-
-				[
-					'name'            => 'Adiantamento Salarial',
-					'code'            => 'ADVANCE-SAL',
-					BC::COL_DD_TYPE   => DeductionType::Advance,
-					BC::COL_CCL_BS    => CalculationBase::GrossSalary,
-					BC::COL_MIN_PCT   => 0,
-					BC::COL_MAX_PCT   => 40,
-					'frequency'       => Frequency::Semimonthly,
-					BC::COL_MDAY_LMT  => 2,
-				],
-
 				[
 					'name'            => 'Doação Voluntária',
 					'code'            => 'VOL-CHARITY',

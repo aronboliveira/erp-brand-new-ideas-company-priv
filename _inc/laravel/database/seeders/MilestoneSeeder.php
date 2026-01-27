@@ -14,13 +14,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class MilestoneSeeder extends Seeder
 {
-	private const MAX_TOTAL_CREATED = 200000; // break-out de segurança (não é multiplicador)
+	private const MAX_TOTAL_CREATED = 512; // break-out de segurança (não é multiplicador)
 
 	private const MAX_VERBOSE_ROWS = 80;
 
 	public function run(): void
 	{
-		$output = $this->command?->getOutput() ?? new ConsoleOutput();
+		$output = new ConsoleOutput();
 		$io     = new SymfonyStyle(new ArrayInput([]), $output);
 
 		$projectIds = $this->pluckIdsSafe(DC::TABLE_PROJECTS);
@@ -44,10 +44,8 @@ class MilestoneSeeder extends Seeder
 		$io->text('Projects: ' . count($projectIds));
 		$io->text('Users: ' . count($userIds));
 		$io->text('Employees: ' . count($empIds));
-
 		foreach ($projectIds as $projectId) {
-			$n = random_int(2, 32);
-
+			$n = 1;
 			for ($i = 0; $i < $n; $i++) {
 				$pickedPriorities = $this->pickCases(PriorityLevel::cases(), 2);
 				$pickedStatuses   = $this->pickCases(EvaluationStatus::cases(), 2);
@@ -99,7 +97,101 @@ class MilestoneSeeder extends Seeder
 								'requested_status'   => $requestedStatus,
 								'involved_count'     => count($involved),
 							]);
+							$output->writeln('Creating Milestone for project ' . $projectId . ' with priority ' . $requestedPriority . ' and status ' . $requestedStatus);
+							$m->save();
+							$made++;
 
+							$priorityCounts[$requestedPriority] = ($priorityCounts[$requestedPriority] ?? 0) + 1;
+
+							// Pode haver normalização pelo normalize() do enum (ex.: in_progress -> active)
+							$persistedStatus = (string) ($m->getRawOriginal('status') ?? '');
+							$statusCounts[$persistedStatus] = ($statusCounts[$persistedStatus] ?? 0) + 1;
+
+							$mismatch = ($persistedStatus !== '' && $persistedStatus !== $requestedStatus);
+							if ($mismatch) $mismatchCounts++;
+
+							if (count($rows) < self::MAX_VERBOSE_ROWS) {
+								$rows[] = [
+									'i' => (string) $made,
+									'project_id' => (string) $projectId,
+									'title' => (string) ($m->getAttribute('title') ?? ''),
+									'priority(req)' => $requestedPriority,
+									'status(req)' => $requestedStatus,
+									'status(db)' => $persistedStatus,
+									'start' => (string) ($m->getAttribute(PJC::COL_S_DT) ?? ''),
+									'due' => (string) ($m->getAttribute(PJC::COL_D_DATE) ?? ''),
+									'progress' => (string) ($m->getAttribute('progress') ?? ''),
+									'cost' => (string) ($m->getAttribute('cost') ?? ''),
+									'mismatch' => $mismatch ? 'YES' : '',
+								];
+							}
+						} catch (\Throwable $e) {
+							Log::warning(self::class . ' failed creating Milestone', [
+								'project_id' => (string) $projectId,
+								'error'      => $e->getMessage(),
+							]);
+						}
+					}
+				}
+			}
+		}
+		$cap = self::MAX_TOTAL_CREATED;
+		foreach ($projectIds as $projectId) {
+			if (!$cap || 0 >= $cap) break;
+			$cap--;
+			$n = random_int(1, 4);
+			for ($i = 0; $i < $n; $i++) {
+				$pickedPriorities = $this->pickCases(PriorityLevel::cases(), 2);
+				$pickedStatuses   = $this->pickCases(EvaluationStatus::cases(), 2);
+
+				foreach ($pickedPriorities as $priority) {
+					foreach ($pickedStatuses as $status) {
+						if ($made >= self::MAX_TOTAL_CREATED) {
+							$io->warning('Break-out: MAX_TOTAL_CREATED reached. Stopping early.');
+							break 4;
+						}
+
+						try {
+							[$startDate, $dueDate] = $this->makeDatePair();
+
+							$requestedPriority = (string) $priority->value;
+							$requestedStatus   = (string) $status->value;
+
+							[$progress, $cost] = $this->progressAndCostForStatus($status);
+
+							$m = new Milestone();
+
+							$m->setAttribute(PJC::COL_PJ_ID, $projectId);
+							$m->setAttribute('title', $this->makeTitle($projectId, $startDate, $dueDate, $requestedPriority, $requestedStatus));
+							$m->setAttribute('description', 'Seeded milestone for reporting/testing.');
+
+							$m->setAttribute('priority', $requestedPriority);
+							$m->setAttribute('status', $requestedStatus);
+
+							$m->setAttribute('progress', $progress);
+							$m->setAttribute('cost', $cost);
+
+							$m->setAttribute(PJC::COL_S_DT, $startDate->toDateString());
+							$m->setAttribute(PJC::COL_D_DATE, $dueDate->toDateString());
+
+							$involved = $this->buildInvolved($userIds, $empIds);
+							$m->setAttribute('involved', $involved);
+
+							$m->setAttribute('tags', [
+								'seed',
+								strtolower($requestedPriority),
+								strtolower($requestedStatus),
+							]);
+
+							$m->setAttribute('metadata', [
+								'seed' => true,
+								'v'    => 1,
+								'ts'   => Carbon::now()->toIso8601String(),
+								'requested_priority' => $requestedPriority,
+								'requested_status'   => $requestedStatus,
+								'involved_count'     => count($involved),
+							]);
+							$output->writeln('<info>[MilestoneSeeder]</info> creating milestone for project_id=' . (string) $projectId . ' priority=' . $requestedPriority . ' status=' . $requestedStatus . ' start=' . $startDate->toDateString() . ' due=' . $dueDate->toDateString());
 							$m->save();
 							$made++;
 

@@ -28,6 +28,7 @@ class CreatePayslipsTable extends Migration
             $table->uuid('commission')->nullable();
             $table->uuid('loan')->nullable();
             $table->uuid(BC::COL_ST_DD)->nullable();
+            $table->uuid('payment')->nullable()->unique();
             $table->uuid(BC::COL_OT_PAY)->nullable();
             $table->uuid('overtime')->nullable();
             $this->addAuditColumns($table);
@@ -39,6 +40,7 @@ class CreatePayslipsTable extends Migration
                     BC::COL_ST_DD  => DC::TABLE_ST_DD,
                     BC::COL_OT_PAY => DC::TABLE_OT_PYMTS,
                     'overtime'     => DC::TABLE_OVT,
+                    'payment'      => DC::TABLE_PAY,
                 ] as $col => $tbl
             )
                 $table->foreign($col)
@@ -62,6 +64,7 @@ class CreatePayslipsTable extends Migration
                     BC::COL_ST_DD,
                     BC::COL_OT_PAY,
                     'overtime',
+                    'payment'
                 ] as $col
             ) {
                 try {

@@ -15,7 +15,7 @@ class CreateTerminationsTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $this->addEmployeeColumns($table, unique: true);
-                $table->date(UC::COL_TERMINATION_NDT)->default(now()->format('Y-m-d'));
+                $table->date(UC::COL_TERMINATION_NDT)->useCurrent();
                 $table->date(UC::COL_TERMINATION_DT)->default(now()->addDays(30)->format('Y-m-d'));
                 $table->uuid(UC::COL_TERMINATION_TP)->nullable();
                 $table->uuid(FC::COL_FM_ID)->nullable()->index(); // ? related exit interview form

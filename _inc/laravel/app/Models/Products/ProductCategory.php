@@ -2,18 +2,26 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 
 class ProductCategory extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields;
 
-    private const FILLABLE_FIELDS = [
-        'name', 'description', 'created_by'
+    protected $table = DC::TABLE_PRD_CAT;
+
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+
+    protected $fillable = [
+        'name',
+        'description',
+        PJC::COL_PRD_SERV_CAT_ID,
+        'tags',
     ];
-    protected $fillable = self::FILLABLE_FIELDS;
 
-    protected $hidden = [];
-    // * consider adding: hasMany(Product::class,'category_id','id')
+    protected $casts = [
+        'tags' => 'array',
+    ];
 }

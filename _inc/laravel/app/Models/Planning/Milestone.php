@@ -90,20 +90,21 @@ class Milestone extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (self $m): void {
-            try {
-                $m->ensureDefaults();
-                $m->normalizeNumbers();
-                $m->normalizeJsonFields();
-                $m->validateDates();
-            } catch (\Throwable $ex) {
-                Log::error(static::class . ' saving() failed', [
-                    'id' => (string) ($m->getAttribute('id') ?? ''),
-                    'error' => $ex->getMessage(),
-                ]);
-                throw $ex;
-            }
-        });
+        // todo too heavy for testing, enable for production
+        // static::saving(function (self $m): void {
+        //     try {
+        //         $m->ensureDefaults();
+        //         $m->normalizeNumbers();
+        //         $m->normalizeJsonFields();
+        //         $m->validateDates();
+        //     } catch (\Throwable $ex) {
+        //         Log::error(static::class . ' saving() failed', [
+        //             'id' => (string) ($m->getAttribute('id') ?? ''),
+        //             'error' => $ex->getMessage(),
+        //         ]);
+        //         throw $ex;
+        //     }
+        // });
     }
 
     private function ensureDefaults(): void

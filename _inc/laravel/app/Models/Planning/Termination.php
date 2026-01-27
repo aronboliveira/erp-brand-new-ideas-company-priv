@@ -4,11 +4,11 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Termination extends Model
 {
-    use  UsesUuids, HasAuditFields, DefinesDates;
+    use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_TERMINATIONS;
     protected $fillable = [
@@ -28,15 +28,13 @@ class Termination extends Model
         UC::COL_TERMINATION_DT  => 'date',
     ];
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
-        // * consider belongsTo(Employee::class,self::COL_EMPLOYEE_ID,'id')
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 
-    public function terminationType(): HasOne
+    public function terminationType(): BelongsTo
     {
-        return $this->hasOne(TerminationType::class, 'id', UC::COL_TERMINATION_TP);
-        // * consider belongsTo(TerminationType::class,self::COL_TERMINATION_TYPE,'id')
+        return $this->belongsTo(TerminationType::class, UC::COL_TERMINATION_TP, 'id');
     }
 }

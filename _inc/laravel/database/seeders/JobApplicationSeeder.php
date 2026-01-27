@@ -7,7 +7,7 @@ use App\Enums\{CountryName, DEICategory, Gender};
 use App\Models\JobApplication;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\{Arr, Str};
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -15,13 +15,13 @@ class JobApplicationSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const MAX_ATTEMPTS = 80;
-	private const HARD_CAP = 16000;
-
+	private const MAX_ATTEMPTS = 32;
+	private const HARD_CAP = 2048;
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
-
+		$clock = microtime(true);
 		$jobRows = $this->fetchJobsForApplications();
 		if (!$jobRows) {
 			$this->out->writeln('<error>[JobApplicationsSeeder]</error> No jobs found. Aborting.');
@@ -70,14 +70,19 @@ class JobApplicationSeeder extends Seeder
 		}
 
 		DB::beginTransaction();
+		$targetResult = min($targetTotal, self::HARD_CAP);
 		try {
 			$created = 0;
 
 			foreach ($plan as $jobId => $p) {
 				$count = (int) $p['count'];
 				if ($count <= 0) continue;
-
 				for ($i = 1; $i <= $count; $i++) {
+
+					if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						return;
+					}
 					$appliedAt = $this->randomPastDateTime(120);
 					$lastReviewAt = random_int(1, 100) <= 60
 						? $appliedAt->addDays(random_int(0, 15))->addMinutes(random_int(0, 900))
@@ -282,7 +287,7 @@ class JobApplicationSeeder extends Seeder
 					];
 
 					$this->out->writeln(
-						'<comment>[JobApplicationsSeeder]</comment> Creating application'
+						'<comment>[JobApplicationsSeeder](' . $created . '/' . $targetResult . ')</comment> Creating application'
 							. ' job=' . $jobId
 							. ' email=' . $email
 							. ' phone=' . $phone

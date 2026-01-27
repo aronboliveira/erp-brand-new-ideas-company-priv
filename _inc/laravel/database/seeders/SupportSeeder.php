@@ -18,7 +18,7 @@ class SupportSeeder extends Seeder
 	private array $emailsIds;
 	private array $notificationsIds;
 
-	private const HARD_CAP = 32000;
+	private const HARD_CAP = 3200;
 	private const MULTIPLE = 64;
 
 	private const CLIENT_ITER_MIN = 1;
@@ -29,6 +29,10 @@ class SupportSeeder extends Seeder
 
 	private const UNIQUE_TKT_ATTEMPTS = 40;
 	private const PICK_ATTEMPTS = 80;
+
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
+
+	private $counter = 0;
 
 	public function __construct()
 	{
@@ -49,6 +53,7 @@ class SupportSeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$faker = FakerFactory::create(config('app.faker_locale') ?? 'en_US');
 
 		$clientIds = DB::table(DC::TABLE_CLIENTS)->selectRaw('id')->pluck('id')->all();
@@ -87,13 +92,29 @@ class SupportSeeder extends Seeder
 		foreach ($moduleCases as $m) $moduleIterationMap[$m->value] = random_int(self::MODULE_ITER_MIN, self::MODULE_ITER_MAX);
 
 		foreach ($clientIds as $clientId) {
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+				return;
+			}
 			$clientIter = $clientIterationMap[(string) $clientId] ?? self::CLIENT_ITER_MIN;
 
 			for ($ci = 0; $ci < $clientIter; $ci++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+					return;
+				}
 				foreach ($moduleCases as $module) {
+					if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+						$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+						return;
+					}
 					$moduleIter = $moduleIterationMap[$module->value] ?? self::MODULE_ITER_MIN;
 
 					for ($mi = 0; $mi < $moduleIter; $mi++) {
+						if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+							$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+							return;
+						}
 						if ($created >= self::HARD_CAP) break 3;
 
 						$rawTarget++;
@@ -121,6 +142,10 @@ class SupportSeeder extends Seeder
 		}
 
 		if ($created < $minBugCoverage) {
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+				return;
+			}
 			$need = min($minBugCoverage - $created, self::HARD_CAP - $created);
 			for ($i = 0; $i < $need; $i++) {
 				$this->createOneSupport(
@@ -147,6 +172,10 @@ class SupportSeeder extends Seeder
 		$pad = min($pad, self::HARD_CAP - $created);
 
 		for ($i = 0; $i < $pad; $i++) {
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				$this->out->writeln('[SupportSeeder] time limit reached, stopping seeding process.');
+				return;
+			}
 			$this->createOneSupport(
 				$faker,
 				(string) $this->pickOne($clientIds),
@@ -285,9 +314,9 @@ class SupportSeeder extends Seeder
 
 			DC::COL_TABLE_CREATOR => $creatorUserId,
 		];
-
 		$this->out->writeln(sprintf(
-			'<comment>[SupportSeeder]</comment> support: client=%s module=%s prio=%s status=%s bug=%s tkt=%s',
+			'<comment>[SupportSeeder]</comment> (%d) support: client=%s module=%s prio=%s status=%s bug=%s tkt=%s',
+			++$this->counter,
 			$clientId,
 			$payload['module'] ?? 'null',
 			$priority,

@@ -5,9 +5,7 @@ namespace App\Models;
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\AllowanceType;
 use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 
 class Allowance extends Model
 {
@@ -68,9 +66,9 @@ class Allowance extends Model
                 $opt = AllowanceOption::find($m->{BC::COL_ALW_OPT});
                 if ($opt !== null) {
                     if ($m->type === AllowanceType::Percentage && $opt->{BC::COL_MIN_PCT} !== null)
-                        $m->amount = min($m->amount, (float)$opt->{BC::COL_MIN_PCT});
+                        $m->amount = max((float) $m->amount, (float) $opt->{BC::COL_MIN_PCT});
                     if ($m->type === AllowanceType::Percentage && $opt->{BC::COL_MAX_PCT} !== null)
-                        $m->amount = max($m->amount, (float)$opt->{BC::COL_MAX_PCT});
+                        $m->amount = min((float) $m->amount, (float) $opt->{BC::COL_MAX_PCT});
                 }
             }
         });
@@ -90,21 +88,13 @@ class Allowance extends Model
     }
 
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(
-            Employee::class,
-            'id',
-            UC::COL_EMP_ID
-        );
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 
-    public function allowanceOption(): HasOne
+    public function allowanceOption(): BelongsTo
     {
-        return $this->hasOne(
-            AllowanceOption::class,
-            'id',
-            BC::COL_ALW_OPT
-        );
+        return $this->belongsTo(AllowanceOption::class, BC::COL_ALW_OPT, 'id');
     }
 }

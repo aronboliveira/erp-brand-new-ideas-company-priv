@@ -7,7 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     PermissionsConstants,
     UsersConstants as UC,
-    ViewsConstants,
+    ViewsConstants as VW,
 };
 use App\Exports\{
     AccountStatementExport,
@@ -88,38 +88,38 @@ final class ReportController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const ROUTE_INCOME_SUMMARY    = ViewsConstants::RPT . '.income_summary';
-    private const ROUTE_EXPENSE_SUMMARY   = ViewsConstants::RPT . '.expense_summary';
-    private const ROUTE_INCOME_VS_EXPENSE = ViewsConstants::RPT . '.income_vs_expense_summary';
-    private const ROUTE_TAX_SUMMARY      = ViewsConstants::RPT . '.tax_summary';
-    private const ROUTE_INVOICE_REPORT  = ViewsConstants::RPT . '.invoice';
-    private const ROUTE_BILL_REPORT     = ViewsConstants::RPT . '.bill';
-    private const ROUTE_STATEMENT_REPORT = ViewsConstants::RPT . '.statement_report';
-    private const ROUTE_BALANCE_SHEET   = ViewsConstants::RPT . '.balance_sheet';
-    private const ROUTE_LEDGER_SUMMARY  = ViewsConstants::RPT . '.ledger_summary';
-    private const ROUTE_TRIAL_BALANCE   = ViewsConstants::RPT . '.trial_balance';
-    private const ROUTE_LEAVE            = ViewsConstants::RPT . '.leave';
-    private const ROUTE_EMPLOYEE_LEAVE   = ViewsConstants::RPT . '.employee_leave';
-    private const ROUTE_MONTHLY_ATTENDANCE = ViewsConstants::RPT . '.monthly_attendance';
-    private const ROUTE_PAYROLL          = ViewsConstants::RPT . '.payroll';
-    private const ROUTE_PAY_DEPT         = ViewsConstants::RPT . '.get_payroll_department';
-    private const ROUTE_PAY_EMP          = ViewsConstants::RPT . '.get_payroll_employee';
-    private const ROUTE_EXPORT_CSV       = ViewsConstants::RPT . '.export_csv';
-    private const ROUTE_PRODUCT_STOCK    = ViewsConstants::RPT . '.stock_report';
-    private const ROUTE_EXPORT_ACCOUNT  = ViewsConstants::RPT . '.export';
-    private const ROUTE_EXPORT_STOCK    = ViewsConstants::RPT . '.stock_export';
-    private const ROUTE_EXPORT_PAYROLL  = ViewsConstants::RPT . '.payroll_report_export';
-    private const ROUTE_EXPORT_LEAVE    = ViewsConstants::RPT . '.leave_report_export';
-    private const ROUTE_GET_DEPT        = ViewsConstants::RPT . '.get_department';
-    private const ROUTE_GET_EMP         = ViewsConstants::RPT . '.get_employee';
-    private const ROUTE_LEAD_REPORT     = ViewsConstants::RPT . '.lead';
-    private const ROUTE_DEAL_REPORT     = ViewsConstants::RPT . '.deal';
-    private const ROUTE_WAREHOUSE_REPORT = ViewsConstants::RPT . '.warehouse';
-    private const ROUTE_PURCHASE_DAILY  = ViewsConstants::RPT . '.purchase_daily';
-    private const ROUTE_PURCHASE_MONTHLY = ViewsConstants::RPT . '.purchase_monthly';
-    private const ROUTE_POS_DAILY       = ViewsConstants::RPT . '.pos_daily';
-    private const ROUTE_POS_MONTHLY     = ViewsConstants::RPT . '.pos_monthly';
-    private const ROUTE_POS_VS_PURCHASE = ViewsConstants::RPT . '.pos_vs_purchase';
+    private const ROUTE_INCOME_SUMMARY    = VW::RPT . '.income_summary';
+    private const ROUTE_EXPENSE_SUMMARY   = VW::RPT . '.expense_summary';
+    private const ROUTE_INCOME_VS_EXPENSE = VW::RPT . '.income_vs_expense_summary';
+    private const ROUTE_TAX_SUMMARY      = VW::RPT . '.tax_summary';
+    private const ROUTE_INVOICE_REPORT  = VW::RPT . '.invoice';
+    private const ROUTE_BILL_REPORT     = VW::RPT . '.bill';
+    private const ROUTE_STATEMENT_REPORT = VW::RPT . '.statement_report';
+    private const ROUTE_BALANCE_SHEET   = VW::RPT . '.balance_sheet';
+    private const ROUTE_LEDGER_SUMMARY  = VW::RPT . '.ledger_summary';
+    private const ROUTE_TRIAL_BALANCE   = VW::RPT . '.trial_balance';
+    private const ROUTE_LEAVE            = VW::RPT . '.leave';
+    private const ROUTE_EMPLOYEE_LEAVE   = VW::RPT . '.employee_leave';
+    private const ROUTE_MONTHLY_ATTENDANCE = VW::RPT . '.monthly_attendance';
+    private const ROUTE_PAYROLL          = VW::RPT . '.payroll';
+    private const ROUTE_PAY_DEPT         = VW::RPT . '.get_payroll_department';
+    private const ROUTE_PAY_EMP          = VW::RPT . '.get_payroll_employee';
+    private const ROUTE_EXPORT_CSV       = VW::RPT . '.export_csv';
+    private const ROUTE_PRODUCT_STOCK    = VW::RPT . '.stock_report';
+    private const ROUTE_EXPORT_ACCOUNT  = VW::RPT . '.export';
+    private const ROUTE_EXPORT_STOCK    = VW::RPT . '.stock_export';
+    private const ROUTE_EXPORT_PAYROLL  = VW::RPT . '.payroll_report_export';
+    private const ROUTE_EXPORT_LEAVE    = VW::RPT . '.leave_report_export';
+    private const ROUTE_GET_DEPT        = VW::RPT . '.get_department';
+    private const ROUTE_GET_EMP         = VW::RPT . '.get_employee';
+    private const ROUTE_LEAD_REPORT     = VW::RPT . '.lead';
+    private const ROUTE_DEAL_REPORT     = VW::RPT . '.deal';
+    private const ROUTE_WAREHOUSE_REPORT = VW::RPT . '.warehouse';
+    private const ROUTE_PURCHASE_DAILY  = VW::RPT . '.purchase_daily';
+    private const ROUTE_PURCHASE_MONTHLY = VW::RPT . '.purchase_monthly';
+    private const ROUTE_POS_DAILY       = VW::RPT . '.pos_daily';
+    private const ROUTE_POS_MONTHLY     = VW::RPT . '.pos_monthly';
+    private const ROUTE_POS_VS_PURCHASE = VW::RPT . '.pos_vs_purchase';
     private static ?\Illuminate\Support\Collection $dealData = null;
 
     public const INC_SM = 'incomeSummary';
@@ -793,7 +793,7 @@ final class ReportController extends Controller
                 $startFetch = microtime(true);
                 $stocks = StockReport::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startFetch, "{$action} fetchStocks", 'completed');
-                $viewName = ViewsConstants::RPT . '.product_stock_report';
+                $viewName = VW::RPT . '.product_stock_report';
                 if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
                 return view($viewName, compact('stocks'));
@@ -1325,7 +1325,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::profitLoss failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.profit_loss'));
             }
         }, ['req' => $request, 'view' => $view]);
     }
@@ -1361,7 +1361,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", ['user_id' => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.monthly_cashflow'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.monthly_cashflow'));
             }
         }, ['req' => $request]);
     }
@@ -1397,7 +1397,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::quarterlyCashflow failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.quarterly_cashflow'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.quarterly_cashflow'));
             }
         }, ['req' => $request]);
     }
@@ -1434,7 +1434,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", ['user_id' => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.trial_balance_export'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.trial_balance_export'));
             }
         }, ['req' => $request]);
     }
@@ -1470,7 +1470,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.balance_sheet_export'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.balance_sheet_export'));
             }
         }, ['req' => $request]);
     }
@@ -1504,13 +1504,13 @@ final class ReportController extends Controller
                 $totalAccounts = $this->buildTrialBalanceData($user?->creatorId(), $start, $end);
                 $this->logExecutionTime($startBuild, "{$action} buildData", 'completed');
                 $filter = ['startDateRange' => $start, 'endDateRange' => $end];
-                $viewName = $view === 'horizontal' ? ViewsConstants::RPT . '.trial_balance_receipt_horizontal' : ViewsConstants::RPT . '.trial_balance_receipt';
+                $viewName = $view === 'horizontal' ? VW::RPT . '.trial_balance_receipt_horizontal' : VW::RPT . '.trial_balance_receipt';
                 if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return view($viewName, compact('filter', 'totalAccounts'));
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.trial_balance_receipt'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.trial_balance_receipt'));
             }
         }, ['req' => $request, 'view' => $view]);
     }
@@ -1546,7 +1546,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::balanceSheetPrint failed", ['user_id' => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.balance_sheet_print'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.balance_sheet_print'));
             }
         }, ['req' => $request, 'view' => $view]);
     }
@@ -1582,7 +1582,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss_export'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.profit_loss_export'));
             }
         }, ['req' => $request]);
     }
@@ -1618,7 +1618,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::profitLossPrint failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss_print'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.profit_loss_print'));
             }
         }, ['req' => $request, 'view' => $view]);
     }
@@ -1647,7 +1647,7 @@ final class ReportController extends Controller
                 Log::error('salesReport:buildError', ['error' => $e->getMessage()] + $this->logContext());
                 abort(500, 'Unable to build sales report.');
             }
-            $viewName = ViewsConstants::RPT . '.sales_report';
+            $viewName = VW::RPT . '.sales_report';
             if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
             $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
             return view($viewName, compact('filter', 'items', 'customers'));
@@ -1688,7 +1688,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error('salesReportExport:failed', ['error' => $e->getMessage()] + $this->logContext());
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.sales_report_export'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.sales_report_export'));
             }
         }, ['req' => $request]);
     }
@@ -1718,7 +1718,7 @@ final class ReportController extends Controller
                 Log::error('salesReportPrint:buildError', ['error' => $e->getMessage()] + $this->logContext());
                 abort(500, 'Unable to build sales report for print.');
             }
-            $viewName = ViewsConstants::RPT . '.sales_report_receipt';
+            $viewName = VW::RPT . '.sales_report_receipt';
             if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
             $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
             return view($viewName, [
@@ -1754,7 +1754,7 @@ final class ReportController extends Controller
                 Log::error('receivablesReport:buildError', ['error' => $e->getMessage()] + $this->logContext());
                 abort(500, 'Unable to build receivables report.');
             }
-            $viewName = ViewsConstants::RPT . '.receivable_report';
+            $viewName = VW::RPT . '.receivable_report';
             if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
             $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
             return view($viewName, compact('filter', 'customers', 'summaries', 'details', 'aging'));
@@ -1793,7 +1793,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error('receivablesExport:failed', ['error' => $e->getMessage()] + $this->logContext());
-                return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.receivable_report_export'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.receivable_report_export'));
             }
         }, ['req' => $request]);
     }
@@ -1822,7 +1822,7 @@ final class ReportController extends Controller
                 Log::error('receivablesPrint:buildError', ['error' => $e->getMessage()] + $this->logContext());
                 abort(500, 'Unable to build receivables report for print.');
             }
-            $viewName = ViewsConstants::RPT . '.receivable_report_receipt';
+            $viewName = VW::RPT . '.receivable_report_receipt';
             if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
             $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
             return view($viewName, compact('filter', 'customers', 'summaries', 'details', 'aging'));
@@ -1835,7 +1835,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        $viewPath = ViewsConstants::RPT . '.payable_report';
+        $viewPath = VW::RPT . '.payable_report';
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $viewPath) {
             if ($r = $this->authorizeReport($request, 'payable report')) return $r;
             Log::info("[{$class}::{$action}] start", $this->logContext() + ['method' => $method, 'input_keys' => array_keys($request->all())]);
@@ -1868,7 +1868,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = ViewsConstants::RPT . '.payable_report_receipt';
+        $viewPath = VW::RPT . '.payable_report_receipt';
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $viewPath) {
             if ($r = $this->authorizeReport($request, 'payable report')) return $r;
             Log::info("[{$class}::{$action}] start", $this->logContext() + ['method' => $method, 'input_keys' => array_keys($request->all())]);
@@ -1912,23 +1912,23 @@ final class ReportController extends Controller
         $user = $userOrRedirect;
         $creator = $user?->creatorId();
         $items = InvoiceProduct::select(
-            'product_services.name',
-            DB::raw('SUM(invoice_products.quantity)            AS quantity'),
-            DB::raw('SUM(invoice_products.price * invoice_products.quantity) AS price'),
-            DB::raw('SUM(invoice_products.price) / SUM(invoice_products.quantity) AS avg_price')
+            DC::TABLE_PROD_SERVS.'.name',
+            DB::raw('SUM('.DC::TABLE_INV_PRD.'.quantity)            AS quantity'),
+            DB::raw('SUM('.DC::TABLE_INV_PRD.'.price * '.DC::TABLE_INV_PRD.'.quantity) AS price'),
+            DB::raw('SUM('.DC::TABLE_INV_PRD.'.price) / SUM('.DC::TABLE_INV_PRD.'.quantity) AS avg_price')
         )
-            ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
-            ->leftJoin('invoices',         'invoices.id',          '=', 'invoice_products.invoice_id')
-            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoice_products.product_id')
+            ->leftJoin(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS.'.id', '=', DC::TABLE_INV_PRD.'.'.BC::COL_PRD_ID)
+            ->leftJoin('invoices',         DC::TABLE_INVS.'.id',          '=', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID)
+            ->where(DC::TABLE_PROD_SERVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INV_PRD.'.'.BC::COL_PRD_ID)
             ->get()
             ->toArray();
         $raw = Invoice::select(
             'customers.name',
-            DB::raw('COUNT(DISTINCT invoices.customer_id, invoice_products.invoice_id) AS invoice_count')
+            DB::raw('COUNT(DISTINCT '.DC::TABLE_INVS.'.'.BC::COL_CST_ID.', '.DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID.') AS invoice_count')
         )
-            ->selectRaw('SUM((invoice_products.price * invoice_products.quantity) - invoice_products.discount) AS price')
+            ->selectRaw('SUM(('.DC::TABLE_INV_PRD.'.price * '.DC::TABLE_INV_PRD.'.quantity) - '.DC::TABLE_INV_PRD.'.discount) AS price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -1937,11 +1937,11 @@ final class ReportController extends Controller
               WHERE invoice_products.invoice_id = invoices.id
             ) AS total_tax
         SQL)
-            ->leftJoin('customers', 'customers.id',       '=', 'invoices.customer_id')
-            ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoices.invoice_id')
+            ->leftJoin('customers', 'customers.id',       '=', DC::TABLE_INVS.'.'.BC::COL_CST_ID)
+            ->leftJoin(DC::TABLE_INV_PRD.'', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INVS.'.'.BC::COL_INV_ID)
             ->get()
             ->toArray();
         $merged = [];
@@ -1976,8 +1976,8 @@ final class ReportController extends Controller
         $user = $userOrRedirect;
         $creator = $user?->creatorId();
         $receivableCustomers = Invoice::select('customers.name')
-            ->selectRaw('SUM((invoice_products.price * invoice_products.quantity) - invoice_products.discount) AS price')
-            ->selectRaw('SUM(invoice_payments.amount) AS pay_price')
+            ->selectRaw('SUM(('.DC::TABLE_INV_PRD.'.price * '.DC::TABLE_INV_PRD.'.quantity) - '.DC::TABLE_INV_PRD.'.discount) AS price')
+            ->selectRaw('SUM('.DC::TABLE_INV_PAY.'.amount) AS pay_price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -1985,20 +1985,20 @@ final class ReportController extends Controller
               LEFT JOIN taxes ON FIND_IN_SET(taxes.id, invoice_products.tax)>0
               WHERE invoice_products.invoice_id = invoices.id
             ) AS total_tax
-        SQL)
-            ->selectRaw('(SELECT SUM(amount) FROM credit_notes WHERE credit_notes.invoice = invoices.id) AS credit_price')
-            ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
-            ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
-            ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoices.invoice_id')
+            SQL)
+            ->selectRaw('(SELECT SUM(amount) FROM '.DC::TABLE_CR_NOTES.' WHERE '.DC::TABLE_CR_NOTES.'.invoice = invoices.id) AS credit_price')
+            ->leftJoin('customers',        'customers.id',        '=', DC::TABLE_INVS.'.'.BC::COL_CST_ID)
+            ->leftJoin(DC::TABLE_INV_PAY, DC::TABLE_INV_PAY.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->leftJoin(DC::TABLE_INV_PRD.'', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INVS.'.'.BC::COL_INV_ID)
             ->get()
             ->toArray();
         $sumInv = Invoice::select('customers.name')
-            ->selectRaw('invoices.invoice_id AS invoice')
-            ->selectRaw('SUM((invoice_products.price * invoice_products.quantity) - invoice_products.discount) AS price')
-            ->selectRaw('SUM(invoice_payments.amount) AS pay_price')
+            ->selectRaw(DC::TABLE_INVS.'.'.BC::COL_INV_ID.' AS invoice')
+            ->selectRaw('SUM(('.DC::TABLE_INV_PRD.'.price * '.DC::TABLE_INV_PRD.'.quantity) - '.DC::TABLE_INV_PRD.'.discount) AS price')
+            ->selectRaw('SUM('.DC::TABLE_INV_PAY.'.amount) AS pay_price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -2007,60 +2007,60 @@ final class ReportController extends Controller
               WHERE invoice_products.invoice_id = invoices.id
             ) AS total_tax
         SQL)
-            ->selectRaw('invoices.issue_date AS issue_date')
-            ->selectRaw('invoices.status AS status')
-            ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
-            ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
-            ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoices.invoice_id')
+            ->selectRaw(DC::TABLE_INVS.'.'.BC::COL_ISS_DT.' AS '.BC::COL_ISS_DT)
+            ->selectRaw(DC::TABLE_INVS.'.status AS status')
+            ->leftJoin('customers',        'customers.id',        '=', DC::TABLE_INVS.'.'.BC::COL_CST_ID)
+            ->leftJoin(DC::TABLE_INV_PAY, DC::TABLE_INV_PAY.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->leftJoin(DC::TABLE_INV_PRD.'', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INVS.'.'.BC::COL_INV_ID)
             ->get()
             ->toArray();
         $sumCred = CreditNote::select('customers.name')
             ->selectRaw('NULL AS invoice')
-            ->selectRaw('credit_notes.amount AS price')
+            ->selectRaw(DC::TABLE_CR_NOTES.'.amount AS price')
             ->selectRaw('0 AS pay_price')
             ->selectRaw('0 AS total_tax')
-            ->selectRaw('credit_notes.date AS issue_date')
+            ->selectRaw(DC::TABLE_CR_NOTES.'.date AS '.BC::COL_ISS_DT)
             ->selectRaw('5 AS status')
-            ->leftJoin('customers', 'customers.id', '=', 'credit_notes.customer')
-            ->leftJoin('invoices',  'invoices.id',  '=', 'credit_notes.invoice')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('credit_notes.date', [$start, $end])
-            ->groupBy('credit_notes.id')
+            ->leftJoin('customers', 'customers.id', '=', DC::TABLE_CR_NOTES.'.customer')
+            ->leftJoin('invoices',  DC::TABLE_INVS.'.id',  '=', DC::TABLE_CR_NOTES.'.invoice')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_CR_NOTES.'.date', [$start, $end])
+            ->groupBy(DC::TABLE_CR_NOTES.'.id')
             ->get()
             ->toArray();
         $receivableSummaries = array_merge($sumCred, $sumInv);
         $detInv = Invoice::select('customers.name')
-            ->selectRaw('invoices.invoice_id AS invoice')
-            ->selectRaw('SUM(invoice_products.price) AS price')
-            ->selectRaw('invoice_products.quantity AS quantity')
-            ->selectRaw('product_services.name AS product_name')
-            ->selectRaw('invoices.issue_date AS issue_date')
-            ->selectRaw('invoices.status AS status')
-            ->leftJoin('customers',         'customers.id',         '=', 'invoices.customer_id')
-            ->leftJoin('invoice_products',  'invoice_products.invoice_id', '=', 'invoices.id')
-            ->leftJoin('product_services',  'product_services.id',  '=', 'invoice_products.product_id')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR,  $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoices.invoice_id', 'product_services.name')
+            ->selectRaw(DC::TABLE_INVS.'.'.BC::COL_INV_ID.' AS invoice')
+            ->selectRaw('SUM('.DC::TABLE_INV_PRD.'.price) AS price')
+            ->selectRaw(DC::TABLE_INV_PRD.'.quantity AS quantity')
+            ->selectRaw(DC::TABLE_PROD_SERVS.'.name AS product_name')
+            ->selectRaw(DC::TABLE_INVS.'.issue_date AS '.BC::COL_ISS_DT)
+            ->selectRaw(DC::TABLE_INVS.'.status AS status')
+            ->leftJoin('customers',         'customers.id',         '=', DC::TABLE_INVS.'.'.BC::COL_CST_ID)
+            ->leftJoin(DC::TABLE_INV_PRD.'',  DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->leftJoin(DC::TABLE_PROD_SERVS,  DC::TABLE_PROD_SERVS.'.id',  '=', DC::TABLE_INV_PRD.'.'.BC::COL_PRD_ID)
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR,  $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INVS.'.'.BC::COL_INV_ID, DC::TABLE_PROD_SERVS.'.name')
             ->get()
             ->toArray();
         $detCredRaw = CreditNote::select('customers.name')
             ->selectRaw('NULL AS invoice')
-            ->selectRaw('credit_notes.id AS invoices')
-            ->selectRaw('credit_notes.amount AS price')
-            ->selectRaw('product_services.name AS product_name')
-            ->selectRaw('credit_notes.date AS issue_date')
+            ->selectRaw(DC::TABLE_CR_NOTES.'.id AS invoices')
+            ->selectRaw(DC::TABLE_CR_NOTES.'.amount AS price')
+            ->selectRaw(DC::TABLE_PROD_SERVS.'.name AS product_name')
+            ->selectRaw(DC::TABLE_CR_NOTES.'.date AS '.BC::COL_ISS_DT)
             ->selectRaw('5 AS status')
-            ->leftJoin('customers',        'customers.id',        '=', 'credit_notes.customer')
-            ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'credit_notes.invoice')
-            ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
-            ->leftJoin('invoices',        'invoices.id',        '=', 'credit_notes.invoice')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('credit_notes.date', [$start, $end])
-            ->groupBy('credit_notes.id', 'product_services.name')
+            ->leftJoin('customers',        'customers.id',        '=', DC::TABLE_CR_NOTES.'.customer')
+            ->leftJoin(DC::TABLE_INV_PRD.'', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_CR_NOTES.'.invoice')
+            ->leftJoin(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS.'.id', '=', DC::TABLE_INV_PRD.'.'.BC::COL_PRD_ID)
+            ->leftJoin('invoices',        DC::TABLE_INVS.'.id',        '=', DC::TABLE_CR_NOTES.'.invoice')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_CR_NOTES.'.date', [$start, $end])
+            ->groupBy(DC::TABLE_CR_NOTES.'.id', DC::TABLE_PROD_SERVS.'.name')
             ->get()
             ->toArray();
         $merged = [];
@@ -2085,9 +2085,9 @@ final class ReportController extends Controller
         }
         $detCred   = array_values($merged);
         $receivableDetails = array_merge($detInv, $detCred);
-        $ageRaw = Invoice::select('customers.name', 'invoices.due_date as due_date', 'invoices.status as status', 'invoices.invoice_id as invoice_id')
-            ->selectRaw('SUM((invoice_products.price * invoice_products.quantity) - invoice_products.discount) AS price')
-            ->selectRaw('SUM(invoice_payments.amount) AS pay_price')
+        $ageRaw = Invoice::select('customers.name', DC::TABLE_INVS.'.'.BC::COL_DUE_DT.' as due_date', DC::TABLE_INVS.'.status as status', DC::TABLE_INVS.'.'.BC::COL_INV_ID.' as '.BC::COL_INV_ID)
+            ->selectRaw('SUM(('.DC::TABLE_INV_PRD.'.price * '.DC::TABLE_INV_PRD.'.quantity) - '.DC::TABLE_INV_PRD.'.discount) AS price')
+            ->selectRaw('SUM('.DC::TABLE_INV_PAY.'.amount) AS pay_price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -2096,13 +2096,13 @@ final class ReportController extends Controller
               WHERE invoice_products.invoice_id = invoices.id
             ) AS total_tax
         SQL)
-            ->selectRaw('(SELECT SUM(amount) FROM credit_notes WHERE credit_notes.invoice = invoices.id) AS credit_price')
-            ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
-            ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
-            ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('invoices.issue_date', [$start, $end])
-            ->groupBy('invoices.invoice_id')
+            ->selectRaw('(SELECT SUM(amount) FROM '.DC::TABLE_CR_NOTES.' WHERE '.DC::TABLE_CR_NOTES.'.invoice = invoices.id) AS credit_price')
+            ->leftJoin('customers',        'customers.id',        '=', DC::TABLE_INVS.'.'.BC::COL_CST_ID)
+            ->leftJoin(DC::TABLE_INV_PAY, DC::TABLE_INV_PAY.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->leftJoin(DC::TABLE_INV_PRD.'', DC::TABLE_INV_PRD.'.'.BC::COL_INV_ID, '=', DC::TABLE_INVS.'.id')
+            ->where(DC::TABLE_INVS.'.' . DC::COL_TABLE_CREATOR, $creator)
+            ->whereBetween(DC::TABLE_INVS.'.'.BC::COL_ISS_DT, [$start, $end])
+            ->groupBy(DC::TABLE_INVS.'.'.BC::COL_INV_ID)
             ->get()
             ->toArray();
         $agingSummaries = [];
@@ -2158,8 +2158,8 @@ final class ReportController extends Controller
 
         // 1) vendors summary
         $vendors = Bill::select('vendors.name')
-            ->selectRaw('SUM((bill_products.price * bill_products.quantity) - bill_products.discount) AS price')
-            ->selectRaw('SUM(bill_payments.amount) AS pay_price')
+            ->selectRaw('SUM(('.DC::TABLE_BL_PRD.'.price * '.DC::TABLE_BL_PRD.'.quantity) - '.DC::TABLE_BL_PRD.'.discount) AS price')
+            ->selectRaw('SUM('.DC::TABLE_BL_PAY.'.amount) AS pay_price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -2168,22 +2168,22 @@ final class ReportController extends Controller
               WHERE bill_products.bill_id = bills.id
             ) AS total_tax
         SQL)
-            ->selectRaw('(SELECT SUM(amount) FROM debit_notes WHERE debit_notes.bill = bills.id) AS debit_price')
-            ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
-            ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
-            ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
+            ->selectRaw('(SELECT SUM(amount) FROM '.DC::TABLE_DB_NOTES.' WHERE '.DC::TABLE_DB_NOTES.'.bill = bills.id) AS debit_price')
+            ->leftJoin('vendors',      'vendors.id',      '=', 'bills.'.UC::COL_VD_ID)
+            ->leftJoin(DC::TABLE_BL_PAY, DC::TABLE_BL_PAY.'.bill_id', '=', DC::TABLE_BL.'.id')
+            ->leftJoin(DC::TABLE_BL_PRD, DC::TABLE_BL_PRD.'.bill_id', '=', DC::TABLE_BL.'.id')
             ->where('bills.' . DC::COL_TABLE_CREATOR,  $creator)
-            ->whereNotIn('bills.user_type', ['employee', 'customer'])
-            ->whereBetween('bills.bill_date', [$start, $end])
-            ->groupBy('bills.bill_id')
+            ->whereNotIn('bills.'.UC::COL_U_TP, ['employee', 'customer'])
+            ->whereBetween('bills.' . BC::COL_BL_DT, [$start, $end])
+            ->groupBy('bills.'.BC::COL_BL_ID)
             ->get()
             ->toArray();
 
         // 2a) bill summaries
         $sumBill = Bill::select('vendors.name')
-            ->selectRaw('bills.bill_id AS bill')
-            ->selectRaw('SUM((bill_products.price * bill_products.quantity) - bill_products.discount) AS price')
-            ->selectRaw('SUM(bill_payments.amount) AS pay_price')
+            ->selectRaw('bills.' . BC::COL_BL_ID . ' AS bill')
+            ->selectRaw('SUM(('.DC::TABLE_BL_PRD.'.price * '.DC::TABLE_BL_PRD.'.quantity) - '.DC::TABLE_BL_PRD.'.discount) AS price')
+            ->selectRaw('SUM('.DC::TABLE_BL_PAY.'.amount) AS pay_price')
             ->selectRaw(<<<SQL
             (
               SELECT SUM((price * quantity - discount) * (taxes.rate/100))
@@ -2192,14 +2192,14 @@ final class ReportController extends Controller
               WHERE bill_products.bill_id = bills.id
             ) AS total_tax
         SQL)
-            ->selectRaw('bills.bill_date AS bill_date')
+            ->selectRaw('bills.' . BC::COL_BL_DT . ' AS bill_date')
             ->selectRaw('bills.status    AS status')
             ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
-            ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
-            ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
+            ->leftJoin(DC::TABLE_BL_PAY, DC::TABLE_BL_PAY.'.bill_id', '=', DC::TABLE_BL.'.id')
+            ->leftJoin(DC::TABLE_BL_PRD, DC::TABLE_BL_PRD.'.bill_id', '=', DC::TABLE_BL.'.id')
             ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereNotIn('bills.user_type', ['employee', 'customer'])
-            ->whereBetween('bills.bill_date', [$start, $end])
+            ->whereNotIn('bills.'.UC::COL_U_TP, ['employee', 'customer'])
+            ->whereBetween('bills.' . BC::COL_BL_DT, [$start, $end])
             ->groupBy('bills.id')
             ->get()
             ->toArray();
@@ -2207,16 +2207,16 @@ final class ReportController extends Controller
         // 2b) debit‐note summaries
         $sumDebit = DebitNote::select('vendors.name')
             ->selectRaw('NULL AS bill')
-            ->selectRaw('debit_notes.amount AS price')
+            ->selectRaw(DC::TABLE_DB_NOTES.'.amount AS price')
             ->selectRaw('0 AS pay_price')
             ->selectRaw('0 AS total_tax')
-            ->selectRaw('debit_notes.date AS bill_date')
+            ->selectRaw(DC::TABLE_DB_NOTES.'.date AS '.BC::COL_BL_DT)
             ->selectRaw('5 AS status')
-            ->leftJoin('vendors', 'vendors.id', '=', 'debit_notes.vendor')
-            ->leftJoin('bills',  'bills.id', '=', 'debit_notes.bill')
+            ->leftJoin('vendors', 'vendors.id', '=', DC::TABLE_DB_NOTES.'.vendor')
+            ->leftJoin('bills',  'bills.id', '=', DC::TABLE_DB_NOTES.'.bill')
             ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereBetween('debit_notes.date', [$start, $end])
-            ->groupBy('debit_notes.id')
+            ->whereBetween(DC::TABLE_DB_NOTES.'.date', [$start, $end])
+            ->groupBy(DC::TABLE_DB_NOTES.'.id')
             ->get()
             ->toArray();
 
@@ -2224,37 +2224,37 @@ final class ReportController extends Controller
 
         // 3a) bill details
         $detBill = Bill::select('vendors.name')
-            ->selectRaw('bills.bill_id AS bill')
-            ->selectRaw('SUM(bill_products.price) AS price')
-            ->selectRaw('bill_products.quantity AS quantity')
-            ->selectRaw('product_services.name AS product_name')
-            ->selectRaw('bills.bill_date AS bill_date')
+            ->selectRaw('bills.' . BC::COL_BL_ID . ' AS bill')
+            ->selectRaw('SUM(' . DC::TABLE_BL_PRD . '.price) AS price')
+            ->selectRaw(DC::TABLE_BL_PRD.'.quantity AS quantity')
+            ->selectRaw(DC::TABLE_PROD_SERVS.'.name AS product_name')
+            ->selectRaw('bills.' . BC::COL_BL_DT . ' AS ' . BC::COL_BL_DT)
             ->selectRaw('bills.status    AS status')
-            ->leftJoin('vendors',       'vendors.id',       '=', 'bills.vendor_id')
-            ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
-            ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
+            ->leftJoin('vendors',       'vendors.id',       '=', 'bills.'.UC::COL_VD_ID)
+            ->leftJoin(DC::TABLE_BL_PRD, DC::TABLE_BL_PRD.'.bill_id', '=', 'bills.id')
+            ->leftJoin(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS.'.id', '=', DC::TABLE_BL_PRD.'.'.BC::COL_PRD_ID)
             ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
-            ->whereNotIn('bills.user_type', ['employee', 'customer'])
-            ->whereBetween('bills.bill_date', [$start, $end])
-            ->groupBy('bills.bill_id', 'product_services.name')
+            ->whereNotIn('bills.' . UC::COL_U_TP, ['employee', 'customer'])
+            ->whereBetween('bills.' . BC::COL_BL_DT, [$start, $end])
+            ->groupBy('bills.' . BC::COL_BL_ID, DC::TABLE_PROD_SERVS.'.name')
             ->get()
             ->toArray();
 
         // 3b) debit‐note details
         $detDebitRaw = DebitNote::select('vendors.name')
             ->selectRaw('NULL AS bill')
-            ->selectRaw('debit_notes.id AS bills')
-            ->selectRaw('debit_notes.amount AS price')
-            ->selectRaw('product_services.name AS product_name')
-            ->selectRaw('debit_notes.date AS bill_date')
+            ->selectRaw(DC::TABLE_DB_NOTES.'.id AS bills')
+            ->selectRaw(DC::TABLE_DB_NOTES.'.amount AS price')
+            ->selectRaw(DC::TABLE_PROD_SERVS.'.name AS product_name')
+            ->selectRaw(DC::TABLE_DB_NOTES.'.date AS bill_date')
             ->selectRaw('5 AS status')
-            ->leftJoin('vendors',         'vendors.id',         '=', 'debit_notes.vendor')
-            ->leftJoin('bill_products',   'bill_products.bill_id', '=', 'debit_notes.bill')
-            ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
-            ->leftJoin('bills',           'bills.id',           '=', 'debit_notes.bill')
+            ->leftJoin('vendors',         'vendors.id',         '=', DC::TABLE_DB_NOTES.'.vendor')
+            ->leftJoin(DC::TABLE_BL_PRD,   DC::TABLE_BL_PRD.'.bill_id', '=', DC::TABLE_DB_NOTES.'.bill')
+            ->leftJoin(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS.'.id', '=', DC::TABLE_BL_PRD.'.'.BC::COL_PRD_ID)
+            ->leftJoin('bills',           'bills.id',           '=', DC::TABLE_DB_NOTES.'.bill')
             ->where('bills.' . DC::COL_TABLE_CREATOR,   $creator)
-            ->whereBetween('debit_notes.date', [$start, $end])
-            ->groupBy('debit_notes.id', 'product_services.name')
+            ->whereBetween(DC::TABLE_DB_NOTES.'.date', [$start, $end])
+            ->groupBy(DC::TABLE_DB_NOTES.'.id', DC::TABLE_PROD_SERVS.'.name')
             ->get()
             ->toArray();
 
@@ -2443,7 +2443,7 @@ final class ReportController extends Controller
             'category'   => $category,
         ];
 
-        return view(ViewsConstants::RPT . '.income_summary', compact('filter'), $data);
+        return view(VW::RPT . '.income_summary', compact('filter'), $data);
     }
 
     private function _buildExpenseSummaryView(Request $request, int|string $creatorId): View
@@ -2589,7 +2589,7 @@ final class ReportController extends Controller
             'category'     => $category,
         ];
 
-        return view(ViewsConstants::RPT . '.expense_summary', compact('filter'), $data);
+        return view(VW::RPT . '.expense_summary', compact('filter'), $data);
     }
 
     private function _buildIncomeVsExpenseSummaryView(Request $request, int|string $creatorId): View
@@ -2729,7 +2729,7 @@ final class ReportController extends Controller
             'category'     => $category,
         ];
 
-        return view(ViewsConstants::RPT . '.income_vs_expense_summary', compact('filter'), $data);
+        return view(VW::RPT . '.income_vs_expense_summary', compact('filter'), $data);
     }
 
     private function _buildTaxSummaryView(Request $request, int|string $creatorId): View
@@ -2740,16 +2740,16 @@ final class ReportController extends Controller
         $year     = $request->year ?? date('Y');
 
         $invoiceProducts = InvoiceProduct::selectRaw(
-            'invoice_products.*, MONTH(invoice_products.created_at) as month'
+            DC::TABLE_INV_PRD.'.*, MONTH('.DC::TABLE_INV_PRD.'.created_at) as month'
         )
             ->leftJoin(
-                'product_services',
-                'invoice_products.product_id',
+                DC::TABLE_PROD_SERVS,
+                DC::TABLE_INV_PRD.'.'.BC::COL_PRD_ID,
                 '=',
-                'product_services.id'
+                DC::TABLE_PROD_SERVS.'.id'
             )
-            ->whereYear('invoice_products.created_at', $year)
-            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creatorId)
+            ->whereYear(DC::TABLE_INV_PRD.'.created_at', $year)
+            ->where(DC::TABLE_PROD_SERVS.'.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->get();
 
         $incomeTaxesData = [];
@@ -2789,13 +2789,13 @@ final class ReportController extends Controller
             'bill_products.*, MONTH(bill_products.created_at) as month'
         )
             ->leftJoin(
-                'product_services',
-                'bill_products.product_id',
+                DC::TABLE_PROD_SERVS,
+                'bill_products.'.BC::COL_PRD_ID,
                 '=',
-                'product_services.id'
+                DC::TABLE_PROD_SERVS.'.id'
             )
             ->whereYear('bill_products.created_at', $year)
-            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_PROD_SERVS.'.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->get();
 
         $expenseTaxesData = [];
@@ -2837,7 +2837,7 @@ final class ReportController extends Controller
         ];
 
         return view(
-            ViewsConstants::RPT . '.tax_summary',
+            VW::RPT . '.tax_summary',
             compact('filter'),
             [
                 'monthList' => $monthList,
@@ -2858,7 +2858,7 @@ final class ReportController extends Controller
         Log::debug('Creator ID in Invoice Summary: ' . ($creatorId ?? 'null'));
         $status  = Invoice::$statuses;
         $q       = Invoice::selectRaw(
-            'invoices.*, MONTH(send_date) as month'
+            DC::TABLE_INVS.'.*, MONTH(send_date) as month'
         );
         Log::debug('Invoices queried by month: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         if ($request->status !== '') {
@@ -2903,7 +2903,7 @@ final class ReportController extends Controller
                 $invoiceTotal[] = $arr[$i] ? array_sum($arr[$i]) : 0;
         Log::debug('Invoice totals by month: ' . json_encode($invoiceTotal));
         $monthList = $this->yearMonth();
-        $viewCandidate = ViewsConstants::RPT . '.invoice_report';
+        $viewCandidate = VW::RPT . '.invoice_report';
         if (!view()->exists($viewCandidate)) {
             Log::error('View not found: ' . $viewCandidate);
             return response('Not Found', 404);
@@ -2982,7 +2982,7 @@ final class ReportController extends Controller
         $monthList = $this->yearMonth();
 
         return view(
-            ViewsConstants::RPT . '.bill_report',
+            VW::RPT . '.bill_report',
             compact(
                 'bills',
                 'vendor',
@@ -3125,7 +3125,7 @@ final class ReportController extends Controller
         $filter['endDateRange']  = date('M-Y', $end);
 
         return view(
-            ViewsConstants::RPT . '.statement_report',
+            VW::RPT . '.statement_report',
             compact('reportData', 'account', 'types', 'filter')
         );
     }
@@ -3190,8 +3190,8 @@ final class ReportController extends Controller
         ];
 
         return $view === 'horizontal'
-            ? view(ViewsConstants::RPT . '.balance_sheet_horizontal', compact('filter', 'chartAccounts'))
-            : view(ViewsConstants::RPT . '.balance_sheet', compact('filter', 'chartAccounts'));
+            ? view(VW::RPT . '.balance_sheet_horizontal', compact('filter', 'chartAccounts'))
+            : view(VW::RPT . '.balance_sheet', compact('filter', 'chartAccounts'));
     }
 
     private function _buildLedgerSummaryView(
@@ -3222,7 +3222,7 @@ final class ReportController extends Controller
             'endDateRange'   => $end,
         ];
 
-        return view(ViewsConstants::RPT . '.ledger_summary', compact('filter', 'items', 'accounts'));
+        return view(VW::RPT . '.ledger_summary', compact('filter', 'items', 'accounts'));
     }
 
     private function _buildTrialBalanceSummaryView(
@@ -3255,7 +3255,7 @@ final class ReportController extends Controller
 
         $filter = ['startDateRange' => $start, 'endDateRange' => $end];
 
-        return view(ViewsConstants::RPT . '.trial_balance', compact('filter', 'totalAccounts'));
+        return view(VW::RPT . '.trial_balance', compact('filter', 'totalAccounts'));
     }
 
     private function _buildLeaveView(Request $request, int|string $creatorId): View
@@ -3337,7 +3337,7 @@ final class ReportController extends Controller
             'totalPending'  => $totPend,
         ];
         return view(
-            ViewsConstants::RPT . '.leave',
+            VW::RPT . '.leave',
             compact(
                 'department',
                 'branch',
@@ -3386,7 +3386,7 @@ final class ReportController extends Controller
         }
 
         return view(
-            ViewsConstants::RPT . '.leaveShow',
+            VW::RPT . '.leaveShow',
             [
                 'leaves'    => $leaves,
                 'leaveData' => $leaveData->get(),
@@ -3470,7 +3470,7 @@ final class ReportController extends Controller
         }
 
         return view(
-            ViewsConstants::RPT . '.monthlyAttendance',
+            VW::RPT . '.monthlyAttendance',
             [
                 'employeesAttendance' => $rows,
                 'branch'              => $branch,
@@ -3575,7 +3575,7 @@ final class ReportController extends Controller
         ];
 
         return view(
-            ViewsConstants::RPT . '.payroll',
+            VW::RPT . '.payroll',
             compact('payslips', 'filterData', 'branch', 'department', 'filterYear')
         );
     }
@@ -3664,7 +3664,7 @@ final class ReportController extends Controller
         ];
         $monthList = $this->yearMonth();
 
-        return view(ViewsConstants::RPT . '.lead', compact(
+        return view(VW::RPT . '.lead', compact(
             'deviceLabels',
             'deviceData',
             'srcLabels',
@@ -3747,7 +3747,7 @@ final class ReportController extends Controller
         ];
         $monthList = $this->yearMonth();
 
-        return view(ViewsConstants::RPT . '.deal', compact(
+        return view(VW::RPT . '.deal', compact(
             'deviceLabels',
             'deviceData',
             'srcLabels',
@@ -3781,7 +3781,7 @@ final class ReportController extends Controller
             'totalProduct'    => $totalProduct,
         ]);
 
-        return view(ViewsConstants::RPT . '.warehouse', [
+        return view(VW::RPT . '.warehouse', [
             'warehouse'            => $warehouses,
             'totalWarehouse'       => $totalWarehouse,
             'totalProduct'         => $totalProduct,
@@ -3836,7 +3836,7 @@ final class ReportController extends Controller
         $vendors   = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
-        return view(ViewsConstants::RPT . '.daily_purchase', compact(
+        return view(VW::RPT . '.daily_purchase', compact(
             'warehouses',
             'vendors',
             'arrDuration',
@@ -3887,7 +3887,7 @@ final class ReportController extends Controller
         $monthList = $this->yearMonth();
         $yearList = $this->yearList();
 
-        return view(ViewsConstants::RPT . '.monthly_purchase', compact(
+        return view(VW::RPT . '.monthly_purchase', compact(
             'monthList',
             'yearList',
             'warehouses',
@@ -3944,7 +3944,7 @@ final class ReportController extends Controller
         $customers = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
-        return view(ViewsConstants::RPT . '.daily_pos', compact(
+        return view(VW::RPT . '.daily_pos', compact(
             'warehouses',
             'customers',
             'arrDuration',
@@ -3995,7 +3995,7 @@ final class ReportController extends Controller
         $monthList = $this->yearMonth();
         $yearList = $this->yearList();
 
-        return view(ViewsConstants::RPT . '.monthly_pos', compact(
+        return view(VW::RPT . '.monthly_pos', compact(
             'monthList',
             'yearList',
             'warehouses',
@@ -4038,7 +4038,7 @@ final class ReportController extends Controller
             'endDateRange' => "Dec-{$year}"
         ];
 
-        return view(ViewsConstants::RPT . '.pos_vs_purchase', compact(
+        return view(VW::RPT . '.pos_vs_purchase', compact(
             'filter'
         ), [
             'posTotal' => $posArr,
@@ -4104,9 +4104,9 @@ final class ReportController extends Controller
         ];
 
         if ($view === 'horizontal') {
-            return view(ViewsConstants::RPT . '.profit_loss_horizontal', compact('filter', 'chartAccounts'));
+            return view(VW::RPT . '.profit_loss_horizontal', compact('filter', 'chartAccounts'));
         }
-        return view(ViewsConstants::RPT . '.profit_loss', compact('filter', 'chartAccounts'));
+        return view(VW::RPT . '.profit_loss', compact('filter', 'chartAccounts'));
     }
 
     private function _renderMonthlyCashflow(Request $request, int|string $creatorId): View
@@ -4154,7 +4154,7 @@ final class ReportController extends Controller
             'endDateRange'   => "Dec-{$year}",
         ];
 
-        return view(ViewsConstants::RPT . '.monthly_cashflow', compact('filter') + $data);
+        return view(VW::RPT . '.monthly_cashflow', compact('filter') + $data);
     }
 
     private function _renderQuarterlyCashflow(Request $request, int|string $creatorId): View
@@ -4232,7 +4232,7 @@ final class ReportController extends Controller
             'currentYear'            => $year,
         ];
 
-        return view(ViewsConstants::RPT . '.quarterly_cashflow', compact('filter') + $data);
+        return view(VW::RPT . '.quarterly_cashflow', compact('filter') + $data);
     }
 
 
@@ -4355,8 +4355,8 @@ final class ReportController extends Controller
         $chartAccounts = $this->_doBalanceSheetStructure($creatorId, $start, $end);
         $filter = ['startDateRange' => $start, 'endDateRange' => $end];
         if ($view === 'horizontal')
-            return view(ViewsConstants::RPT . '.balance_sheet_receipt_horizontal', compact('filter', 'chartAccounts'));
-        return view(ViewsConstants::RPT . '.balance_sheet_receipt', compact('filter', 'chartAccounts'));
+            return view(VW::RPT . '.balance_sheet_receipt_horizontal', compact('filter', 'chartAccounts'));
+        return view(VW::RPT . '.balance_sheet_receipt', compact('filter', 'chartAccounts'));
     }
 
     private function _doBalanceSheetStructure(int|string $creatorId, string $start, string $end): array
@@ -4457,9 +4457,9 @@ final class ReportController extends Controller
         $filter = ['startDateRange' => $start, 'endDateRange' => $end];
 
         if ($view === 'horizontal') {
-            return view(ViewsConstants::RPT . '.profit_loss_receipt_horizontal', compact('filter', 'chartAccounts'));
+            return view(VW::RPT . '.profit_loss_receipt_horizontal', compact('filter', 'chartAccounts'));
         }
-        return view(ViewsConstants::RPT . '.profit_loss_receipt', compact('filter', 'chartAccounts'));
+        return view(VW::RPT . '.profit_loss_receipt', compact('filter', 'chartAccounts'));
     }
 
     private function _doProfitLossStructure(int|string $creatorId, string $start, string $end): array

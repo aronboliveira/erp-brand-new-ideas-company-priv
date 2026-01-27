@@ -13,7 +13,7 @@ use App\Config\Constants\ActivitiesConstants as AC;
 
 use App\Models\Project as Prj;
 use App\Models\Client as Cli;
-use App\Models\ProjectStages as Pst;
+use App\Models\ProjectStage as Pst;
 use App\Models\User as Usr;
 use App\Traits\EnsuresSystemUser;
 
@@ -50,7 +50,6 @@ final class ProjectSeeder extends Seeder
 					$c->save();
 				}
 			}
-
 			if (!Pst::exists()) {
 				$names = ['Planejamento', 'Em andamento', 'Revisão', 'Concluído', 'Aguardando cliente', 'Em espera', 'Cancelado', 'Arquivado', 'Iniciado', 'Em teste', 'Produção', 'Homologação', 'Análise', 'Design', 'Implementação', 'Lançamento', 'Suporte', 'Manutenção', 'Otimização', 'Encerramento'];
 				$ord = 0;
@@ -69,13 +68,10 @@ final class ProjectSeeder extends Seeder
 					$s->save();
 				}
 			}
-
-			$quantity = 64;
+			$quantity = 255;
 			$statusKeys = array_keys(Prj::$project_status);
-
 			$clientIds = Cli::query()->pluck('id')->all();
 			$stageIds  = Pst::query()->pluck('id')->all();
-
 			for ($i = 0; $i < $quantity; $i++) {
 				try {
 					$pjNm = $faker->sentence(3);

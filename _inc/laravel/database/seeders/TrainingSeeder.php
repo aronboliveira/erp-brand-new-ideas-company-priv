@@ -61,9 +61,13 @@ class TrainingSeeder extends Seeder
 			return;
 		}
 		$this->output ??= new \Symfony\Component\Console\Output\ConsoleOutput();
+		$cap = 1024;
 		foreach ($employees as $empId) {
-			$perEmployee = random_int(1, 16);
+			if ($cap <= 0 || !$cap) break;
+			$perEmployee = random_int(1, 8);
 			for ($i = 0; $i < $perEmployee; $i++) {
+				if ($cap <= 0 || !$cap) break;
+				$cap--;
 				$this->output->writeln("Seeding training for employee $empId (" . ($i + 1) . "/$perEmployee)");
 				Training::query()->create(
 					$this->makeRow((string) $empId, $types, $trainers, $companies, $branches, $docs)

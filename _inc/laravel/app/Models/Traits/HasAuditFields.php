@@ -7,19 +7,18 @@ use App\Models\User;
 
 trait HasAuditFields
 {
+	// TODO move the auth to a service later
 	protected static function bootHasAuditFields()
 	{
 		static::creating(function ($model) {
 			if (auth()->check()) {
-				$model->setAttribute(DC::COL_TABLE_CREATOR, $model->getAttribute(DC::COL_TABLE_CREATOR) ?? auth()->id());
-				$model->setAttribute(DC::COL_TABLE_UPDATER, $model->getAttribute(DC::COL_TABLE_UPDATER) ?? auth()->id());
+				$model->setAttribute(DC::COL_TABLE_CREATOR, $model->getAttribute(DC::COL_TABLE_CREATOR) ?? auth()->id() ?? DC::DEFAULT_UUID);
+				$model->setAttribute(DC::COL_TABLE_UPDATER, $model->getAttribute(DC::COL_TABLE_UPDATER) ?? auth()->id() ?? DC::DEFAULT_UUID);
 			}
 		});
-
 		static::updating(function ($model) {
-			if (auth()->check()) {
+			if (auth()->check())
 				$model->setAttribute(DC::COL_TABLE_UPDATER, auth()->id());
-			}
 		});
 	}
 

@@ -132,15 +132,16 @@ final class PlanSeeder extends Seeder
 
 			foreach ($plans as $p) {
 				try {
-					if (Pln::where(PLC::COL_NM, $p[PLC::COL_NM])->exists()) continue;
+					if (Pln::where(PLC::COL_NM, $p[PLC::COL_NM])->exists()) {
+						do $p[PLC::COL_NM] = $p[PLC::COL_NM] . ' ' . Str::random(6);
+						while (Pln::where(PLC::COL_NM, $p[PLC::COL_NM])->exists());
+					}
 					(new \Symfony\Component\Console\Output\ConsoleOutput
 					)->writeln("Criando plano: {$p[PLC::COL_NM]}");
 					do $planId = Str::uuid()->toString();
 					while (Pln::where('id', $planId)->exists());
-
 					do $planQueryKey = Str::uuid()->toString();
 					while (Pln::where('query_key', $planQueryKey)->exists());
-
 					$pl = new Pln();
 					$pl->id                      = $planId;
 					$pl->query_key               = $planQueryKey;

@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\{Log, Schema};
 class CreateInvoiceProductsTable extends Migration
 {
     use HasNullableAuditColumns;
-    private const TABLE           = DC::TABLE_INV_PRD;
+    private const TABLE = DC::TABLE_INV_PRD;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid(BC::COL_INV_ID)->index();
-            $table->uuid(BC::COL_PRD_ID)->index();
+            $table->uuid(BC::COL_PRD_ID)->unique();
             $table->unsignedInteger('quantity')->min(1)->default(1);
             $table->string('tax', 50)->nullable(); // * this will kept for legacy
             $table->decimal('price', 16, 2)->default(0.00);

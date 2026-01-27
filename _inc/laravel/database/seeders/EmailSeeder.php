@@ -23,6 +23,7 @@ class EmailSeeder extends Seeder
 {
 	private const FROM_FRACTION = 0.10;
 	private const TO_FRACTION   = 0.10;
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // segundos
 
 	// provider minimum shares (sobre o TOTAL a criar)
 	private const PROVIDER_MIN = [
@@ -54,8 +55,8 @@ class EmailSeeder extends Seeder
 
 	public function run(): void
 	{
-		$out = $this->out();
-
+		$out = new ConsoleOutput();
+		$clock = microtime(true);
 		if (!Schema::hasTable(DC::TABLE_EMAILS) || !Schema::hasTable(DC::TABLE_USERS)) {
 			$out->writeln('<comment>[EmailSeeder]</comment> Missing required tables. Aborting.');
 			return;
@@ -95,13 +96,13 @@ class EmailSeeder extends Seeder
 		$docIds = Schema::hasTable(DC::TABLE_DOCS) ? $this->fetchDocIdsRaw() : [];
 		$createdIds = [];
 
-		$out->writeln(sprintf(
+		$out->writeln(
 			'<info>[EmailSeeder]</info> eligible_users=%d from_pool=%d to_pool=%d total=%d',
 			count($eligibleUsers),
 			count($fromUsers),
 			count($toUsers),
 			$total
-		));
+		);
 
 		$out->writeln('<info>[EmailSeeder]</info> provider plan: ' . json_encode($this->summarizeProviders($providerPlan)));
 
@@ -113,6 +114,16 @@ class EmailSeeder extends Seeder
 			if ($n < 1) continue;
 
 			for ($i = 0; $i < $n; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				$provider = $providerPlan[$created] ?? $this->randomProvider();
 				$pair = $this->pickFromToPair($fromUsers, $toUsers);
 
@@ -229,6 +240,10 @@ class EmailSeeder extends Seeder
 
 						DC::COL_TABLE_UPDATER => null,
 					]);
+
+					$out->writeln(
+						'(' . $i . '/' . $n . ') ' . ' Creating email from ' . $fromEm . ' to ' . $toEm . ' module ' . $t->value . ' provider ' . $provider
+					);
 
 					$created++;
 					$createdIds[] = (string) $m->getAttribute('id');

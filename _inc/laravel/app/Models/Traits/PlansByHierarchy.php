@@ -276,6 +276,14 @@ trait PlansByHierarchy
 		// 		else if (empty($model->getAttribute(FC::COL_PUB_AT)))
 		// 			$hasPUBAt && $model->setAttribute(FC::COL_PUB_AT, now());
 		// 	}
+		// if (Schema::hasColumn(BC::COL_REQ_BY)) {
+		// 	$requester = $model->getAttribute(BC::COL_REQ_BY);
+		// 	$hasReqAt = Schema::hasColumn($tableName, BC::COL_REQ_AT);
+		// 	if (empty($requester))
+		// 		$hasReqAt && $model->setAttribute(BC::COL_REQ_AT, null);
+		// 	else if (empty($model->getAttribute(BC::COL_REQ_AT)))
+		// 		$hasReqAt && $model->setAttribute(BC::COL_REQ_AT, now());
+		// }
 		// });
 	}
 

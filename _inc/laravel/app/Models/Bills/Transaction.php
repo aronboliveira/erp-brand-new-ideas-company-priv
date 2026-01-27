@@ -84,7 +84,7 @@ class Transaction extends Model
         BC::COL_PRD_SV_UNT,
         'type',
         'date',
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [
@@ -318,18 +318,22 @@ class Transaction extends Model
 
     public static function accounts(string $accountIds): string
     {
-        $names = '';
-        foreach (explode(',', $accountIds) as $acctId) {
-            $acctId = trim($acctId);
-            if ($acctId === '')
-                continue;
-            /** @var BankAccount|null $acct */
-            $acct = BankAccount::find($acctId);
-            if (!$acct)
-                continue;
-            $names = ($acct->bank_name ?? '') . '  ' . ($acct->holder_name ?? '');
-        }
-        return $names;
+        $ids = array_values(array_filter(array_map(
+            fn($v) => trim((string)$v),
+            explode(',', $accountIds)
+        ), fn($v) => $v !== ''));
+
+        if (!$ids) return '';
+
+        $rows = BankAccount::query()
+            ->whereIn('id', $ids)
+            ->get(['id', 'bank_name', 'holder_name']);
+
+        return $rows
+            ->map(fn($a) => trim(($a->bank_name ?? '') . ' ' . ($a->holder_name ?? '')))
+            ->filter(fn($s) => $s !== '')
+            ->values()
+            ->implode(', ');
     }
 
     protected static function normalizePaymentType(self $transaction): void
@@ -417,30 +421,37 @@ class Transaction extends Model
     protected static function normalizeDates(self $transaction): void
     {
         $now = now();
+
         if (empty($transaction->getAttribute('date')))
             $transaction->setAttribute('date', $now->format('Y-m-d'));
+
         $dateFields = [
-            BC::COL_SCHD_TRF_TS,
-            BC::COL_EXC_AT,
-            BC::COL_CNC_AT,
-            DC::COL_FL_AT,
-            BC::COL_CMP_AT,
+            BC::COL_SCHD_TRF_TS, // scheduled: optionally constrain
+            BC::COL_EXC_AT,      // executed: allow past
+            BC::COL_CNC_AT,      // cancelled: allow past
+            DC::COL_FL_AT,       // failed: allow past
+            BC::COL_CMP_AT,      // completed: allow past
         ];
+
         foreach ($dateFields as $field) {
-            if (!array_key_exists($field, $transaction->attributes))
-                continue;
+            if (!array_key_exists($field, $transaction->attributes)) continue;
+
             $value = $transaction->getAttribute($field);
-            if (!$value)
-                continue;
+            if (!$value) continue;
+
             try {
                 $dt = $value instanceof Carbon ? $value : Carbon::parse($value);
-                if ($dt->lt($now))
-                    $transaction->setAttribute($field, $now);
+
+                if ($field === BC::COL_SCHD_TRF_TS && $dt->lt($now))
+                    $dt = $now;
+
+                $transaction->setAttribute($field, $dt);
             } catch (\Throwable $e) {
-                Log::warning(
-                    self::class . '::normalizeDates invalid datetime',
-                    ['field' => $field, 'value' => $value, 'error' => $e->getMessage()]
-                );
+                Log::warning(self::class . '::normalizeDates invalid datetime', [
+                    'field' => $field,
+                    'value' => $value,
+                    'error' => $e->getMessage()
+                ]);
                 $transaction->setAttribute($field, null);
             }
         }
@@ -448,48 +459,27 @@ class Transaction extends Model
 
     protected static function normalizePaymentMethodLabel(self $transaction): void
     {
-        if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes))
-            return;
+        if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes)) return;
+
         $raw = $transaction->getAttribute(BC::COL_PAY_MTD_LB);
-        if ($raw === null || $raw === '') {
-            $transaction->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::Other->value);
-            return;
-        }
-        $normalized = strtolower(trim((string) $raw));
-        $channel = match ($normalized) {
-            'debit', 'card_debit', 'debit_card'       => PaymentMethod::CardDebit,
-            'credit', 'card_credit', 'credit_card'    => PaymentMethod::CardCredit,
-            'pix'                                     => PaymentMethod::Pix,
-            'ted'                                     => PaymentMethod::Ted,
-            'doc'                                     => PaymentMethod::Doc,
-            'wire', 'wire_transfer', 'bank_transfer'  => PaymentMethod::WireTransfer,
-            'cash', 'dinheiro'                        => PaymentMethod::Cash,
-            default                                   => PaymentMethod::Other,
+        $transaction->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::normalize($raw !== null ? (string)$raw : null));
+    }
+
+    public function getPaymentMethodLabelLegacyAttribute(): string
+    {
+        $m = $this->getAttribute(BC::COL_PAY_MTD_LB);
+        $enum = $m instanceof PaymentMethod ? $m : PaymentMethod::normalize($m !== null ? (string)$m : null);
+
+        return match ($enum) {
+            PaymentMethod::CardDebit   => 'debit',
+            PaymentMethod::CardCredit  => 'credit',
+            PaymentMethod::Pix         => 'pix',
+            PaymentMethod::Ted         => 'ted',
+            PaymentMethod::Doc         => 'doc',
+            PaymentMethod::WireTransfer => BC::VL_WR_TRF,
+            PaymentMethod::Cash        => 'cash',
+            default                    => 'other',
         };
-        $labelMap = [
-            PaymentMethod::CardDebit->value   => 'debit',
-            PaymentMethod::CardCredit->value  => 'credit',
-            PaymentMethod::Pix->value         => 'pix',
-            PaymentMethod::Ted->value         => 'ted',
-            PaymentMethod::Doc->value         => 'doc',
-            PaymentMethod::WireTransfer->value => BC::VL_WR_TRF,
-            PaymentMethod::Cash->value        => 'cash',
-            PaymentMethod::Other->value       => 'other',
-        ];
-        $enumValue = $channel->value;
-        $dbLabel   = $labelMap[$enumValue] ?? 'other';
-        if (!in_array(
-            $dbLabel,
-            ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'cash', 'other'],
-            true
-        )) {
-            Log::warning(
-                self::class . '::normalizePaymentMethodLabel produced invalid label',
-                ['raw' => $raw, 'normalized' => $dbLabel]
-            );
-            $dbLabel = 'other';
-        }
-        $transaction->setAttribute(BC::COL_PAY_MTD_LB, $dbLabel);
     }
 
     protected static function sanitizeAttachments(self $transaction): void

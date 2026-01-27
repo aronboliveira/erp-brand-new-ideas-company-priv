@@ -35,7 +35,6 @@ class CreateInterviewSchedulesTable extends Migration
             $table->json('attachments')->nullable(); // ? files, links, etc.
             $table->json('involved')->nullable(); // ? people involved in the hiring process, must forcefully include the interviewer
             $table->foreign('candidate')->references('id')->on(DC::TABLE_JOB_APPS)->cascadeOnDelete();
-            $table->foreign('employee')->references('id')->on(DC::TABLE_USERS)->restrictOnDelete();
             foreach (
                 [
                     FC::COL_FM_ID => DC::TABLE_FORM_BUILD,
@@ -60,7 +59,7 @@ class CreateInterviewSchedulesTable extends Migration
             foreach (
                 [
                     'candidate',
-                    'employee',
+                    FC::COL_FM_ID,
                     PJC::COL_PJ_ID,
                     'document',
                     'todo'

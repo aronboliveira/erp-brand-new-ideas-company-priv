@@ -15,7 +15,7 @@ class CreateBillProductsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid(BC::COL_BL_ID)->index();
-            $table->uuid(BC::COL_PRD_ID)->nullable()->index();
+            $table->uuid(BC::COL_PRD_ID)->nullable()->unique();
             $table->uuid(BKC::COL_COA)->nullable();
             $table->unsignedInteger('quantity')->default(1);
             $table->float('discount')->default(0.00); // todo change this to decimal later

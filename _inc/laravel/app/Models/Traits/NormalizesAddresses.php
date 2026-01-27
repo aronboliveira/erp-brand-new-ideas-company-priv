@@ -174,7 +174,7 @@ trait NormalizesAddresses
 				return substr($digits, 0, 5) . '-' . substr($digits, 5);
 
 			if (!preg_match('/^\d{5}\-?\d{3}$/', $zip)) {
-				Log::warning("[" . self::class . "]: " . static::class . " invalid Brazilian {$context} zip", [
+				Log::notice("[" . self::class . "]: " . static::class . " invalid Brazilian {$context} zip", [
 					'owner_id' => $ownerId,
 					'zip'      => $zip,
 					'method' => __METHOD__,

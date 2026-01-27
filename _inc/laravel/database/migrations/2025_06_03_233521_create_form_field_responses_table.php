@@ -34,14 +34,10 @@ class CreateFormFieldResponsesTable extends Migration
                 $table->uuid(FC::COL_SUBJ_ID)->nullable();
                 $table->uuid(FC::COL_EML_ID)->nullable();
                 $table->uuid(FC::COL_PPL_ID)->nullable();
-
-                // Restrict delete foreign key
                 $table->foreign(FC::COL_FM_ID)
                     ->references('id')
                     ->on(DC::TABLE_FORM_BUILD)
                     ->restrictOnDelete();
-
-                // Null on delete foreign keys
                 foreach (
                     [
                         UC::COL_USER_ID       => DC::TABLE_USERS,
@@ -51,13 +47,11 @@ class CreateFormFieldResponsesTable extends Migration
                         FC::COL_EML_ID        => DC::TABLE_FM_FD,
                         FC::COL_PPL_ID        => DC::TABLE_PIPELINES,
                     ] as $col => $tbl
-                ) {
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
                         ->nullOnDelete();
-                }
-
                 $this->addAuditColumns($table);
                 $table->json('metadata')->nullable();
                 $table->index([FC::COL_FM_ID, FC::COL_FM_DT_RSP_ID], 'idx_form_field_rsp_form_response');

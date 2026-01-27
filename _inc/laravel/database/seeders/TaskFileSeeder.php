@@ -17,7 +17,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{Log, Schema};
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -25,7 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class TaskFileSeeder extends Seeder
 {
-	private const HARD_CAP = 6400;
+	private const HARD_CAP = 512;
 
 	private const GROUPS_PER_TASK_MIN = 1;
 	private const GROUPS_PER_TASK_MAX = 16;
@@ -37,13 +37,16 @@ final class TaskFileSeeder extends Seeder
 	private const DOC_MAX = 8;
 
 	private const UNIQUE_PAIR_MAX_ATTEMPTS = 16;
-	private const FILL_MAX_ATTEMPTS_MULT = 64;
+	private const FILL_MAX_ATTEMPTS_MULT = 16;
+
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 
 	private $output = null;
 
 	public function run(): void
 	{
 		$this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
+		$clock = microtime(true);
 		$io = $this->makeIo();
 		$faker = FakerFactory::create('pt_BR');
 
@@ -114,11 +117,13 @@ final class TaskFileSeeder extends Seeder
 		$byMime = [];
 
 		$shuffledMimes = collect($mimeCases)->shuffle()->values();
-
+		$hardCap = self::HARD_CAP;
 		foreach ($taskIds as $taskId) {
+			if (!$hardCap) break;
+			$hardCap--;
 			$groups = random_int(self::GROUPS_PER_TASK_MIN, self::GROUPS_PER_TASK_MAX);
-
 			for ($g = 0; $g < $groups; $g++) {
+				if (!$hardCap) break;
 				$ut = $userTypes[$utCursor % count($userTypes)];
 				$utCursor++;
 
@@ -130,6 +135,11 @@ final class TaskFileSeeder extends Seeder
 					: random_int(self::NON_DOC_MIN, self::NON_DOC_MAX);
 
 				for ($i = 0; $i < $count; $i++) {
+
+					if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						return;
+					}
 					$this->createOne(
 						$faker,
 						$taskId,
@@ -154,6 +164,8 @@ final class TaskFileSeeder extends Seeder
 		$fillMax = max(1024, $target * self::FILL_MAX_ATTEMPTS_MULT);
 
 		while ($created < $target && $fillAttempts < $fillMax) {
+			if (!$hardCap) break;
+			$hardCap--;
 			$fillAttempts++;
 
 			$taskId = (string) $taskIds->random();

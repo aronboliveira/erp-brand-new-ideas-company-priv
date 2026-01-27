@@ -14,11 +14,12 @@ use Illuminate\Support\Str;
 
 final class EmployeeDocumentSeeder extends Seeder
 {
+	private const SECONDS_LIMIT = 2 * 10 ** 2;
 	public function run(): void
 	{
 		$faker = fake('pt_BR');
-
 		DB::transaction(function () use ($faker) {
+			$clock = microtime(true);
 
 			$employeeIds = Emp::query()->pluck('id')->all();
 			$documentIds = Doc::query()->pluck('id')->all();
@@ -97,14 +98,83 @@ final class EmployeeDocumentSeeder extends Seeder
 				if ($n === 0) return null;
 				return collect($pool)->shuffle()->take($n)->implode(',');
 			};
-
-			// por funcionário, de 1 a 3 documentos distintos
 			foreach ($employeeIds as $empId) {
+				$take = 1;
+				$pickedDocs = collect($documentIds)->shuffle()->take($take)->all();
+				foreach ($pickedDocs as $docId) {
+					if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						return;
+					}
+					try {
+						// evita duplicidade employee_id + document_id
+						$exists = EDoc::query()
+							->where(UC::COL_EMP_ID, $empId)
+							->where(TC::COL_DC_ID, $docId)
+							->exists();
+						if ($exists) {
+							continue;
+						}
+
+						// id com do/while para garantir unicidade
+						do {
+							$id = (string) Str::uuid();
+						} while (EDoc::where('id', $id)->exists());
+
+						$ext  = $faker->randomElement($extPool);
+						$mime = MimeType::fromExtension($ext)?->value ?? 'application/octet-stream';
+						$kind = DocumentKind::fromExtension($ext)?->value ?? 'unknown';
+
+						// viewers/editors/executors opcionais
+						$viewers   = $makeCsvFromPool($userIds, 0, 4);
+						$editors   = $makeCsvFromPool($userIds, 0, 2);
+						$executors = $makeCsvFromPool($userIds, 0, 1);
+
+						(new \Symfony\Component\Console\Output\ConsoleOutput
+						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
+						$m = new EDoc();
+						$m->id                       = $id;
+						$m->{UC::COL_EMP_ID}         = $empId;
+						$m->{TC::COL_DC_ID}          = $docId;
+						$m->{TC::COL_DC_V}           = $faker->bothify(strtoupper('??#####-###'));
+						$m->file_path                = '/storage/docs/' . $id . '.' . $ext;
+						$m->extension                = $ext;
+						// ? gravar como string (evita problemas caso o cast enum não esteja aplicado aqui)
+						$m->mime_type                = $mime;
+						$m->type                     = $kind;
+						$m->size                     = (string) random_int(2_048, 12_582_912); // 2KB..12MB
+						$m->description              = $faker->optional()->sentence();
+						$m->notes                    = $faker->optional()->sentence();
+						$m->expiration_date          = $faker->optional(0.25)->dateTimeBetween('now', '+2 years');
+						$m->last_accessed            = $faker->optional(0.5)->dateTimeBetween('-3 months', 'now');
+						$m->permission_rules         = $makePermissionRules();
+						$m->viewers                  = $viewers;
+						$m->editors                  = $editors;
+						$m->executors                = $executors;
+						$m->{DC::COL_TABLE_CREATOR}      = DC::DEFAULT_UUID;
+						$m->setAttribute(DC::COL_TABLE_UPDATER, null);
+
+						$m->save();
+					} catch (\Exception $e) {
+						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
+						continue;
+					}
+				}
+			}
+			$cap = 1600;
+			foreach ($employeeIds as $empId) {
+				if (!$cap || $cap <= 0)
+					break;
+				$cap--;
 				$take = random_int(1, 3);
 				$pickedDocs = collect($documentIds)->shuffle()->take($take)->all();
 
 				foreach ($pickedDocs as $docId) {
 					try {
+						if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+							Log::warning(self::class . ' seeding time limit reached, stopping early');
+							return;
+						}
 						// evita duplicidade employee_id + document_id
 						$exists = EDoc::query()
 							->where(UC::COL_EMP_ID, $empId)

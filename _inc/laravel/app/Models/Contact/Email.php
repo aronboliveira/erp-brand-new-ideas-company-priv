@@ -13,7 +13,7 @@ use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, Normaliz
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Builder, Model, SoftDeletes};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\{Auth, DB, Log};
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class Email extends Model
@@ -140,40 +140,27 @@ class Email extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $m): void {
-            try {
-                if (!$m->getAttribute(DC::COL_TABLE_CREATOR) && Auth::id())
-                    $m->setAttribute(DC::COL_TABLE_CREATOR, (string) Auth::id());
-            } catch (\Throwable $e) {
-                Log::error(self::class . ' creating failed to set creator', [
-                    'id'    => (string) ($m->getAttribute('id') ?? ''),
-                    'error' => $e->getMessage(),
-                    'method' => 'static::creating',
-                ]);
-            }
-        });
-
-        static::saving(function (self $m): void {
-            try {
-                $m->normalizeCoreStrings();
-                $m->normalizeUuids();
-                $m->ensureUniqueIdentifier();
-                $m->normalizeModuleType();
-                $m->normalizeJsonFields();
-                $m->normalizeFromToWithFallbacks();
-                $m->normalizeFlagsAndTimestamps();
-            } catch (\Throwable $e) {
-                Log::error(self::class . ' saving failed', [
-                    'id'        => (string) ($m->getAttribute('id') ?? ''),
-                    'from_id'   => (string) ($m->getAttribute(EC::COL_FROM_ID) ?? ''),
-                    'to_id'     => (string) ($m->getAttribute(EC::COL_TO_ID) ?? ''),
-                    'error'     => $e->getMessage(),
-                    'method' => 'static::saving'
-                ]);
-                throw $e;
-            }
-        });
-
+        // todo too heavy for mocking, use only in production
+        // static::saving(function (self $m): void {
+        //     try {
+        //         $m->normalizeCoreStrings();
+        //         $m->normalizeUuids();
+        //         $m->ensureUniqueIdentifier();
+        //         $m->normalizeModuleType();
+        //         $m->normalizeJsonFields();
+        //         $m->normalizeFromToWithFallbacks();
+        //         $m->normalizeFlagsAndTimestamps();
+        //     } catch (\Throwable $e) {
+        //         Log::error(self::class . ' saving failed', [
+        //             'id'        => (string) ($m->getAttribute('id') ?? ''),
+        //             'from_id'   => (string) ($m->getAttribute(EC::COL_FROM_ID) ?? ''),
+        //             'to_id'     => (string) ($m->getAttribute(EC::COL_TO_ID) ?? ''),
+        //             'error'     => $e->getMessage(),
+        //             'method' => 'static::saving'
+        //         ]);
+        //         throw $e;
+        //     }
+        // });
         static::addGlobalScope('order_created_desc', function (Builder $b): void {
             $b->reorder()->orderBy(DC::COL_C_AT, 'desc');
         });

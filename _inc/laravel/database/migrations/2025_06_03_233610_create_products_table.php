@@ -14,8 +14,9 @@ class CreateProductsTable extends Migration
 		Schema::create(self::TABLE, function (Blueprint $table): void {
 			$table->uuid('id')->primary();
 			$table->uuid(BC::COL_PRD_SV_ID)->nullable()->index();
-			$table->string('name');
+			$table->string('name')->index();
 			$table->decimal('price', 16, 2)->default(0.00);
+			$table->unsignedInteger('quantity')->default(0)->nullable();
 			$table->text('description')->nullable();
 			$table->string('image')->nullable();
 			$table->string('type')->nullable();

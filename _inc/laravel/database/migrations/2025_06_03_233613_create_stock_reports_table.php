@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\{Log, Schema};
 class CreateStockReportsTable extends Migration
 {
     use HasNullableAuditColumns;
-    private const TABLE           = DC::TABLE_STK_RPT;
-    private const COL_TYPE_ID     = 'type_id';
-
+    private const TABLE = DC::TABLE_STK_RPT;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
@@ -78,26 +76,43 @@ class CreateStockReportsTable extends Migration
                 StockReport::TYPE_CUSTOM,
             ])->index();
             $table->unsignedBigInteger('quantity')->default(0);
-            $table->string(self::COL_TYPE_ID)->index(); // * this is meant to be a polymorphic key (mostly uuids) according to the 'type', respectively from DC::TABLE_POS, DC::TABLE_PUR_ORDERS, DC::TABLE_WAREHOUSES, DC::TABLE_USERS, DC::TABLE_VENDORS || DC::TABLE_USERS, DC::TABLE_BRANCHES, DC::TABLE_VENDORS || DC::TABLE_USERS || DC
+            $table->string(BC::COL_TP_ID)->index(); // * this is meant to be a polymorphic key (mostly uuids) according to the 'type', respectively from DC::TABLE_POS, DC::TABLE_ORDERS, DC::TABLE_WAREHOUSES, DC::TABLE_USERS, DC::TABLE_VENDORS || DC::TABLE_USERS, DC::TABLE_BRANCHES, DC::TABLE_VENDORS || DC::TABLE_USERS
             $table->uuid(BC::COL_PRD_ID)->nullable()->index(); // ? if PRD_SV_ID is null and PRD_ID is not null AND has a valid PRD_SV_ID, then mirror into PRD_SV_ID here
             $table->uuid(BC::COL_PRD_SV_ID)->nullable()->index(); // ? there must be a valid id here or in COL_PRD_ID, else the model throws
-            $table->uuid(PJC::COL_COA_ID)->nullable();
+            $table->uuid(PJC::COL_COA_ID)->nullable()->index();
             $table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
+            $table->uuid(BC::COL_JRN_ENT_ID)->nullable()->index();
+            $table->date(PJC::COL_S_DT)->nullable()->index();
+            $table->date(PJC::COL_E_DT)->nullable()->index();
             $table->text('description')->nullable();
+            $table->boolean(BC::COL_IS_PDF_AVL)->default(false)->nullable();
+            $table->boolean(BC::COL_IS_SST_AVL)->default(false)->nullable();
+            $table->boolean(BC::COL_IS_DOC_AVL)->default(false)->nullable();
+            $table->boolean(BC::COL_IS_WEB_AVL)->default(true)->nullable();
+            $table->boolean(BC::COL_IS_PBI_AVL)->default(false)->nullable();
+            $table->uuid(BC::COL_SBM_BY)->nullable()->index();
+            $table->timestamp(BC::COL_SBM_AT)->nullable()->index();
+            $table->uuid(BC::COL_APV_BY)->nullable()->index(); // ? MUST be enforced as an user of type [UserType::SuperAdmin->value, UserType::Admin->value, UserType::Company->value or UserType::Accountant->value] in the application logic, else nullified
+            $table->timestamp(BC::COL_APV_AT)->nullable()->index();
+            $table->uuid(PJC::COL_REJ_BY)->nullable()->index(); // ? MUST be enforced as an user of type [UserType::SuperAdmin->value, UserType::Admin->value, UserType::Company->value or UserType::Accountant->value] in the application logic, else nullified
+            $table->timestamp(PJC::COL_REJ_AT)->nullable()->index();
             $table->json('receipts')->nullable();
             $table->json('attachments')->nullable();
             $table->json('filters')->nullable();
             foreach (
                 [
-                    BC::COL_PRD_ID => DC::TABLE_PROD_SERVS,
+                    BC::COL_PRD_ID => DC::TABLE_PRODUCTS,
+                    BC::COL_PRD_SV_ID => DC::TABLE_PROD_SERVS,
                     PJC::COL_COA_ID   => DC::TABLE_COAS,
                     PJC::COL_PLN_SCHD_ID => DC::TABLE_PLN_SCHD,
+                    BC::COL_JRN_ENT_ID => DC::TABLE_JOURNAL_ENTRIES,
                 ] as $col => $tbl
             )
                 $table->foreign($col)
                     ->references('id')->on($tbl)
                     ->nullOnDelete();
             $this->addAuditColumns($table);
+            $table->json('metadata')->nullable();
         });
     }
 
@@ -107,8 +122,10 @@ class CreateStockReportsTable extends Migration
             foreach (
                 [
                     BC::COL_PRD_ID,
+                    BC::COL_PRD_SV_ID,
                     PJC::COL_COA_ID,
-                    PJC::COL_PLN_SCHD_ID
+                    PJC::COL_PLN_SCHD_ID,
+                    BC::COL_JRN_ENT_ID,
                 ] as $column
             ) {
                 try {

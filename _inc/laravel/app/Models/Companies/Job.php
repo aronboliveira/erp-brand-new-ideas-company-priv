@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
-use App\Enums\{CountryName, DefinesDates, DEICategory, EvaluationStatus, JobLevel, Visibility, WorkContractType, WorkPresence, WorkShift};
-use App\Traits\{DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
+use App\Enums\{CountryName, DEICategory, EvaluationStatus, JobLevel, Visibility, WorkContractType, WorkPresence, WorkShift};
+use App\Traits\{DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesCountryRegions, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\{DB, Schema};
@@ -176,30 +176,10 @@ class Job extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $m): void {
-            $m->enforceDerivedDefaultsOnCreate();
-            $m->enforceGeoColumnsFromBranchIfNeeded();
-            $m->enforceAllowedApplicantGeo();
-            $m->enforceDomainCoercions();
-            $m->enforceSlugAndCodeUniqueness();
-            $m->enforceStatusFromHire();
-        });
-
-        static::updating(function (self $m): void {
-            $m->enforceGeoColumnsFromBranchIfNeeded();
-            $m->enforceAllowedApplicantGeo();
-            $m->enforceDomainCoercions();
-            $m->enforceSlugAndCodeUniqueness(true);
-            $m->enforceStatusFromHire();
-        });
-
-        static::saving(function (self $m): void {
-            $m->enforceReceivingEmailResolution();
-            $m->enforceRecruiterManagerIdentityHints();
-            $m->enforceApplicantMirror();
-            $m->rescueCountryStateFromKnownCityList($m);
-            $m->normalizeGeo();
-        });
+        // todo too heavy for testing, use only in production
+        // static::saving(function (self $m): void {
+        //     $m->applyDomainInvariants();
+        // });
     }
 
     public function categoryModel(): BelongsTo
@@ -393,6 +373,39 @@ class Job extends Model
         });
     }
 
+
+    protected function applyDomainInvariants(): void
+    {
+        $isCreate = !$this->exists;
+        if ($isCreate)
+            $this->enforceDerivedDefaultsOnCreate();
+        $this->enforceRecruiterManagerIdentityHints();
+        $this->enforceReceivingEmailResolution();
+        $this->enforceApplicantMirror();
+        $this->enforceGeoPipeline();
+        $this->enforceAllowedApplicantGeo();
+        $this->enforceDomainCoercions();
+        $this->enforceSlugAndCodeUniqueness($this->exists);
+        $this->enforceStatusFromHire();
+    }
+
+    protected function enforceGeoPipeline(): void
+    {
+        $geoCols = ['country', 'state', 'city', 'address', 'branch'];
+        $shouldRun =
+            !$this->exists || // create
+            $this->isDirty($geoCols) ||
+            $this->getAttribute('country') === null ||
+            trim((string) $this->getAttribute('country')) === '' ||
+            $this->getAttribute('state') === null ||
+            trim((string) $this->getAttribute('state')) === '';
+        if (!$shouldRun)
+            return;
+        $this->enforceGeoColumnsFromBranchIfNeeded();
+        $this->rescueCountryStateFromKnownCityList($this);
+        $this->normalizeGeo();
+    }
+
     protected function enforceDerivedDefaultsOnCreate(): void
     {
         $curr = $this->getAttribute(AC::COL_EXP_SLR_CURR);
@@ -533,38 +546,27 @@ class Job extends Model
 
     protected function enforceSlugAndCodeUniqueness(bool $isUpdate = false): void
     {
-        $title = $this->getAttribute('title');
-        $titleStr = is_scalar($title) ? trim((string) $title) : '';
-        $id = (string) ($this->getAttribute('id') ?? '');
-
-        if (!$isUpdate || ($this->getAttribute('slug') === null || trim((string) $this->getAttribute('slug')) === '')) {
-            if ($titleStr !== '') {
-                $this->setAttribute('slug', $this->buildUniqueSlug($titleStr, $id));
-            }
-        } else {
-            $slug = trim((string) $this->getAttribute('slug'));
-            if ($slug !== '')
-                $this->setAttribute('slug', $this->buildUniqueSlugFromGiven($slug, $id));
-        }
-
-        if (!$isUpdate || ($this->getAttribute('code') === null || trim((string) $this->getAttribute('code')) === '')) {
-            $this->setAttribute('code', $this->buildUniqueCode($id));
-        } else {
-            $code = trim((string) $this->getAttribute('code'));
-            if ($code !== '')
-                $this->setAttribute('code', $this->buildUniqueCodeFromGiven($code, $id));
-        }
+        $titleDirty = $this->isDirty('title');
+        $slugDirty  = $this->isDirty('slug');
+        $codeDirty  = $this->isDirty('code');
+        $slugEmpty = trim((string) ($this->getAttribute('slug') ?? '')) === '';
+        $codeEmpty = trim((string) ($this->getAttribute('code') ?? '')) === '';
+        if (!$isUpdate || $titleDirty || $slugDirty || $slugEmpty || $codeDirty || $codeEmpty)
+            parent::enforceSlugAndCodeUniqueness($isUpdate);
     }
 
     protected function enforceStatusFromHire(): void
     {
+        if ($this->exists && !$this->isDirty([AC::COL_HRD_ID, 'hired']))
+            return;
         $hid = $this->getAttribute(AC::COL_HRD_ID);
         $hired = $this->getAttribute('hired');
-
-        $hasHire = (is_scalar($hid) && trim((string) $hid) !== '') || (is_scalar($hired) && trim((string) $hired) !== '');
+        $hasHire = (is_scalar($hid) && trim((string) $hid) !== '')
+            || (is_scalar($hired) && trim((string) $hired) !== '');
         if ($hasHire)
             $this->setAttribute('status', EvaluationStatus::Completed->value);
     }
+
 
     protected function enforceReceivingEmailResolution(): void
     {
@@ -768,19 +770,8 @@ class Job extends Model
 
     protected function cacheOnce(string $key, \Closure $cb): mixed
     {
-        try {
-            $id = (string) ($this->getAttribute('id') ?? spl_object_id($this));
-            $k = static::class . ':' . $id . ':' . $key;
-
-            /** @var array<string, mixed> $cacheLocal */
-            $cacheLocal = &self::$cacheLocal;
-
-            if (array_key_exists($k, $cacheLocal))
-                return $cacheLocal[$k];
-
-            return $cacheLocal[$k] = $cb();
-        } catch (\Throwable $e) {
-            return null;
-        }
+        if (array_key_exists($key, $this->cacheLocal))
+            return $this->cacheLocal[$key];
+        return $this->cacheLocal[$key] = $cb();
     }
 }

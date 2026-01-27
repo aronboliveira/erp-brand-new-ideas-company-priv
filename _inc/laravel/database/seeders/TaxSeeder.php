@@ -43,9 +43,20 @@ final class TaxSeeder extends Seeder
 				['name' => 'Simples Nacional (DAS) - ME - Anexo V - Faixa 1',  'rate' => 15.50],
 			];
 
+			while (log(count($defs), 2) % 1 !== 0 || count($defs) < 32) {
+				$defs[] = [
+					'name' => 'Imposto ' . fake()->unique()->words(2, true),
+					'rate' => $faker->randomFloat(2, 0.50, 25.00),
+					'description' => $faker->sentence(),
+				];
+			}
+
 			foreach ($defs as $def) {
 				try {
-					if (Tx::where('name', $def['name'])->exists()) continue;
+					if (Tx::where('name', $def['name'])->exists()) {
+						do $def['name'] = 'Imposto ' . fake()->unique()->words(2, true);
+						while (Tx::where('name', $def['name'])->exists());
+					}
 					(new \Symfony\Component\Console\Output\ConsoleOutput
 					)->writeln("Criando Imposto: {$def['name']}");
 					do $taxId = Str::uuid()->toString();

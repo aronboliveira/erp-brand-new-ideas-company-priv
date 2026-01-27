@@ -22,6 +22,7 @@ final class HolidaySeeder extends Seeder
 {
 	private const MAX_UNIQUE_ATTEMPTS = 25;
 	private const MAX_LOOP_GUARD = 800;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	/**
 	 * ISO-3166-1 alpha-2 => Faker locale
@@ -72,7 +73,8 @@ final class HolidaySeeder extends Seeder
 
 	public function run(): void
 	{
-		$out = $this->output();
+		$clock = microtime(true);
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
 		$out->writeln('<info>[HolidaySeeder]</info> start');
 
 		if (!Schema::hasTable(DC::TABLE_HLD)) {
@@ -124,7 +126,6 @@ final class HolidaySeeder extends Seeder
 		foreach ($countries as $cc) {
 			for ($i = 0; $i < 2 && $created < $target; $i++) {
 				$faker = $this->fakerForCountry($cc);
-
 				$data = $this->makeHolidayData(
 					cc: $cc,
 					faker: $faker,
@@ -135,18 +136,25 @@ final class HolidaySeeder extends Seeder
 					linkPool: $linkPool,
 					mustLink: $mustLink
 				);
-
 				$this->persistHoliday($data);
 				$created++;
+				if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+					$out->writeln('<error>[HolidaySeeder]</error> time limit reached, stopping early');
+					return;
+				}
 			}
 		}
 
 		// 2) Looping principal (type x observance x 16 shift variants), com BR majoritário
 		while ($created < $target) {
 			$guard++;
+			if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+				$out->writeln('<error>[HolidaySeeder]</error> time limit reached, stopping early');
+				return;
+			}
 			if ($guard > self::MAX_LOOP_GUARD) {
 				$out->writeln('<error>[HolidaySeeder]</error> guard stop (MAX_LOOP_GUARD)');
-				break;
+				return;
 			}
 
 			$cc = $this->pickCountryWeighted($countries);

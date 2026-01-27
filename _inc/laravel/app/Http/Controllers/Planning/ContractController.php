@@ -3,19 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    SettingsConstants,
-    UsersConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    SettingsConstants as SC,
+    UsersConstants as UC
 };
 use App\Traits\ChecksLogin;
 use App\Models\{
     Contract,
     ContractAttachment,
     ContractComment,
-    ContractNotes,
+    ContractNote,
     ContractType,
     Project,
     User,
@@ -44,20 +43,20 @@ class ContractController extends Controller
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
+            if (!$user?->can(PMC::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
             try {
                 $creator = $user?->creatorId();
                 // company overview
-                if ($user->type == PermissionsConstants::CPN) {
+                if ($user->type == PMC::CPN) {
                     $companyStart = microtime(true);
-                    $all = Contract::with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
-                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->get();
-                    $byMonth = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                        ->whereMonth(ProjectsConstants::COL_S_DT, now()->month)->get();
-                    $byWeek = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                        ->whereBetween(ProjectsConstants::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
-                    $last30 = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                        ->whereDate(ProjectsConstants::COL_S_DT, '>', now()->subDays(30))->get();
+                    $all = Contract::with([DC::TABLE_CLIENTS, DC::TABLE_PROJECTS, 'types'])
+                        ->where(DC::COL_TABLE_CREATOR, $creator)->get();
+                    $byMonth = Contract::where(DC::COL_TABLE_CREATOR, $creator)
+                        ->whereMonth(PJC::COL_S_DT, now()->month)->get();
+                    $byWeek = Contract::where(DC::COL_TABLE_CREATOR, $creator)
+                        ->whereBetween(PJC::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
+                    $last30 = Contract::where(DC::COL_TABLE_CREATOR, $creator)
+                        ->whereDate(PJC::COL_S_DT, '>', now()->subDays(30))->get();
                     $summarize = fn($set) => \App\Models\Contract::getContractSummary($set);
                     $cnt = [
                         'total' => $summarize($all),
@@ -70,15 +69,15 @@ class ContractController extends Controller
                 }
 
                 // client overview
-                if ($user->type == PermissionsConstants::CL) {
+                if ($user->type == PMC::CL) {
                     $clientStart = microtime(true);
-                    $all = Contract::with('types')->where('client_name', $user?->id)->get();
-                    $byMonth = Contract::where('client_name', $user?->id)
-                        ->whereMonth(ProjectsConstants::COL_S_DT, now()->month)->get();
-                    $byWeek = Contract::where('client_name', $user?->id)
-                        ->whereBetween(ProjectsConstants::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
-                    $last30 = Contract::where('client_name', $user?->id)
-                        ->whereDate(ProjectsConstants::COL_S_DT, '>', now()->subDays(30))->get();
+                    $all = Contract::with('types')->where(PJC::COL_CLIENT_NAME, $user?->id)->get();
+                    $byMonth = Contract::where(PJC::COL_CLIENT_NAME, $user?->id)
+                        ->whereMonth(PJC::COL_S_DT, now()->month)->get();
+                    $byWeek = Contract::where(PJC::COL_CLIENT_NAME, $user?->id)
+                        ->whereBetween(PJC::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
+                    $last30 = Contract::where(PJC::COL_CLIENT_NAME, $user?->id)
+                        ->whereDate(PJC::COL_S_DT, '>', now()->subDays(30))->get();
                     $summarize = fn($set) => \App\Models\Contract::getContractSummary($set);
                     $cnt = [
                         'total' => $summarize($all),
@@ -91,8 +90,8 @@ class ContractController extends Controller
                 }
                 // fallback: all for other user types
                 $allStart = microtime(true);
-                $all = Contract::with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->get();
+                $all = Contract::with([DC::TABLE_CLIENTS, DC::TABLE_PROJECTS, 'types'])
+                    ->where(DC::COL_TABLE_CREATOR, $creator)->get();
                 $this->logExecutionTime($allStart, $action . '::fallbackAll', 'completed');
                 return view(self::ENTITY . '.' . $function, compact('all'));
             } catch (\Throwable $e) {
@@ -100,14 +99,14 @@ class ContractController extends Controller
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
-        }, ['user_id' => Auth::id()]);
+        }, [UC::COL_USER_ID => Auth::id()]);
     }
 
     public function create(Request $request): RedirectResponse|View
     {
         $function = __FUNCTION__;
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id()]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id()]);
         return $this->measureProfile($method, function () use ($request, $method, $function) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -117,21 +116,21 @@ class ContractController extends Controller
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $creator = $user?->creatorId();
             $stepStart = microtime(true);
-            $contractTypes = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
+            $contractTypes = ContractType::where(DC::COL_TABLE_CREATOR, $creator)
                 ->pluck('name', 'id');
             $this->logExecutionTime($stepStart, 'fetchContractTypes', 'completed');
             $stepStart = microtime(true);
-            $clients = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                ->pluck(UsersConstants::COL_NM, 'id');
+            $clients = User::where(UC::COL_TP, PMC::CL)
+                ->where(DC::COL_TABLE_CREATOR, $creator)
+                ->pluck(UC::COL_NM, 'id');
             $clients->prepend(__('Select Client'), 0);
             $this->logExecutionTime($stepStart, 'fetchClients', 'completed');
             $stepStart = microtime(true);
-            $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                ->pluck(ProjectsConstants::COL_NM, 'id');
+            $projects = Project::where(DC::COL_TABLE_CREATOR, $creator)
+                ->pluck(PJC::COL_NM, 'id');
             $this->logExecutionTime($stepStart, 'fetchProjects', 'completed');
-            return view(self::ENTITY . '.' . $function, compact('contractTypes', DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS));
-        }, ['user_id' => auth()->id()]);
+            return view(self::ENTITY . '.' . $function, compact('contractTypes', DC::TABLE_CLIENTS, DC::TABLE_PROJECTS));
+        }, [UC::COL_USER_ID => auth()->id()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -148,18 +147,18 @@ class ContractController extends Controller
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
 
             if (!$user?->can('create contract')) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+                Log::warning($method . ' permission denied', [UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
 
             $startValidation = microtime(true);
             $v = validator($request->all(), [
-                'client_name' => 'required',
+                PJC::COL_CLIENT_NAME => 'required',
                 'subject'     => 'required',
                 'type'        => 'required',
                 'value'       => 'required|numeric',
-                ProjectsConstants::COL_S_DT  => 'required|date',
-                'end_date'    => 'required|date',
+                PJC::COL_S_DT  => 'required|date',
+                PJC::COL_E_DT    => 'required|date',
             ]);
             if ($v->fails()) {
                 $this->logExecutionTime($startValidation, $function . '::validation', 'failed');
@@ -171,26 +170,26 @@ class ContractController extends Controller
             try {
                 $startCreate = microtime(true);
                 $c = Contract::create([
-                    'client_name' => $request->client_name,
+                    PJC::COL_CLIENT_NAME => $request->{PJC::COL_CLIENT_NAME},
                     'subject'     => $request->subject,
-                    'project_id'  => $request->project_id,
+                    PJC::COL_PJ_ID  => $request->{PJC::COL_PJ_ID},
                     'type'        => $request->type,
                     'value'       => $request->value,
-                    ProjectsConstants::COL_S_DT  => $request->start_date,
-                    'end_date'    => $request->end_date,
+                    PJC::COL_S_DT  => $request->{PJC::COL_S_DT},
+                    PJC::COL_E_DT    => $request->{PJC::COL_E_DT},
                     'description' => $request->description,
-                    DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId(),
+                    DC::COL_TABLE_CREATOR  => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createContract', 'completed');
 
                 $settings = Utility::settings($user?->creatorId());
-                $client  = User::findOrFail($c->client_name);
+                $client  = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $payload = [
                     'contract_subject'    => $c->subject,
                     'contract_client'     => $client->name,
                     'contract_value'      => $user?->priceFormat($c->value),
-                    'contract_start_date' => $user?->dateFormat($c->start_date),
-                    'contract_end_date'   => $user?->dateFormat($c->end_date),
+                    'contract_start_date' => $user?->dateFormat($c->{PJC::COL_S_DT}),
+                    'contract_end_date'   => $user?->dateFormat($c->{PJC::COL_E_DT}),
                     'user_name'           => $user?->name,
                 ];
 
@@ -239,7 +238,7 @@ class ContractController extends Controller
         $function = __FUNCTION__;
         $action = "{$class}::{$function}";
         return $this->measureProfile($action, function () use ($request, $id, $action, $function) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -249,7 +248,7 @@ class ContractController extends Controller
                 if ($c->created_by !== $user?->creatorId()) return defaultPermissionDenial($request, null, $action);
                 $client = $c->client;
                 $this->logExecutionTime($stepStart, 'view contract', 'completed');
-                return view(self::ENTITY . '.' . $function, compact('c', PermissionsConstants::CL));
+                return view(self::ENTITY . '.' . $function, compact('c', PMC::CL));
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), 'id' => $id]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'id' => $id]);
@@ -275,18 +274,18 @@ class ContractController extends Controller
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 $creator = $user?->creatorId();
                 $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->pluck('name', 'id');
+                $types = ContractType::where(DC::COL_TABLE_CREATOR, $creator)->pluck('name', 'id');
                 $this->logExecutionTime($typesStart, $action . '::types', 'completed');
                 $clientsStart = microtime(true);
-                $clients = User::where('type', PermissionsConstants::CL)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                    ->pluck(UsersConstants::COL_NM, 'id');
+                $clients = User::where('type', PMC::CL)
+                    ->where(DC::COL_TABLE_CREATOR, $creator)
+                    ->pluck(UC::COL_NM, 'id');
                 $this->logExecutionTime($clientsStart, $action . '::clients', 'completed');
                 $projectsStart = microtime(true);
-                $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
-                    ->pluck(ProjectsConstants::COL_NM, 'id');
+                $projects = Project::where(DC::COL_TABLE_CREATOR, $creator)
+                    ->pluck(PJC::COL_NM, 'id');
                 $this->logExecutionTime($projectsStart, $action . '::projects', 'completed');
-                return view(self::ENTITY . '.' . $function, compact('c', 'types', DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS));
+                return view(self::ENTITY . '.' . $function, compact('c', 'types', DC::TABLE_CLIENTS, DC::TABLE_PROJECTS));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -298,7 +297,7 @@ class ContractController extends Controller
     public function update(Request $request, int|string $id): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id(), 'id' => $id]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -308,12 +307,12 @@ class ContractController extends Controller
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $stepStart = microtime(true);
             $v = validator($request->all(), [
-                'client_name' => 'required',
+                PJC::COL_CLIENT_NAME => 'required',
                 'subject' => 'required',
                 'type' => 'required',
                 'value' => 'required|numeric',
-                ProjectsConstants::COL_S_DT => 'required|date',
-                'end_date' => 'required|date',
+                PJC::COL_S_DT => 'required|date',
+                PJC::COL_E_DT => 'required|date',
             ]);
             $this->logExecutionTime($stepStart, 'validateRequest', 'completed');
             if ($v->fails())
@@ -322,13 +321,13 @@ class ContractController extends Controller
             try {
                 $c = Contract::findOrFail($id);
                 $c->update($request->only([
-                    'client_name',
+                    PJC::COL_CLIENT_NAME,
                     'subject',
-                    'project_id',
+                    PJC::COL_PJ_ID,
                     'type',
                     'value',
-                    ProjectsConstants::COL_S_DT,
-                    'end_date',
+                    PJC::COL_S_DT,
+                    PJC::COL_E_DT,
                     'description'
                 ]));
                 $this->logExecutionTime($stepStart, 'updateContract', 'completed');
@@ -337,7 +336,7 @@ class ContractController extends Controller
             } catch (\Throwable $e) {
                 return defaultUndefinedException($request, $e, $method);
             }
-        }, ['user_id' => auth()->id(), 'id' => $id]);
+        }, [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
     }
 
     public function destroy(Request $request, int|string $id): RedirectResponse
@@ -353,7 +352,7 @@ class ContractController extends Controller
             $user = $userOrRedirect;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             if (!$user?->can('delete contract')) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+                Log::warning($method . ' permission denied', [UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
             try {
@@ -378,7 +377,7 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $id, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -404,16 +403,16 @@ class ContractController extends Controller
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN, PermissionsConstants::CL]))
+            if (!in_array($user?->type, [PMC::SA, PMC::CPN, PMC::CL]))
                 return defaultPermissionDenial($request, null, $action);
             try {
                 $qryStart = microtime(true);
                 $qry = Contract::query();
                 $qry->where(
-                    ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
-                        ? DatabaseConstants::COL_TABLE_CREATOR
+                    ($user->type == PMC::CPN || $user->type == PMC::SA)
+                        ? DC::COL_TABLE_CREATOR
                         : 'client_id',
-                    ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
+                    ($user->type == PMC::CPN || $user->type == PMC::SA)
                         ? $user?->creatorId()
                         : $user?->id
                 );
@@ -433,14 +432,14 @@ class ContractController extends Controller
     public function fileUpload(Request $request, int|string $id): JsonResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id(), 'id' => $id]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse)
                 return response()->json(['error' => 'Permission denied'], 401);
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if (!$user?->can(PermissionsConstants::MNG_CTC))
+            if (!$user?->can(PMC::MNG_CTC))
                 return response()->json(['error' => 'Permission denied'], 401);
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $stepStart = microtime(true);
@@ -460,19 +459,19 @@ class ContractController extends Controller
                 if ($path['flag'] !== 1)
                     return response()->json(['error' => __($path['msg'])], 500);
                 $attach = ContractAttachment::create([
-                    'contract_id' => $c->id,
-                    'user_id' => $user?->id,
+                    PJC::COL_CTC_ID => $c->id,
+                    UC::COL_USER_ID => $user?->id,
                     'files' => $name,
                 ]);
                 return response()->json([
-                    'download' => route(DatabaseConstants::TABLE_CONTRACTS . '.file.download', [$c->id, $attach->id]),
-                    'delete' => route(DatabaseConstants::TABLE_CONTRACTS . '.file.delete', [$c->id, $attach->id]),
+                    'download' => route(DC::TABLE_CONTRACTS . '.file.download', [$c->id, $attach->id]),
+                    'delete' => route(DC::TABLE_CONTRACTS . '.file.delete', [$c->id, $attach->id]),
                     'is_success' => true
                 ], 200);
             } catch (\Throwable $e) {
                 return defaultUndefinedException($request, $e, $method, '/', false, []);
             }
-        }, ['user_id' => auth()->id(), 'id' => $id]);
+        }, [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
     }
 
     public function fileDownload(Request $request, int|string $id, int|string $fileId): RedirectResponse
@@ -487,8 +486,8 @@ class ContractController extends Controller
             }
             $user = $userOrRedirect;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+            if (!$user?->can(PMC::MNG_CTC)) {
+                Log::warning($method . ' permission denied', [UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
             try {
@@ -519,13 +518,13 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $id, $fileId, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id, 'fileId' => $fileId]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id, 'fileId' => $fileId]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
                     return response()->json(['error' => 'Permission denied'], 401);
                 $user = $userOrRedirect;
-                if (!$user?->can(PermissionsConstants::MNG_CTC))
+                if (!$user?->can(PMC::MNG_CTC))
                     return response()->json(['error' => 'Permission denied'], 401);
                 $file = ContractAttachment::findOrFail($fileId);
                 @unlink(storage_path("contract_attachment/{$file->files}"));
@@ -574,23 +573,23 @@ class ContractController extends Controller
     public function commentStore(Request $request, int|string $id): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id(), 'id' => $id]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) return defaultPermissionDenial($request, null, $method);
+            if (!$user?->can(PMC::MNG_CTC)) return defaultPermissionDenial($request, null, $method);
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $stepStart = microtime(true);
             $c = new ContractComment();
             $c->comment = $request->comment;
-            $c->contract_id = $id;
-            $c->user_id = $user?->id;
+            $c->{PJC::COL_CTC_ID} = $id;
+            $c->{UC::COL_USER_ID} = $user?->id;
             $c->save();
             $this->logExecutionTime($stepStart, 'saveComment', 'completed');
             return redirect()->back()->with('success', __('Comment added.'));
-        }, ['user_id' => auth()->id(), 'id' => $id]);
+        }, [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
     }
 
     public function contractDescriptionStore(Request $request, int|string $id): JsonResponse
@@ -606,7 +605,7 @@ class ContractController extends Controller
             $user = $userOrRedirect;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             if (!$user?->can('edit contract')) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+                Log::warning($method . ' permission denied', [UC::COL_USER_ID => $user?->id]);
                 return response()->json(['error' => 'Permission denied'], 401);
             }
             try {
@@ -637,12 +636,12 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $id, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
-                if (!$user?->can(PermissionsConstants::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
+                if (!$user?->can(PMC::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
                 ContractComment::findOrFail($id)->delete();
                 $this->logExecutionTime($stepStart, 'delete comment', 'completed');
                 return redirect()->back()->with('success', __('Comment deleted.'));
@@ -664,14 +663,14 @@ class ContractController extends Controller
             if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
+            if (!$user?->can(PMC::MNG_CTC)) return defaultPermissionDenial($request, null, $action);
 
             try {
                 $saveStart = microtime(true);
-                $n = new ContractNotes();
-                $n->contract_id = $id;
+                $n = new ContractNote();
+                $n->{PJC::COL_CTC_ID} = $id;
                 $n->notes = $request->notes;
-                $n->user_id = $user?->id;
+                $n->{UC::COL_USER_ID} = $user?->id;
                 $n->save();
                 $this->logExecutionTime($saveStart, $action . '::saveNote', 'completed');
                 return redirect()->back()->with('success', __('Note saved.'));
@@ -686,24 +685,24 @@ class ContractController extends Controller
     public function noteDestroy(Request $request, int|string $id): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id(), 'id' => $id]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) return defaultPermissionDenial($request, null, $method);
+            if (!$user?->can(PMC::MNG_CTC)) return defaultPermissionDenial($request, null, $method);
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             try {
                 $stepStart = microtime(true);
-                ContractNotes::findOrFail($id)->delete();
+                ContractNote::findOrFail($id)->delete();
                 $this->logExecutionTime($stepStart, 'deleteNote', 'completed');
                 return redirect()->back()->with('success', __('Note deleted.'));
             } catch (\Throwable $e) {
                 Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
                 return defaultUndefinedException($request, $e, $method);
             }
-        }, ['user_id' => auth()->id(), 'id' => $id]);
+        }, [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
     }
 
     public function clientWiseProject(Request $request, int|string $clientId): JsonResponse
@@ -742,7 +741,7 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $id, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -751,7 +750,7 @@ class ContractController extends Controller
                 $c = Contract::findOrFail($id);
                 $settings = Utility::settings();
                 $logoDir = asset(Storage::url('uploads/logo/'));
-                $companyLogo = Utility::getValByName(SettingsConstants::CPN_LG) ?: SettingsConstants::CPN_LG_DK_DEF;
+                $companyLogo = Utility::getValByName(SC::CPN_LG) ?: SC::CPN_LG_DK_DEF;
                 $img = "$logoDir/$companyLogo";
                 $color = '#' . $settings['invoice_color'];
                 $fontColor = Utility::getFontColor($color);
@@ -784,28 +783,28 @@ class ContractController extends Controller
                 $creator = $user?->creatorId();
 
                 $clientsStart = microtime(true);
-                $clients = User::where('type', PermissionsConstants::CL)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
+                $clients = User::where('type', PMC::CL)
+                    ->where(DC::COL_TABLE_CREATOR, $creator)
                     ->pluck('name', 'id');
                 $this->logExecutionTime($clientsStart, $action . '::clients', 'completed');
 
                 $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
+                $types = ContractType::where(DC::COL_TABLE_CREATOR, $creator)
                     ->pluck('name', 'id');
                 $this->logExecutionTime($typesStart, $action . '::types', 'completed');
 
                 $projectsStart = microtime(true);
-                $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
+                $projects = Project::where(DC::COL_TABLE_CREATOR, $creator)
                     ->pluck('title', 'id');
                 $this->logExecutionTime($projectsStart, $action . '::projects', 'completed');
 
-                $c->date_range = "{$c->start_date} to {$c->end_date}";
-                Log::info("[$action] loading copy contract view", ['contract_id' => $id]);
+                $c->date_range = "{$c->{PJC::COL_S_DT}} to {$c->{PJC::COL_E_DT}}";
+                Log::info("[$action] loading copy contract view", [PJC::COL_CTC_ID => $id]);
                 return view(self::ENTITY . '.copy', compact(
                     'c',
-                    DatabaseConstants::TABLE_CLIENTS,
+                    DC::TABLE_CLIENTS,
                     'types',
-                    DatabaseConstants::TABLE_PROJECTS
+                    DC::TABLE_PROJECTS
                 ));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'id' => $id]);
@@ -818,7 +817,7 @@ class ContractController extends Controller
     public function copyContractStore(Request $request): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id()]);
+        Log::debug($method . ' - start', [UC::COL_USER_ID => auth()->id()]);
         return $this->measureProfile($method, function () use ($request, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -828,13 +827,13 @@ class ContractController extends Controller
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $stepStart = microtime(true);
             $v = validator($request->all(), [
-                PermissionsConstants::CL => 'required',
+                PMC::CL => 'required',
                 'subject' => 'required',
-                'project_id' => 'required|array',
+                PJC::COL_PJ_ID => 'required|array',
                 'type' => 'required',
                 'value' => 'required|numeric',
-                ProjectsConstants::COL_S_DT => 'required|date',
-                'end_date' => 'required|date',
+                PJC::COL_S_DT => 'required|date',
+                PJC::COL_E_DT => 'required|date',
             ]);
             $this->logExecutionTime($stepStart, 'validateRequest', 'completed');
             if ($v->fails()) {
@@ -843,27 +842,27 @@ class ContractController extends Controller
             try {
                 $stepStart = microtime(true);
                 $c = Contract::create([
-                    'client_name' => $request->client,
+                    PJC::COL_CLIENT_NAME => $request->client,
                     'subject' => $request->subject,
-                    'project_id' => implode(',', $request->project_id),
+                    PJC::COL_PJ_ID => implode(',', $request->{PJC::COL_PJ_ID}),
                     'type' => $request->type,
                     'value' => $request->value,
-                    ProjectsConstants::COL_S_DT => $request->start_date,
-                    'end_date' => $request->end_date,
+                    PJC::COL_S_DT => $request->{PJC::COL_S_DT},
+                    PJC::COL_E_DT => $request->{PJC::COL_E_DT},
                     'description' => $request->description,
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($stepStart, 'createContract', 'completed');
                 // --- prepare notification payload once ---
                 $stepStart = microtime(true);
                 $settings = Utility::settings($user?->creatorId());
-                $client = User::findOrFail($c->client_name);
+                $client = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $payload = [
                     'contract_subject' => $c->subject,
                     'contract_client' => $client->name,
                     'contract_value' => $user?->priceFormat($c->value),
-                    'contract_start_date' => $user?->dateFormat($c->start_date),
-                    'contract_end_date' => $user?->dateFormat($c->end_date),
+                    'contract_start_date' => $user?->dateFormat($c->{PJC::COL_S_DT}),
+                    'contract_end_date' => $user?->dateFormat($c->{PJC::COL_E_DT}),
                 ];
                 $this->logExecutionTime($stepStart, 'prepareNotification', 'completed');
 
@@ -898,7 +897,7 @@ class ContractController extends Controller
                 Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method);
             }
-        }, ['user_id' => auth()->id()]);
+        }, [UC::COL_USER_ID => auth()->id()]);
     }
 
     public function sendMailContract(Request $request, int|string $id): RedirectResponse
@@ -914,15 +913,15 @@ class ContractController extends Controller
             $user = $userOrRedirect;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
 
-            if (!$user?->can(PermissionsConstants::MNG_CTC)) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+            if (!$user?->can(PMC::MNG_CTC)) {
+                Log::warning($method . ' permission denied', [UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
 
             try {
                 $startFetch = microtime(true);
                 $c = Contract::findOrFail($id);
-                $client = User::findOrFail($c->client_name);
+                $client = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $this->logExecutionTime($startFetch, $function . '::fetchContractAndClient', 'completed');
 
                 $settings = Utility::settings($user?->creatorId());
@@ -930,8 +929,8 @@ class ContractController extends Controller
                     $payload = [
                         'contract_subject'    => $c->subject,
                         'contract_client'     => $client->name,
-                        'contract_start_date' => $c->start_date,
-                        'contract_end_date'   => $c->end_date,
+                        'contract_start_date' => $c->{PJC::COL_S_DT},
+                        'contract_end_date'   => $c->{PJC::COL_E_DT},
                     ];
                     $startEmail = microtime(true);
                     $resp = Utility::sendEmailTemplate(
@@ -960,7 +959,7 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $id, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'id' => $id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -983,7 +982,7 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'contract_id' => $request->contract_id]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), PJC::COL_CTC_ID => $request->{PJC::COL_CTC_ID}]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
@@ -992,8 +991,8 @@ class ContractController extends Controller
                 if (!$user?->can('edit contract'))
                     return response()->json(['error' => 'Permission denied'], 401);
 
-                $c = Contract::findOrFail($request->contract_id);
-                $field = $user->type == PermissionsConstants::CPN ? 'company_signature' : 'client_signature';
+                $c = Contract::findOrFail($request->{PJC::COL_CTC_ID});
+                $field = $user->type == PMC::CPN ? 'company_signature' : 'client_signature';
                 $c->$field = $request->$field;
                 $c->save();
 
@@ -1004,7 +1003,7 @@ class ContractController extends Controller
                 ], 200);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all()]);
-                Log::error("$action failed", ['error' => $e->getMessage(), 'contract_id' => $request->contract_id]);
+                Log::error("$action failed", ['error' => $e->getMessage(), PJC::COL_CTC_ID => $request->{PJC::COL_CTC_ID}]);
                 return defaultUndefinedException($request, $e, $action, '/', false, []);
             }
         });
@@ -1016,7 +1015,7 @@ class ContractController extends Controller
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $contractId, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'contractId' => $contractId]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), PJC::COL_CTC_ID => $contractId]);
             $stepStart = microtime(true);
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -1029,8 +1028,8 @@ class ContractController extends Controller
                 $this->logExecutionTime($stepStart, 'view contract template', 'completed');
                 return view(self::ENTITY . '.template', compact('c'));
             } catch (\Throwable $e) {
-                Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), 'contractId' => $contractId]);
-                Log::error("$action failed", ['error' => $e->getMessage(), 'contractId' => $contractId]);
+                Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), PJC::COL_CTC_ID => $contractId]);
+                Log::error("$action failed", ['error' => $e->getMessage(), PJC::COL_CTC_ID => $contractId]);
                 return defaultUndefinedException($request, $e, $action);
             }
         });

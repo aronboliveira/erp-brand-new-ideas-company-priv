@@ -11,7 +11,7 @@ trait StoresPlanning
 	protected function addPlanningColumns(Blueprint $table, bool $nullableTitle = false, bool $nullableFixedDate = true, bool $nullableFixedTime = true, bool $nullableDept = true, string $onDeleteDept = 'set null'): void
 	{
 		$nullableTitle ? $table->string('title')->nullable()->index() : $table->string('title')->index();
-		$nullableFixedDate ? $table->uuid('date')->default(now()->format('Y-m-d'))->nullable()->index() : $table->uuid('date')->default(now()->format('Y-m-d'))->index();
+		$nullableFixedDate ? $table->uuid('date')->useCurrent()->nullable()->index() : $table->uuid('date')->useCurrent()->index();
 		$table->uuid(PJC::COL_PLN_SCHD_ID)->nullable()->index();
 		$onDeleteDept = strtolower((string) trim($onDeleteDept));
 		$nullableFixedTime ? $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->nullable()->index() : $table->time('time')->default(now()->addHours(24)->format('H:i:s'))->index();

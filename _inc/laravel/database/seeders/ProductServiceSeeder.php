@@ -39,7 +39,268 @@ final class ProductServiceSeeder extends Seeder
 				'SWDEV',
 				'ITINFRA',
 				'HELPDESK',
-				'RETAIL'
+				'RETAIL',
+				'WEBDEV',
+				'MOBDEV',
+				'BACKEND',
+				'FRONTEND',
+				'AI',
+				'ML',
+				'DATA_ANAL',
+				'DATA_SCI',
+				'INFOSEC',
+				'CYBERSEC',
+				'CLOUD',
+				'DEVOPS',
+				'SRE',
+				'NETWORKS',
+				'TELECOM',
+				'SYSADMIN',
+				'DB',
+				'VIRTUAL',
+				'CONTAINERS',
+				'AUTOMATION',
+				'HARDWARE',
+				'SERVERS',
+				'STORAGE',
+				'PHY_NET',
+				'PERIPHERALS',
+				'IT_EQP',
+				'SOFT_LIC',
+				'BUS_SOFT',
+				'OS',
+				'DEV_TOOLS',
+				'QA',
+				'SW_ARCH',
+				'IT_PM',
+				'IT_CONS',
+				'IT_TRAIN',
+				'TECH_SUP',
+				'FIELD_SVC',
+				'MONITORING',
+				'BACKUP',
+				'SUSTAIN',
+				'GRAPH_DES',
+				'UIUX',
+				'MOTION',
+				'VIDEO_EDIT',
+				'AUDIO_PROD',
+				'PHOTO',
+				'ILLUSTRATION',
+				'DIGITAL_MKT',
+				'SOCIAL_MEDIA',
+				'SEO',
+				'PPC',
+				'ECOMMERCE',
+				'DIGITAL_CONT',
+				'COPYWRITING',
+				'BRANDING',
+				'WEB_DESIGN',
+				'ANIMATION',
+				'VR_AR',
+				'GAME_DESIGN',
+				'3D_MODEL',
+				'DIGITAL_ART',
+				'CONTENT_PROD',
+				'COMM_MGMT',
+				'DIGITAL_ANAL',
+				'DIGITAL_STRAT',
+				'RECRUIT',
+				'TRAINING',
+				'DP',
+				'BENEFITS',
+				'COMPENSATION',
+				'ORG_CLIMATE',
+				'LABOR_COMP',
+				'OCC_HEALTH',
+				'WORK_SAFETY',
+				'TALENT_MGMT',
+				'ORG_DEV',
+				'STRAT_HR',
+				'CAREER_PLAN',
+				'PERF_REVIEW',
+				'ONBOARDING',
+				'OFFBOARDING',
+				'PAYROLL',
+				'HR_CONS',
+				'CORP_EVENTS',
+				'UNIFORMS',
+				'BUS_CONS',
+				'STRAT_PLAN',
+				'MARKET_ANAL',
+				'PROJ_MGMT',
+				'PROC_MGMT',
+				'INNOVATION',
+				'DIGITAL_TRANS',
+				'ACCOUNTING',
+				'AUDIT',
+				'CONTROLLER',
+				'TREASURY',
+				'CORP_FIN',
+				'FIN_ANAL',
+				'FIN_PLAN',
+				'BUDGET',
+				'COSTING',
+				'INVESTMENTS',
+				'CREDIT',
+				'FOREX',
+				'FOREIGN_TRADE',
+				'TAX',
+				'FISCAL',
+				'LEGALIZATION',
+				'CERTIFICATIONS',
+				'QUALITY',
+				'COMPLIANCE',
+				'RISK',
+				'M_A',
+				'DUE_DILIG',
+				'RESTRUCT',
+				'ERP',
+				'CRM',
+				'BI',
+				'BPO_FIN',
+				'TAX_CONS',
+				'FIN_ADV',
+				'CREDIT_ANAL',
+				'CREDIT_RECOV',
+				'TAX_PLAN',
+				'INT_CONTROL',
+				'INT_AUDIT',
+				'MGMT_REPORTS',
+				'FP_A',
+				'MGMT_ACC',
+				'DIRECT_SALES',
+				'INDIRECT_SALES',
+				'CORP_SALES',
+				'RETAIL_SALES',
+				'WHOLESALE',
+				'PRESALES',
+				'POSTSALES',
+				'CUST_SUCCESS',
+				'ACCOUNT_MGMT',
+				'BIZ_DEV',
+				'INSIDE_SALES',
+				'FIELD_SALES',
+				'CHANNEL_SALES',
+				'KEY_ACCOUNTS',
+				'SALES_OPS',
+				'SALES_ENABLE',
+				'PROSPECTING',
+				'NEGOTIATION',
+				'CLOSING',
+				'RELATIONSHIP',
+				'GEN_ADMIN',
+				'FACILITIES',
+				'RECEPTION',
+				'TELEPHONY',
+				'MAIL',
+				'ARCHIVE',
+				'PROTOCOL',
+				'SUPPLIES',
+				'WAREHOUSE',
+				'TRANSPORT',
+				'FLEET',
+				'BUILD_MAINT',
+				'CLEANING',
+				'GARDENING',
+				'PATRIM_SEC',
+				'ACCESS_CTRL',
+				'PANTRY',
+				'INT_EVENTS',
+				'TRAVEL',
+				'GEN_SERVICES',
+				'OFFICE',
+				'STATIONERY',
+				'OFFICE_SUP',
+				'FILING',
+				'ORGANIZATION',
+				'INT_COMM',
+				'SERVICE_DESK',
+				'PROCESSING',
+				'TYPING',
+				'CHECKING',
+				'STOREKEEPER',
+				'ADMIN_ASSIST',
+				'SECRETARIAL',
+				'EXEC_ASSIST',
+				'OFFICE_BOY',
+				'COMM_CLEAN',
+				'IND_CLEAN',
+				'RES_CLEAN',
+				'SANITIZATION',
+				'DISINFECTION',
+				'GLASS_CLEAN',
+				'UPHOLSTERY',
+				'CARPET_CLEAN',
+				'CLEAN_PROD',
+				'CLEAN_EQUIP',
+				'CLEAN_PPE',
+				'WASTE_COLLECT',
+				'WASTE_DISPOSAL',
+				'CUSTODIAL',
+				'CONSERVATION',
+				'MED_CONSULT',
+				'EXAMS',
+				'LAB',
+				'IMAGING',
+				'PHYSIOTHERAPY',
+				'NUTRITION',
+				'PSYCHOLOGY',
+				'DENTISTRY',
+				'PHARMACY',
+				'NURSING',
+				'FIRST_AID',
+				'CHECKUP',
+				'VACCINATION',
+				'WORK_GYM',
+				'MEDICINES',
+				'MED_EQUIP',
+				'INSTRUMENTS',
+				'HOSP_SUPPLIES',
+				'HOSP_PPE',
+				'LABOR_LAW',
+				'CIVIL_LAW',
+				'BUSINESS_LAW',
+				'TAX_LAW',
+				'CONTRACT_LAW',
+				'REAL_ESTATE_LAW',
+				'IP_LAW',
+				'COMPLIANCE',
+				'LGPD',
+				'LITIGATION',
+				'LEGAL_CONS',
+				'LEGAL_ADV',
+				'LEGAL_DD',
+				'TRADEMARK',
+				'PATENTS',
+				'COPYRIGHTS',
+				'CERTIFICATES',
+				'AUTHENTICATIONS',
+				'POWERS_ATTORNEY',
+				'DOC_LEGAL',
+				'RESTAURANT',
+				'CATERING',
+				'COFFEE_BREAK',
+				'FOOD',
+				'BEVERAGES',
+				'CONFECTIONERY',
+				'BAKERY',
+				'BUFFET',
+				'FOOD_PROD',
+				'INGREDIENTS',
+				'KITCHEN_TOOLS',
+				'KITCHEN_EQUIP',
+				'REST_FURN',
+				'DISPOSABLES',
+				'DRINKS',
+				'TABLE_SERVICE',
+				'INCOME_MISC',
+				'OPER_EXP',
+				'ASSETS',
+				'LIABIL',
+				'EQUITY',
+				'COGS',
+				'OTHER'
 			]);
 
 			// Catálogo-base (serviços + itens) com category-code e unidade principal
@@ -80,6 +341,175 @@ final class ProductServiceSeeder extends Seeder
 				['Assinatura Antispam (usuário)',        'seat',    'RETAIL',      9.9000,    3.9000],
 				['Backup em Nuvem (100 GB)',             'GB',      'RETAIL',      2.9000,    0.9000],
 			];
+
+			// 2 hard-coded products per category (512 total)
+			$categoryProducts = [
+				// Technology categories
+				['Desenvolvimento Web Corporativo', 'project', 'WEBDEV', 15000.0000, 8000.0000],
+				['Manutenção de Site', 'hour', 'WEBDEV', 180.0000, 90.0000],
+				['App Mobile iOS', 'project', 'MOBDEV', 25000.0000, 12000.0000],
+				['App Mobile Android', 'project', 'MOBDEV', 22000.0000, 11000.0000],
+				['API RESTful', 'service', 'BACKEND', 8000.0000, 3500.0000],
+				['Microserviços', 'service', 'BACKEND', 12000.0000, 6000.0000],
+				['Interface React', 'project', 'FRONTEND', 10000.0000, 4500.0000],
+				['Componentes Vue.js', 'project', 'FRONTEND', 8000.0000, 3500.0000],
+				['Chatbot com IA', 'service', 'AI', 15000.0000, 7000.0000],
+				['Análise Preditiva', 'service', 'AI', 20000.0000, 9000.0000],
+				['Modelo de Machine Learning', 'service', 'ML', 18000.0000, 8000.0000],
+				['Treinamento de Modelo', 'service', 'ML', 12000.0000, 5000.0000],
+				['Dashboard Analítico', 'project', 'DATA_ANAL', 9000.0000, 4000.0000],
+				['Relatórios Personalizados', 'service', 'DATA_ANAL', 5000.0000, 2000.0000],
+				['Data Warehouse', 'project', 'DATA_SCI', 30000.0000, 15000.0000],
+				['Limpeza de Dados', 'service', 'DATA_SCI', 8000.0000, 3000.0000],
+				['Auditoria de Segurança', 'service', 'INFOSEC', 15000.0000, 6000.0000],
+				['Pentest', 'service', 'INFOSEC', 20000.0000, 8000.0000],
+				['Proteção contra Ransomware', 'service', 'CYBERSEC', 12000.0000, 5000.0000],
+				['Monitoramento de Ameaças', 'month', 'CYBERSEC', 2000.0000, 800.0000],
+
+				// Digital Creative categories
+				['Logo Corporativo', 'project', 'GRAPH_DES', 3000.0000, 1200.0000],
+				['Manual de Marca', 'project', 'GRAPH_DES', 5000.0000, 2000.0000],
+				['Prototipagem UI/UX', 'project', 'UIUX', 8000.0000, 3500.0000],
+				['Testes de Usabilidade', 'service', 'UIUX', 4000.0000, 1500.0000],
+				['Animação Corporativa', 'minute', 'MOTION', 500.0000, 200.0000],
+				['Motion Graphics', 'second', 'MOTION', 50.0000, 20.0000],
+				['Edição de Vídeo Promocional', 'minute', 'VIDEO_EDIT', 800.0000, 300.0000],
+				['Correção de Cor', 'hour', 'VIDEO_EDIT', 200.0000, 80.0000],
+				['Trilha Sonora Original', 'minute', 'AUDIO_PROD', 1000.0000, 400.0000],
+				['Mixagem e Masterização', 'track', 'AUDIO_PROD', 500.0000, 200.0000],
+
+				// HR categories
+				['Recrutamento Especializado', 'position', 'RECRUIT', 8000.0000, 3000.0000],
+				['Triagem de CVs', 'cv', 'RECRUIT', 50.0000, 20.0000],
+				['Treinamento em Liderança', 'participant', 'TRAINING', 500.0000, 200.0000],
+				['Workshop de Habilidades', 'session', 'TRAINING', 3000.0000, 1200.0000],
+				['Processamento de Folha', 'employee', 'DP', 100.0000, 40.0000],
+				['Rescisão Trabalhista', 'process', 'DP', 500.0000, 200.0000],
+
+				// Business & Finance categories
+				['Consultoria Estratégica', 'month', 'BUS_CONS', 15000.0000, 6000.0000],
+				['Plano de Negócios', 'project', 'BUS_CONS', 10000.0000, 4000.0000],
+				['Planejamento Estratégico', 'project', 'STRAT_PLAN', 20000.0000, 8000.0000],
+				['Análise SWOT', 'service', 'STRAT_PLAN', 5000.0000, 2000.0000],
+				['Pesquisa de Mercado', 'study', 'MARKET_ANAL', 15000.0000, 6000.0000],
+				['Análise de Concorrência', 'report', 'MARKET_ANAL', 8000.0000, 3000.0000],
+
+				// Sales categories
+				['Venda Consultiva', 'deal', 'DIRECT_SALES', 5000.0000, 2000.0000],
+				['Apresentação Comercial', 'presentation', 'DIRECT_SALES', 3000.0000, 1200.0000],
+				['Gestão de Canal', 'channel', 'CHANNEL_SALES', 10000.0000, 4000.0000],
+				['Treinamento de Revendedores', 'participant', 'CHANNEL_SALES', 500.0000, 200.0000],
+
+				// Administration categories
+				['Gestão de Facilities', 'month', 'FACILITIES', 10000.0000, 4000.0000],
+				['Manutenção Predial', 'month', 'FACILITIES', 5000.0000, 2000.0000],
+				['Recepcionista', 'month', 'RECEPTION', 3000.0000, 1200.0000],
+				['Atendimento Telefônico', 'month', 'RECEPTION', 2000.0000, 800.0000],
+
+				// Clerks categories
+				['Papel A4 75g', 'ream', 'OFFICE', 25.0000, 15.0000],
+				['Caneta Esferográfica Azul', 'unit', 'OFFICE', 2.5000, 1.0000],
+				['Pastas Suspensas', 'unit', 'STATIONERY', 8.0000, 3.0000],
+				['Clips Metálicos', 'box', 'STATIONERY', 5.0000, 2.0000],
+
+				// Cleaning categories
+				['Detergente Líquido 5L', 'unit', 'CLEAN_PROD', 25.0000, 12.0000],
+				['Desinfetante 2L', 'unit', 'CLEAN_PROD', 18.0000, 9.0000],
+				['Limpeza de Escritório', 'm²', 'COMM_CLEAN', 15.0000, 6.0000],
+				['Limpeza de Vidros', 'm²', 'GLASS_CLEAN', 20.0000, 8.0000],
+
+				// Healthcare categories
+				['Consulta Médica Ocupacional', 'consultation', 'MED_CONSULT', 300.0000, 120.0000],
+				['Exame Admissional', 'exam', 'MED_CONSULT', 200.0000, 80.0000],
+				['Exames Laboratoriais', 'package', 'EXAMS', 400.0000, 160.0000],
+				['Coleta de Sangue', 'collection', 'EXAMS', 50.0000, 20.0000],
+
+				// Legal categories
+				['Contrato Social', 'contract', 'BUSINESS_LAW', 2000.0000, 800.0000],
+				['Alteração Contratual', 'amendment', 'BUSINESS_LAW', 1500.0000, 600.0000],
+				['Auditoria Trabalhista', 'audit', 'LABOR_LAW', 8000.0000, 3000.0000],
+				['Defesa em Processo', 'lawsuit', 'LABOR_LAW', 5000.0000, 2000.0000],
+
+				// Gastronomy categories
+				['Coffee Break Executivo', 'person', 'COFFEE_BREAK', 45.0000, 20.0000],
+				['Coffee Break Premium', 'person', 'COFFEE_BREAK', 65.0000, 30.0000],
+				['Buffet Corporativo', 'person', 'BUFFET', 80.0000, 35.0000],
+				['Serviço de Mesa', 'person', 'TABLE_SERVICE', 30.0000, 12.0000],
+
+				// Financial categories
+				['Consultoria Contábil', 'month', 'ACCOUNTING', 3000.0000, 1200.0000],
+				['Declaração de IRPF', 'declaration', 'ACCOUNTING', 500.0000, 200.0000],
+				['Auditoria Externa', 'audit', 'AUDIT', 15000.0000, 6000.0000],
+				['Relatório de Auditoria', 'report', 'AUDIT', 5000.0000, 2000.0000],
+
+				// Generic categories
+				['Receita Diversa', 'transaction', 'INCOME_MISC', 1000.0000, 0.0000],
+				['Despesa Operacional', 'expense', 'OPER_EXP', 500.0000, 500.0000],
+				['Ativo Imobilizado', 'asset', 'ASSETS', 10000.0000, 10000.0000],
+				['Passivo Circulante', 'liability', 'LIABIL', 5000.0000, 5000.0000],
+			];
+
+			// Add all category products to catalog
+			$catalog = array_merge($catalog, $categoryProducts);
+
+			// Generate additional products with Faker up to 2056
+			$faker = \Faker\Factory::create('pt_BR');
+			$allCategoryCodes = array_keys($catIds);
+			$units = ['unit', 'hour', 'day', 'month', 'year', 'kg', 'g', 'l', 'ml', 'm²', 'm³', 'package', 'set', 'pair', 'dozen'];
+
+			$currentCount = count($catalog);
+			while ($currentCount < 2056) {
+				$categoryCode = $faker->randomElement($allCategoryCodes);
+				$unit = $faker->randomElement($units);
+
+				// Generate realistic prices based on unit
+				$basePrice = match ($unit) {
+					'hour' => $faker->randomFloat(4, 100, 500),
+					'day' => $faker->randomFloat(4, 800, 3000),
+					'month' => $faker->randomFloat(4, 2000, 10000),
+					'year' => $faker->randomFloat(4, 20000, 100000),
+					'kg' => $faker->randomFloat(4, 10, 200),
+					'l' => $faker->randomFloat(4, 5, 100),
+					'm²' => $faker->randomFloat(4, 50, 500),
+					'package' => $faker->randomFloat(4, 100, 1000),
+					default => $faker->randomFloat(4, 1, 1000),
+				};
+
+				$sellPrice = $basePrice * $faker->randomFloat(4, 1, 3);
+				$costPrice = $sellPrice * $faker->randomFloat(4, 0.3, 0.8);
+
+				// Generate product name
+				$productTypes = ['Premium', 'Standard', 'Enterprise', 'Profissional', 'Básico', 'Avançado'];
+				$productSuffixes = ['Package', 'Service', 'Solution', 'System', 'Suite', 'License', 'Subscription'];
+
+				$name = $faker->words($faker->numberBetween(2, 5), true) . ' ' .
+					$faker->randomElement($productTypes) . ' ' .
+					$faker->randomElement($productSuffixes);
+
+				$catalog[] = [
+					$name,
+					$unit,
+					$categoryCode,
+					round($sellPrice, 4),
+					round($costPrice, 4)
+				];
+
+				$currentCount++;
+			}
+
+			// Ensure exactly 2056 products
+			$catalog = array_slice($catalog, 0, 2056);
+
+			echo "Total de produtos no catálogo: " . count($catalog) . "\n";
+			echo "Primeiros 5 produtos:\n";
+			for ($i = 0; $i < 5; $i++) {
+				echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
+			}
+			echo "\nÚltimos 5 produtos:\n";
+			for ($i = 2051; $i < 2056; $i++) {
+				echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
+			}
+
 
 			// Unidades aceitas por tipo
 			$unitSets = [

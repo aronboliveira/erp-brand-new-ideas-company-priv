@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class JobOnBoardSeeder extends Seeder
 {
 	private ConsoleOutput $out;
-
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 	// Hard cap defensivo (não especificado no enunciado, mas mantém o seed controlado).
 	private const HARD_CAP = 16000;
 
@@ -27,6 +27,7 @@ class JobOnBoardSeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		// ====== READ-ONLY: otimizar com SQL cru ======
 		$apps = DB::table(DC::TABLE_JOB_APPS)
 			->select(['id', 'job', AC::COL_APL_AT, AC::COL_DEI_CTG, AC::COL_WRK_AUTH_APV, AC::COL_TRMS_ACPT, AC::COL_NTC_PRD])
@@ -84,6 +85,11 @@ class JobOnBoardSeeder extends Seeder
 		);
 
 		foreach ($pickedApps as $row) {
+
+			if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				return;
+			}
 			if (++$attempts > ($target + self::MAX_ATTEMPTS)) {
 				$this->out->writeln('<comment>[JobOnBoardSeeder]</comment> Attempt limit reached. Breaking early.');
 				break;

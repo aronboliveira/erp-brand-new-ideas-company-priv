@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{Cache, DB, Log};
 use Illuminate\Support\Str;
 
-class ContractNotes extends Model
+class ContractNote extends Model
 {
     use UsesUuids, HasAuditFields, FiltersSecureAttachments;
 

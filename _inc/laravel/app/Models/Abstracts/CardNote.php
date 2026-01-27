@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Enums\{MonthName, PaymentMethod, PaymentStatus, TransferType};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\{MonthName, PaymentMethod, PaymentStatus, TransferType, UserType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
 	Factories\HasFactory,
 	Model,
 	Relations\BelongsTo
 };
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 use RuntimeException;
 
 abstract class CardNote extends Model
@@ -87,7 +87,6 @@ abstract class CardNote extends Model
 	protected $casts = self::BASE_CASTS;
 
 	protected const BASE_WITH = [
-		'customer',
 		'bankAccount',
 		'productServiceCategory',
 	];
@@ -120,9 +119,9 @@ abstract class CardNote extends Model
 
 	abstract protected function monetarySign(): int;
 
-	public function customer(): BelongsTo
+	public function customer(): ?BelongsTo
 	{
-		return $this->belongsTo(Customer::class, BC::COL_CST_ID);
+		return Utility::getCustomer($this);
 	}
 
 	public function invoice(): ?BelongsTo
@@ -142,13 +141,19 @@ abstract class CardNote extends Model
 
 	public function productServiceCategory(): ?BelongsTo
 	{
-		return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID);
+		return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
 	}
 
-	public function category(): ?BelongsTo // * legacy method
+	public function productCategory(): ?BelongsTo
 	{
-		return $this->productServiceCategory();
+		return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
 	}
+
+	public function category(): ?BelongsTo
+	{
+		return Utility::getCategory($this);
+	}
+
 
 	public function paymentStatus(): PaymentStatus
 	{

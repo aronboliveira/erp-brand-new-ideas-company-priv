@@ -10,26 +10,22 @@ trait EmployeeConnected
 {
   protected function addEmployeeColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
-    $unique ? ($nullable ? $table->uuid(UC::COL_EMP_ID)->nullable()->unique() : $table->uuid(UC::COL_EMP_ID)->index()) : ($nullable ? $table->uuid(UC::COL_EMP_ID)->nullable()->index() : $table->uuid(UC::COL_EMP_ID)->index());
-    $nullable ?
-      $table->foreign(UC::COL_EMP_ID)
-      ->references('id')
-      ->on(DC::TABLE_EMPLOYEES)
-      ->nullOnDelete() : ($cascade ?
-        $table->foreign(UC::COL_EMP_ID)
-        ->references('id')
-        ->on(DC::TABLE_EMPLOYEES)
-        ->cascadeOnDelete() :
-        $table->foreign(UC::COL_EMP_ID)
-        ->references('id')
-        ->on(DC::TABLE_EMPLOYEES)
-        ->restrictOnDelete());
+    $col = $table->uuid(UC::COL_EMP_ID);
+    if ($nullable) $col->nullable();
+
+    $unique ? $col->unique() : $col->index();
+
+    $nullable
+      ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->nullOnDelete()
+      : ($cascade
+        ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->cascadeOnDelete()
+        : $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->restrictOnDelete());
   }
+
   protected function dropEmployeeColumnForeign(Blueprint $table, string $tableName): void
   {
     try {
-      Schema::hasColumn($tableName, UC::COL_EMP_ID) &&
-        $table->dropForeign([UC::COL_EMP_ID]);
+      Schema::hasColumn($tableName, UC::COL_EMP_ID) && $table->dropForeign([UC::COL_EMP_ID]);
     } catch (\Exception $e) {
       Log::warning(
         'Failed to drop foreign key for '

@@ -9,8 +9,8 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     SettingsConstants as SC
 };
+use App\Services\ProductOrServiceRequestService;
 use App\Traits\{
-    ChecksLogin,
     HasAuditFields,
     NormalizesArrays,
     UsesUuids
@@ -21,12 +21,13 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo,
     Relations\HasMany
 };
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{DB, Log};
 
 class ProductService extends Model
 {
-    use ChecksLogin, HasAuditFields, HasFactory, NormalizesArrays, UsesUuids;
+    use HasAuditFields, HasFactory, NormalizesArrays, UsesUuids;
 
     public const TABLE = DC::TABLE_PROD_SERVS;
 
@@ -92,7 +93,6 @@ class ProductService extends Model
     ];
 
     protected $with = [
-        'category',
         'taxes',
     ];
 
@@ -271,8 +271,6 @@ class ProductService extends Model
         return $this->belongsTo(ProductServiceUnit::class, BC::COL_UNIT_ID, 'id');
     }
 
-    // --------- MÉTODOS LEGADOS UTILITÁRIOS (mantidos) ---------
-
     public function tax(string $taxes): array
     {
         $ids = explode(',', $taxes);
@@ -297,69 +295,22 @@ class ProductService extends Model
         return implode(',', $names);
     }
 
-    public static function getAllProducts()
+    public static function getAllProducts(): Builder|RedirectResponse
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse)
-            return $userOrRedirect;
-
-        $user  = $userOrRedirect;
-        $table = self::TABLE;
-
-        return self::select($table . '.*', 'c.name as categoryname')
-            ->where($table . '.type', 'product')
-            ->leftJoin(DC::TABLE_PROD_SERV_CATS . ' as c', 'c.id', '=', $table . '.' . BC::COL_CAT_ID)
-            ->where($table . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
-            ->orderByDesc($table . '.id');
+        return app(ProductOrServiceRequestService::class)->getAllProducts();
     }
 
     public function getTotalProductQuantity(): float | RedirectResponse
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
-
-        $user   = $userOrRedirect;
-        $userId = $user?->creatorId();
-        $pid    = $this->id;
-
-        $purchases = Purchase::where(DC::COL_TABLE_CREATOR, $userId);
-        if ($user?->isUser())
-            $purchases->where('warehouse_id', $user?->warehouse_id);
-
-        $purchasedQty = $purchases->get()->sum(
-            fn($p) => optional(
-                PurchaseProduct::where('purchase_id', $p->id)
-                    ->where('product_id', $pid)
-                    ->first()
-            )->quantity ?: 0
-        );
-
-        $poses = Pos::where(DC::COL_TABLE_CREATOR, $userId);
-        if ($user?->isUser())
-            $poses->where('warehouse_id', $user?->warehouse_id);
-
-        $posQty = $poses->get()->sum(
-            fn($p) => optional(
-                PosProduct::where('pos_id', $p->id)
-                    ->where('product_id', $pid)
-                    ->first()
-            )->quantity ?: 0
-        );
-
-        return $purchasedQty - $posQty;
+        return app(ProductOrServiceRequestService::class)->getTotalProductQuantity($this);
     }
 
-    public static function taxId(int $productId): int | RedirectResponse
+    public static function taxId(string|int $productId): int | RedirectResponse
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        return DB::table(self::TABLE)
-            ->where('id', $productId)
-            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-            ->value(BC::COL_TAX_ID) ?: 0;
+        return app(ProductOrServiceRequestService::class)->getProductTaxId($productId);
     }
 
-    public function warehouseProduct(string $productId, string $warehouseId): float
+    public function warehouseProduct(string|int $productId, string|int $warehouseId): float
     {
         $wp = WarehouseProduct::where('warehouse_id', $warehouseId)
             ->where('product_id', $productId)

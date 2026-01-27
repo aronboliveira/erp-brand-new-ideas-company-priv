@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, UsesUuids};
+use App\Traits\{ExtendsProductServiceTable, FiltersSecureAttachments, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -15,6 +15,7 @@ class InvoiceProduct extends Model
     use UsesUuids;
     use HasAuditFields;
     use HasFactory;
+    use ExtendsProductServiceTable;
     use FiltersSecureAttachments;
 
     protected $table = DC::TABLE_INV_PRD;
@@ -84,14 +85,19 @@ class InvoiceProduct extends Model
         return $this->belongsTo(Invoice::class, BC::COL_INV_ID);
     }
 
+    public function productProduct(): ?BelongsTo
+    {
+        return $this->belongsTo(Product::class, BC::COL_PRD_ID);
+    }
+
     public function productService(): BelongsTo
     {
         return $this->belongsTo(ProductService::class, BC::COL_PRD_ID);
     }
 
-    public function product(): BelongsTo // * legacy, don't use in new code
+    public function product(): ?BelongsTo
     {
-        return $this->productService();
+        return Utility::getProduct($this);
     }
 
     public function getLineSubtotal(): float

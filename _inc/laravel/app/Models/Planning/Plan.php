@@ -9,7 +9,7 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\{Eloquent\Model, QueryException};
+use Illuminate\Database\{Eloquent\Model, Eloquent\ModelNotFoundException, QueryException};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Validation\ValidationException;
 
@@ -52,7 +52,7 @@ class Plan extends Model
         return self::DURATION_OPTIONS;
     }
 
-    public function status(): array
+    public function getStatus(): array
     {
         return array_map(fn($v) => __($v), array_values(self::DURATION_OPTIONS));
     }
@@ -98,17 +98,24 @@ class Plan extends Model
             return self::$cachedPlan ??= self::where('id', $id)
                 ->orWhere('query_key', $id)
                 ->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             Log::notice("Plan not found with id: {$id}. Attempting to query by query_key.", [
                 'message' => $e->getMessage(),
             ]);
             try {
                 return self::$cachedPlan ??= self::where('query_key', $id)->firstOrFail();
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            } catch (ModelNotFoundException $e) {
                 Log::warning("Plan not found with query_key: {$id}.", [
                     'message' => $e->getMessage(),
                 ]);
-                return null;
+                try {
+                    return self::$cachedPlan ??= self::where('name', 'Free')->firstOrFail();
+                } catch (ModelNotFoundException $e) {
+                    Log::warning("Free plan not found", [
+                        'message' => $e->getMessage(),
+                    ]);
+                    return null;
+                }
             }
             return self::$cachedPlan = null;
         }

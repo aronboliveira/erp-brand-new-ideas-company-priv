@@ -3,20 +3,21 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    BillsConstants,
+    ActivitiesConstants as AC,
+    BillsConstants as BC,
     ChartsConstants as CTC,
     CompaniesConstants as CPC,
     DatabaseConstants as DC,
     EmailsConstants as EC,
     FormsConstants as FC,
-    LangsConstants,
+    LangsConstants as LC,
     PermissionsConstants as PMC,
-    ProjectsConstants,
+    ProjectsConstants as PJC,
     SettingsConstants as SC,
     UsersConstants as UC
 };
-use App\Enums\BrazilState;
+use App\Enums\{BrazilState, UserType};
+use App\Helpers\ErrorHandler;
 use App\Mail\CommonEmailTemplate;
 use App\Models\{
     Branch,
@@ -33,6 +34,7 @@ use Carbon\{Carbon, CarbonPeriod};
 use Faker\Factory as Faker;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\{Collection, Str};
 use Illuminate\Support\Facades\{
@@ -60,7 +62,6 @@ use Twilio\Rest\Client;
 
 class Utility extends Model
 {
-
     use ChecksLogin;
 
     private static $getSettings    = null;
@@ -96,6 +97,7 @@ class Utility extends Model
     private const FST_DSK_S3_EP = self::FST_DSK_S3 . 'use_path_style_endpoint';
     /** @var string[] Already-used UUIDs in this PHP process */
     protected static array $uuids = [];
+    protected static array $utilityErrors = [];
 
     public static function generateUuid(): string
     {
@@ -107,6 +109,7 @@ class Utility extends Model
 
     public static function looksLikeUuid(string $s): bool
     {
+        if (!$s || !is_string($s)) return false;
         $s = trim($s);
         return (bool) preg_match(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
@@ -126,6 +129,672 @@ class Utility extends Model
     public static function getReferrer(Request $request): string
     {
         return $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous();
+    }
+
+    public static function getClient(Model $model): ?BelongsTo
+    {
+        $clientColumn = null;
+        try {
+            $modelTable = $model->getTable();
+
+            if (Schema::hasColumn($modelTable, BC::COL_CLT_ID))
+                $clientColumn = BC::COL_CLT_ID;
+            elseif (Schema::hasColumn($modelTable, 'client'))
+                $clientColumn = 'client';
+
+            if (!$clientColumn) {
+                Log::debug('getClient() - Missing client column on model table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => [BC::COL_CLT_ID, 'client_id', 'client'],
+                ]);
+                return null;
+            }
+
+            $clientId = $model->getAttribute($clientColumn);
+
+            if (!$clientId)
+                return $model->belongsTo(Client::class, $clientColumn, 'id');
+
+            $clientsTable = (new Client)->getTable();
+            $clientExists = Schema::hasTable($clientsTable) && DB::table($clientsTable)->where('id', $clientId)->exists();
+
+            if ($clientExists)
+                return $model->belongsTo(Client::class, $clientColumn, 'id');
+
+            $usersTable = (new User)->getTable();
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            Log::debug('getClient() - Client not found in main table; falling back to users.type=client', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'client_id' => $clientId,
+                'client_column' => $clientColumn,
+                'clients_table' => $clientsTable,
+                'users_table' => $usersTable,
+                'type_column' => $typeColumn,
+                'type_value' => UserType::Client->value,
+            ]);
+
+            return $model
+                ->belongsTo(User::class, $clientColumn, 'id')
+                ->where($typeColumn, UserType::Client->value);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getClient() - Failed to resolve client relation with fallback',
+                    'context' => [
+                        'class' => static::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'client_id' => $clientColumn ? $model->getAttribute($clientColumn) : null,
+                        'client_column' => $clientColumn,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error'
+            );
+            return $clientColumn
+                ? $model->belongsTo(Client::class, $clientColumn, 'id')
+                : null;
+        }
+    }
+
+    public static function getCustomer(Model $model): ?BelongsTo
+    {
+        $customerColumn = null;
+        try {
+            $modelTable = $model->getTable();
+
+            if (Schema::hasColumn($modelTable, BC::COL_CST_ID))
+                $customerColumn = BC::COL_CST_ID;
+            elseif (Schema::hasColumn($modelTable, 'customer'))
+                $customerColumn = 'customer';
+
+            if (!$customerColumn) {
+                Log::debug('getCustomer() - Missing customer column on model table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => [BC::COL_CST_ID, 'customer'],
+                ]);
+                return null;
+            }
+
+            $customerId = $model->getAttribute($customerColumn);
+
+            if (!$customerId)
+                return $model->belongsTo(Customer::class, $customerColumn, 'id');
+
+            $customersTable = (new Customer)->getTable();
+            $customerExists = Schema::hasTable($customersTable) && DB::table($customersTable)->where('id', $customerId)->exists();
+
+            if ($customerExists)
+                return $model->belongsTo(Customer::class, $customerColumn, 'id');
+
+            $usersTable = (new User)->getTable();
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            Log::debug('getCustomer() - Customer not found in main table; falling back to users.type=customer', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'customer_id' => $customerId,
+                'customer_column' => $customerColumn,
+                'customers_table' => $customersTable,
+                'users_table' => $usersTable,
+                'type_column' => $typeColumn,
+                'type_value' => UserType::Customer->value,
+            ]);
+
+            return $model
+                ->belongsTo(User::class, $customerColumn, 'id')
+                ->where($typeColumn, UserType::Customer->value);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getCustomer() - Failed to resolve customer relation with fallback',
+                    'context' => [
+                        'class' => static::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'customer_id' => $customerColumn ? $model->getAttribute($customerColumn) : null,
+                        'customer_column' => $customerColumn,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error'
+            );
+            return $customerColumn
+                ? $model->belongsTo(Customer::class, $customerColumn, 'id')
+                : null;
+        }
+    }
+
+    public static function getVendor(Model $model): ?BelongsTo
+    {
+        $vendorColumn = null;
+        try {
+            $modelTable = $model->getTable();
+
+            if (Schema::hasColumn($modelTable, UC::COL_VD_ID))
+                $vendorColumn = UC::COL_VD_ID;
+            elseif (Schema::hasColumn($modelTable, 'vendor'))
+                $vendorColumn = 'vendor';
+
+            if (!$vendorColumn) {
+                Log::debug('getVendor() - Missing vendor column on model table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => [UC::COL_VD_ID, 'vendor'],
+                ]);
+                return null;
+            }
+
+            $vendorId = $model->getAttribute($vendorColumn);
+
+            if (!$vendorId)
+                return $model->belongsTo(Vendor::class, $vendorColumn, 'id');
+
+            $vendorTable = (new Vendor)->getTable();
+            $vendorExists = Schema::hasTable($vendorTable) && DB::table($vendorTable)->where('id', $vendorId)->exists();
+
+            if ($vendorExists)
+                return $model->belongsTo(Vendor::class, $vendorColumn, 'id');
+
+            $usersTable = (new User)->getTable();
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            Log::debug('getVendor() - Vendor not found in main table; falling back to users.type=vendor', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'vendor_id' => $vendorId,
+                'vendor_column' => $vendorColumn,
+                'vendor_table' => $vendorTable,
+                'users_table' => $usersTable,
+                'type_column' => $typeColumn,
+                'type_value' => UserType::Vendor->value,
+            ]);
+
+            return $model
+                ->belongsTo(User::class, $vendorColumn, 'id')
+                ->where($typeColumn, UserType::Vendor->value);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getVendor() - Failed to resolve vendor relation with fallback',
+                    'context' => [
+                        'class' => static::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'vendor_id' => $vendorColumn ? $model->getAttribute($vendorColumn) : null,
+                        'vendor_column' => $vendorColumn,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error'
+            );
+            return $vendorColumn
+                ? $model->belongsTo(Vendor::class, $vendorColumn, 'id')
+                : null;
+        }
+    }
+
+    public static function getCompany(Model $model): ?BelongsTo
+    {
+        $companyColumn = null;
+        try {
+            $modelTable = $model->getTable();
+
+            if (Schema::hasColumn($modelTable, CPC::COL_CP_ID))
+                $companyColumn = CPC::COL_CP_ID;
+            elseif (Schema::hasColumn($modelTable, 'company'))
+                $companyColumn = 'company';
+
+            if (!$companyColumn) {
+                Log::debug('getCompany() - Missing company column on model table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => [CPC::COL_CP_ID, 'company'],
+                ]);
+                return null;
+            }
+
+            $companyId = $model->getAttribute($companyColumn);
+
+            if (!$companyId)
+                return $model->belongsTo(User::class, $companyColumn, 'id')->where('type', UserType::Company->value);
+
+            $usersTable = (new User)->getTable();
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            Log::debug('getCompany() - Using users.type=company', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'company_id' => $companyId,
+                'company_column' => $companyColumn,
+                'users_table' => $usersTable,
+                'type_column' => $typeColumn,
+                'type_value' => UserType::Company->value,
+            ]);
+
+            return $model
+                ->belongsTo(User::class, $companyColumn, 'id')
+                ->where($typeColumn, UserType::Company->value);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getCompany() - Failed to resolve company relation',
+                    'context' => [
+                        'class' => static::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'company_id' => $companyColumn ? $model->getAttribute($companyColumn) : null,
+                        'company_column' => $companyColumn,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error'
+            );
+            return $companyColumn
+                ? $model->belongsTo(User::class, $companyColumn, 'id')->where('type', UserType::Company->value)
+                : null;
+        }
+    }
+
+    public static function getCategory(Model $model): ?BelongsTo
+    {
+        try {
+            $modelTable = $model->getTable();
+
+            $foreignKeyCandidates = [
+                BC::COL_CAT_ID,
+                PJC::COL_PRD_SERV_CAT_ID,
+                'product_service_category',
+                'category',
+                'product_category',
+            ];
+
+            $existingForeignKeys = array_values(array_filter(
+                $foreignKeyCandidates,
+                fn($col) => Schema::hasColumn($modelTable, $col)
+            ));
+
+            if (!$existingForeignKeys) {
+                Log::debug('getCategory() - No valid category FK column found on model table', [
+                    'class' => $model::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => $foreignKeyCandidates,
+                ]);
+
+                return null;
+            }
+
+            $foreignKeyOnModel = null;
+            foreach ($existingForeignKeys as $col) {
+                $v = $model->getAttribute($col);
+                if ($v !== null && trim((string) $v) !== '') {
+                    $foreignKeyOnModel = $col;
+                    break;
+                }
+            }
+            $foreignKeyOnModel ??= $existingForeignKeys[0];
+
+            $categoryId = $model->getAttribute($foreignKeyOnModel);
+
+            $ownerKeyCandidates = [
+                'id',
+                PJC::COL_PRD_SERV_CAT_ID,
+                BC::COL_CAT_ID,
+                'product_service_category',
+                'product_category',
+                'category',
+            ];
+
+            $resolveOwnerKey = function (string $table) use ($ownerKeyCandidates): ?string {
+                if (!Schema::hasTable($table)) return null;
+                foreach ($ownerKeyCandidates as $candidate) {
+                    if (Schema::hasColumn($table, $candidate)) return $candidate;
+                }
+                return null;
+            };
+
+            $serviceCategoryTable = (new ProductServiceCategory)->getTable();
+            $productCategoryTable = (new ProductCategory)->getTable();
+
+            $serviceOwnerKey = $resolveOwnerKey($serviceCategoryTable);
+            $productOwnerKey = $resolveOwnerKey($productCategoryTable);
+
+            if ($categoryId === null || trim((string) $categoryId) === '') {
+                return $model->belongsTo(ProductServiceCategory::class, $foreignKeyOnModel, $serviceOwnerKey ?: 'id');
+            }
+
+            $foundInServiceCategory = $serviceOwnerKey
+                ? DB::table($serviceCategoryTable)->where($serviceOwnerKey, $categoryId)->exists()
+                : false;
+
+            if ($foundInServiceCategory) {
+                return $model->belongsTo(ProductServiceCategory::class, $foreignKeyOnModel, $serviceOwnerKey);
+            }
+
+            $foundInProductCategory = $productOwnerKey
+                ? DB::table($productCategoryTable)->where($productOwnerKey, $categoryId)->exists()
+                : false;
+
+            if ($foundInProductCategory) {
+                Log::debug('getCategory() - Not found in ProductServiceCategory; falling back to ProductCategory', [
+                    'class' => $model::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'model_table' => $modelTable,
+                    'foreign_key_on_model' => $foreignKeyOnModel,
+                    'category_id' => $categoryId,
+                    'service_category_table' => $serviceCategoryTable,
+                    'service_owner_key' => $serviceOwnerKey,
+                    'product_category_table' => $productCategoryTable,
+                    'product_owner_key' => $productOwnerKey,
+                ]);
+
+                return $model->belongsTo(ProductCategory::class, $foreignKeyOnModel, $productOwnerKey);
+            }
+
+            Log::debug('getCategory() - Category id not found in either ProductServiceCategory or ProductCategory; defaulting to ProductServiceCategory relation', [
+                'class' => $model::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'model_table' => $modelTable,
+                'foreign_key_on_model' => $foreignKeyOnModel,
+                'category_id' => $categoryId,
+                'service_category_table' => $serviceCategoryTable,
+                'service_owner_key' => $serviceOwnerKey,
+                'product_category_table' => $productCategoryTable,
+                'product_owner_key' => $productOwnerKey,
+            ]);
+
+            return $model->belongsTo(ProductServiceCategory::class, $foreignKeyOnModel, $serviceOwnerKey ?: 'id');
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getCategory() - Failed to resolve category relation with fallback',
+                    'context' => [
+                        'class' => $model::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'model_table' => method_exists($model, 'getTable') ? $model->getTable() : null,
+                        'error' => $e->getMessage(),
+                    ],
+                ],
+                mainChannel: 'error'
+            );
+            return null;
+        }
+    }
+
+    public static function getProduct(Model $model): ?BelongsTo
+    {
+        try {
+            $modelTable = $model->getTable();
+
+            $foreignKeyCandidates = [
+                BC::COL_PRD_SV_ID,
+                BC::COL_PRD_ID,
+                'product',
+                'product_service',
+            ];
+
+            $existingForeignKeys = array_values(array_filter(
+                $foreignKeyCandidates,
+                fn($col) => Schema::hasColumn($modelTable, $col)
+            ));
+
+            if (!$existingForeignKeys) {
+                Log::debug('getProduct() - No valid product FK column found on model table', [
+                    'class' => $model::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => $foreignKeyCandidates,
+                ]);
+
+                return null;
+            }
+
+            $nonEmptyForeignKeys = [];
+            foreach ($existingForeignKeys as $col) {
+                $v = $model->getAttribute($col);
+                if ($v !== null && trim((string) $v) !== '') $nonEmptyForeignKeys[$col] = $v;
+            }
+
+            $productServiceTable = (new ProductService)->getTable();
+            $productTable = (new Product)->getTable();
+
+            $ownerKeyCandidates = [
+                'id',
+                BC::COL_PRD_SV_ID,
+                BC::COL_PRD_ID,
+                'product_service_id',
+                'product_service',
+                'product_id',
+                'product',
+            ];
+
+            $resolveOwnerKey = function (string $table) use ($ownerKeyCandidates): ?string {
+                if (!Schema::hasTable($table)) return null;
+                foreach ($ownerKeyCandidates as $candidate) {
+                    if (Schema::hasColumn($table, $candidate)) return $candidate;
+                }
+                return null;
+            };
+
+            $productServiceOwnerKey = $resolveOwnerKey($productServiceTable) ?: 'id';
+            $productOwnerKey = $resolveOwnerKey($productTable) ?: 'id';
+
+            if (!$nonEmptyForeignKeys) {
+                return $model->belongsTo(ProductService::class, $existingForeignKeys[0], $productServiceOwnerKey);
+            }
+
+            $servicePreferredOrder = [
+                BC::COL_PRD_SV_ID,
+                'product_service',
+                BC::COL_PRD_ID,
+                'product',
+            ];
+
+            foreach ($servicePreferredOrder as $fk) {
+                if (!array_key_exists($fk, $nonEmptyForeignKeys)) continue;
+
+                $value = $nonEmptyForeignKeys[$fk];
+
+                if (Schema::hasTable($productServiceTable) && Schema::hasColumn($productServiceTable, $productServiceOwnerKey)) {
+                    if (DB::table($productServiceTable)->where($productServiceOwnerKey, $value)->exists()) {
+                        return $model->belongsTo(ProductService::class, $fk, $productServiceOwnerKey);
+                    }
+                }
+            }
+
+            $productPreferredOrder = [
+                BC::COL_PRD_ID,
+                'product',
+                BC::COL_PRD_SV_ID,
+                'product_service',
+            ];
+
+            foreach ($productPreferredOrder as $fk) {
+                if (!array_key_exists($fk, $nonEmptyForeignKeys)) continue;
+
+                $value = $nonEmptyForeignKeys[$fk];
+
+                if (Schema::hasTable($productTable) && Schema::hasColumn($productTable, $productOwnerKey)) {
+                    if (DB::table($productTable)->where($productOwnerKey, $value)->exists()) {
+                        Log::debug('getProduct() - Not found in ProductService; falling back to Product', [
+                            'class' => $model::class,
+                            'method' => __METHOD__,
+                            'line' => __LINE__,
+                            'model_table' => $modelTable,
+                            'foreign_key_on_model' => $fk,
+                            'value' => $value,
+                            'product_service_table' => $productServiceTable,
+                            'product_service_owner_key' => $productServiceOwnerKey,
+                            'product_table' => $productTable,
+                            'product_owner_key' => $productOwnerKey,
+                        ]);
+
+                        return $model->belongsTo(Product::class, $fk, $productOwnerKey);
+                    }
+                }
+            }
+
+            Log::debug('getProduct() - FK value not found in either ProductService or Product; defaulting to ProductService relation', [
+                'class' => $model::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'model_table' => $modelTable,
+                'non_empty_keys' => array_keys($nonEmptyForeignKeys),
+                'product_service_table' => $productServiceTable,
+                'product_service_owner_key' => $productServiceOwnerKey,
+                'product_table' => $productTable,
+                'product_owner_key' => $productOwnerKey,
+            ]);
+
+            $defaultFk = array_key_exists(BC::COL_PRD_SV_ID, $nonEmptyForeignKeys)
+                ? BC::COL_PRD_SV_ID
+                : (array_key_exists('product_service', $nonEmptyForeignKeys) ? 'product_service' : array_key_first($nonEmptyForeignKeys));
+
+            return $model->belongsTo(ProductService::class, $defaultFk, $productServiceOwnerKey);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getProduct() - Failed to resolve product relation with fallback',
+                    'context' => [
+                        'class' => $model::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'model_table' => method_exists($model, 'getTable') ? $model->getTable() : null,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error',
+            );
+            return null;
+        }
+        return null;
+    }
+
+    public static function getEmployee(Model $model): ?BelongsTo
+    {
+        $employeeColumn = null;
+        try {
+            $modelTable = $model->getTable();
+
+            if (Schema::hasColumn($modelTable, UC::COL_EMP_ID))
+                $employeeColumn = UC::COL_EMP_ID;
+            elseif (Schema::hasColumn($modelTable, 'employee'))
+                $employeeColumn = 'employee';
+
+            if (!$employeeColumn) {
+                Log::debug('getEmployee() - Missing employee column on model table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'table' => $modelTable,
+                    'checked_columns' => [UC::COL_EMP_ID, 'employee'],
+                ]);
+                return null;
+            }
+
+            $employeeId = $model->getAttribute($employeeColumn);
+
+            if (!$employeeId)
+                return $model->belongsTo(Employee::class, $employeeColumn, 'id');
+
+            $employeesTable = DC::TABLE_EMPLOYEES;
+            $employeeExists = Schema::hasTable($employeesTable) && DB::table($employeesTable)->where('id', $employeeId)->exists();
+
+            if ($employeeExists)
+                return $model->belongsTo(Employee::class, $employeeColumn, 'id');
+
+            $usersTable = DC::TABLE_USERS;
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            Log::debug('getEmployee() - Employee not found in main table; falling back to users.type IN (hr, admin, super_admin, company)', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'employee_id' => $employeeId,
+                'employee_column' => $employeeColumn,
+                'employees_table' => $employeesTable,
+                'users_table' => $usersTable,
+                'type_column' => $typeColumn,
+                'type_values' => [UserType::Hr->value, UserType::Admin->value, UserType::SuperAdmin->value, UserType::Company->value],
+            ]);
+            return $model
+                ->belongsTo(User::class, $employeeColumn, 'id')
+                ->whereIn($typeColumn, [UserType::Hr->value, UserType::Admin->value, UserType::SuperAdmin->value, UserType::Company->value]);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'utility_errors',
+                candidate: [
+                    'message' => 'getEmployee() - Failed to resolve employee relation with fallback',
+                    'context' => [
+                        'class' => static::class,
+                        'method' => __METHOD__,
+                        'line' => __LINE__,
+                        'employee_id' => $employeeColumn ? $model->getAttribute($employeeColumn) : null,
+                        'employee_column' => $employeeColumn,
+                        'error' => $e->getMessage(),
+                    ]
+                ],
+                mainChannel: 'error',
+            );
+            return $employeeColumn
+                ? $model->belongsTo(Employee::class, $employeeColumn, 'id')
+                : null;
+        }
+    }
+
+    protected function isEmployee(User $user): bool
+    {
+        try {
+            return in_array(
+                strtolower((string) ($user[UC::COL_TP] ?? '')),
+                [
+                    'employee',
+                    UserType::Admin->value,
+                    UserType::SuperAdmin->value,
+                    UserType::Hr->value,
+                    UserType::Company->value
+                ],
+                true
+            ) || DB::table(DC::TABLE_EMPLOYEES)
+                ->where('id', $user[UC::COL_EMP_ID] ?? null)
+                ->exists();
+        } catch (\Throwable $e) {
+            Log::notice('isEmployee check failed for user ' . ($user?->id ?? 'null'), [
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'class' => get_class($this),
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
     }
 
     public static function isValidRouteUrl(string $url): bool
@@ -1329,21 +1998,21 @@ class Utility extends Model
         try {
             DB::transaction(function () use ($createdId) {
                 $pipeline = Pipeline::create([
-                    ProjectsConstants::COL_PPL_NM         => 'Sales',
+                    PJC::COL_PPL_NM         => 'Sales',
                     DC::COL_TABLE_CREATOR      => $createdId,
                 ]);
                 $stages = ['Draft', 'Sent', 'Open', 'Revised', 'Declined'];
                 foreach ($stages as $order => $stageName) {
                     LeadStage::create([
-                        ProjectsConstants::COL_STG_NM         => $stageName,
-                        ProjectsConstants::COL_PPL_ID         => $pipeline->id,
-                        ActivitiesConstants::COL_OD           => $order,
+                        PJC::COL_STG_NM         => $stageName,
+                        PJC::COL_PPL_ID         => $pipeline->id,
+                        AC::COL_OD           => $order,
                         DC::COL_TABLE_CREATOR      => $createdId,
                     ]);
                     Stage::create([
-                        ProjectsConstants::COL_STG_NM         => $stageName,
-                        ProjectsConstants::COL_PPL_ID         => $pipeline->id,
-                        ActivitiesConstants::COL_OD           => $order,
+                        PJC::COL_STG_NM         => $stageName,
+                        PJC::COL_PPL_ID         => $pipeline->id,
+                        AC::COL_OD           => $order,
                         DC::COL_TABLE_CREATOR      => $createdId,
                     ]);
                 }
@@ -1362,9 +2031,9 @@ class Utility extends Model
             DB::transaction(function () use ($projectStages, $projectId, $createdBy) {
                 foreach ($projectStages as $order => $stageName) {
                     TaskStage::create([
-                        ActivitiesConstants::COL_PJ       => $projectId,
-                        ProjectsConstants::COL_STG_NM     => $stageName,
-                        ActivitiesConstants::COL_OD       => $order,
+                        AC::COL_PJ       => $projectId,
+                        PJC::COL_STG_NM     => $stageName,
+                        AC::COL_OD       => $order,
                         DC::COL_TABLE_CREATOR  => $createdBy,
                     ]);
                 }
@@ -1408,8 +2077,8 @@ class Utility extends Model
             DB::transaction(function () use ($stages, $creatorId) {
                 foreach ($stages as $order => $title)
                     JobStage::create([
-                        ActivitiesConstants::COL_TT        => $title,
-                        ActivitiesConstants::COL_OD        => $order,
+                        AC::COL_TT        => $title,
+                        AC::COL_OD        => $order,
                         DC::COL_TABLE_CREATOR   => $creatorId,
                     ]);
             });
@@ -1421,10 +2090,11 @@ class Utility extends Model
 
     public static function labels(string|int $creatorId): void
     {
+        $pipeline = null;
         try {
             DB::transaction(function () use ($creatorId, &$pipeline) {
                 $pipeline = Pipeline::create([
-                    ProjectsConstants::COL_PPL_NM      => 'Default Pipeline',
+                    PJC::COL_PPL_NM      => 'Default Pipeline',
                     DC::COL_TABLE_CREATOR  => $creatorId,
                 ]);
             });
@@ -1434,19 +2104,19 @@ class Utility extends Model
             return;
         }
         $labelData = [
-            [ProjectsConstants::COL_LB_NM => 'On Hold',  ProjectsConstants::COL_CL => 'primary'],
-            [ProjectsConstants::COL_LB_NM => 'New',      ProjectsConstants::COL_CL => ProjectsConstants::STT_INF],
-            [ProjectsConstants::COL_LB_NM => 'Pending',  ProjectsConstants::COL_CL => ProjectsConstants::STT_WRN],
-            [ProjectsConstants::COL_LB_NM => 'Loss',     ProjectsConstants::COL_CL => ProjectsConstants::STT_DGR],
-            [ProjectsConstants::COL_LB_NM => 'Win',      ProjectsConstants::COL_CL => 'success'],
+            [PJC::COL_LB_NM => 'On Hold',  PJC::COL_CL => 'primary'],
+            [PJC::COL_LB_NM => 'New',      PJC::COL_CL => PJC::STT_INF],
+            [PJC::COL_LB_NM => 'Pending',  PJC::COL_CL => PJC::STT_WRN],
+            [PJC::COL_LB_NM => 'Loss',     PJC::COL_CL => PJC::STT_DGR],
+            [PJC::COL_LB_NM => 'Win',      PJC::COL_CL => 'success'],
         ];
         try {
             DB::transaction(function () use ($labelData, $creatorId, $pipeline) {
                 foreach ($labelData as $item)
                     Label::create([
-                        ProjectsConstants::COL_LB_NM      => $item[ProjectsConstants::COL_LB_NM],
-                        ProjectsConstants::COL_CL         => $item[ProjectsConstants::COL_CL],
-                        ProjectsConstants::COL_PPL_ID     => $pipeline->id,
+                        PJC::COL_LB_NM      => $item[PJC::COL_LB_NM],
+                        PJC::COL_CL         => $item[PJC::COL_CL],
+                        PJC::COL_PPL_ID     => $pipeline?->id,
                         DC::COL_TABLE_CREATOR  => $creatorId,
                     ]);
             });
@@ -1459,8 +2129,8 @@ class Utility extends Model
             DB::transaction(function () use ($bugStatusData, $creatorId) {
                 foreach ($bugStatusData as $order => $status)
                     BugStatus::create([
-                        ActivitiesConstants::COL_TT        => $status,
-                        ActivitiesConstants::COL_OD        => $order,
+                        AC::COL_TT        => $status,
+                        AC::COL_OD        => $order,
                         DC::COL_TABLE_CREATOR   => $creatorId,
                     ]);
             });
@@ -1560,8 +2230,8 @@ class Utility extends Model
                 $taxRate = $faker->randomFloat(2, 0, 30); // up to 30%
 
                 $tax = Tax::create([
-                    BillsConstants::COL_TAX_NM       => $taxName,
-                    BillsConstants::COL_TAX_RT       => $taxRate,
+                    BC::COL_TAX_NM       => $taxName,
+                    BC::COL_TAX_RT       => $taxRate,
                     // audit
                     DC::COL_TABLE_CREATOR            => $createdBy,
                     DC::COL_TABLE_UPDATER            => $createdBy,
@@ -1586,11 +2256,11 @@ class Utility extends Model
 
                 $payslipType = PayslipType::create([
                     'code'                   => $code,
-                    BillsConstants::COL_PAY_SLP_NM => $payslipTypeName, // maps to 'name'
+                    BC::COL_PAY_SLP_NM => $payslipTypeName, // maps to 'name'
                     'description'            => $faker->sentence(),
-                    BillsConstants::COL_MIN_AMT    => $minAmount,
-                    BillsConstants::COL_MAX_AMT    => $maxAmount,
-                    BillsConstants::COL_RL_APL     => $rolesApplies,
+                    BC::COL_MIN_AMT    => $minAmount,
+                    BC::COL_MAX_AMT    => $maxAmount,
+                    BC::COL_RL_APL     => $rolesApplies,
                     // audit
                     DC::COL_TABLE_CREATOR    => $createdBy,
                     DC::COL_TABLE_UPDATER    => $createdBy,
@@ -1690,9 +2360,9 @@ class Utility extends Model
     public static function getProgressColor(float|int $percentage): string
     {
         return match (true) {
-            $percentage <= 20  => ProjectsConstants::STT_DGR,
-            $percentage <= 40  => ProjectsConstants::STT_WRN,
-            $percentage <= 60  => ProjectsConstants::STT_INF,
+            $percentage <= 20  => PJC::STT_DGR,
+            $percentage <= 40  => PJC::STT_WRN,
+            $percentage <= 60  => PJC::STT_INF,
             $percentage <= 80  => 'secondary',
             default            => 'primary',
         };
@@ -2825,86 +3495,87 @@ class Utility extends Model
         return $cpf;
     }
 
-public static function generateRandomCnpj(bool $formatted = true): string
-{
-    $cnpj = '';
-    for ($i = 0; $i < 8; $i++)
-        $cnpj .= random_int(0, 9);
-    $cnpj .= '0001';
-    $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    $sum = 0;
-    for ($i = 0; $i < 12; $i++)
-        $sum += (int) $cnpj[$i] * $weights1[$i];
-    $remainder = $sum % 11;
-    $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
-    $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    $sum = 0;
-    for ($i = 0; $i < 13; $i++)
-        $sum += (int) $cnpj[$i] * $weights2[$i];
-    $remainder = $sum % 11;
-    $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
-    if ($formatted)
-        return sprintf('%s.%s.%s/%s-%s',
-            substr($cnpj, 0, 2),
-            substr($cnpj, 2, 3),
-            substr($cnpj, 5, 3),
-            substr($cnpj, 8, 4),
-            substr($cnpj, 12, 2)
-        );
-    return $cnpj;
-}
+    public static function generateRandomCnpj(bool $formatted = true): string
+    {
+        $cnpj = '';
+        for ($i = 0; $i < 8; $i++)
+            $cnpj .= random_int(0, 9);
+        $cnpj .= '0001';
+        $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $sum = 0;
+        for ($i = 0; $i < 12; $i++)
+            $sum += (int) $cnpj[$i] * $weights1[$i];
+        $remainder = $sum % 11;
+        $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+        $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $sum = 0;
+        for ($i = 0; $i < 13; $i++)
+            $sum += (int) $cnpj[$i] * $weights2[$i];
+        $remainder = $sum % 11;
+        $cnpj .= ($remainder < 2) ? '0' : (string) (11 - $remainder);
+        if ($formatted)
+            return sprintf(
+                '%s.%s.%s/%s-%s',
+                substr($cnpj, 0, 2),
+                substr($cnpj, 2, 3),
+                substr($cnpj, 5, 3),
+                substr($cnpj, 8, 4),
+                substr($cnpj, 12, 2)
+            );
+        return $cnpj;
+    }
 
-public static function isValidCpf(?string $cpf): bool
-{
-    if (!$cpf) return false;
-    $cpf = preg_replace('/[^0-9]/', '', $cpf);
-    if (!preg_match('/^[0-9]{11}$/', $cpf))
-        return false;
-    if (preg_match('/^(\d)\1{10}$/', $cpf))
-        return false;
-    $sum = 0;
-    for ($i = 0; $i < 9; $i++)
-        $sum += (int) $cpf[$i] * (10 - $i);
-    $remainder = $sum % 11;
-    $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
-    if ($digit1 !== (int) $cpf[9])
-        return false;
-    $sum = 0;
-    for ($i = 0; $i < 10; $i++)
-        $sum += (int) $cpf[$i] * (11 - $i);
-    $remainder = $sum % 11;
-    $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
-    if ($digit2 !== (int) $cpf[10])
-        return false;
-    return true;
-}
+    public static function isValidCpf(?string $cpf): bool
+    {
+        if (!$cpf) return false;
+        $cpf = preg_replace('/[^0-9]/', '', $cpf);
+        if (!preg_match('/^[0-9]{11}$/', $cpf))
+            return false;
+        if (preg_match('/^(\d)\1{10}$/', $cpf))
+            return false;
+        $sum = 0;
+        for ($i = 0; $i < 9; $i++)
+            $sum += (int) $cpf[$i] * (10 - $i);
+        $remainder = $sum % 11;
+        $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
+        if ($digit1 !== (int) $cpf[9])
+            return false;
+        $sum = 0;
+        for ($i = 0; $i < 10; $i++)
+            $sum += (int) $cpf[$i] * (11 - $i);
+        $remainder = $sum % 11;
+        $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
+        if ($digit2 !== (int) $cpf[10])
+            return false;
+        return true;
+    }
 
-public static function isValidCnpj(?string $cnpj): bool
-{
-    if (!$cnpj) return false;
-    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
-    if (!preg_match('/^[0-9]{14}$/', $cnpj))
-        return false;
-    if (preg_match('/^(\d)\1{13}$/', $cnpj))
-        return false;
-    $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    $sum = 0;
-    for ($i = 0; $i < 12; $i++)
-        $sum += (int) $cnpj[$i] * $weights1[$i];
-    $remainder = $sum % 11;
-    $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
-    if ($digit1 !== (int) $cnpj[12])
-        return false;
-    $sum = 0;
-    for ($i = 0; $i < 13; $i++)
-        $sum += (int) $cnpj[$i] * $weights2[$i];
-    $remainder = $sum % 11;
-    $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
-    if ($digit2 !== (int) $cnpj[13])
-        return false;
-    return true;
-}
+    public static function isValidCnpj(?string $cnpj): bool
+    {
+        if (!$cnpj) return false;
+        $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        if (!preg_match('/^[0-9]{14}$/', $cnpj))
+            return false;
+        if (preg_match('/^(\d)\1{13}$/', $cnpj))
+            return false;
+        $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $sum = 0;
+        for ($i = 0; $i < 12; $i++)
+            $sum += (int) $cnpj[$i] * $weights1[$i];
+        $remainder = $sum % 11;
+        $digit1 = ($remainder < 2) ? 0 : 11 - $remainder;
+        if ($digit1 !== (int) $cnpj[12])
+            return false;
+        $sum = 0;
+        for ($i = 0; $i < 13; $i++)
+            $sum += (int) $cnpj[$i] * $weights2[$i];
+        $remainder = $sum % 11;
+        $digit2 = ($remainder < 2) ? 0 : 11 - $remainder;
+        if ($digit2 !== (int) $cnpj[13])
+            return false;
+        return true;
+    }
 
 
     public static function updateStorageLimit(int $companyId, float $imageSize): string|int
@@ -3029,29 +3700,29 @@ public static function isValidCnpj(?string $cnpj): bool
         $startMsg = 'Undefined server message. This could mean either a failure or a success. Check with your support team about your request.';
         $resultMsg = $startMsg;
         try {
-            $msgs = LangsConstants::LINK_MESSAGES;
-            $canDefault = $isFailure && is_array(LangsConstants::DEFAULT_CLIENT_MESSAGES) && !empty(LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found']);
+            $msgs = LC::LINK_MESSAGES;
+            $canDefault = $isFailure && is_array(LC::DEFAULT_CLIENT_MESSAGES) && !empty(LC::DEFAULT_CLIENT_MESSAGES['link_not_found']);
             if (!is_array($msgs)) {
                 if ($isFailure && $canDefault)
-                    return LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found'];
+                    return LC::DEFAULT_CLIENT_MESSAGES['link_not_found'];
                 throw new \RuntimeException('Link messages are not defined properly.');
             }
             if (!array_key_exists($lang, Utility::langList()))
                 $lang = self::fetchUserLang();
             if (!array_key_exists($set, $msgs)) {
                 if ($isFailure && $canDefault)
-                    return LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found'];
+                    return LC::DEFAULT_CLIENT_MESSAGES['link_not_found'];
                 throw new \RuntimeException('Set not found in link messages.');
             }
             if (!array_key_exists($lang, $msgs)) {
                 if ($isFailure && $canDefault)
-                    return LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found'];
+                    return LC::DEFAULT_CLIENT_MESSAGES['link_not_found'];
                 throw new \RuntimeException('Language not found in link messages.');
             }
             $langMsg = $msgs[$lang] ?? [];
             if (!array_key_exists($key, $langMsg)) {
-                if ($isFailure && is_array(LangsConstants::DEFAULT_CLIENT_MESSAGES) && !empty(LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found']))
-                    return LangsConstants::DEFAULT_CLIENT_MESSAGES['link_not_found'];
+                if ($isFailure && is_array(LC::DEFAULT_CLIENT_MESSAGES) && !empty(LC::DEFAULT_CLIENT_MESSAGES['link_not_found']))
+                    return LC::DEFAULT_CLIENT_MESSAGES['link_not_found'];
                 throw new \RuntimeException('Key not found in link messages for the specified language.');
             }
             $resultMsg = $langMsg[$key] ?? ($shouldFallback ? null : $startMsg);
@@ -3114,7 +3785,7 @@ public static function isValidCnpj(?string $cnpj): bool
         return $snippet;
     }
 
-    public static function languageCreate(?string $createdBy = DB::DEFAULT_UUID): void
+    public static function languageCreate(?string $createdBy = DC::DEFAULT_UUID): void
     {
         foreach (self::langList() as $code => $fullName) {
             $output = new ConsoleOutput();

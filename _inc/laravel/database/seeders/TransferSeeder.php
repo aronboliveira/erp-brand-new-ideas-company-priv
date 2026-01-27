@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\{ConsoleOutput};
 final class TransferSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
 	private const MAX_PICK_ATTEMPTS = 24;
 	private const MAX_DATE_SHIFT_ATTEMPTS = 7;
 
@@ -24,8 +24,8 @@ final class TransferSeeder extends Seeder
 	{
 		$faker = fake('pt_BR');
 		$out = new ConsoleOutput();
-
 		DB::transaction(function () use ($faker, $out): void {
+			$clock = microtime(true);
 			$systemUserId = $this->ensureSystemUser();
 
 			$employees = Employee::query()
@@ -92,7 +92,15 @@ final class TransferSeeder extends Seeder
 			$employeeArr = $employees->all();
 			$seenEmpDate = [];
 
+			$hardCap = 3200;
 			for ($i = 1; $i <= $total; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
+				if (!$hardCap) break;
+				$hardCap--;
 				try {
 					/** @var Employee $emp */
 					$emp = $employeeArr[random_int(0, count($employeeArr) - 1)];

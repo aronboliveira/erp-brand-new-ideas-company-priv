@@ -47,7 +47,8 @@ final class SourceSeeder extends Seeder
 				'Consultor Externo',
 				'Outro'
 			];
-
+			while (log(count($names), 2) % 1 !== 0 || count($names) < 128)
+				$names[] = fake()->words(2, true);
 			foreach ($names as $nm) {
 				try {
 					(new \Symfony\Component\Console\Output\ConsoleOutput

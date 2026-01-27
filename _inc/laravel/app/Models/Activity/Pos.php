@@ -8,17 +8,16 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     UsersConstants as UC
 };
-use App\Enums\{CountryName, PosStatus, PosType, TransactionType};
+use App\Enums\{PosStatus, PosType, TransactionType, UserType};
+use App\Services\PosRequestService;
 use App\Traits\{
     DescribesCompanyBranch,
-    ChecksLogin,
     HasAuditFields,
     NormalizesAddresses,
     TracksFailures,
     UsesCountryRegions,
     UsesUuids,
 };
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -26,6 +25,8 @@ use Illuminate\Database\Eloquent\{
     Relations\HasMany,
     Relations\HasOne
 };
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\{DB, Schema, Log};
 use Illuminate\Http\RedirectResponse;
 
 class Pos extends Model
@@ -37,7 +38,6 @@ class Pos extends Model
     use DescribesCompanyBranch;
     use UsesCountryRegions;
     use TracksFailures;
-    use ChecksLogin;
 
     protected $table = DC::TABLE_POS;
     protected $fillable = [
@@ -92,7 +92,7 @@ class Pos extends Model
         BC::COL_BL_DTL,
 
         // Rastreamento de falhas
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [
@@ -129,7 +129,6 @@ class Pos extends Model
     ];
 
     protected $with = [
-        'customer',
         'warehouse',
     ];
 
@@ -182,16 +181,13 @@ class Pos extends Model
         });
     }
 
-    public function customer(): BelongsTo
+    public function customer(): ?BelongsTo
     {
-        return $this->belongsTo(
-            Customer::class,
-            BC::COL_CST_ID,
-            'id'
-        );
+        return Utility::getCustomer($this);
     }
 
-    public function warehouse(): BelongsTo
+
+    public function warehouse(): ?BelongsTo
     {
         return $this->belongsTo(
             Warehouse::class,
@@ -200,25 +196,21 @@ class Pos extends Model
         );
     }
 
-    public function company(): BelongsTo
+    public function company(): ?BelongsTo
     {
         return $this->belongsTo(
             User::class,
             CC::COL_CP_ID,
             'id'
-        );
+        )->where('type', UserType::Company->value);
     }
 
-    public function vendor(): BelongsTo
+    public function vendor(): ?BelongsTo
     {
-        return $this->belongsTo(
-            Vendor::class,
-            UC::COL_VD_ID,
-            'id'
-        );
+        return Utility::getVendor($this);
     }
 
-    public function manufacturer(): BelongsTo
+    public function manufacturer(): ?BelongsTo
     {
         return $this->belongsTo(
             User::class,
@@ -235,23 +227,689 @@ class Pos extends Model
      */
     public function items(): HasMany
     {
-        return $this->hasMany(
-            PosProduct::class,
-            BC::COL_POS_ID,
-            BC::COL_POS_ID
-        );
+        return $this->products();
     }
 
-    /**
-     * Pagamento associado a este POS.
-     */
+    public function posProducts(): HasMany
+    {
+        try {
+            $posTable = $this->getTable();
+            $posProductsTable = (new PosProduct)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPosProducts) {
+                Log::error('Pos::posProducts - No valid pos FK column found in pos_products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'pos_products_table' => $posProductsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return $this->hasMany(PosProduct::class, BC::COL_POS_ID, $localPosKey);
+            }
+
+            Log::debug('Pos::posProducts - Using pos FK column in pos_products table', [
+                'class' => static::class,
+                'pos_fk' => $posForeignKeyInPosProducts,
+                'local_key' => $localPosKey,
+            ]);
+
+            return $this->hasMany(PosProduct::class, $posForeignKeyInPosProducts, $localPosKey);
+        } catch (\Throwable $e) {
+            Log::error('Pos::posProducts - Failed to determine pos FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(PosProduct::class, BC::COL_POS_ID, BC::COL_POS_ID);
+        }
+    }
+
+    public function productProducts(): HasMany
+    {
+        try {
+            $posTable = $this->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInProducts) {
+                Log::error('Pos::productProducts - No valid pos FK column found in products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'products_table' => $productsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return $this->hasMany(Product::class, BC::COL_POS_ID, $localPosKey);
+            }
+
+            Log::debug('Pos::productProducts - Using pos FK column in products table', [
+                'class' => static::class,
+                'pos_fk' => $posForeignKeyInProducts,
+                'local_key' => $localPosKey,
+            ]);
+
+            return $this->hasMany(Product::class, $posForeignKeyInProducts, $localPosKey);
+        } catch (\Throwable $e) {
+            Log::error('Pos::productProducts - Failed to determine pos FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(Product::class, BC::COL_POS_ID, BC::COL_POS_ID);
+        }
+    }
+
+    public function products(): HasMany
+    {
+        try {
+            $posTable = $this->getTable();
+
+            $posProductsTable = (new PosProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posForeignKeyAlias = BC::COL_POS_ID;
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPosProducts || !$posForeignKeyInProducts) {
+                Log::error('Pos::products - Missing pos FK column in one or both tables', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'pos_products_table' => $posProductsTable,
+                    'products_table' => $productsTable,
+                    'pos_products_fk' => $posForeignKeyInPosProducts,
+                    'products_fk' => $posForeignKeyInProducts,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return $this->hasMany(Product::class, $posForeignKeyAlias, $localPosKey);
+            }
+
+            $posProductsColumns = Schema::getColumnListing($posProductsTable);
+            $productsColumns = Schema::getColumnListing($productsTable);
+
+            $selectedColumns = array_values(array_unique(array_merge(
+                $posProductsColumns,
+                $productsColumns,
+                [$posForeignKeyAlias, '_source']
+            )));
+
+            if (!\in_array('id', $selectedColumns, true)) $selectedColumns[] = 'id';
+
+            $posProductsSelectParts = [];
+            foreach ($selectedColumns as $column) {
+                if ($column === '_source') {
+                    $posProductsSelectParts[] = DB::raw("'pos_products' as `_source`");
+                    continue;
+                }
+                if ($column === $posForeignKeyAlias) {
+                    $posProductsSelectParts[] = DB::raw("`{$posProductsTable}`.`{$posForeignKeyInPosProducts}` as `{$posForeignKeyAlias}`");
+                    continue;
+                }
+                $posProductsSelectParts[] = \in_array($column, $posProductsColumns, true)
+                    ? DB::raw("`{$posProductsTable}`.`{$column}` as `{$column}`")
+                    : DB::raw("NULL as `{$column}`");
+            }
+
+            $productsSelectParts = [];
+            foreach ($selectedColumns as $column) {
+                if ($column === '_source') {
+                    $productsSelectParts[] = DB::raw("'products' as `_source`");
+                    continue;
+                }
+                if ($column === $posForeignKeyAlias) {
+                    $productsSelectParts[] = DB::raw("`{$productsTable}`.`{$posForeignKeyInProducts}` as `{$posForeignKeyAlias}`");
+                    continue;
+                }
+                $productsSelectParts[] = \in_array($column, $productsColumns, true)
+                    ? DB::raw("`{$productsTable}`.`{$column}` as `{$column}`")
+                    : DB::raw("NULL as `{$column}`");
+            }
+
+            $posProductsQuery = DB::table($posProductsTable)->select($posProductsSelectParts);
+            $productsQuery = DB::table($productsTable)->select($productsSelectParts);
+
+            $unionQuery = $posProductsQuery->unionAll($productsQuery);
+
+            $derivedAlias = 'pos_products_union';
+
+            $relation = $this->hasMany(Product::class, $posForeignKeyAlias, $localPosKey);
+            $relation->getQuery()->fromSub($unionQuery, $derivedAlias);
+
+            Log::debug('Pos::products - Using union-backed HasMany', [
+                'class' => static::class,
+                'pos_products_table' => $posProductsTable,
+                'products_table' => $productsTable,
+                'pos_products_fk' => $posForeignKeyInPosProducts,
+                'products_fk' => $posForeignKeyInProducts,
+                'local_key' => $localPosKey,
+                'alias' => $derivedAlias,
+                'columns' => \count($selectedColumns),
+            ]);
+
+            return $relation;
+        } catch (\Throwable $e) {
+            Log::error('Pos::products - Failed to build union relation', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(PosProduct::class, BC::COL_POS_ID, BC::COL_POS_ID);
+        }
+    }
+
+    public function productServices(): HasMany
+    {
+        try {
+            $posTable = $this->getTable();
+
+            $posProductsTable = (new PosProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+            $productServicesTable = (new ProductService)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posValue = $this->getAttribute($localPosKey);
+
+            $posForeignKeyAlias = BC::COL_POS_ID;
+            $productServiceForeignKeyAlias = BC::COL_PRD_SV_ID;
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            $productServiceForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($posProductsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($posProductsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($posProductsTable, 'service') ? 'service' : null)));
+
+            $productServiceForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($productsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($productsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($productsTable, 'service') ? 'service' : null)));
+
+            $posProductsServiceIdsQuery = null;
+
+            if ($posForeignKeyInPosProducts && $productServiceForeignKeyInPosProducts) {
+                $posProductsServiceIdsQuery = DB::table($posProductsTable)
+                    ->selectRaw(
+                        "`{$posProductsTable}`.`{$posForeignKeyInPosProducts}` as `{$posForeignKeyAlias}`, " .
+                            "`{$posProductsTable}`.`{$productServiceForeignKeyInPosProducts}` as `{$productServiceForeignKeyAlias}`"
+                    )
+                    ->where("{$posProductsTable}.{$posForeignKeyInPosProducts}", $posValue)
+                    ->whereNotNull("{$posProductsTable}.{$productServiceForeignKeyInPosProducts}");
+            }
+
+            $productsServiceIdsQuery = null;
+
+            if ($posForeignKeyInProducts && $productServiceForeignKeyInProducts) {
+                $productsServiceIdsQuery = DB::table($productsTable)
+                    ->selectRaw(
+                        "`{$productsTable}`.`{$posForeignKeyInProducts}` as `{$posForeignKeyAlias}`, " .
+                            "`{$productsTable}`.`{$productServiceForeignKeyInProducts}` as `{$productServiceForeignKeyAlias}`"
+                    )
+                    ->where("{$productsTable}.{$posForeignKeyInProducts}", $posValue)
+                    ->whereNotNull("{$productsTable}.{$productServiceForeignKeyInProducts}");
+
+                if ($posProductsServiceIdsQuery) {
+                    $posProductsServiceIdsSubquery = DB::table($posProductsTable)
+                        ->selectRaw("`{$posProductsTable}`.`{$productServiceForeignKeyInPosProducts}`")
+                        ->where("{$posProductsTable}.{$posForeignKeyInPosProducts}", $posValue)
+                        ->whereNotNull("{$posProductsTable}.{$productServiceForeignKeyInPosProducts}");
+
+                    $productsServiceIdsQuery->whereNotIn(
+                        "{$productsTable}.{$productServiceForeignKeyInProducts}",
+                        $posProductsServiceIdsSubquery
+                    );
+                }
+            }
+
+            if (!$posProductsServiceIdsQuery && !$productsServiceIdsQuery) {
+                Log::debug('Pos::productServices - No service ids could be sourced from either table', [
+                    'class' => static::class,
+                    'pos_value' => $posValue,
+                    'pos_products_table' => $posProductsTable,
+                    'products_table' => $productsTable,
+                ]);
+
+                return $this->hasMany(ProductService::class, 'id', $localPosKey)->whereRaw('1=0');
+            }
+
+            $serviceIdsUnionQuery = $posProductsServiceIdsQuery
+                ? ($productsServiceIdsQuery ? $posProductsServiceIdsQuery->unionAll($productsServiceIdsQuery) : $posProductsServiceIdsQuery)
+                : $productsServiceIdsQuery;
+
+            $productServicesForPosQuery = DB::table("{$productServicesTable} as ps")
+                ->joinSub($serviceIdsUnionQuery, 'src', "src.{$productServiceForeignKeyAlias}", '=', 'ps.id')
+                ->selectRaw("ps.*, src.`{$posForeignKeyAlias}` as `{$posForeignKeyAlias}`")
+                ->distinct();
+
+            $derivedAlias = 'pos_product_services_union';
+
+            $related = new ProductService();
+            $related->setTable($derivedAlias);
+
+            $derivedQuery = $related->newQuery()->fromSub($productServicesForPosQuery, $derivedAlias);
+
+            return $this->newHasMany($derivedQuery, $this, "{$derivedAlias}.{$posForeignKeyAlias}", $localPosKey);
+        } catch (\Throwable $e) {
+            Log::error('Pos::productServices - Failed to build derived relation', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasMany(ProductService::class, 'id', $this->getKeyName())->whereRaw('1=0');
+        }
+    }
+
+    public function posProductsRaw(): Collection
+    {
+        try {
+            $posProductsTable = (new PosProduct)->getTable();
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPosProducts) {
+                Log::error('Pos::posProductsRaw - No valid pos FK column found in pos_products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'pos_products_table' => $posProductsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return collect([]);
+            }
+
+            $sql = "SELECT * FROM `{$posProductsTable}` WHERE `{$posForeignKeyInPosProducts}` = ?";
+            $rows = DB::select($sql, [$this->getAttribute(BC::COL_POS_ID) ?? $this->getAttribute('pos') ?? $this->getKey()]);
+
+            return collect($rows);
+        } catch (\Throwable $e) {
+            Log::error('Pos::posProductsRaw - Failed to retrieve pos products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productProductsRaw(): Collection
+    {
+        try {
+            $productsTable = (new Product)->getTable();
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInProducts) {
+                Log::error('Pos::productProductsRaw - No valid pos FK column found in products table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'products_table' => $productsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return collect([]);
+            }
+
+            $sql = "SELECT * FROM `{$productsTable}` WHERE `{$posForeignKeyInProducts}` = ?";
+            $rows = DB::select($sql, [$this->getAttribute(BC::COL_POS_ID) ?? $this->getAttribute('pos') ?? $this->getKey()]);
+
+            return collect($rows);
+        } catch (\Throwable $e) {
+            Log::error('Pos::productProductsRaw - Failed to retrieve products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productsRaw(): Collection
+    {
+        try {
+            $posProductsTable = (new PosProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+
+            $posForeignKeyAlias = BC::COL_POS_ID;
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPosProducts || !$posForeignKeyInProducts) {
+                Log::error('Pos::productsRaw - Missing pos FK column in one or both tables', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'pos_products_table' => $posProductsTable,
+                    'products_table' => $productsTable,
+                    'pos_products_fk' => $posForeignKeyInPosProducts,
+                    'products_fk' => $posForeignKeyInProducts,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return collect([]);
+            }
+
+            $posValue = $this->getAttribute(BC::COL_POS_ID) ?? $this->getAttribute('pos') ?? $this->getKey();
+
+            $posProductsColumns = Schema::getColumnListing($posProductsTable);
+            $productsColumns = Schema::getColumnListing($productsTable);
+
+            $selectedColumns = array_values(array_unique(array_merge(
+                $posProductsColumns,
+                $productsColumns,
+                [$posForeignKeyAlias, '_source']
+            )));
+
+            if (!\in_array('id', $selectedColumns, true)) $selectedColumns[] = 'id';
+
+            $posProductsSelectParts = [];
+            foreach ($selectedColumns as $column) {
+                if ($column === '_source') {
+                    $posProductsSelectParts[] = "'pos_products' as `_source`";
+                    continue;
+                }
+                if ($column === $posForeignKeyAlias) {
+                    $posProductsSelectParts[] = "`{$posProductsTable}`.`{$posForeignKeyInPosProducts}` as `{$posForeignKeyAlias}`";
+                    continue;
+                }
+                $posProductsSelectParts[] = \in_array($column, $posProductsColumns, true)
+                    ? "`{$posProductsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $productsSelectParts = [];
+            foreach ($selectedColumns as $column) {
+                if ($column === '_source') {
+                    $productsSelectParts[] = "'products' as `_source`";
+                    continue;
+                }
+                if ($column === $posForeignKeyAlias) {
+                    $productsSelectParts[] = "`{$productsTable}`.`{$posForeignKeyInProducts}` as `{$posForeignKeyAlias}`";
+                    continue;
+                }
+                $productsSelectParts[] = \in_array($column, $productsColumns, true)
+                    ? "`{$productsTable}`.`{$column}` as `{$column}`"
+                    : "NULL as `{$column}`";
+            }
+
+            $sql =
+                "SELECT " . implode(', ', $posProductsSelectParts) . " FROM `{$posProductsTable}` WHERE `{$posForeignKeyInPosProducts}` = ? " .
+                "UNION ALL " .
+                "SELECT " . implode(', ', $productsSelectParts) . " FROM `{$productsTable}` WHERE `{$posForeignKeyInProducts}` = ?";
+
+            $rows = DB::select($sql, [$posValue, $posValue]);
+
+            return collect($rows);
+        } catch (\Throwable $e) {
+            Log::error('Pos::productsRaw - Failed to retrieve union products', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function productServicesRaw(): Collection
+    {
+        try {
+            $posProductsTable = (new PosProduct)->getTable();
+            $productsTable = (new Product)->getTable();
+            $productServicesTable = (new ProductService)->getTable();
+
+            $posValue = $this->getAttribute(BC::COL_POS_ID) ?? $this->getAttribute('pos') ?? $this->getKey();
+
+            $posForeignKeyAlias = BC::COL_POS_ID;
+            $productServiceForeignKeyAlias = BC::COL_PRD_SV_ID;
+
+            $posForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posProductsTable, 'pos') ? 'pos' : null);
+
+            $posForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($productsTable, 'pos') ? 'pos' : null);
+
+            $productServiceForeignKeyInPosProducts = Schema::hasColumn($posProductsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($posProductsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($posProductsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($posProductsTable, 'service') ? 'service' : null)));
+
+            $productServiceForeignKeyInProducts = Schema::hasColumn($productsTable, BC::COL_PRD_SV_ID)
+                ? BC::COL_PRD_SV_ID
+                : (Schema::hasColumn($productsTable, 'product_service_id') ? 'product_service_id' : (Schema::hasColumn($productsTable, 'product_service') ? 'product_service' : (Schema::hasColumn($productsTable, 'service') ? 'service' : null)));
+
+            $posProductsServiceIdsQuery = null;
+
+            if ($posForeignKeyInPosProducts && $productServiceForeignKeyInPosProducts) {
+                $posProductsServiceIdsQuery = DB::table($posProductsTable)
+                    ->selectRaw(
+                        "`{$posProductsTable}`.`{$posForeignKeyInPosProducts}` as `{$posForeignKeyAlias}`, " .
+                            "`{$posProductsTable}`.`{$productServiceForeignKeyInPosProducts}` as `{$productServiceForeignKeyAlias}`"
+                    )
+                    ->where("{$posProductsTable}.{$posForeignKeyInPosProducts}", $posValue)
+                    ->whereNotNull("{$posProductsTable}.{$productServiceForeignKeyInPosProducts}");
+            }
+
+            $productsServiceIdsQuery = null;
+
+            if ($posForeignKeyInProducts && $productServiceForeignKeyInProducts) {
+                $productsServiceIdsQuery = DB::table($productsTable)
+                    ->selectRaw(
+                        "`{$productsTable}`.`{$posForeignKeyInProducts}` as `{$posForeignKeyAlias}`, " .
+                            "`{$productsTable}`.`{$productServiceForeignKeyInProducts}` as `{$productServiceForeignKeyAlias}`"
+                    )
+                    ->where("{$productsTable}.{$posForeignKeyInProducts}", $posValue)
+                    ->whereNotNull("{$productsTable}.{$productServiceForeignKeyInProducts}");
+
+                if ($posProductsServiceIdsQuery) {
+                    $posProductsServiceIdsSubquery = DB::table($posProductsTable)
+                        ->selectRaw("`{$posProductsTable}`.`{$productServiceForeignKeyInPosProducts}`")
+                        ->where("{$posProductsTable}.{$posForeignKeyInPosProducts}", $posValue)
+                        ->whereNotNull("{$posProductsTable}.{$productServiceForeignKeyInPosProducts}");
+
+                    $productsServiceIdsQuery->whereNotIn(
+                        "{$productsTable}.{$productServiceForeignKeyInProducts}",
+                        $posProductsServiceIdsSubquery
+                    );
+                }
+            }
+
+            if (!$posProductsServiceIdsQuery && !$productsServiceIdsQuery) return collect([]);
+
+            $serviceIdsUnionQuery = $posProductsServiceIdsQuery
+                ? ($productsServiceIdsQuery ? $posProductsServiceIdsQuery->unionAll($productsServiceIdsQuery) : $posProductsServiceIdsQuery)
+                : $productsServiceIdsQuery;
+
+            $productServicesForPosQuery = DB::table("{$productServicesTable} as ps")
+                ->joinSub($serviceIdsUnionQuery, 'src', "src.{$productServiceForeignKeyAlias}", '=', 'ps.id')
+                ->selectRaw("ps.*, src.`{$posForeignKeyAlias}` as `{$posForeignKeyAlias}`")
+                ->distinct();
+
+            $rows = DB::select($productServicesForPosQuery->toSql(), $productServicesForPosQuery->getBindings());
+
+            return collect($rows);
+        } catch (\Throwable $e) {
+            Log::error('Pos::productServicesRaw - Failed to retrieve product services', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect([]);
+        }
+    }
+
+    public function posPosPayment(): HasOne
+    {
+        try {
+            $posTable = $this->getTable();
+            $posPaymentsTable = (new PosPayment)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posForeignKeyInPosPayments = Schema::hasColumn($posPaymentsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posPaymentsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPosPayments) {
+                Log::error('Pos::posPosPayment - No valid pos FK column found in pos_payments table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'pos_payments_table' => $posPaymentsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return $this->hasOne(PosPayment::class, BC::COL_POS_ID, $localPosKey);
+            }
+
+            return $this->hasOne(PosPayment::class, $posForeignKeyInPosPayments, $localPosKey);
+        } catch (\Throwable $e) {
+            Log::error('Pos::posPosPayment - Failed to determine pos FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasOne(PosPayment::class, BC::COL_POS_ID, BC::COL_POS_ID);
+        }
+    }
+
+    public function paymentPayment(): HasOne
+    {
+        try {
+            $posTable = $this->getTable();
+            $paymentsTable = (new Payment)->getTable();
+
+            $localPosKey = Schema::hasColumn($posTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($posTable, 'pos') ? 'pos' : $this->getKeyName());
+
+            $posForeignKeyInPayments = Schema::hasColumn($paymentsTable, BC::COL_POS_ID)
+                ? BC::COL_POS_ID
+                : (Schema::hasColumn($paymentsTable, 'pos') ? 'pos' : null);
+
+            if (!$posForeignKeyInPayments) {
+                Log::error('Pos::paymentPayment - No valid pos FK column found in payments table', [
+                    'class' => static::class,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'payments_table' => $paymentsTable,
+                    'checked_columns' => [BC::COL_POS_ID, 'pos'],
+                ]);
+
+                return $this->hasOne(Payment::class, BC::COL_POS_ID, $localPosKey);
+            }
+
+            return $this->hasOne(Payment::class, $posForeignKeyInPayments, $localPosKey);
+        } catch (\Throwable $e) {
+            Log::error('Pos::paymentPayment - Failed to determine pos FK column', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->hasOne(Payment::class, BC::COL_POS_ID, BC::COL_POS_ID);
+        }
+    }
+
     public function posPayment(): HasOne
     {
-        return $this->hasOne(
-            PosPayment::class,
-            BC::COL_POS_ID,
-            BC::COL_POS_ID
-        );
+        try {
+            $posPaymentsTable = (new PosPayment)->getTable();
+            $paymentsTable = (new Payment)->getTable();
+
+            $posFkInPosPayments = Schema::hasColumn($posPaymentsTable, BC::COL_POS_ID) || Schema::hasColumn($posPaymentsTable, 'pos');
+            $posFkInPayments = Schema::hasColumn($paymentsTable, BC::COL_POS_ID) || Schema::hasColumn($paymentsTable, 'pos');
+
+            if ($posFkInPosPayments) return $this->posPosPayment();
+            if ($posFkInPayments) return $this->paymentPayment();
+
+            Log::error('Pos::posPayment - No valid pos FK column found in either pos_payments or payments table', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'pos_payments_table' => $posPaymentsTable,
+                'payments_table' => $paymentsTable,
+                'checked_columns' => [BC::COL_POS_ID, 'pos'],
+            ]);
+
+            return $this->posPosPayment();
+        } catch (\Throwable $e) {
+            Log::error('Pos::posPayment - Failed to select pos payment source', [
+                'class' => static::class,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->posPosPayment();
+        }
     }
 
     public function transactions(): HasMany
@@ -259,10 +917,6 @@ class Pos extends Model
         return $this->hasMany(Transaction::class, 'payment_id')
             ->where('payment_type', TransactionType::Pos);
     }
-
-    // ---------------------------------------------------------------------
-    // Regras de negócio (totais / relatórios)
-    // ---------------------------------------------------------------------
 
     public function getSubTotal(): float
     {
@@ -294,79 +948,18 @@ class Pos extends Model
     }
 
     /**
-     * Total do faturamento via POS (para o usuário logado),
-     * opcionalmente filtrado pelo mês atual.
+     * Get total POS amount
      */
     public static function totalPosAmount(bool $month = false): string|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) {
-            return $userOrRedirect;
-        }
-
-        $user  = $userOrRedirect;
-        $query = self::where(DC::COL_TABLE_CREATOR, $user?->creatorId());
-
-        if ($month) {
-            $query->whereRaw('MONTH(created_at) = ?', [date('m')]);
-        }
-
-        $total = (float) $query->get()->sum(
-            fn(self $p) => $p->getTotal()
-        );
-
-        return $user?->priceFormat($total);
+        return app(PosRequestService::class)->getTotalPosAmount($month);
     }
 
     /**
-     * Relatório de POS dos últimos 10 dias para gráfico simples.
-     *
-     * Retorna:
-     *  [
-     *      'label' => ['Y-m-d', ...],
-     *      'value' => [totalDia1, totalDia2, ...]
-     *  ]
+     * Get POS report chart data for last 10 days
      */
     public static function getPosReportChart(): array|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) {
-            return $userOrRedirect;
-        }
-
-        $user = $userOrRedirect;
-
-        $grouped = self::whereDate(
-            'created_at',
-            '>',
-            Carbon::now()->subDays(10)
-        )
-            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-            ->orderBy('created_at')
-            ->get()
-            ->groupBy(fn($v) => Carbon::parse($v->created_at)->format('dm'));
-
-        $posesArray = [
-            'label' => [],
-            'value' => [],
-        ];
-
-        $now = Carbon::now();
-
-        for ($i = 0; $i <= 9; $i++) {
-            $date = $now->copy()->subDays($i)->format('Y-m-d');
-            $key  = Carbon::parse($date)->format('dm');
-
-            $posesArray['label'][] = $date;
-            $posesArray['value'][] = isset($grouped[$key])
-                ? (float) $grouped[$key]->sum(fn(self $p) => $p->getTotal())
-                : 0.0;
-        }
-
-        return $posesArray;
+        return app(PosRequestService::class)->getPosReportChart();
     }
 }

@@ -19,6 +19,7 @@ class CreateJournalItemsTable extends Migration
             $table->uuid('journal')->index();
             $table->uuid('account')->index();
             $table->unsignedSmallInteger('line')->nullable()->index(); // ? nullable for tests
+            $table->unique(['journal', 'line']);
             $table->enum('posting_type', ['debit', 'credit'])->nullable()->default('debit')->index(); // ? nullable for tests, enforced at model
             $table->float('debit', 20, 6)->default(0.00); // * ideally these should be decimals, but keeping for legacy
             $table->float('credit', 20, 6)->default(0.00);
@@ -71,6 +72,7 @@ class CreateJournalItemsTable extends Migration
                     'transaction' => DC::TABLE_TRS,
                     'payment' => DC::TABLE_PAY,
                     'transfer' => DC::TABLE_TRFS,
+                    BC::COL_BNK_ACC => DC::TABLE_BANK_ACC,
                 ] as $col => $tbl
             )
                 $table->foreign($col)
@@ -85,31 +87,32 @@ class CreateJournalItemsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach (
-                [
-                    'journal',
-                    'account',
-                    'company',
-                    'branch',
-                    'department',
-                    'project',
-                    'entity',
-                    BC::COL_RCC_DOC,
-                ] as $col
-            ) {
+            $cols = [
+                'journal',
+                'account',
+                'company',
+                'branch',
+                'department',
+                'project',
+                'entity',
+                BC::COL_RCC_DOC,
+                'transaction',
+                'payment',
+                'transfer',
+                BC::COL_BNK_ACC,
+            ];
+
+            foreach ($cols as $col) {
                 try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
-                    );
+                    Schema::hasColumn(self::TABLE, $col) && $table->dropForeign([$col]);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to drop foreign key for ' . $col . ': ' . $e->getMessage());
                 }
             }
+
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

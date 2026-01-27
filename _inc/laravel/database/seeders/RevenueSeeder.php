@@ -21,12 +21,15 @@ class RevenueSeeder extends Seeder
 	// Parâmetros fixos (sem env)
 	private const OPTIONALITY = 0.55;
 
+	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+
 	/**
 	 * Opções CLI:
 	 *  --count=N   Quantidade de registros (padrão: 64)
 	 */
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$faker       = fake();
 		$count       = (int) (
 			$this->command
@@ -96,9 +99,15 @@ class RevenueSeeder extends Seeder
 			$pickId,
 			$tables,
 			$bankAccountIds,
-			$customerIds
+			$customerIds,
+			&$clock
 		) {
 			for ($i = 0; $i < $count; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				try {
 					$amount = (float) $faker->randomFloat(2, 50, 20000);
 

@@ -23,7 +23,7 @@ class InvoiceBankTransfer extends Model
         'status',
         'date',
         'receipt',
-        ...TracksFailures::FAILURE_TRACKING_COLS,
+        ...self::FAILURE_TRACKING_COLS,
     ];
 
     protected $guarded = [

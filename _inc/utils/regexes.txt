@@ -6,6 +6,10 @@
         "snakeCased": "r'\$(?:bug_status(?:es)?)\s*='",
         "avoidStringsOrProps": "(?<![$>|'])bug_status",
         "intId": "\$table->bigIncrements\('id'\);",
+        "unsafeModels: "auth(\n|.)*.*extends model(\n|.)*auth",
+        "unsafeModels2": "class\s+.*\s+extends\s+Model[\s|\n]*\{(\n|.)*ChecksLogin",
+        "booted": "booted\(\)[^\{]*(?:\n|.)*[^\{]*\{(?:\n|.){1,10}\$m(?:odel)?->\{",
+        "route": "'\{\{route\s*\(\s*['"][A-Za-z]*\.",
         "gSearchs": {
           "use Illuminate\Database\Eloquent\{Model, Relations\HasOne};": ["use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;", "use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -39,8 +43,3 @@ use Illuminate\Database\Migrations\Migration;"]
     }
   }
 }
-
-'\{\{route\s*\(\s*['"][A-Za-z]*\.
-View::exists
-
-booted\(\)[^\{]*(?:\n|.)*[^\{]*\{(?:\n|.){1,10}\$m(?:odel)?->\{

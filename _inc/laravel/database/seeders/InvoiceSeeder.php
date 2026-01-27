@@ -17,9 +17,12 @@ class InvoiceSeeder extends Seeder
 	private const CHUNK_SIZE     = 250; // commit a cada N inserts
 	private const PER_CUST_MIN   = 1;   // mínimo de faturas por cliente
 	private const PER_CUST_MAX   = 3;   // máximo de faturas por cliente
+	private const HARD_CAP = 512;
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		// Tabelas essenciais
 		foreach ([DC::TABLE_INVS, DC::TABLE_CUSTOMERS] as $tbl) {
 			if (!Schema::hasTable($tbl)) {
@@ -45,7 +48,7 @@ class InvoiceSeeder extends Seeder
 
 		// Total a criar
 		$baseCount = max(1, $customers->count());
-		$target = 64 * $baseCount;
+		$target = 8 * $baseCount;
 		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
 			$opt = (int) $this->command->option('count');
 			if ($opt > 0) $target = $opt;
@@ -54,10 +57,12 @@ class InvoiceSeeder extends Seeder
 		$created = 0;
 		$batch   = 0;
 		$now     = Carbon::now();
-
+		$cap = self::HARD_CAP;
 		DB::beginTransaction();
 		try {
+			$targetResult = min($target, $cap);
 			foreach ($customers as $cust) {
+				if ($cap <= 0 || !$cap) return;
 				if ($created >= $target) break;
 
 				$perCustomer = fake()->numberBetween(self::PER_CUST_MIN, self::PER_CUST_MAX);
@@ -70,6 +75,12 @@ class InvoiceSeeder extends Seeder
 
 				for ($i = 0; $i < $perCustomer; $i++) {
 					try {
+						if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+							$this->command?->warn('Tempo limite atingido, interrompendo a execução do seeder.');
+							return;
+						}
+						if ($cap <= 0 || !$cap) return;
+						$cap--;
 						if ($created >= $target) break 2;
 
 						// Datas coerentes
@@ -200,7 +211,7 @@ class InvoiceSeeder extends Seeder
 						];
 						$custRef = $cust->name ?? $cust->id;
 						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Fatura {$invId} para cliente {$custRef}");
+						)->writeln("({$i}/{$targetResult}) Criando Fatura {$invId} para cliente {$custRef}");
 						// Salva (casts cuidam de JSON) — apenas com chaves realmente existentes/permitidas
 						Invoice::create($data);
 

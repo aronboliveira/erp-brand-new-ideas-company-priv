@@ -9,13 +9,14 @@ use Carbon\CarbonImmutable;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ProjectTaskSeeder extends Seeder
 {
-	private const HARD_CAP = 128000;
+	private const HARD_CAP = 1024;
+	private const SECONDS_LIMIT = 4 * 10 ** 2;
 
 	/** @var ConsoleOutput */
 	private ConsoleOutput $out;
@@ -25,6 +26,7 @@ class ProjectTaskSeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$this->out = new ConsoleOutput();
 		$this->faker = Faker::create();
 
@@ -119,6 +121,11 @@ class ProjectTaskSeeder extends Seeder
 		$queueIdx = 0;
 
 		while ($created < $targetTotal) {
+
+			if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				return;
+			}
 			$pid = $projectQueue[$queueIdx] ?? null;
 			if (!is_string($pid) || $pid === '') {
 				break;
@@ -206,7 +213,7 @@ class ProjectTaskSeeder extends Seeder
 			];
 
 			$this->out->writeln(
-				"<comment>[ProjectTasksSeeder]</comment> create task"
+				"<comment>[ProjectTasksSeeder]</comment> ({$created}/{$targetTotal}) create task"
 					. " project={$pid}"
 					. " code={$data['code']}"
 					. " progress={$progress}"

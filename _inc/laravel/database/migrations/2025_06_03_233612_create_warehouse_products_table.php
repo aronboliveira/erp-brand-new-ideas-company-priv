@@ -1,49 +1,43 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateWarehouseProductsTable extends Migration
 {
-    private const WH = 'warehouse';
-    private const TABLE            = DC::TABLE_WRH_PRD;
-    private const COL_CREATED_BY   = DC::COL_TABLE_CREATOR;
-    private const COL_PRODUCT_ID   = 'product_id';
-    private const COL_QUANTITY     = 'quantity';
-    private const COL_WAREHOUSE_ID = self::WH . '_id';
-
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_WRH_PRD;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                             // ! CHANGED
-            $table->uuid(self::COL_WAREHOUSE_ID);                       // ! CHANGED
-            $table->uuid(self::COL_PRODUCT_ID);                         // ! CHANGED
-            $table->integer(self::COL_QUANTITY)->default(0);
-            $table->uuid(self::COL_CREATED_BY);                         // ! CHANGED
-            $table->timestamps();
+            $table->uuid('id')->primary();
+            $table->uuid(BC::COL_WRH_ID)->index();
+            $table->uuid(BC::COL_PRD_ID)->unique();
+            $table->unsignedInteger('quantity')->default(0);
             foreach (
                 [
-                    self::COL_WAREHOUSE_ID => DC::TABLE_WHS,
-                    self::COL_PRODUCT_ID => DC::TABLE_PROD_SERVS,
-                    self::COL_CREATED_BY => DC::TABLE_USERS,
+                    BC::COL_WRH_ID => DC::TABLE_WHS,
+                    BC::COL_PRD_ID => DC::TABLE_PRODUCTS,
                 ] as $col => $tbl
             )
                 $table->foreign($col)
                     ->references('id')
                     ->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_WAREHOUSE_ID,
-                    self::COL_PRODUCT_ID,
-                    self::COL_CREATED_BY,
+                    BC::COL_WRH_ID,
+                    BC::COL_PRC_ID,
                 ] as $column
             ) {
                 try {

@@ -21,10 +21,12 @@ class ExpenseSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
+
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
-
+		$clock = microtime(true);
 		$table = DC::TABLE_EXP;
 
 		$branchIds = $this->pluckIds(DC::TABLE_BRANCHES);
@@ -117,6 +119,11 @@ class ExpenseSeeder extends Seeder
 			 * Phase B: branch coverage (>= 1 per branch per module)
 			 */
 			foreach ($branchIds as $branchId) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				if ($created >= $targetTotal || $attempts >= $maxAttempts)
 					break;
 
@@ -145,6 +152,11 @@ class ExpenseSeeder extends Seeder
 			 * Phase C: company user coverage (>= 1 per company user per module)
 			 */
 			foreach ($companyUserIds as $companyId) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				if ($created >= $targetTotal || $attempts >= $maxAttempts)
 					break;
 
@@ -173,6 +185,11 @@ class ExpenseSeeder extends Seeder
 			 * Phase D: project coverage (>= 2 per project per module)
 			 */
 			foreach ($projectIds as $projectId) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				for ($j = 0; $j < 2; $j++) {
 					if ($created >= $targetTotal || $attempts >= $maxAttempts)
 						break;
@@ -205,6 +222,11 @@ class ExpenseSeeder extends Seeder
 		 * Phase E: top-up to hit the exact target (multiple of 64), preserving diversity across modules.
 		 */
 		while ($created < $targetTotal && $attempts < $maxAttempts) {
+
+			if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				return;
+			}
 			$attempts++;
 			$moduleValue = $modules[$created % count($modules)]->value;
 

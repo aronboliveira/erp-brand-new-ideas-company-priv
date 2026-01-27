@@ -12,6 +12,7 @@ class PayslipType extends Model
 {
     use UsesUuids, HasAuditFields;
 
+    protected $table = DC::TABLE_PAY_SLP_TP;
     protected $fillable = ['name', 'description', BC::COL_MIN_AMT, BC::COL_MAX_AMT, BC::COL_RL_APL];
     protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $casts    = [
@@ -27,43 +28,36 @@ class PayslipType extends Model
             $raw = (string) $v;
             $raw = str_replace([' ', '.'], ['', ''], $raw);
             $raw = str_replace(',', '.', $raw);
-            if (!is_numeric($raw)) {
+            if (!is_numeric($raw))
                 throw new \InvalidArgumentException('Valor monetário inválido.');
-            }
             $num = (float) $raw;
-            if ($num < 0) {
+            if ($num < 0)
                 throw new \DomainException('Valor não pode ser negativo.');
-            }
             return number_format($num, 2, '.', '');
         };
 
         $validateMinMax = static function (self $m): void {
             $min = $m->{BC::COL_MIN_AMT};
             $max = $m->{BC::COL_MAX_AMT};
-            if ($min !== null && $max !== null && (float) $min > (float) $max) {
+            if ($min !== null && $max !== null && (float) $min > (float) $max)
                 throw new \DomainException('Faixa inválida: min_amount não pode ser maior que max_amount.');
-            }
         };
 
         static::creating(function (self $m) use ($normalizeAmount, $validateMinMax) {
-            $m->{BC::COL_MIN_AMT} = $normalizeAmount($m->{BC::COL_MIN_AMT} ?? null);
-            $m->{BC::COL_MAX_AMT} = $normalizeAmount($m->{BC::COL_MAX_AMT} ?? null);
-            if (is_string($m->name)) {
-                $m->name = Str::of($m->name)->squish()->limit(150)->toString();
-            }
+            $m->setAttribute(BC::COL_MIN_AMT, $normalizeAmount($m->{BC::COL_MIN_AMT} ?? null));
+            $m->setAttribute(BC::COL_MAX_AMT, $normalizeAmount($m->{BC::COL_MAX_AMT} ?? null));
+            if (is_string($m->name))
+                $m->setAttribute('name', Str::of($m->name)->squish()->limit(150)->toString());
             $validateMinMax($m);
         });
 
         static::updating(function (self $m) use ($normalizeAmount, $validateMinMax) {
-            if ($m->isDirty(BC::COL_MIN_AMT)) {
-                $m->{BC::COL_MIN_AMT} = $normalizeAmount($m->{BC::COL_MIN_AMT} ?? null);
-            }
-            if ($m->isDirty(BC::COL_MAX_AMT)) {
-                $m->{BC::COL_MAX_AMT} = $normalizeAmount($m->{BC::COL_MAX_AMT} ?? null);
-            }
-            if ($m->isDirty('name') && is_string($m->name)) {
-                $m->name = Str::of($m->name)->squish()->limit(150)->toString();
-            }
+            if ($m->isDirty(BC::COL_MIN_AMT))
+                $m->setAttribute(BC::COL_MIN_AMT, $normalizeAmount($m->{BC::COL_MIN_AMT} ?? null));
+            if ($m->isDirty(BC::COL_MAX_AMT))
+                $m->setAttribute(BC::COL_MAX_AMT, $normalizeAmount($m->{BC::COL_MAX_AMT} ?? null));
+            if ($m->isDirty('name') && is_string($m->name))
+                $m->setAttribute('name', Str::of($m->name)->squish()->limit(150)->toString());
             $validateMinMax($m);
         });
     }
@@ -90,7 +84,7 @@ class PayslipType extends Model
             ->values();
 
         if ($normalized->isEmpty()) {
-            // ! Nenhum papel válido: mantém nulo (aplicável a todos) para evitar bloquear indevidamente
+            // ? Nenhum papel válido: mantém nulo (aplicável a todos) para evitar bloquear indevidamente
             $this->attributes[BC::COL_RL_APL] = null;
             return;
         }

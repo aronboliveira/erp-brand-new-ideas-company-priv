@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\{DB, Log};
 final class AllowanceSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 	public function run(): void
 	{
 		DB::transaction(function () {
+			$clock = microtime(true);
 			$systemUserId = $this->ensureSystemUser();
 
 			$employees = Employee::query()->select(['id'])->get();
@@ -41,6 +42,11 @@ final class AllowanceSeeder extends Seeder
 					// se não há opções cadastradas, cria registros “genéricos”
 					if ($pick->isEmpty()) {
 						for ($i = 0; $i < $count; $i++) {
+
+							if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+								Log::warning(self::class . ' seeding time limit reached, stopping early');
+								return;
+							}
 							$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
 							(new \Symfony\Component\Console\Output\ConsoleOutput
 							)->writeln("Criando Reserva para funcionário: {$ref}");

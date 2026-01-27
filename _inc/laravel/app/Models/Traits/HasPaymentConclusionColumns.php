@@ -10,7 +10,7 @@ trait HasPaymentConclusionColumns
 {
 	protected function addPaymentConclusionColumns(Blueprint $table, $nullableAcc = true, $nullableCat = true, $onDeleteAcc = 'set null', $onDeleteCat = 'set null'): void
 	{
-		$table->date('date')->default(now()->format('Y-m-d'));
+		$table->date('date')->useCurrent();
 		$table->json(BC::COL_RCP_MD)->nullable();
 		$onDeleteAcc = strtolower((string) trim($onDeleteAcc));
 		switch (true) {

@@ -35,7 +35,7 @@ final class BugSeeder extends Seeder
 
 			$userIds = Usr::query()->pluck('id')->all();
 
-			$quantity = 35;
+			$quantity = 512;
 			$priorities = array_keys(\App\Models\Bug::$priority);
 			$statuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
 

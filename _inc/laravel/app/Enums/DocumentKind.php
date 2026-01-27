@@ -45,8 +45,8 @@ enum DocumentKind: string
 
 	case APPLICATION_SQLITE = 'banco SQLite';
 	case TEXT_PHP           = 'código PHP';
-
 	case OTHER = 'other';
+	case UNKNOWN = 'unknown';
 
 	public static function fromExtension(string $ext): ?self
 	{
@@ -140,17 +140,14 @@ enum DocumentKind: string
 		};
 	}
 
-	public static function normalize(?string $value): ?self
+	public static function normalize(string|self|null $value): self|string|null
 	{
-		if ($value === null)
-			return null;
-
+		if ($value instanceof DocumentKind) return $value;
+		if ($value === null) return null;
 		$v = strtolower(trim($value));
-
 		foreach (self::cases() as $case)
 			if ($case->value === $v)
 				return $case;
-
 		$map = [
 			// TEXT_PLAIN
 			'plain text' => self::TEXT_PLAIN,
@@ -561,7 +558,6 @@ enum DocumentKind: string
 			'código php' => self::TEXT_PHP,
 			'PHP代码' => self::TEXT_PHP,
 		];
-
 		return $map[$v] ?? null;
 	}
 

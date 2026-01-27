@@ -131,6 +131,13 @@ final class PerformanceTypeSeeder extends Seeder
 					PJC::COL_M_METRIC => 'adocao_funcionalidades',
 					PJC::COL_CRT      => false,
 				],
+				[
+					'name'        => 'Performance de Atendimento ao Cliente',
+					'category'    => 'Suporte',
+					'description' => $faker->sentence(),
+					PJC::COL_M_METRIC => 'satisfacao_cliente',
+					PJC::COL_CRT      => true,
+				]
 			];
 
 			$created = 0;

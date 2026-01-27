@@ -97,27 +97,26 @@ class ChartOfAccount extends Model
             throw new \InvalidArgumentException('Chart of account must have both type and subtype defined.');
 
         $type = ChartOfAccountType::query()->find($typeId);
-        if ($typeId && !$type)
-            throw new \RuntimeException("Invalid chart of account type: {$typeId}");
+        if (!$type) throw new \RuntimeException("Invalid chart of account type: {$typeId}");
 
         $subType = ChartOfAccountSubType::query()->find($subTypeId);
-        if ($subTypeId && !$subType)
-            throw new \RuntimeException("Invalid chart of account subtype: {$subTypeId}");
+        if (!$subType) throw new \RuntimeException("Invalid chart of account subtype: {$subTypeId}");
 
-        if ($typeId && $subTypeId && $subType->{CHTC::COL_TP} !== $type->id)
+        if ((string) $subType->{CHTC::COL_TP} !== (string) $type->id)
             throw new \RuntimeException('Chart of account subtype does not belong to the provided type.');
 
-        $typeCalcRules = self::decodeRules($type->{CHTC::COL_CC_RL} ?? null);
-        $typeValRules  = self::decodeRules($type->{CHTC::COL_VL_RL} ?? null);
+        $typeRules = self::decodeRules($type->getAttribute('rules') ?? []);
+        $typeCalc  = is_array($typeRules['calc'] ?? null) ? $typeRules['calc'] : [];
+        $typeVal   = is_array($typeRules['validation'] ?? null) ? $typeRules['validation'] : [];
 
-        $subCalcRules  = self::decodeRules($subType->{CHTC::COL_CC_RL} ?? null);
-        $subValRules   = self::decodeRules($subType->{CHTC::COL_VL_RL} ?? null);
+        $subCalc = self::decodeRules($subType->getAttribute(CHTC::COL_CC_RL) ?? []);
+        $subVal  = self::decodeRules($subType->getAttribute(CHTC::COL_VL_RL) ?? []);
 
-        $calcRules     = array_replace_recursive($typeCalcRules, $subCalcRules);
-        $validation    = array_replace_recursive($typeValRules, $subValRules);
+        $calcRules  = array_replace_recursive($typeCalc, $subCalc);
+        $valRules   = array_replace_recursive($typeVal, $subVal);
 
         self::applyCalculationRules($coa, $calcRules);
-        self::applyValidationRules($coa, $validation);
+        self::applyValidationRules($coa, $valRules);
     }
 
     protected static function decodeRules(mixed $value): array

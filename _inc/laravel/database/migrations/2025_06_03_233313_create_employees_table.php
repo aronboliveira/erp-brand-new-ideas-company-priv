@@ -24,7 +24,7 @@ class CreateEmployeesTable extends Migration
             $table->string('password')->nullable();
             $table->string('address', 1024)->nullable();
             $table->date('dob')->nullable();
-            $this->addBranchColumns($table, unique: false, nullable: false);
+            $this->addBranchColumns($table, unique: false, nullable: true);
             $table->string(CPC::COL_BRC_LC)->nullable(); // ? This is queried on creating and updating to be not null when there is a branch, using branch->address
             $table->uuid(CPC::COL_DEP_ID)->nullable();
             $table->uuid(UC::COL_DSG_ID)->nullable();

@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Log;
 final class ContractTypeSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-
+	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutos
 	public function run(): void
 	{
 		DB::transaction(function () {
 			$systemUserId = $this->ensureSystemUser();
-
+			$out = new \Symfony\Component\Console\Output\ConsoleOutput();
 			// Faixas realistas de valores e prazos (em meses) para cenários comuns no Brasil.
 			// Ajuste conforme sua política interna, evitando números absurdos.
 			$rows = [
@@ -221,16 +221,25 @@ final class ContractTypeSeeder extends Seeder
 					BC::COL_SVR_GRT  => false,
 					BC::COL_RNGT     => true,
 				],
+				[
+					'name'        => 'Contrato de Experiência',
+					'description' => 'Período inicial para avaliação mútua (até 90 dias).',
+					'category'    => 'employment',
+					BC::COL_MIN_V => 1320.00,
+					BC::COL_MAX_V => 60000.00,
+					BC::COL_MIN_M => 1,
+					BC::COL_MAX_M => 3,
+					BC::COL_TC    => 'Avaliação de desempenho e adaptação ao cargo.',
+					BC::COL_DEF_TRMC => true,
+					BC::COL_SVR_GRT  => true,
+					BC::COL_RNGT     => false,
+				]
 			];
-
-
 			$created = 0;
 			$updated = 0;
-
 			foreach ($rows as $data) {
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Tipo de Contrato: {$data['name']}");
+					$out->writeln('[ContractTypeSeeder] ' . $created . '/' . count($rows) . ' Seeding ContractType: ' . $data['name']);
 					$model = ContractType::updateOrCreate(
 						['name' => $data['name']],
 						$data + [DC::COL_TABLE_CREATOR => $systemUserId]

@@ -12,7 +12,7 @@ trait IsTemplate
 	{
 		$table->string('slug')->nullable();
 		$table->text('description')->nullable();
-		$table->datetime(AC::COL_AV_FROM)->nullable()->default(now()->format('Y-m-d H:i:s')); // * this should be refresh on booted, specially if null // ? nullable for testing
+		$table->datetime(AC::COL_AV_FROM)->nullable()->useCurrent(); // * this should be refresh on booted, specially if null // ? nullable for testing
 		$table->boolean(AC::COL_DSB)->nullable()->default(false); // * this should be refresh on booted, specially if null // ? nullable for testing
 		$table->json('categories')->nullable(); // * since there is no 'NotificationCategory' model for now, this is just a array<string>
 		$table->json(MC::COL_EX_PLN)->nullable(); // * an array of string pointing to the id, query_key or name of a Plan, to be queried against the Plan model, and filter out those who do not match any of these, and later used by the Controller to rule out usage // ? nullable to avoid issues with existing data

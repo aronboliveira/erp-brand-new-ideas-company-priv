@@ -43,7 +43,7 @@ final class BankAccountSeeder extends Seeder
 			// Providers de integração suportados
 			$providers = ['ofx', 'cnab', 'open_banking', 'manual'];
 
-			$total    = 16;   // quantidade de contas a semear
+			$total    = 512 - 1;   // quantidade de contas a semear - a do sistema
 			$created  = 0;
 			$updated  = 0;
 

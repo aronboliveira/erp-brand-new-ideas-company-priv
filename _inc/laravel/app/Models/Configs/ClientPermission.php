@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Enums\UserType;
+use App\Helpers\ErrorHandler;
 use App\Models\Utility;
 use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
@@ -25,8 +26,6 @@ class ClientPermission extends Model
         'permissions',
     ];
 
-    protected $with = ['client'];
-
     protected $appends = ['permissions_list'];
 
     private static array $resolvedPermissionsCache = [];
@@ -36,7 +35,6 @@ class ClientPermission extends Model
     {
         static::saving(function (Model $m): void {
             if (!$m instanceof self) return;
-
             try {
                 self::normalizeClientIdentity($m);
                 self::enforceUniqueComposite($m);
@@ -54,9 +52,9 @@ class ClientPermission extends Model
         });
     }
 
-    public function client(): BelongsTo
+    public function client(): ?BelongsTo
     {
-        return $this->belongsTo(User::class, PJC::COL_CLIENT_ID, 'id');
+        return Utility::getClient($this);
     }
 
     public function deal(): ?BelongsTo
@@ -178,126 +176,151 @@ class ClientPermission extends Model
 
     private static function normalizeClientIdentity(self $m): void
     {
-        $clientId = $m->getAttribute(PJC::COL_CLIENT_ID);
-        $clientId = is_scalar($clientId) ? trim((string) $clientId) : '';
-        if ($clientId === '' || !Utility::looksLikeUuid($clientId))
-            throw new \InvalidArgumentException(static::class . ' invalid client_id');
+        try {
+            $clientId = $m->getAttribute(PJC::COL_CLIENT_ID);
+            $clientId = is_scalar($clientId) ? trim((string) $clientId) : '';
+            if ($clientId === '' || !Utility::looksLikeUuid($clientId))
+                throw new \InvalidArgumentException(static::class . ' invalid client_id');
 
-        $type = $m->getAttribute('type');
-        $type = is_scalar($type) ? trim(mb_strtolower((string) $type)) : '';
-
-        $allowedTypes = [
-            'client' => true,
-            'customer' => true,
-            'vendor' => true,
-            'company' => true,
-            'user_client' => true,
-            'user_customer' => true,
-            'user_vendor' => true,
-            'user_company' => true,
-        ];
-
-        $userTypeMap = [
-            'user_client' => UserType::Client->value,
-            'user_customer' => UserType::Customer->value,
-            'user_vendor' => UserType::Vendor->value,
-            'user_company' => UserType::Company->value,
-        ];
-
-        $clientsTable = defined(DC::class . '::TABLE_CLIENTS') ? (string) constant(DC::class . '::TABLE_CLIENTS') : null;
-
-        if ($type === '') {
-            $inUsers = false;
-            $inClients = false;
-
-            try {
-                $inUsers = Schema::hasTable(DC::TABLE_USERS)
-                    && Schema::hasColumn(DC::TABLE_USERS, 'id')
-                    && Schema::hasColumn(DC::TABLE_USERS, UC::COL_U_TP)
-                    && DB::table(DC::TABLE_USERS)->where('id', $clientId)->whereIn(UC::COL_U_TP, array_values($userTypeMap))->exists();
-            } catch (\Throwable) {
+            $type = $m->getAttribute('type');
+            $type = is_scalar($type) ? trim(mb_strtolower((string) $type)) : '';
+            $allowedTypes = [
+                'client' => true,
+                'customer' => true,
+                'vendor' => true,
+                'company' => true,
+                'user_client' => true,
+                'user_customer' => true,
+                'user_vendor' => true,
+                'user_company' => true,
+            ];
+            $userTypeMap = [
+                'user_client' => UserType::Client->value,
+                'user_customer' => UserType::Customer->value,
+                'user_vendor' => UserType::Vendor->value,
+                'user_company' => UserType::Company->value,
+            ];
+            $clientsTable = defined(DC::class . '::TABLE_CLIENTS') ? (string) constant(DC::class . '::TABLE_CLIENTS') : null;
+            if ($type === '') {
                 $inUsers = false;
-            }
-
-            try {
-                $inClients = $clientsTable
-                    && Schema::hasTable($clientsTable)
-                    && Schema::hasColumn($clientsTable, 'id')
-                    && DB::table($clientsTable)->where('id', $clientId)->exists();
-            } catch (\Throwable) {
                 $inClients = false;
-            }
 
-            if ($inUsers) {
-                $ut = DB::table(DC::TABLE_USERS)->where('id', $clientId)->value(UC::COL_U_TP);
-                $ut = is_scalar($ut) ? (string) $ut : '';
-                $type = match ($ut) {
-                    UserType::Client->value => 'user_client',
-                    UserType::Customer->value => 'user_customer',
-                    UserType::Vendor->value => 'user_vendor',
-                    UserType::Company->value => 'user_company',
-                    default => 'user_client',
-                };
-            } elseif ($inClients) {
-                $type = 'client';
+                try {
+                    $inUsers = Schema::hasTable(DC::TABLE_USERS)
+                        && Schema::hasColumn(DC::TABLE_USERS, 'id')
+                        && Schema::hasColumn(DC::TABLE_USERS, UC::COL_U_TP)
+                        && DB::table(DC::TABLE_USERS)->where('id', $clientId)->whereIn(UC::COL_U_TP, array_values($userTypeMap))->exists();
+                } catch (\Throwable) {
+                    $inUsers = false;
+                }
+
+                try {
+                    $inClients = $clientsTable
+                        && Schema::hasTable($clientsTable)
+                        && Schema::hasColumn($clientsTable, 'id')
+                        && DB::table($clientsTable)->where('id', $clientId)->exists();
+                } catch (\Throwable) {
+                    $inClients = false;
+                }
+
+                if ($inUsers) {
+                    $ut = DB::table(DC::TABLE_USERS)->where('id', $clientId)->value(UC::COL_U_TP);
+                    $ut = is_scalar($ut) ? (string) $ut : '';
+                    $type = match ($ut) {
+                        UserType::Client->value => 'user_client',
+                        UserType::Customer->value => 'user_customer',
+                        UserType::Vendor->value => 'user_vendor',
+                        UserType::Company->value => 'user_company',
+                        default => 'user_client',
+                    };
+                } elseif ($inClients) {
+                    $type = 'client';
+                } else {
+                    throw new \InvalidArgumentException(static::class . ' client_id not found in users/clients tables');
+                }
+            }
+            if (!isset($allowedTypes[$type]))
+                throw new \InvalidArgumentException(static::class . ' invalid polymorphic type');
+
+            if (str_starts_with($type, 'user_')) {
+                $expected = $userTypeMap[$type] ?? null;
+                if ($expected === null)
+                    throw new \InvalidArgumentException(static::class . ' invalid user_* type mapping');
+                $userTypeColumn = Schema::hasColumn(DC::TABLE_USERS, 'type') ? 'type' : (Schema::hasColumn(DC::TABLE_USERS, UC::COL_U_TP) ? UC::COL_U_TP : null);
+                if (!Schema::hasTable(DC::TABLE_USERS) || !Schema::hasColumn(DC::TABLE_USERS, 'id') || !$userTypeColumn)
+                    throw new \RuntimeException(static::class . ' users table/columns missing for validation');
+                $ok = DB::table(DC::TABLE_USERS)->where('id', $clientId)->where($userTypeColumn, $expected)->exists();
+                if (!$ok)
+                    throw new \InvalidArgumentException(static::class . ' client_id not a valid user for the given type');
             } else {
-                throw new \InvalidArgumentException(static::class . ' client_id not found in users/clients tables');
+                if (!$clientsTable || !Schema::hasTable($clientsTable) || !Schema::hasColumn($clientsTable, 'id'))
+                    throw new \RuntimeException(static::class . ' clients table missing for validation');
+                $ok = DB::table($clientsTable)->where('id', $clientId)->exists();
+                if (!$ok)
+                    throw new \InvalidArgumentException(static::class . ' client_id not found in clients table');
             }
+            $m->setAttribute(PJC::COL_CLIENT_ID, $clientId);
+            $m->setAttribute('type', $type);
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'client_permission_errors',
+                [
+                    'message' => 'failed normalizing client identity',
+                    'context' => [
+                        'message' => $e->getMessage(),
+                        'model' => get_class($m),
+                        'model_id' => $m->getKey(),
+                        'table' => $m->getTable(),
+                        'client_id' => $clientId,
+                        'type' => $type,
+                        'clients_table' => $clientsTable ?? null,
+                    ],
+                ],
+                'debug',
+                'error',
+                static::class . ' normalization'
+            );
         }
-
-        if (!isset($allowedTypes[$type]))
-            throw new \InvalidArgumentException(static::class . ' invalid polymorphic type');
-
-        if (str_starts_with($type, 'user_')) {
-            $expected = $userTypeMap[$type] ?? null;
-            if ($expected === null)
-                throw new \InvalidArgumentException(static::class . ' invalid user_* type mapping');
-
-            if (!Schema::hasTable(DC::TABLE_USERS) || !Schema::hasColumn(DC::TABLE_USERS, 'id') || !Schema::hasColumn(DC::TABLE_USERS, UC::COL_U_TP))
-                throw new \RuntimeException(static::class . ' users table/columns missing for validation');
-
-            $ok = DB::table(DC::TABLE_USERS)->where('id', $clientId)->where(UC::COL_U_TP, $expected)->exists();
-            if (!$ok)
-                throw new \InvalidArgumentException(static::class . ' client_id not a valid user for the given type');
-        } else {
-            if (!$clientsTable || !Schema::hasTable($clientsTable) || !Schema::hasColumn($clientsTable, 'id'))
-                throw new \RuntimeException(static::class . ' clients table missing for validation');
-
-            $ok = DB::table($clientsTable)->where('id', $clientId)->exists();
-            if (!$ok)
-                throw new \InvalidArgumentException(static::class . ' client_id not found in clients table');
-        }
-
-        $m->setAttribute(PJC::COL_CLIENT_ID, $clientId);
-        $m->setAttribute('type', $type);
     }
 
     private static function enforceUniqueComposite(self $m): void
     {
-        $clientId = (string) $m->getAttribute(PJC::COL_CLIENT_ID);
-        $type = (string) $m->getAttribute('type');
-        if ($clientId === '' || $type === '') return;
-
-        if (!Schema::hasTable(DC::TABLE_CLT_PRM)) return;
-
-        $existingId = null;
         try {
-            $existingId = DB::table(DC::TABLE_CLT_PRM)
-                ->where(PJC::COL_CLIENT_ID, $clientId)
-                ->where('type', $type)
-                ->value('id');
-        } catch (\Throwable) {
+            $clientId = (string) $m->getAttribute(PJC::COL_CLIENT_ID);
+            $type = (string) $m->getAttribute('type');
+            if ($clientId === '' || $type === '') return;
+            if (!Schema::hasTable(DC::TABLE_CLT_PRM)) return;
             $existingId = null;
+            try {
+                $existingId = DB::table(DC::TABLE_CLT_PRM)
+                    ->where(PJC::COL_CLIENT_ID, $clientId)
+                    ->where('type', $type)
+                    ->value('id');
+            } catch (\Throwable) {
+                $existingId = null;
+            }
+            $existingId = is_scalar($existingId) ? trim((string) $existingId) : '';
+            if ($existingId === '') return;
+            $currId = is_scalar($m->getKey()) ? trim((string) $m->getKey()) : '';
+            if ($currId !== '' && $currId === $existingId) return;
+            $m->setAttribute($m->getKeyName(), $existingId);
+            $m->exists = true;
+        } catch (\Throwable $e) {
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'client_permission_errors',
+                [
+                    'message' => 'failed enforcing unique composite',
+                    'context' => [
+                        'message' => $e->getMessage(),
+                        'model' => get_class($m),
+                        'model_id' => $m->getKey(),
+                        'table' => $m->getTable(),
+                        'client_id' => $clientId,
+                        'type' => $type,
+                    ],
+                ],
+            );
         }
-
-        $existingId = is_scalar($existingId) ? trim((string) $existingId) : '';
-        if ($existingId === '') return;
-
-        $currId = is_scalar($m->getKey()) ? trim((string) $m->getKey()) : '';
-        if ($currId !== '' && $currId === $existingId) return;
-
-        $m->setAttribute($m->getKeyName(), $existingId);
-        $m->exists = true;
     }
 
     private static function normalizePermissionsText(mixed $raw, string|int|null $modelId = null): string

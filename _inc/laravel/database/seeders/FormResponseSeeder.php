@@ -10,40 +10,62 @@ use Illuminate\Support\Str;
 class FormResponseSeeder extends Seeder
 {
 	private const HARD_CAP = 64000;
-
+	private $out = null;
 	public function run(): void
 	{
+		$this->out = new \Symfony\Component\Console\Output\ConsoleOutput();
 		$formTable = DC::TABLE_FORM_BUILD;
 		$responseTable = DC::TABLE_FORM_RSP;
 		$fieldRspTable = DC::TABLE_FM_FLD_RSP;
 
-		if (!DB::getSchemaBuilder()->hasTable($formTable)) return;
-		if (!DB::getSchemaBuilder()->hasTable($responseTable)) return;
-		if (!DB::getSchemaBuilder()->hasTable($fieldRspTable)) return;
+		if (!DB::getSchemaBuilder()->hasTable($formTable)) {
+			$this->out->writeln('<comment>FormResponseSeeder: form table does not exist, skipping seeding.</comment>');
+			return;
+		}
+		if (!DB::getSchemaBuilder()->hasTable($responseTable)) {
+			$this->out->writeln('<comment>FormResponseSeeder: form response table does not exist, skipping seeding.</comment>');
+			return;
+		}
+		if (!DB::getSchemaBuilder()->hasTable($fieldRspTable)) {
+			$this->out->writeln('<comment>FormResponseSeeder: form field response table does not exist, skipping seeding.</comment>');
+			return;
+		}
 
 		$formIds = DB::table($formTable)->pluck('id')->all();
-		if (!$formIds) return;
+		if (!$formIds) {
+			$this->out->writeln('<comment>FormResponseSeeder: no forms found, skipping seeding.</comment>');
+			return;
+		}
 
 		$faker = fake();
 		$created = 0;
 
 		foreach ($formIds as $formId) {
-			if ($created >= self::HARD_CAP) break;
+			if ($created >= self::HARD_CAP) {
+				$this->out->writeln('<comment>FormResponseSeeder: reached hard cap of ' . self::HARD_CAP . ' records, stopping seeding.</comment>');
+				break;
+			}
 
 			$iterations = random_int(0, 64);
-			if ($iterations <= 0) continue;
+			if ($iterations <= 0)
+				continue;
 
 			for ($i = 0; $i < $iterations; $i++) {
-				if ($created >= self::HARD_CAP) break;
+				if ($created >= self::HARD_CAP) {
+					$this->out->writeln('<comment>FormResponseSeeder: reached hard cap of ' . self::HARD_CAP . ' records, stopping seeding.</comment>');
+					break 2;
+				}
 
 				$candidates = DB::table($fieldRspTable)
 					->where(FC::COL_FM_ID, $formId)
-					->whereNull(FC::COL_FM_DT_RSP_ID)
 					->inRandomOrder()
 					->limit(64)
-					->get(['id', 'type', 'name', FC::COL_HTML_ID, 'value', 'checked', PJC::COL_SBM_BY ?? 'submitted_by', 'metadata', 'created_at']);
+					->get(['id', 'type', 'name', FC::COL_HTML_ID, 'value', 'checked', 'metadata', 'created_at']);
 
-				if ($candidates->isEmpty()) break;
+				if ($candidates->isEmpty()) {
+					$this->out->writeln('<comment>FormResponseSeeder: no available field responses for form ' . $formId . ', skipping.</comment>');
+					break;
+				}
 
 				$take = random_int(1, min(64, $candidates->count()));
 				$selected = $candidates->take($take)->values();
@@ -123,7 +145,7 @@ class FormResponseSeeder extends Seeder
 					]);
 
 					$idsToUpdate = $selected->pluck('id')->all();
-
+					$this->out->writeln('<info>[FormResponseSeeder]</info> Linking ' . count($idsToUpdate) . ' field responses to form response ' . $responseId . ' for form ' . $formId . '.');
 					DB::table($fieldRspTable)
 						->whereIn('id', $idsToUpdate)
 						->update([

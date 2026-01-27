@@ -13,15 +13,16 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class BudgetSeeder extends Seeder
 {
 	private ConsoleOutput $out;
-
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$this->out = new ConsoleOutput();
 
 		if (!Schema::hasTable(DC::TABLE_BDG))
 			return;
 
-		$cap = 32000;
+		$cap = 3200;
 
 		$projectIds    = $this->fetchIds(DC::TABLE_PROJECTS);
 		$contractIds   = $this->fetchIds(DC::TABLE_CONTRACTS);
@@ -59,8 +60,8 @@ class BudgetSeeder extends Seeder
 			return;
 
 		$types = ['revenue', 'expense', 'mixed'];
-		$freqs = array_map(fn($c) => $c->value, Frequency::cases());
-		$sts   = array_map(fn($c) => $c->value, EvaluationStatus::cases());
+		$freqs = array_column(Frequency::cases(), 'value');
+		$sts   = array_column(EvaluationStatus::cases(), 'value');
 
 		$typeIdx = 0;
 		$freqIdx = 0;
@@ -69,11 +70,19 @@ class BudgetSeeder extends Seeder
 		$created = 0;
 
 		foreach ($plans as $plan) {
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				$this->out->writeln('[BudgetSeeder] time limit reached, stopping seeding process.');
+				return;
+			}
 			$count = (int) ($plan['count'] ?? 0);
 			if ($count <= 0)
 				continue;
 
 			for ($i = 0; $i < $count; $i++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					$this->out->writeln('[BudgetSeeder] time limit reached, stopping seeding process.');
+					return;
+				}
 				if ($created >= $target)
 					break 2;
 
@@ -170,8 +179,8 @@ class BudgetSeeder extends Seeder
 					$created + 1,
 					$assocKind,
 					(string) $m->getAttribute('type'),
-					(string) $m->getAttribute('frequency'),
-					(string) $m->getAttribute('status'),
+					(string) ($m->getAttribute('frequency') instanceof Frequency ? $m->getAttribute('frequency')->value : ($m->getAttribute('frequency') ?? 'null')),
+					(string) ($m->getAttribute('status') instanceof EvaluationStatus ? $m->getAttribute('status')->value : ($m->getAttribute('status') ?? 'null')),
 					(string) ($m->getAttribute('amount') ?? 'null'),
 					is_array($m->getAttribute('receipts')) ? count($m->getAttribute('receipts')) : 0,
 					is_array($m->getAttribute('attachments')) ? count($m->getAttribute('attachments')) : 0

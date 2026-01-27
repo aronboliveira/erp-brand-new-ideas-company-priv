@@ -14,6 +14,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class JournalItemSeeder extends Seeder
 {
 	private ConsoleOutput $out;
+	private const SECONDS_LIMIT = 4 * 10 ** 2;
 
 	public function __construct()
 	{
@@ -22,6 +23,7 @@ class JournalItemSeeder extends Seeder
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$itemsTable   = DC::TABLE_JRN_IT;
 		$journalTable = DC::TABLE_JOURNAL_ENTRIES;
 
@@ -34,7 +36,7 @@ class JournalItemSeeder extends Seeder
 			return;
 		}
 
-		$hardCap = 51200;
+		$hardCap = 512;
 
 		$existing = 0;
 		try {
@@ -164,6 +166,11 @@ class JournalItemSeeder extends Seeder
 		$created = 0;
 
 		foreach ($entryIds as $idx => $journalId) {
+			if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				$this->out->writeln("<comment>[JournalItemSeeder]</comment> Seeding time limit reached, stopping early.");
+				return;
+			}
 			$planned = (int) ($counts[$journalId] ?? 0);
 			if ($planned <= 0)
 				continue;
@@ -222,6 +229,11 @@ class JournalItemSeeder extends Seeder
 
 			// Debit lines first
 			for ($k = 0; $k < $debitLines; $k++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					$this->out->writeln("<comment>[JournalItemSeeder]</comment> Seeding time limit reached, stopping early.");
+					return;
+				}
 				$amount = (float) ($debits[$k] ?? 0.0);
 
 				$accountId = $this->pickId($coaIds, 0.0);
@@ -333,6 +345,11 @@ class JournalItemSeeder extends Seeder
 
 			// Credit lines
 			for ($k = 0; $k < $creditLines; $k++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					$this->out->writeln("<comment>[JournalItemSeeder]</comment> Seeding time limit reached, stopping early.");
+					return;
+				}
 				$amount = (float) ($credits[$k] ?? 0.0);
 
 				$accountId = $this->pickId($coaIds, 0.0);

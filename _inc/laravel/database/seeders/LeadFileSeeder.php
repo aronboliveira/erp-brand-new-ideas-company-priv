@@ -17,9 +17,11 @@ class LeadFileSeeder extends Seeder
 	private const PER_LEAD_MIN = 1;   // arquivos mínimos por lead
 	private const PER_LEAD_MAX = 4;   // arquivos máximos por lead
 	private const OPTIONAL_PCT = 65;  // probabilidade média p/ opcionais
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 
 	public function run(): void
 	{
+		$clock = microtime(true);
 		// Tabelas essenciais
 		foreach ([DC::TABLE_LD_FILES, DC::TABLE_LEADS] as $tbl) {
 			if (!Schema::hasTable($tbl)) {
@@ -178,6 +180,11 @@ class LeadFileSeeder extends Seeder
 			if ($filesForLead === 0) continue;
 
 			for ($i = 0; $i < $filesForLead; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				try {
 					if ($target > 0 && $inserted >= $target) break 2;
 

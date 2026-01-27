@@ -27,7 +27,7 @@ class ScheduleSeeder extends Seeder
 		$userIds = $this->loadUserIds(4096);
 		$rawTotal = max(64, min(4096, count($userIds) * 2));
 		$targetTotal = $this->toNext64Multiple($rawTotal);
-		$cap = 32000;
+		$cap = 256;
 		$targetTotal > $cap && $targetTotal = $cap - ($cap % 64);
 
 		$typeValues = array_column(PlanningScheduleType::cases(), 'value');

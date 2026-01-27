@@ -63,7 +63,7 @@ class CreateChartOfAccountsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([CHTC::COL_TP, CHTC::COL_SUBTP, UC::COL_USER_ID] as $col) {
+            foreach ([CHTC::COL_TP, CHTC::COL_SUBTP, UC::COL_USER_ID, UC::COL_RSP_ID] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);

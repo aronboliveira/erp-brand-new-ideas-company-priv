@@ -19,28 +19,40 @@ class EmployeeAttendance extends Model
 
     protected $table = DC::TABLE_EATD;
 
-    private const COL_DATE     = 'date';
-    private const COL_STATUS   = 'status';
-    private const COL_LATE     = 'late';
-    private const COL_OVERTIME = 'overtime';
-
     protected $fillable = [
         UC::COL_EMP_ID,
-        self::COL_DATE,
-        self::COL_STATUS,
+        'date',
+        'status',
         AC::COL_CLK_IN,
         AC::COL_CLK_OUT,
         AC::COL_ERL_ARV,
         AC::COL_ERL_AV_CT,
-        self::COL_LATE,
+        'late',
         AC::COL_LT_CT,
         AC::COL_ERL_LV,
         AC::COL_ERL_LV_CT,
-        self::COL_OVERTIME,
+        'overtime',
         AC::COL_OVT_CT,
         AC::COL_OVT_ID,
         AC::COL_TT_RST,
         AC::COL_TT_WRK,
+    ];
+
+    protected $casts = [
+        'date'             => 'date',
+        'status'           => AttendanceStatus::class,
+        AC::COL_ERL_AV_CT  => 'integer',
+        AC::COL_LT_CT      => 'integer',
+        AC::COL_ERL_LV_CT  => 'integer',
+        AC::COL_OVT_CT     => 'integer',
+        AC::COL_TT_RST     => 'string',
+        AC::COL_TT_WRK     => 'string',
+        AC::COL_CLK_IN     => 'string',
+        AC::COL_CLK_OUT    => 'string',
+        AC::COL_ERL_ARV    => 'string',
+        AC::COL_ERL_LV     => 'string',
+        'late'             => 'string',
+        'overtime'         => 'string',
     ];
 
     protected $guarded = [
@@ -52,23 +64,6 @@ class EmployeeAttendance extends Model
         'employee',
         'overtime',
         'createdBy',
-    ];
-
-    protected $casts = [
-        self::COL_DATE        => 'date',
-        self::COL_STATUS      => AttendanceStatus::class,
-        AC::COL_ERL_AV_CT     => 'integer',
-        AC::COL_LT_CT         => 'integer',
-        AC::COL_ERL_LV_CT     => 'integer',
-        AC::COL_OVT_CT        => 'integer',
-        AC::COL_TT_RST        => 'string',
-        AC::COL_TT_WRK        => 'string',
-        AC::COL_CLK_IN        => 'string',
-        AC::COL_CLK_OUT       => 'string',
-        AC::COL_ERL_ARV       => 'string',
-        AC::COL_ERL_LV        => 'string',
-        self::COL_LATE        => 'string',
-        self::COL_OVERTIME    => 'string',
     ];
 
     protected static function booted(): void
@@ -88,9 +83,9 @@ class EmployeeAttendance extends Model
             $model->{AC::COL_TT_RST} = $model->normalizeDuration($model->{AC::COL_TT_RST} ?? '00:00:00') ?? '00:00:00';
 
             $model->ensureBefore(AC::COL_ERL_ARV, AC::COL_CLK_IN, AC::COL_ERL_AV_CT);
-            $model->ensureAfter(self::COL_LATE, AC::COL_CLK_IN, AC::COL_LT_CT);
+            $model->ensureAfter('late', AC::COL_CLK_IN, AC::COL_LT_CT);
             $model->ensureBefore(AC::COL_ERL_LV, AC::COL_CLK_OUT, AC::COL_ERL_LV_CT);
-            $model->ensureAfter(self::COL_OVERTIME, AC::COL_CLK_OUT, AC::COL_OVT_CT);
+            $model->ensureAfter('overtime', AC::COL_CLK_OUT, AC::COL_OVT_CT);
 
             $model->{AC::COL_TT_WRK} = $model->normalizeDuration(
                 $model->{AC::COL_TT_WRK} ?: $model->calculateTotalWork()
@@ -135,7 +130,7 @@ class EmployeeAttendance extends Model
 
     public function hasLateArrival(): bool
     {
-        return $this->timeToSeconds($this->{self::COL_LATE} ?? null) > 0;
+        return $this->timeToSeconds($this->{'late'} ?? null) > 0;
     }
 
     public function leftEarly(): bool
@@ -145,7 +140,7 @@ class EmployeeAttendance extends Model
 
     public function hasOvertime(): bool
     {
-        return $this->timeToSeconds($this->{self::COL_OVERTIME} ?? null) > 0;
+        return $this->timeToSeconds($this->{'overtime'} ?? null) > 0;
     }
 
     public function totalRestSeconds(): int

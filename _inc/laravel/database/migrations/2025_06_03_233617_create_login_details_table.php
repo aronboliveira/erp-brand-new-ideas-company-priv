@@ -16,7 +16,7 @@ class CreateLoginDetailsTable extends Migration
 			$table->uuid(UC::COL_USER_ID)->index();
 			$table->ipAddress('ip')->index();
 			$table->timestamp('date')->index();
-			$table->string('user_agent')->nullable();
+			$table->string(DC::COL_UA)->nullable();
 			$table->text('details');
 			$table->foreign(UC::COL_USER_ID)
 				->references('id')

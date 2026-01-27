@@ -25,12 +25,14 @@ final class TravelSeeder extends Seeder
 	 */
 	private const PAST_DAYS  = 180;
 	private const FUTURE_DAYS = 60;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	public function run(): void
 	{
 		$faker = fake('pt_BR');
 
 		DB::transaction(function () use ($faker) {
+			$clock = microtime(true);
 			$systemUserId = $this->ensureSystemUser();
 
 			// Funcionários ativos (se seu modelo usar outra coluna/status, ajuste aqui)
@@ -54,14 +56,23 @@ final class TravelSeeder extends Seeder
 				'Visita comercial',
 				'Vistoria de infraestrutura',
 			];
-
+			$hardCap = 3200;
 			foreach ($employees as $empId) {
+				if (! $hardCap || $hardCap <= 0)
+					break;
 				$count = random_int(0, self::MAX_TRIPS_PER_EMPLOYEE);
 				if ($count === 0) {
 					continue;
 				}
 
 				for ($i = 0; $i < $count; $i++) {
+					if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+						Log::info('TravelSeeder: limite de tempo atingido, encerrando carga antecipadamente.');
+						return;
+					}
+					if (!$hardCap || $hardCap <= 0)
+						return;
+					$hardCap--;
 					(new \Symfony\Component\Console\Output\ConsoleOutput
 					)->writeln("Criando Viagem ou Dispensa para funcionário ID: {$empId}");
 					try {

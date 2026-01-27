@@ -15,6 +15,8 @@ class CreateInvoicePaymentsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('code')->unique()->nullable(); // ? nullable for tests, should be booted/created at model level if null
+            $table->uuid(BC::COL_PAY_ID)->nullable()->unique();
+            $table->unique([BC::COL_PAY_ID, 'code'], 'uniq_inv_pay_pay_code');
             $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: false);
             $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');
             $this->addNfeColumns($table);
@@ -23,10 +25,16 @@ class CreateInvoicePaymentsTable extends Migration
             $table->uuid(BC::COL_TAX_ID)->nullable();
             $table->string('currency')->nullable(); // * this will be kept for legacy reasons, but should be deprecated in future versions and booted and saving should ensure that the BC::COL_CUR_ID matches the currency of the linked invoice and this one, with the hierarchy: COL_CUR_ID in invoice > COL_CUR_ID in payment, found in the payment columns > 'currency' in payment, here listed
             $table->string('receipt')->nullable(); // * constrained at model level to be match a secure url (with https + domain at env(APP_URL) or known domains of storage providers) OR a file path at the local filesystem OR a id for an existing Document (model) row
-            $table->foreign(BC::COL_OD_ID)
-                ->references('id')
-                ->on(DC::TABLE_ORDERS)
-                ->nullOnDelete();
+            foreach (
+                [
+                    BC::COL_OD_ID => DC::TABLE_ORDERS,
+                    BC::COL_PAY_ID => DC::TABLE_PAY,
+                ] as $column => $referencedTable
+            )
+                $table->foreign($column)
+                    ->references('id')
+                    ->on($referencedTable)
+                    ->nullOnDelete();
             $this->addAuditColumns($table);
         });
     }
@@ -40,6 +48,7 @@ class CreateInvoicePaymentsTable extends Migration
             foreach (
                 [
                     BC::COL_OD_ID,
+                    BC::COL_PAY_ID
                 ] as $col
             ) {
                 try {

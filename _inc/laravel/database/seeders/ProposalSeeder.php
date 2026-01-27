@@ -14,8 +14,10 @@ use Illuminate\Support\Str;
 
 class ProposalSeeder extends Seeder
 {
+	private const SECONDS_LIMIT = 6 * 10 ** 2;
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$customers = DB::table(DC::TABLE_CUSTOMERS)
 			->select('id', 'name')
 			->get();
@@ -51,6 +53,11 @@ class ProposalSeeder extends Seeder
 		$now = Carbon::now();
 
 		for ($i = 0; $i < $target; $i++) {
+
+			if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+				Log::warning(self::class . ' seeding time limit reached, stopping early');
+				return;
+			}
 			try {
 				$customerRow = $customers[$i % $baseCount];
 

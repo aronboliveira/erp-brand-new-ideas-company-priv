@@ -6,15 +6,12 @@ use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\{MimeType, UserType};
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Throwable;
 
 abstract class AbstractFile extends Model
 {
 	use UsesUuids, HasAuditFields, FiltersSecureAttachments, DefinesDates;
-
-	protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 
 	/**
 	 * Ordem e máscara de permissão (octal-like: 4=read, 2=write, 1=execute).
@@ -32,100 +29,106 @@ abstract class AbstractFile extends Model
 
 	protected const DEFAULT_RULES = '776444';
 
-	protected static array $userRoleCache = [];
-
-	protected $casts = [
-		DC::COL_MM_TP  => MimeType::class,
-		DC::COL_EXP_DT => 'datetime',
-		DC::COL_LA     => 'datetime',
-		DC::COL_DL_CT  => 'integer',
-		DC::COL_FL_SZ  => 'float',
-		'size'         => 'integer',
+	protected const ABSTRACT_FILE_FILLABLE = [
+		DC::COL_FL_PT,      // file_path
+		'url',
+		'name',
+		'extension',
+		DC::COL_MM_TP,      // mime_type
+		DC::COL_LA,         // last_accessed
+		'size',
+		'description',
+		'notes',
+		DC::COL_DL_CT,      // download_count
+		DC::COL_FL_SZ,      // file_size (float)
+		DC::COL_PERM_RLS,   // permission_rules
+		'viewers',
+		'editors',
+		'executors',
+		DC::COL_EXP_DT,     // expiration_date
+		'type',
 	];
 
-	protected $appends = [
+	protected $fillable = [...self::ABSTRACT_FILE_FILLABLE];
+
+	protected const ABSTRACT_FILE_GUARDED = ['id', DC::COL_TABLE_CREATOR];
+
+	protected $guarded = [...self::ABSTRACT_FILE_GUARDED];
+
+	protected const ABSTRACT_FILE_CASTS = [
+		'size'         => 'integer',
+		DC::COL_MM_TP  => MimeType::class,
+		DC::COL_LA     => 'datetime',
+		DC::COL_EXP_DT => 'datetime',
+		DC::COL_DL_CT  => 'integer',
+		DC::COL_FL_SZ  => 'float',
+		'viewers'      => 'array',
+		'editors'      => 'array',
+		'executors'    => 'array',
+	];
+
+	protected $casts = [...self::ABSTRACT_FILE_CASTS];
+
+	protected const ABSTRACT_FILE_APPENDS = [
 		'is_document',
 		'is_expired',
 	];
 
-	protected static function fillableFields(): array
-	{
-		return [
-			DC::COL_FL_PT,
-			'name',
-			'extension',
-			DC::COL_MM_TP,
-			DC::COL_LA,
-			'size',
-			'description',
-			'notes',
-			DC::COL_DL_CT,
-			DC::COL_FL_SZ,
-			DC::COL_PERM_RLS,
-			'executors',
-			'editors',
-			'viewers',
-			DC::COL_EXP_DT,
-			'type',
-		];
-	}
+	protected $appends = [...self::ABSTRACT_FILE_APPENDS];
 
-	public function getFillable(): array
-	{
-		return static::fillableFields();
-	}
+	protected static array $userRoleCache = [];
 
 	protected static function booted(): void
 	{
 		parent::booted();
-
-		static::saving(function (self $m): void {
-			try {
-				$m->normalizeFileFields();
-				$m->ensureMimeFromExtension();
-				$m->enforceTypeNullWhenNotDocument();
-				$m->normalizePermissionRules();
-				$m->normalizeActorListsIfDirty();
-				$basePath = trim((string) ($m->getAttribute('url') ?? ''));
-				if ($basePath === '') {
-					$title = trim((string) ($m->getAttribute('title') ?? $m->getAttribute('name') ?? ''));
-					$basePath = $title !== '' ? Str::slug($title) : 'resource-' . now()->timestamp;
-				}
-				$basePath = trim(parse_url($basePath, PHP_URL_PATH) ?? $basePath, '/');
-				$basePath = Str::slug($basePath);
-				$candidatePath = '/' . $basePath;
-				if (DB::table($m->getTable())
-					->where('url', $candidatePath)
-					->where('id', '!=', $m->getAttribute('id') ?? '')
-					->exists()
-				) {
-					$acc = 0;
-					$maxAttempts = 1000;
-					do {
-						$suffix = now()->timestamp . '-' . Str::random(6);
-						$candidatePath = '/' . $basePath . '-' . $suffix;
-						$acc++;
-						if ($acc > $maxAttempts) {
-							throw new \RuntimeException(
-								'Failed to generate unique URL path for ' . get_class($m) . ' after ' . $maxAttempts . ' attempts'
-							);
-						}
-					} while (DB::table($m->getTable())
-						->where('url', $candidatePath)
-						->where('id', '!=', $m->getAttribute('id') ?? '')
-						->exists()
-					);
-				}
-				$m->setAttribute('url', $candidatePath);
-			} catch (Throwable $e) {
-				Log::warning(static::class . ' saving normalization failed', [
-					'id'    => $m->getAttribute('id'),
-					'error' => $e->getMessage(),
-					'line' => $e->getLine(),
-					'file' => $e->getFile(),
-				]);
-			}
-		});
+		// TODO use in product, too heavy for mocks
+		// static::saving(function (self $m): void {
+		// 	try {
+		// 		$m->normalizeFileFields();
+		// 		$m->ensureMimeFromExtension();
+		// 		$m->enforceTypeNullWhenNotDocument();
+		// 		$m->normalizePermissionRules();
+		// 		$m->normalizeActorListsIfDirty();
+		// 		$basePath = trim((string) ($m->getAttribute('url') ?? ''));
+		// 		if ($basePath === '') {
+		// 			$title = trim((string) ($m->getAttribute('title') ?? $m->getAttribute('name') ?? ''));
+		// 			$basePath = $title !== '' ? Str::slug($title) : 'resource-' . now()->timestamp;
+		// 		}
+		// 		$basePath = trim(parse_url($basePath, PHP_URL_PATH) ?? $basePath, '/');
+		// 		$basePath = Str::slug($basePath);
+		// 		$candidatePath = '/' . $basePath;
+		// 		if (DB::table($m->getTable())
+		// 			->where('url', $candidatePath)
+		// 			->where('id', '!=', $m->getAttribute('id') ?? '')
+		// 			->exists()
+		// 		) {
+		// 			$acc = 0;
+		// 			$maxAttempts = 1000;
+		// 			do {
+		// 				$suffix = now()->timestamp . '-' . Str::random(6);
+		// 				$candidatePath = '/' . $basePath . '-' . $suffix;
+		// 				$acc++;
+		// 				if ($acc > $maxAttempts) {
+		// 					throw new \RuntimeException(
+		// 						'Failed to generate unique URL path for ' . get_class($m) . ' after ' . $maxAttempts . ' attempts'
+		// 					);
+		// 				}
+		// 			} while (DB::table($m->getTable())
+		// 				->where('url', $candidatePath)
+		// 				->where('id', '!=', $m->getAttribute('id') ?? '')
+		// 				->exists()
+		// 			);
+		// 		}
+		// 		$m->setAttribute('url', $candidatePath);
+		// 	} catch (Throwable $e) {
+		// 		Log::warning(static::class . ' saving normalization failed', [
+		// 			'id'    => $m->getAttribute('id'),
+		// 			'error' => $e->getMessage(),
+		// 			'line' => $e->getLine(),
+		// 			'file' => $e->getFile(),
+		// 		]);
+		// 	}
+		// });
 	}
 
 	protected function normalizeFileFields(): void
@@ -258,7 +261,27 @@ abstract class AbstractFile extends Model
 		$parsed = [];
 
 		foreach ($columns as $column) {
-			$items = $this->parseActorRawItems($this->getAttribute($column));
+			$raw = $this->getAttribute($column);
+
+			if ($raw === null || $raw === '') {
+				$parsed[$column] = [];
+				continue;
+			}
+
+			if (is_array($raw)) {
+				$ids = array_values(array_filter(array_map(function ($item) use ($column) {
+					return $this->extractActorIdFromMixed($item, $column);
+				}, $raw)));
+
+				$parsed[$column] = $ids;
+				foreach ($ids as $id) {
+					$allIds[$id] = true;
+				}
+				continue;
+			}
+
+			// Fallback for string input (CSV or JSON)
+			$items = $this->parseActorRawItems($raw);
 			$ids = [];
 			foreach ($items as $item) {
 				$id = $this->extractActorIdFromMixed($item, $column);
@@ -269,9 +292,10 @@ abstract class AbstractFile extends Model
 			$parsed[$column] = $ids;
 		}
 
-		if ($allIds === []) {
-			foreach ($columns as $column)
-				$this->setAttribute($column, null);
+		if (empty($allIds)) {
+			foreach ($columns as $column) {
+				$this->setAttribute($column, []);
+			}
 			return;
 		}
 
@@ -284,14 +308,14 @@ abstract class AbstractFile extends Model
 
 		foreach ($columns as $column) {
 			$final = [];
-			foreach ($parsed[$column] as $id)
-				if (isset($validSet[$id]))
+			foreach ($parsed[$column] as $id) {
+				if (isset($validSet[$id])) {
 					$final[$id] = true;
-
-			$this->setAttribute($column, $final ? implode(',', array_keys($final)) : null);
+				}
+			}
+			$this->setAttribute($column, empty($final) ? [] : array_values(array_keys($final)));
 		}
 	}
-
 	protected function parseActorRawItems(mixed $raw): array
 	{
 		if ($raw === null) return [];

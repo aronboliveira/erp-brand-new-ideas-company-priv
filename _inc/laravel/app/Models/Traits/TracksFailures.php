@@ -128,11 +128,11 @@ trait TracksFailures
 
 	protected static function hasFailureColumnCached(string $table, string $column): bool
 	{
-		if (isset(self::$schemaHasColumnCache[$table][$column]))
-			return self::$schemaHasColumnCache[$table][$column];
+		if (isset(self::$schemaHasFailureColumnCache[$table][$column]))
+			return self::$schemaHasFailureColumnCache[$table][$column];
 
 		try {
-			return self::$schemaHasColumnCache[$table][$column] = Schema::hasColumn($table, $column);
+			return self::$schemaHasFailureColumnCache[$table][$column] = Schema::hasColumn($table, $column);
 		} catch (\Throwable $e) {
 			Log::warning(static::class . ' failed Schema::hasColumn', [
 				'table'  => $table,
@@ -141,7 +141,7 @@ trait TracksFailures
 				'file'   => $e->getFile(),
 				'line'   => $e->getLine(),
 			]);
-			return self::$schemaHasColumnCache[$table][$column] = false;
+			return self::$schemaHasFailureColumnCache[$table][$column] = false;
 		}
 	}
 }

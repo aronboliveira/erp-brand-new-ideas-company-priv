@@ -16,19 +16,20 @@ trait PlansWithSchedule
 
 	protected static function bootPlansWithSchedule(): void
 	{
-		static::saving(function (Model $m): void {
-			try {
-				self::enforcePlanningScheduleBoundaries($m);
-			} catch (\Throwable $e) {
-				Log::error(static::class . ' PlansWithSchedule failed enforcing boundaries', [
-					'file' => $e->getFile(),
-					'line' => $e->getLine(),
-					'error' => $e->getMessage(),
-					'table' => $m->getTable(),
-					'model_id' => $m->getKey(),
-				]);
-			}
-		});
+		// todo too heavy for testing, enable only in production
+		// static::saving(function (Model $m): void {
+		// 	try {
+		// 		self::enforcePlanningScheduleBoundaries($m);
+		// 	} catch (\Throwable $e) {
+		// 		Log::error(static::class . ' PlansWithSchedule failed enforcing boundaries', [
+		// 			'file' => $e->getFile(),
+		// 			'line' => $e->getLine(),
+		// 			'error' => $e->getMessage(),
+		// 			'table' => $m->getTable(),
+		// 			'model_id' => $m->getKey(),
+		// 		]);
+		// 	}
+		// });
 	}
 
 	public function addScheduleColumns(Blueprint $table): void

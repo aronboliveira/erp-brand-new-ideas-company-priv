@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{DatabaseConstants, UsersConstants, ViewsConstants};
-use App\Models\{ProjectStages, Task};
+use App\Models\{ProjectStage, Task};
 use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
@@ -29,7 +29,7 @@ class ProjectStagesController extends Controller
                 Log::info($method . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
 
                 $buildStart = microtime(true);
-                $query = ProjectStages::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                $query = ProjectStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->orderBy('order');
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
 
@@ -78,13 +78,13 @@ class ProjectStagesController extends Controller
                 $user = $request->user();
 
                 $lastStart = microtime(true);
-                $last = ProjectStages::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                $last = ProjectStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->orderByDesc('order')
                     ->first();
                 $this->logExecutionTime($lastStart, $action, 'fetchLastStage');
 
                 $createStart = microtime(true);
-                $stage = ProjectStages::create([
+                $stage = ProjectStage::create([
                     'name'       => $request->name,
                     'color'      => '#' . $request->input('color', '000000'),
                     DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
@@ -112,7 +112,7 @@ class ProjectStagesController extends Controller
 
             try {
                 $findStart = microtime(true);
-                $stage = ProjectStages::findOrFail($id);
+                $stage = ProjectStage::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
                 if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
@@ -156,7 +156,7 @@ class ProjectStagesController extends Controller
                 $user = $request->user();
 
                 $findStart = microtime(true);
-                $stage = ProjectStages::findOrFail($id);
+                $stage = ProjectStage::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
                 if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
@@ -191,7 +191,7 @@ class ProjectStagesController extends Controller
                 $user = $request->user();
 
                 $findStart = microtime(true);
-                $stage = ProjectStages::findOrFail($id);
+                $stage = ProjectStage::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
                 if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
@@ -234,7 +234,7 @@ class ProjectStagesController extends Controller
             try {
                 $loopStart = microtime(true);
                 foreach ($request->input('order', []) as $idx => $id) {
-                    ProjectStages::where('id', $id)->update(['order' => $idx]);
+                    ProjectStage::where('id', $id)->update(['order' => $idx]);
                 }
                 $this->logExecutionTime($loopStart, $action, 'applyOrder');
 

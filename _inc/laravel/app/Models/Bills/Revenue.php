@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{
     BillsConstants as BC,
-    DatabaseConstants as DC
+    DatabaseConstants as DC,
+    UsersConstants as UC
 };
 use App\Enums\{
     PaymentMethod,
     PaymentStatus,
-    TransferType
+    TransferType,
+    UserType
 };
 use App\Traits\{
     DefinesDates,
@@ -22,6 +24,7 @@ use Illuminate\Database\Eloquent\{
     Model
 };
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class Revenue extends Model
 {
@@ -82,8 +85,6 @@ class Revenue extends Model
     ];
 
     protected $with = [
-        'customer',
-        'category',
         'bankAccount',
         'invoice',
         'payslip',
@@ -108,18 +109,24 @@ class Revenue extends Model
         BC::COL_TRF_TP        => TransferType::class,
     ];
 
-    public function customer(): BelongsTo
+    public function customer(): ?BelongsTo
     {
-        return $this->belongsTo(Customer::class, BC::COL_CST_ID, 'id');
+        return Utility::getCustomer($this);
     }
 
-    public function category(): BelongsTo
+    public function productServiceCategory(): ?BelongsTo
     {
-        return $this->belongsTo(
-            ProductServiceCategory::class,
-            BC::COL_CAT_ID,
-            'id'
-        );
+        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function productCategory(): ?BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function category(): ?BelongsTo
+    {
+        return Utility::getCategory($this);
     }
 
     public function bankAccount(): BelongsTo

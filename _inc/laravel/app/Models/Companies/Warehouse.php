@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use App\Config\Constants\{
+    BillsConstants as BC,
     CompaniesConstants as CC,
     DatabaseConstants as DC,
+    ProjectsConstants as PJC,
     UsersConstants as UC
 };
 use App\Enums\Weekday;
+use App\Services\WarehouseRequestService;
 use App\Traits\{
-    ChecksLogin,
     DefinesDates,
     HasAuditFields,
     NormalizesAddresses,
@@ -20,7 +22,8 @@ use App\Traits\{
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
-    Relations\BelongsTo
+    Relations\BelongsTo,
+    Relations\HasMany
 };
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{
@@ -36,10 +39,14 @@ class Warehouse extends Model
     use StoresManyRefJson;
     use NormalizesAddresses;
     use UsesCountryRegions;
-    use ChecksLogin;
     use DefinesDates;
 
     protected $table = DC::TABLE_WRH;
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER
+    ];
     protected $fillable = [
         'code',
         'name',
@@ -55,6 +62,7 @@ class Warehouse extends Model
         'email',
         CC::COL_OWN_ID,
         CC::COL_OWN_NM,
+        PJC::COL_PLN_SCHD_ID,
         CC::COL_IA,
         CC::COL_IS_SHP,
         CC::COL_FD_DT,
@@ -70,8 +78,6 @@ class Warehouse extends Model
         CC::COL_CL_TM,
         CC::COL_WK_DYS,
         UC::COL_AVG_RT,
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
     protected $with = [
         'company',
@@ -82,8 +88,8 @@ class Warehouse extends Model
         CC::COL_IA       => 'boolean',
         CC::COL_IS_SHP   => 'boolean',
         CC::COL_FD_DT    => 'date',
-        CC::COL_OP_TM    => 'datetime:H:i:s',
-        CC::COL_CL_TM    => 'datetime:H:i:s',
+        CC::COL_OP_TM    => 'string',
+        CC::COL_CL_TM    => 'string',
         'dimensions'     => 'array',
         'capacity'       => 'array',
         'employees'      => 'array',
@@ -229,22 +235,32 @@ class Warehouse extends Model
      * Mantida para compatibilidade: se não logado, retorna RedirectResponse,
      * senão retorna o ID numérico (ou 0).
      */
-    public static function warehouseId(string $warehouseId): string|int|RedirectResponse
+    public static function warehouseId(string|int $warehouseId): string|int|RedirectResponse
     {
         try {
-            $userOrRedirect = self::_checkLogin();
-            if ($userOrRedirect instanceof RedirectResponse)
-                return $userOrRedirect;
-            $user = $userOrRedirect;
-            $id = DB::table((new self())->getTable())
-                ->where('id', $warehouseId)
-                ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-                ->value('id');
-            return (int) ($id ?? 0);
+            return app(WarehouseRequestService::class)->warehouseId($warehouseId);
         } catch (\Throwable $e) {
             Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed: {$e->getMessage()}");
             return 0;
         }
+    }
+
+    public function planningSchedule(): BelongsTo
+    {
+        return $this->belongsTo(
+            PlanningSchedule::class,
+            PJC::COL_PLN_SCHD_ID,
+            'id'
+        );
+    }
+
+    public function warehouseProducts(): HasMany
+    {
+        return $this->hasMany(
+            WarehouseProduct::class,
+            BC::COL_WRH_ID,
+            'id'
+        );
     }
 
     public function scopeActive($q)

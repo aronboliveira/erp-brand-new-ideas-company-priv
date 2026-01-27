@@ -63,6 +63,41 @@
   },
   "autoload": {
     "psr-4": {
+      "App\\Config\\Constants\\": [
+        "app/Config/Constants/"
+      ],
+      "App\\Enums\\": [
+        "app/Enums/"
+      ],
+      "App\\Exports\\": [
+        "app/Exports/",
+        "!app/Exports/_withPython"
+      ],
+      "App\\Helpers\\": [
+        "app/Helpers/"
+      ],
+      "App\\Http\\Controllers\\": [
+        "app/Http/Controllers/",
+        "app/Http/Controllers/Abstracts/",
+        "app/Http/Controllers/Activity/",
+        "app/Http/Controllers/Auth/",
+        "app/Http/Controllers/Bills/",
+        "app/Http/Controllers/Bugs/",
+        "app/Http/Controllers/Charts/",
+        "app/Http/Controllers/Companies/",
+        "app/Http/Controllers/Configs/",
+        "app/Http/Controllers/Contact/",
+        "app/Http/Controllers/Individuals/",
+        "app/Http/Controllers/Info/",
+        "app/Http/Controllers/Planning/",
+        "app/Http/Controllers/Products/",
+        "app/Http/Controllers/Shapes/",
+        "app/Http/Controllers/Ssr/"
+      ],
+      "App\\Imports\\": [
+        "app/Imports/",
+        "!app/Imports/_withPython"
+      ],
       "App\\Jobs\\": [
         "app/Jobs/"
       ],
@@ -95,9 +130,6 @@
         "app/Http/Controllers/Traits/",
         "app/Models/Traits"
       ],
-      "App\\Enums\\": [
-        "app/Enums/"
-      ],
       "App\\Services\\": [
         "app/Services/"
       ],
@@ -112,35 +144,6 @@
       ],
       "App\\Services\\Providers\\": [
         "app/Services/Providers/"
-      ],
-      "App\\Http\\Controllers\\": [
-        "app/Http/Controllers/",
-        "app/Http/Controllers/Abstracts/",
-        "app/Http/Controllers/Activity/",
-        "app/Http/Controllers/Auth/",
-        "app/Http/Controllers/Bills/",
-        "app/Http/Controllers/Bugs/",
-        "app/Http/Controllers/Charts/",
-        "app/Http/Controllers/Companies/",
-        "app/Http/Controllers/Configs/",
-        "app/Http/Controllers/Contact/",
-        "app/Http/Controllers/Individuals/",
-        "app/Http/Controllers/Info/",
-        "app/Http/Controllers/Planning/",
-        "app/Http/Controllers/Products/",
-        "app/Http/Controllers/Shapes/",
-        "app/Http/Controllers/Ssr/"
-      ],
-      "App\\Exports\\": [
-        "app/Exports/",
-        "!app/Exports/_withPython"
-      ],
-      "App\\Imports\\": [
-        "app/Imports/",
-        "!app/Imports/_withPython"
-      ],
-      "App\\Config\\Constants\\": [
-        "app/Config/Constants/"
       ],
       "App\\": [
         "app/",

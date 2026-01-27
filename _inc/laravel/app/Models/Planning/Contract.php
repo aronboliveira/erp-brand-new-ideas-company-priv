@@ -4,16 +4,18 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{EvaluationStatus, Frequency};
-use App\Traits\{ChecksLogin, DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, PlansWithSchedule, UsesUuids};
+use App\Helpers\ErrorHandler;
+use App\Services\ContractRequestService;
+use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, PlansWithSchedule, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
-use Illuminate\Support\Facades\{DB, Log, Validator};
+use Illuminate\Support\Facades\{DB, Log, Schema, Validator};
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
 {
-    use UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule, ChecksLogin;
+    use UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule;
 
     public const TABLE = DC::TABLE_CONTRACTS;
 
@@ -104,7 +106,6 @@ class Contract extends Model
     ];
 
     protected $with = [
-        'client',
         'contractType',
         'project',
     ];
@@ -113,6 +114,8 @@ class Contract extends Model
         'is_fully_signed',
         'is_active',
     ];
+
+    public static array $contractErrors = [];
 
     protected static function booted(): void
     {
@@ -207,14 +210,19 @@ class Contract extends Model
         return EvaluationStatus::labels();
     }
 
-    public function client(): HasOne
+    public function client(): ?BelongsTo
     {
-        return $this->hasOne(User::class, 'id', 'client_id');
+        return Utility::getClient($this);
     }
 
-    public function clients(): HasOne // * kept for compatibility, don't use in endpoints
+    public function clients(): BelongsTo // * kept for compatibility, don't use in endpoints
     {
         return $this->client();
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ContractAttachment::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function contractType(): HasOne
@@ -229,20 +237,12 @@ class Contract extends Model
 
     public static function getContractSummary($contracts): string
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
-            return $userOrRedirect;
-
-        $user = $userOrRedirect;
-        $total = $contracts->sum(fn($c) => $c->value);
-        return $user?->priceFormat($total);
+        return app(ContractRequestService::class)->getContractSummary($contracts);
     }
 
     public function project(): HasOne
     {
-        return $this->hasOne(Project::class, 'id', 'project_id');
+        return $this->hasOne(Project::class, 'id', PJC::COL_PJ_ID);
     }
 
     public function projects(): HasOne // * kept for compatibility, don't use in endpoints
@@ -252,42 +252,53 @@ class Contract extends Model
 
     public function files(): HasMany
     {
-        return $this->hasMany(ContractAttachment::class, 'contract_id', 'id');
+        return $this->hasMany(ContractAttachment::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function notes(): HasMany
     {
-        return $this->hasMany(ContractNotes::class, 'contract_id', 'id');
+        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function comment(): HasMany
     {
-        return $this->hasMany(ContractComment::class, 'contract_id', 'id');
+        return $this->hasMany(ContractComment::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function note(): HasMany
     {
-        return $this->hasMany(ContractNotes::class, 'contract_id', 'id');
+        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
     }
 
-    public function contractAttachment(): BelongsTo
+    public function contractAttachment(): HasOne
     {
-        return $this->belongsTo(ContractAttachment::class, 'id', 'contract_id');
+        return $this->hasOne(ContractAttachment::class, PJC::COL_CTC_ID, 'id')->latestOfMany();
     }
 
-    public function ContractAttechment(): BelongsTo // * KEPT FOR COMPATIBILITY, DON'T USE IN ENDPOINTS
+
+    public function ContractAttechment(): HasOne
     {
         return $this->contractAttachment();
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(ContractComment::class, PJC::COL_CTC_ID, 'id');
+    }
+
+    public function notesRows(): HasMany
+    {
+        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
+    }
+
     public function contractComment(): BelongsTo
     {
-        return $this->belongsTo(ContractComment::class, 'id', 'contract_id');
+        return $this->belongsTo(ContractComment::class, 'id', PJC::COL_CTC_ID);
     }
 
     public function contractNote(): BelongsTo
     {
-        return $this->belongsTo(ContractNotes::class, 'id', 'contract_id');
+        return $this->belongsTo(ContractNotes::class, 'id', PJC::COL_CTC_ID);
     }
 
     public function getIsFullySignedAttribute(): bool
@@ -430,12 +441,18 @@ class Contract extends Model
                 'rej_at' => $rejAt?->toIso8601String(),
             ]);
         } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to resolve approval/rejection winner', [
-                'id'    => $this->getAttribute('id'),
-                'error' => $e->getMessage(),
-                'file'  => $e->getFile(),
-                'line'  => $e->getLine(),
-            ]);
+            ErrorHandler::evaluateExistenceToLogChannel(
+                'contract_errors',
+                [
+                    'message' => static::class . ' failed to resolve approval/rejection winner',
+                    'context' => [
+                        'id'    => $this->getAttribute('id'),
+                        'error' => $e->getMessage(),
+                        'file'  => $e->getFile(),
+                        'line'  => $e->getLine(),
+                    ],
+                ]
+            );
         }
     }
 
@@ -636,13 +653,13 @@ class Contract extends Model
                 $minValue = $type->getAttribute(BC::COL_MIN_V);
                 $maxValue = $type->getAttribute(BC::COL_MAX_V);
                 if ($minValue !== null && $numericValue < (float)$minValue) {
-                    Log::warning([
+                    Log::notice([
                         'value' => "O valor do contrato não pode ser menor que " . number_format($minValue, 2, ',', '.'),
                     ]);
                     $contract->setAttribute('value', number_format((float)$minValue, 2, '.', ''));
                 }
                 if ($maxValue !== null && $numericValue > (float)$maxValue) {
-                    Log::warning([
+                    Log::notice([
                         'value' => "O valor do contrato não pode ser maior que " . number_format($maxValue, 2, ',', '.'),
                     ]);
                     $contract->setAttribute('value', number_format((float)$maxValue, 2, '.', ''));
@@ -654,13 +671,13 @@ class Contract extends Model
             $minMonths = $type->getAttribute(BC::COL_MIN_M);
             $maxMonths = $type->getAttribute(BC::COL_MAX_M);
             if ($minMonths !== null && $durationMonths < (int)$minMonths) {
-                Log::warning([
+                Log::notice([
                     PJC::COL_E_DT => "A duração do contrato deve ser de pelo menos {$minMonths} " . ($minMonths === 1 ? 'mês' : 'meses'),
                 ]);
                 $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$minMonths)->toDateString()); // todo for now set, but later throw error
             }
             if ($maxMonths !== null && $durationMonths > (int)$maxMonths) {
-                Log::warning([
+                Log::notice([
                     PJC::COL_E_DT => "A duração do contrato não pode exceder {$maxMonths} " . ($maxMonths === 1 ? 'mês' : 'meses'),
                 ]);
                 $contract->setAttribute(PJC::COL_E_DT, $startDate->addMonths((int)$maxMonths)->toDateString());
@@ -669,7 +686,7 @@ class Contract extends Model
         $renewable = $contract->getAttribute('renewable');
         $allowsRenegotiation = $type->getAttribute(BC::COL_RNGT);
         if ($allowsRenegotiation === false && $renewable === true) {
-            Log::warning([
+            Log::notice([
                 'renewable' => 'Este tipo de contrato não permite renovação.',
             ]);
             $contract->setAttribute('renewable', false);

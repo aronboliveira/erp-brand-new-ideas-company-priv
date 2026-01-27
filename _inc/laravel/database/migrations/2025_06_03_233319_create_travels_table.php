@@ -14,7 +14,7 @@ class CreateTravelsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $this->addEmployeeColumns($table);
-            $table->date(PJC::COL_S_DT)->index()->default(now()->format('Y-m-d'));
+            $table->date(PJC::COL_S_DT)->index()->useCurrent();
             $table->date(PJC::COL_E_DT)->default(now()->addDays(7)->format('Y-m-d'));
             $table->string(PJC::VST_PLC)->nullable()->index();
             $table->string(PJC::VST_PPS)->nullable();

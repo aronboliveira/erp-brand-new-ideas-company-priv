@@ -100,7 +100,7 @@ final class ContractCommentSeeder extends Seeder
 		}
 
 		// Baseline rule: 64*N where N is number of base entities (contracts), capped.
-		$baseMin = 64 * max(1, $contracts->count());
+		$baseMin = 512 * max(1, $contracts->count());
 		$baseMin = min(self::HARD_CAP, $baseMin);
 
 		// CLI override: --count is treated as minimum (still obey cap)

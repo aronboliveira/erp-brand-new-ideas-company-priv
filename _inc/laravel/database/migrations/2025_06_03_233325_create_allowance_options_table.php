@@ -14,8 +14,8 @@ class CreateAllowanceOptionsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $this->addNumericBenefitColumns($table, true);
-            $table->date(BC::COL_VLD_FRM)->nullable()->default(now()->format('Y-m-d'));
+            $this->addNumericBenefitColumns($table);
+            $table->date(BC::COL_VLD_FRM)->nullable()->useCurrent();
             $table->date(BC::COL_VLD_TO)->nullable()->default(now()->addYear(2)->format('Y-m-d'))->index();
             $table->boolean('renews')->default(false)->index();
             $this->addAuditColumns($table);

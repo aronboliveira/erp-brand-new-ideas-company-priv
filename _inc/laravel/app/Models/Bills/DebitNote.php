@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class DebitNote extends CardNote
 {
@@ -28,7 +30,6 @@ class DebitNote extends CardNote
 
     protected $with = [
         ...parent::BASE_WITH,
-        'vendor',
     ];
 
     protected function monetarySign(): int
@@ -41,8 +42,8 @@ class DebitNote extends CardNote
         return array_merge(parent::getFillable(), self::EXTRA_FILLABLE);
     }
 
-    public function vendor(): BelongsTo
+    public function vendor(): ?BelongsTo
     {
-        return $this->belongsTo(Vendor::class, UC::COL_VD_ID);
+        return Utility::getVendor($this);
     }
 }

@@ -65,6 +65,18 @@ final class DocumentSeeder extends Seeder
 				['Vídeo Institucional',                'mp4'],
 				['Pacote de Assets',                   'zip'],
 				['Script de Rotina',                   'php'],
+				['Documentação Técnica',             'pdf'],
+				['Plano de Projeto',                   'docx'],
+				['Análise de Mercado',                 'xlsx'],
+				['Especificação de Requisitos',       'md'],
+				['Guia de Estilo',                     'txt'],
+				['Imagem de Produto',                  'jpg'],
+				['Protótipo de Interface',             'png'],
+				['Código Fonte - Módulo X',           'php'],
+				['Dados de Teste',                    'csv'],
+				['Apresentação para Investidores',     'pptx'],
+				['Relatório Anual',                    'pdf'],
+				['Script de Migração',                'sql'],
 			];
 
 			foreach ($samples as $i => [$name, $ext]) {

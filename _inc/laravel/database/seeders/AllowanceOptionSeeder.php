@@ -129,6 +129,42 @@ final class AllowanceOptionSeeder extends Seeder
 					BC::COL_VLD_TO  => (clone $anchor)->addMonths(16)->format('Y-m-d'),
 					'renews'        => false,
 				],
+				[
+					'name'          => 'Auxílio Creche/Educação Infantil',
+					'description'   => 'Custeio parcial para filhos de empregados.',
+					BC::COL_EXP_BDG => 400.00,
+					BC::COL_MAX_BDG => 1200.00,
+					BC::COL_VLD_FRM => (clone $anchor)->subMonths(7)->format('Y-m-d'),
+					BC::COL_VLD_TO  => (clone $anchor)->addMonths(13)->format('Y-m-d'),
+					'renews'        => true,
+				],
+				[
+					'name'          => 'Auxílio Saúde Mental',
+					'description'   => 'Custeio parcial para terapias e atividades de bem-estar.',
+					BC::COL_EXP_BDG => 200.00,
+					BC::COL_MAX_BDG => 800.00,
+					BC::COL_VLD_FRM => (clone $anchor)->subMonths(11)->format('Y-m-d'),
+					BC::COL_VLD_TO  => (clone $anchor)->addMonths(11)->format('Y-m-d'),
+					'renews'        => true,
+				],
+				[
+					'name'          => 'Auxílio Cultura/Lazer',
+					'description'   => 'Incentivo para atividades culturais e de lazer.',
+					BC::COL_EXP_BDG => 150.00,
+					BC::COL_MAX_BDG => 500.00,
+					BC::COL_VLD_FRM => (clone $anchor)->subMonths(3)->format('Y-m-d'),
+					BC::COL_VLD_TO  => (clone $anchor)->addMonths(9)->format('Y-m-d'),
+					'renews'        => true,
+				],
+				[
+					'name'          => 'Auxílio Óculos de Grau',
+					'description'   => 'Reembolso parcial para aquisição de óculos de grau.',
+					BC::COL_EXP_BDG => 100.00,
+					BC::COL_MAX_BDG => 400.00,
+					BC::COL_VLD_FRM => (clone $anchor)->subMonths(14)->format('Y-m-d'),
+					BC::COL_VLD_TO  => (clone $anchor)->addMonths(10)->format('Y-m-d'),
+					'renews'        => false,
+				]
 			];
 
 			$created = 0;

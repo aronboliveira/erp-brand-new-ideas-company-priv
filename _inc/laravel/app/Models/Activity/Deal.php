@@ -3,20 +3,21 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    DatabaseConstants as DC,
     ActivitiesConstants as AC,
     BillsConstants as BC,
+    DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
 use App\Enums\EvaluationStatus;
-use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids, NormalizesAddresses};
+use App\Services\DealRequestService;
+use App\Traits\{HasAuditFields, UsesUuids, NormalizesAddresses};
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
 use Illuminate\Http\RedirectResponse;
 
 class Deal extends Model
 {
-    use HasFactory, UsesUuids, ChecksLogin, HasAuditFields, NormalizesAddresses;
+    use HasFactory, UsesUuids, HasAuditFields, NormalizesAddresses;
 
     protected $table = DC::TABLE_DEALS;
 
@@ -24,9 +25,9 @@ class Deal extends Model
         'name',
         'phone',
         'price',
-        'pipeline_id',
-        'stage_id',
-        'group_id',
+        PJC::COL_PPL_ID,
+        PJC::COL_STG_ID,
+        PJC::COL_GRP_ID,
         'sources',
         'products',
         'description',
@@ -121,62 +122,62 @@ class Deal extends Model
 
     public function pipeline(): HasOne
     {
-        return $this->hasOne(Pipeline::class, 'id', 'pipeline_id');
+        return $this->hasOne(Pipeline::class, 'id', PJC::COL_PPL_ID);
     }
 
     public function stage(): HasOne
     {
-        return $this->hasOne(Stage::class, 'id', 'stage_id');
+        return $this->hasOne(Stage::class, 'id', PJC::COL_STG_ID);
     }
 
     public function group(): HasOne
     {
-        return $this->users()->hasOne(User::class, 'id', 'group_id'); // * KEPT FOR COMPATIBILITY
+        return $this->users()->hasOne(User::class, 'id', PJC::COL_GRP_ID); // * KEPT FOR COMPATIBILITY
     }
 
     public function clients(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'client_deals', 'deal_id', 'client_id');
+        return $this->belongsToMany(User::class, 'client_deals', PJC::COL_DL_ID, 'client_id');
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_deals', 'deal_id', 'user_id');
+        return $this->belongsToMany(User::class, 'user_deals', PJC::COL_DL_ID, 'user_id');
     }
 
     public function files(): HasMany
     {
-        return $this->hasMany(DealFile::class, 'deal_id', 'id');
+        return $this->hasMany(DealFile::class, PJC::COL_DL_ID, 'id');
     }
 
     public function tasks(): HasMany
     {
-        return $this->hasMany(DealTask::class, 'deal_id', 'id');
+        return $this->hasMany(DealTask::class, PJC::COL_DL_ID, 'id');
     }
 
     public function invoices(): HasMany
     {
-        return $this->hasMany(Invoice::class, 'deal_id', 'id');
+        return $this->hasMany(Invoice::class, PJC::COL_DL_ID, 'id');
     }
 
     public function calls(): HasMany
     {
-        return $this->hasMany(DealCall::class, 'deal_id', 'id');
+        return $this->hasMany(DealCall::class, PJC::COL_DL_ID, 'id');
     }
 
     public function emails(): HasMany
     {
-        return $this->hasMany(DealEmail::class, 'deal_id', 'id')->orderByDesc('id');
+        return $this->hasMany(DealEmail::class, PJC::COL_DL_ID, 'id')->orderByDesc('id');
     }
 
     public function activities(): HasMany
     {
-        return $this->hasMany(ActivityLog::class, 'deal_id', 'id')->orderByDesc('id');
+        return $this->hasMany(ActivityLog::class, PJC::COL_DL_ID, 'id')->orderByDesc('id');
     }
 
     public function discussions(): HasMany
     {
-        return $this->hasMany(DealDiscussion::class, 'deal_id', 'id')->orderByDesc('id');
+        return $this->hasMany(DealDiscussion::class, PJC::COL_DL_ID, 'id')->orderByDesc('id');
     }
 
     public function getContactInfo(): array
@@ -187,13 +188,14 @@ class Deal extends Model
         ];
     }
 
-    public static function getDealSummary(array|Collection $deals, bool $numeric = false): string|array|RedirectResponse
-    {
-        if (($userOrRedirect = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse)
-            return $userOrRedirect;
-
-        $user  = $userOrRedirect;
-        $deals = is_array($deals) ? $deals : ($deals instanceof Collection ? $deals->toArray() : []);
-        return $user?->priceFormat(collect($deals)->sum(fn($d) => $d->price), $numeric);
+    /**
+     * Get deal summary
+     * Pure alias to DealRequestService - auth check happens in service
+     */
+    public static function getDealSummary(
+        array|Collection $deals,
+        bool $numeric = false
+    ): string|array|RedirectResponse {
+        return app(DealRequestService::class)->getDealSummary($deals, $numeric);
     }
 }

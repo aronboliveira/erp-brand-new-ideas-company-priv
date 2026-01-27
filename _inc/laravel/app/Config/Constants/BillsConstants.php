@@ -4,6 +4,8 @@ namespace App\Config\Constants;
 
 class BillsConstants
 {
+	// * ==== COLUMNS =====
+	#region
 	public const COL_PRC_TMP = 'purchase_template';
 	public const COL_INV_TMP = 'invoice_template';
 	public const COL_PPS_TMP = 'proposal_template';
@@ -237,9 +239,44 @@ class BillsConstants
 	public const COL_WRN_TRSH = 'warn_threshold';
 	public const COL_CRT_WRN_TH = 'critical_warning_threshold';
 	public const COL_CARD_NTS = 'card_notes';
-
-	// * VALORES
-
+	public const COL_BIL_ID = 'bill_id';
+	public const COL_REF_ID = 'ref_id';
+	public const COL_PRC_ID = 'purchase_id';
+	public const COL_PRC_DT = 'purchase_date';
+	public const COL_PRC_NB = 'purchase_number';
+	public const COL_OTHER_TX = 'other_taxes';
+	public const COL_FROM_WRH = 'from_warehouse';
+	public const COL_TO_WRH = 'to_warehouse';
+	public const COL_QTY_RCV = 'quantity_received';
+	public const COL_QTY_RTN = 'quantity_returned';
+	public const COL_SCHD_DT = 'scheduled_date';
+	public const COL_SHIP_DT = 'shipped_date';
+	public const COL_RCV_DT = 'received_date';
+	public const COL_TP_ID = 'type_id';
+	public const COL_JRN_ENT_ID = 'journal_entry_id';
+	public const COL_IS_PDF_AVL = 'is_pdf_available';
+	public const COL_IS_SST_AVL = 'is_spreadsheet_available';
+	public const COL_IS_DOC_AVL = 'is_document_available';
+	public const COL_IS_WEB_AVL = 'is_web_available';
+	public const COL_IS_PBI_AVL = 'is_powerbi_available';
+	public const COL_IS_RTNABLE = 'is_returnable';
+	public const COL_IS_URGENT = 'is_urgent';
+	public const COL_TRP_MTD = 'transportation_method';
+	public const COL_TRP_CST = 'transportation_cost';
+	public const COL_HAS_EXT_SEC = 'has_extra_security';
+	public const COL_EXT_SEC_CST = 'extra_security_cost';
+	public const COL_HAS_INS = 'has_insurance';
+	public const COL_INS_CST = 'insurance_cost';
+	public const COL_INS_PLC = 'insurance_policy';
+	public const COL_HAS_WRT = 'has_warranty';
+	public const COL_WRT_CST = 'warranty_cost';
+	public const COL_WRT_DYS = 'warranty_days';
+	public const COL_WRT_PLC = 'warranty_policy';
+	public const COL_REQ_BY = 'requested_by';
+	public const COL_REQ_AT = 'requested_at';
+	#endregion
+	// * ==== VALUES =====
+	#region
 	public const VL_GRS_SL = 'gross_salary';
 	public const VL_NET_SL = 'net_salary';
 	public const VL_SPC_AMT = 'specific_amount';
@@ -249,4 +286,5 @@ class BillsConstants
 	public const VL_TAX_PAY = 'tax_payment';
 	public const VL_LN_PAY = 'loan_payment';
 	public const VL_WR_TRF = 'wire_transfer';
+	#endregion
 }

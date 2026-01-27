@@ -15,7 +15,7 @@ class CreateNotificationsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuid(UC::COL_USER_ID)->index(); // ? not clear, but keep for legacy, at first it was intended to point to the recipient user probably
-            $table->datetime(MC::COL_SNT_AT)->nullable()->default(now()->format('Y-m-d H:i:s')); // * this should be refresh on booted, specially if null // ? nullable for testing
+            $table->datetime(MC::COL_SNT_AT)->nullable()->useCurrent(); // * this should be refresh on booted, specially if null // ? nullable for testing
             $table->uuid(MC::COL_SNT_BY)->nullable()->index()->default(DC::DEFAULT_UUID); // ? nullable for testing
             $table->string('type', 32)->default(NotificationTemplateType::Other->value);
             $table->longText('data')->nullable(); // * this is not clear, but keep for legacy

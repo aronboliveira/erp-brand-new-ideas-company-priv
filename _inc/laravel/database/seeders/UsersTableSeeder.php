@@ -7,12 +7,12 @@ use App\Config\Constants\{
     BanksConstants as BKC,
     ChartsConstants as CHTC,
     DatabaseConstants as DC,
-    PermissionsConstants as PMC,
     ProjectsConstants,
     SeedersTemplating as SDT,
     SettingsConstants as ST,
     UsersConstants as UC
 };
+use App\Enums\UserType;
 use App\Models\{
     BankAccount,
     ChartOfAccount,
@@ -26,7 +26,7 @@ use App\Models\{
     Permission,
     Pipeline,
     Project,
-    ProjectStages,
+    ProjectStage,
     Role,
     User,
     Utility as U
@@ -49,11 +49,11 @@ class UsersTableSeeder extends Seeder
     {
         try {
             $settled = self::_hardcoded_permissions();
-            $superAdmin = $settled[PMC::SA];
-            $admin = $settled[PMC::ADM];
-            $accountant = $settled[PMC::ACT];
-            $company = $settled[PMC::CPN];
-            $clientUser = $settled[PMC::CL . 'User'] ?? null;
+            $superAdmin = $settled[UserType::SuperAdmin->value];
+            $admin = $settled[UserType::Admin->value];
+            $accountant = $settled[UserType::Accountant->value];
+            $company = $settled[UserType::Company->value];
+            $clientUser = $settled[UserType::Client->value . 'User'] ?? null;
             $project = $settled['project'] ?? null;
             $uuids = $settled['uuids'] ?? null;
             $users = [$superAdmin, $admin, $accountant, $company, $clientUser];
@@ -302,7 +302,7 @@ class UsersTableSeeder extends Seeder
             $superAdminRole = Role::create(
                 [
                     'id'   => $superAdminId,
-                    'name' => PMC::SA,
+                    'name' => UserType::SuperAdmin->value,
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
@@ -311,7 +311,7 @@ class UsersTableSeeder extends Seeder
                     UC::COL_NM => $faker->name,
                     UC::COL_EM => 'suporte@prestech.com.br', // TODO CHANGE AFTER TESTING
                     UC::COL_PW => Hash::make('123456789qwe.*'), // TODO CHANGE AFTER TESTING
-                    UC::COL_TP => PMC::SA,
+                    UC::COL_TP => UserType::SuperAdmin->value,
                     UC::COL_LG => DC::DEFAULT_LANG,
                     UC::COL_AV =>  $faker->imageUrl(200, 200, 'people'),
                     UC::COL_EM_V_AT => now()->toDateTimeString(),
@@ -377,7 +377,7 @@ class UsersTableSeeder extends Seeder
             $adminRole = Role::create(
                 [
                     'id'   => $adminId,
-                    'name' => PMC::ADM,
+                    'name' => UserType::Admin->value,
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
@@ -389,7 +389,7 @@ class UsersTableSeeder extends Seeder
                     UC::COL_NM                    => $faker->name,
                     UC::COL_EM                   => $faker->unique()->safeEmail,
                     UC::COL_PW                => bcrypt($adminPassword),
-                    UC::COL_TP => PMC::ADM,
+                    UC::COL_TP => UserType::Admin->value,
                     UC::COL_LG => DC::DEFAULT_LANG,
                     UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
                     UC::COL_EM_V_AT => now()->toDateTimeString(),
@@ -443,7 +443,7 @@ class UsersTableSeeder extends Seeder
                     UC::COL_NM                    => $faker->name,
                     UC::COL_EM                   => $faker->unique()->safeEmail,
                     UC::COL_PW                => bcrypt($companyPassword),
-                    UC::COL_TP => PMC::CPN,
+                    UC::COL_TP => UserType::Company->value,
                     UC::COL_LG => DC::DEFAULT_LANG,
                     UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
                     UC::COL_EM_V_AT => now()->toDateTimeString(),
@@ -484,7 +484,7 @@ class UsersTableSeeder extends Seeder
                         UC::COL_NM                    => $faker->name,
                         UC::COL_EM                   => $faker->unique()->safeEmail,
                         UC::COL_PW                => bcrypt($accPassword),
-                        UC::COL_TP => PMC::ACT,
+                        UC::COL_TP => UserType::Accountant->value,
                         UC::COL_LG => DC::DEFAULT_LANG,
                         UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
                         UC::COL_EM_V_AT => now()->toDateTimeString(),
@@ -629,7 +629,7 @@ class UsersTableSeeder extends Seeder
                 $clientRole = Role::create(
                     [
                         'id'   => $clientId,
-                        'name' => PMC::CL,
+                        'name' => UserType::Client->value,
                         DC::COL_TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
@@ -641,7 +641,7 @@ class UsersTableSeeder extends Seeder
                         UC::COL_NM                    => $faker->name,
                         UC::COL_EM                   => $faker->unique()->safeEmail,
                         UC::COL_PW                => bcrypt($clientPassword),
-                        UC::COL_TP => PMC::CL,
+                        UC::COL_TP => UserType::Client->value,
                         UC::COL_LG => DC::DEFAULT_LANG,
                         UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
                         UC::COL_EM_V_AT => now()->toDateTimeString(),
@@ -671,7 +671,7 @@ class UsersTableSeeder extends Seeder
                         UC::COL_DEL_STT   => 1,
                         DC::COL_TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]);
-                    $stageTemplate = ProjectStages::create([
+                    $stageTemplate = ProjectStage::create([
                         ProjectsConstants::COL_NM         => 'Default Stage Set',
                         ProjectsConstants::COL_CL         => 'primary',
                         ActivitiesConstants::COL_OD       => 0,
@@ -736,7 +736,7 @@ class UsersTableSeeder extends Seeder
             $customerRole = Role::create(
                 [
                     'id'   => $customerId,
-                    'name' => PMC::CT,
+                    'name' => UserType::Customer->value,
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
@@ -774,7 +774,7 @@ class UsersTableSeeder extends Seeder
             $vendorRole = Role::create(
                 [
                     'id'   => $vendorId,
-                    'name' => PMC::VD,
+                    'name' => UserType::Vendor->value,
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
@@ -799,12 +799,12 @@ class UsersTableSeeder extends Seeder
         $output->writeln('<question>----------- End of Users Seeding ------------</question>');
         $output->writeln('');
         return [
-            PMC::SA => $superAdmin,
-            PMC::ADM => $admin,
-            PMC::ACT => $accountant,
-            PMC::CPN => $company,
-            PMC::CL . 'User' => $clientUser,
-            PMC::CL => $client,
+            UserType::SuperAdmin->value => $superAdmin,
+            UserType::Admin->value => $admin,
+            UserType::Accountant->value => $accountant,
+            UserType::Company->value => $company,
+            UserType::Client->value . 'User' => $clientUser,
+            UserType::Client->value => $client,
             'project' => $project,
             'pipeline' => $pipeline,
             'uuids' => $uuids

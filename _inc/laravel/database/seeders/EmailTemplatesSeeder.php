@@ -14,6 +14,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class EmailTemplatesSeeder extends Seeder
 {
 	private const SEED = 20251215;
+	private const HARD_CAP = 2048;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	/**
 	 * Gera entre 1 e N templates de e-mail por tipo.
@@ -23,7 +25,7 @@ class EmailTemplatesSeeder extends Seeder
 	public function run(): void
 	{
 		fake()->seed(self::SEED);
-
+		$clock = microtime(true);
 		$output = new ConsoleOutput();
 
 		if (!Schema::hasTable(DC::TABLE_EMAIL_TEMPLATES)) {
@@ -40,7 +42,7 @@ class EmailTemplatesSeeder extends Seeder
 		$totalCreated = 0;
 
 		$output->writeln('<info>EmailTemplatesSeeder:</info> Gerando templates de e-mail para ' . $typesCount . ' tipos.');
-
+		$cap = self::HARD_CAP;
 		foreach ($types as $typeEnum) {
 			$typeValue = $typeEnum->value;
 			$langsAvailable = empty($langs) ? [DC::DEFAULT_LANG] : $langs;
@@ -49,6 +51,15 @@ class EmailTemplatesSeeder extends Seeder
 
 			for ($i = 0; $i < $typeCount; $i++) {
 				foreach ($langsAvailable as $lang) {
+					if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+						$output->writeln('<comment>EmailTemplatesSeeder: Limite de tempo atingido. Interrompendo.</comment>');
+						break 3;
+					}
+					if ($cap <= 0 || !$cap) {
+						$output->writeln('<comment>EmailTemplatesSeeder: Limite de criação atingido. Interrompendo.</comment>');
+						break 3;
+					}
+					$cap--;
 					$notificationId = $this->getRandomNotificationId();
 
 					// Gerar atributos do template

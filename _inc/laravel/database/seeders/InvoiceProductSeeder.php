@@ -19,6 +19,7 @@ class InvoiceProductSeeder extends Seeder
 	private const PER_INV_MIN   = 1;    // antes: INV_PRD_PER_INV_MIN
 	private const PER_INV_MAX   = 5;    // antes: INV_PRD_PER_INV_MAX
 	private const MAX_QTY       = 6;    // antes: INV_PRD_MAX_QTY
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	/**
 	 * Opções CLI:
@@ -26,6 +27,7 @@ class InvoiceProductSeeder extends Seeder
 	 */
 	public function run(): void
 	{
+		$clock = microtime(true);
 		if (!Schema::hasTable(DC::TABLE_INV_PRD) || !Schema::hasTable(DC::TABLE_INVS)) {
 			$this->command?->warn('Tabelas de faturas/itens de fatura ausentes. Pulando.');
 			return;
@@ -77,10 +79,18 @@ class InvoiceProductSeeder extends Seeder
 
 			for ($i = 0; $i < $itemsForInvoice; $i++) {
 				try {
+					if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+						$this->command?->warn('Limite de tempo atingido, interrompendo o seeder de itens de fatura.');
+						return;
+					}
 					if ($target > 0 && $totalPlanned >= $target) break 2;
 
-					$p = $products->random();
-					$price = $this->pickPrice($p);
+					$shorteningUniqueProdIds = $products->pluck('id');
+					$pickedProdId = $shorteningUniqueProdIds->random();
+					$shorteningUniqueProdIds = $shorteningUniqueProdIds->filter(function ($value) use ($pickedProdId) {
+						return $value !== $pickedProdId;
+					});
+					$price = $this->pickPrice(DB::table(DC::TABLE_PROD_SERVS)->where('id', $pickedProdId)->first());
 					if ($price <= 0) $price = round(fake()->randomFloat(2, 10, 900), 2);
 
 					$qty = fake()->numberBetween(1, $maxQty);
@@ -122,9 +132,16 @@ class InvoiceProductSeeder extends Seeder
 						];
 					});
 
+					$product = DB::table(DC::TABLE_PROD_SERVS)->where('id', $pickedProdId)->first();
+					if (!$product) {
+						Log::warning(get_class($this) . ' skipped: produto/serviço não encontrado para item de fatura', ['product_id' => $pickedProdId]);
+						continue;
+					}
+					$p = $product;
+
 					$rows[] = [
 						BC::COL_INV_ID       => $inv->id,
-						BC::COL_PRD_ID       => $p->id,
+						BC::COL_PRD_ID       => $pickedProdId,
 						'quantity'           => $qty,
 						'tax'                => $taxStr,
 						'price'              => $price,

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, SettingsConstants as SC};
 use App\Enums\{EvaluationStatus, Frequency};
+use App\Helpers\ErrorHandler;
 use App\Traits\{DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
@@ -130,7 +131,6 @@ class Budget extends Model
                 self::syncLegacyDates($m);
                 self::normalizeEnumsAndType($m);
                 self::normalizeThresholds($m);
-
                 self::normalizeJsonLists($m);
                 self::enrichReceiptsFromLinkedEntities($m);
                 self::mergeReceiptsIntoAttachments($m);
@@ -245,58 +245,65 @@ class Budget extends Model
 
     protected static function normalizeJsonLists(self $m): void
     {
-        $m->setAttribute(BC::COL_BNK_TRFS, $m->normalizeStringList($m->getAttribute(BC::COL_BNK_TRFS)) ?? []);
-        $m->setAttribute('transactions', $m->normalizeStringList($m->getAttribute('transactions')) ?? []);
-        $m->setAttribute(BC::COL_CARD_NTS, $m->normalizeStringList($m->getAttribute(BC::COL_CARD_NTS)) ?? []);
-        $m->setAttribute('receipts', $m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('receipts')) ?? []));
-        $m->setAttribute('attachments', $m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('attachments')) ?? []));
+        $m->setAttribute(BC::COL_BNK_TRFS, json_encode($m->normalizeStringList($m->getAttribute(BC::COL_BNK_TRFS)) ?? []));
+        $m->setAttribute('transactions', json_encode($m->normalizeStringList($m->getAttribute('transactions')) ?? []));
+        $m->setAttribute(BC::COL_CARD_NTS, json_encode($m->normalizeStringList($m->getAttribute(BC::COL_CARD_NTS)) ?? []));
+        $m->setAttribute('receipts', json_encode($m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('receipts')) ?? [])));
+        $m->setAttribute('attachments', json_encode($m->sanitizeAttachmentList($m->normalizeStringList($m->getAttribute('attachments')) ?? [])));
     }
 
     protected static function enrichReceiptsFromLinkedEntities(self $m): void
     {
         $receipts = $m->normalizeStringList($m->getAttribute('receipts')) ?? [];
         $receipts = array_values(array_unique($receipts));
-
         $targets = [
             [DC::TABLE_TRS, $m->normalizeStringList($m->getAttribute('transactions')) ?? []],
             [DC::TABLE_BNK_TRF, $m->normalizeStringList($m->getAttribute(BC::COL_BNK_TRFS)) ?? []],
         ];
-
         if (defined(DC::class . '::TABLE_CR_NOTES'))
             $targets[] = [DC::TABLE_CR_NOTES, []];
         if (defined(DC::class . '::TABLE_DB_NOTES'))
             $targets[] = [DC::TABLE_DB_NOTES, []];
-
         $cardNoteIds = $m->normalizeStringList($m->getAttribute(BC::COL_CARD_NTS)) ?? [];
         if (defined(DC::class . '::TABLE_CR_NOTES') && $cardNoteIds)
             $targets[] = [DC::TABLE_CR_NOTES, $cardNoteIds];
         if (defined(DC::class . '::TABLE_DB_NOTES') && $cardNoteIds)
             $targets[] = [DC::TABLE_DB_NOTES, $cardNoteIds];
-
         foreach ($targets as [$table, $ids]) {
-            if (!$ids)
+            try {
+                if (!$ids)
+                    continue;
+                if (!Schema::hasTable($table))
+                    continue;
+                $cols = [];
+                foreach (['receipt', BC::COL_RCP_MD, 'attachments'] as $c)
+                    if (Schema::hasColumn($table, $c))
+                        $cols[] = $c;
+                if (!$cols)
+                    continue;
+                $rows = DB::table($table)->select(array_merge(['id'], $cols))->whereIn('id', $ids)->get();
+                foreach ($rows as $r)
+                    foreach ($cols as $c)
+                        $receipts = array_merge($receipts, self::extractReceiptTokens($r->{$c} ?? null));
+            } catch (\Throwable $e) {
+                ErrorHandler::evaluateExistenceToLogChannel(
+                    'budget_errors',
+                    candidate: [
+                        'message' => "Enriching receipts from table {$table} failed",
+                        'context' => [
+                            'budget_id' => $m->getAttribute('id'),
+                            'table'     => $table,
+                            'error'     => $e->getMessage(),
+                            'file'      => $e->getFile(),
+                            'line'      => $e->getLine(),
+                        ],
+                    ],
+                );
                 continue;
-            if (!Schema::hasTable($table))
-                continue;
-
-            $cols = [];
-            foreach (['receipt', BC::COL_RCP_MD, 'attachments'] as $c) {
-                if (Schema::hasColumn($table, $c))
-                    $cols[] = $c;
-            }
-            if (!$cols)
-                continue;
-
-            $rows = DB::table($table)->select(array_merge(['id'], $cols))->whereIn('id', $ids)->get();
-            foreach ($rows as $r) {
-                foreach ($cols as $c) {
-                    $receipts = array_merge($receipts, self::extractReceiptTokens($r->{$c} ?? null));
-                }
             }
         }
-
         $receipts = array_values(array_unique($m->sanitizeAttachmentList($receipts)));
-        $m->setAttribute('receipts', $receipts);
+        $m->setAttribute('receipts', json_encode($receipts));
     }
 
     protected static function extractReceiptTokens(mixed $value): array
@@ -304,7 +311,7 @@ class Budget extends Model
         if ($value === null)
             return [];
         if (is_array($value))
-            return array_values(array_filter(array_map('strval', $value), fn($s) => trim($s) !== ''));
+            return self::handleReceiptArraysRecursively($value);
         if (is_string($value)) {
             $trim = trim($value);
             if ($trim === '')
@@ -312,25 +319,36 @@ class Budget extends Model
             if (self::looksLikeJson($trim)) {
                 $decoded = json_decode($trim, true);
                 if (is_array($decoded))
-                    return array_values(array_filter(array_map('strval', $decoded), fn($s) => trim($s) !== ''));
+                    return self::extractReceiptTokens($decoded);
             }
             return [$trim];
         }
         if (is_scalar($value))
             return [trim((string) $value)];
-
         return [];
+    }
+    protected static function handleReceiptArraysRecursively(array $value): array
+    {
+        $result = [];
+        foreach ($value as $item) {
+            if (is_array($item))
+                $result = array_merge($result, self::handleReceiptArraysRecursively($item));
+            elseif (is_scalar($item)) {
+                $trimmed = trim((string)$item);
+                if ($trimmed !== '')
+                    $result[] = $trimmed;
+            }
+        }
+        return $result;
     }
 
     protected static function mergeReceiptsIntoAttachments(self $m): void
     {
         $receipts    = $m->normalizeStringList($m->getAttribute('receipts')) ?? [];
         $attachments = $m->normalizeStringList($m->getAttribute('attachments')) ?? [];
-
         $merged = array_values(array_unique(array_merge($attachments, $receipts)));
         $merged = $m->sanitizeAttachmentList($merged);
-
-        $m->setAttribute('attachments', $merged);
+        $m->setAttribute('attachments', json_encode($merged));
     }
 
     protected function sanitizeAttachmentList(array $values): array

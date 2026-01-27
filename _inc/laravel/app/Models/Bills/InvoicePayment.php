@@ -13,6 +13,7 @@ use App\Enums\{
 };
 use App\Traits\{
     DefinesDates,
+    ExtendsPaymentTable,
     HasAuditFields,
     HasPaymentColumns,
     UsesUuids
@@ -25,6 +26,7 @@ class InvoicePayment extends Model
     use HasAuditFields;
     use HasPaymentColumns;
     use DefinesDates;
+    use ExtendsPaymentTable;
 
     protected $table = DC::TABLE_INV_PAY;
 
@@ -104,7 +106,6 @@ class InvoicePayment extends Model
     protected $with = [
         'invoice',
         'bankAccount',
-        'category',
         'order',
         'tax',
         'createdBy',
@@ -150,10 +151,21 @@ class InvoicePayment extends Model
         return $this->belongsTo(BankAccount::class, BC::COL_BACC_ID, 'id');
     }
 
-    public function category(): BelongsTo
+    public function productServiceCategory(): ?BelongsTo
     {
         return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
     }
+
+    public function productCategory(): ?BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function category(): ?BelongsTo
+    {
+        return Utility::getCategory($this);
+    }
+
 
     public function order(): BelongsTo
     {

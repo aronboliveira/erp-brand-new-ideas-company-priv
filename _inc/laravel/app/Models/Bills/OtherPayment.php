@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Enums\PaymentPatternType;
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{ExtendsPaymentTable, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\{
 
 class OtherPayment extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields;
+    use HasFactory, UsesUuids, HasAuditFields, ExtendsPaymentTable;
 
     protected $table = DC::TABLE_OT_PYMTS;
 
@@ -30,6 +30,7 @@ class OtherPayment extends Model
         'type',
         'description',
         'notes',
+        BC::COL_PAY_ID,
         BC::COL_NFE_KEY,
         BC::COL_NFE_NUMBER,
         BC::COL_NFE_SERIES,
@@ -51,6 +52,7 @@ class OtherPayment extends Model
 
     protected $with = [
         'employee',
+        'paymentModel',
     ];
 
     protected $appends = [
@@ -82,5 +84,10 @@ class OtherPayment extends Model
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
+    }
+
+    public function paymentModel(): ?HasOne
+    {
+        return $this->hasOne(Payment::class, 'id', BC::COL_PAY_ID);
     }
 }

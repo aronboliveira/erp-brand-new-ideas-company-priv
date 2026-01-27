@@ -9,13 +9,12 @@ class CreateTerminationTypesTable extends Migration
 {
     use HasNullableAuditColumns;
     private const TABLE          = DC::TABLE_TERMINATION_TYPES;
-    private const COL_NAME       = 'name';
-
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string(self::COL_NAME)->nullable()->index();
+            $table->string('name')->nullable()->index();
+            $table->text('description')->nullable();
             $this->addAuditColumns($table);
         });
     }

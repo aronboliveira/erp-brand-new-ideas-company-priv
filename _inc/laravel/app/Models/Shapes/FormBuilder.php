@@ -80,7 +80,7 @@ class FormBuilder extends Model
         FC::COL_DPL_AT,
         FC::COL_SBM_URL,
 
-        ...DescribesClientForm::CLIENT_FORM_COLUMNS,
+        ...self::CLIENT_FORM_COLUMNS,
 
         // HTML-linked metadata (new in migration)
         'aria',
@@ -148,6 +148,8 @@ class FormBuilder extends Model
         'selectors' => 'array',
         'size'      => 'array',
         'tags'      => 'array',
+        'allowed_methods' => 'array',
+        'allowed_enctypes' => 'array',
     ];
 
     protected $appends = [

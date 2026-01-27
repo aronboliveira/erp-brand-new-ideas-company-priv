@@ -14,8 +14,12 @@ use Illuminate\Support\Str;
 
 class BillProductSeeder extends Seeder
 {
+	private const HARD_CAP = 2048;
+	private const SECONDS_LIMIT = 300; // 5 minutos
 	public function run(): void
 	{
+		$out = new \Symfony\Component\Console\Output\ConsoleOutput();
+		$clock = microtime(true);
 		// Coleta de dependências
 		$billIds    = DB::table(DC::TABLE_BILLS)->pluck('id');          // obrigatório
 		$prodIds    = DB::table(DC::TABLE_PROD_SERVS)->pluck('id');     // opcional
@@ -26,8 +30,10 @@ class BillProductSeeder extends Seeder
 			$this->command?->warn('[BillProductSeeder] Nenhuma Bill encontrada. Rode o BillSeeder (ou crie Bills) antes deste seeder.');
 			return;
 		}
-
+		$cap = min(self::HARD_CAP, $billIds->count());
 		// Para cada Bill, cria entre 1 e 3 itens
+		$availableProdIds = $prodIds->shuffle()->values();
+		$prodIndex = 0;
 		foreach ($billIds as $billId) {
 			$itemsPerBill = random_int(1, 3);
 
@@ -50,10 +56,31 @@ class BillProductSeeder extends Seeder
 			}
 
 			for ($i = 0; $i < $itemsPerBill; $i++) {
+				if ((microtime(true) - $clock) > self::SECONDS_LIMIT) {
+					$out->writeln('[BillProductSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+					$this->command?->warn('[BillProductSeeder] Tempo limite atingido, interrompendo a execução do seeder.');
+					return;
+				}
+				if (--$cap < 0) {
+					$out->writeln('[BillProductSeeder] Limite máximo de itens atingido, interrompendo a execução do seeder.');
+					$this->command?->warn('[BillProductSeeder] Limite máximo de itens atingido, interrompendo a execução do seeder.');
+					return;
+				}
+				if ($prodIds->isNotEmpty()) {
+					if ($prodIndex >= $availableProdIds->count()) {
+						$out->writeln('[BillProductSeeder] Lista de produtos esgotada, interrompendo.');
+						$this->command?->warn('[BillProductSeeder] Lista de produtos esgotada.');
+						return;
+					}
+					$pickedProdId = $availableProdIds[$prodIndex];
+					$prodIndex++;
+				} else {
+					$pickedProdId = null;
+				}
 				try {
 
 					// Quantidade e preços “seguros”
-					$qty         = random_int(1, 5);
+					$qty         = random_int(1, 8);
 					$unitCents   = random_int(2_000, 40_000); // 20.00 ~ 400.00
 					$unit        = round($unitCents / 100, 2);
 					$subtotal    = $unit * $qty;
@@ -77,10 +104,9 @@ class BillProductSeeder extends Seeder
 							$otherTaxes[] = ['id' => $tk]; // estrutura mínima aceita pelo filtro do modelo
 						}
 					}
-
 					BillProduct::create([
 						BC::COL_BL_ID   => $billId,
-						BC::COL_PRD_ID  => $prodIds->isNotEmpty() ? $prodIds->random() : null,
+						BC::COL_PRD_ID  => $pickedProdId,
 						BKC::COL_COA    => $coaIds->isNotEmpty()  ? $coaIds->random()  : null,
 						'quantity'      => $qty,
 						'discount'      => $discount,
@@ -96,6 +122,7 @@ class BillProductSeeder extends Seeder
 							'seed_src'   => 'BillProductSeeder',
 						],
 					]);
+					$out->writeln("[BillProductSeeder] {$i} - Item de fatura criado para Bill ID {$billId}, quantity {$qty}, unit price {$unit}, total {$lineTotal}.");
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;

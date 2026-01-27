@@ -4,7 +4,8 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\GoalType as GoalTypeEnum;
-use App\Traits\{ChecksLogin, HasAuditFields, NormalizesArrays, PlansWithSchedule, UsesUuids};
+use App\Services\GoalRequestService;
+use App\Traits\{HasAuditFields, NormalizesArrays, PlansWithSchedule, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\{Carbon, Str};
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class Goal extends Model
 {
-    use UsesUuids, ChecksLogin, HasAuditFields, NormalizesArrays, PlansWithSchedule;
+    use UsesUuids, HasAuditFields, NormalizesArrays, PlansWithSchedule;
 
     protected $table = DC::TABLE_GL;
 
@@ -297,83 +298,12 @@ class Goal extends Model
 
     public function target(string $type, string $from, string $to, float $amount): array|RedirectResponse
     {
-        $userOrRedirect = self::_checkLogin();
-        if ($userOrRedirect instanceof \Illuminate\Http\RedirectResponse)
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        $userId = $user?->creatorId();
-
-        try {
-            $start = self::parseDateTimeOrNull($from)?->startOfDay() ?? Carbon::now()->startOfMonth();
-            $end   = self::parseDateTimeOrNull($to)?->endOfDay() ?? Carbon::now()->endOfMonth();
-        } catch (\Throwable $e) {
-            Log::debug(static::class . ' invalid date range for target, using current month', [
-                'error' => $e->getMessage(),
-            ]);
-            $start = Carbon::now()->startOfMonth();
-            $end   = Carbon::now()->endOfMonth();
-        }
-
-        $enum  = GoalTypeEnum::normalize($type);
-        $total = 0.0;
-
-        try {
-            switch ($enum) {
-                case GoalTypeEnum::Invoice:
-                    if (class_exists(Invoice::class)) {
-                        $total = Invoice::query()
-                            ->where('created_by', $userId)
-                            ->whereBetween('issue_date', [$start->toDateString(), $end->toDateString()])
-                            ->get()
-                            ->sum(static fn($inv) => (float) $inv->getTotal());
-                    }
-                    break;
-
-                case GoalTypeEnum::Bill:
-                    if (class_exists(Bill::class)) {
-                        $total = Bill::query()
-                            ->where('created_by', $userId)
-                            ->whereBetween('bill_date', [$start->toDateString(), $end->toDateString()])
-                            ->get()
-                            ->sum(static fn($b) => (float) $b->getTotal());
-                    }
-                    break;
-
-                case GoalTypeEnum::Revenue:
-                    if (class_exists(Revenue::class)) {
-                        $total = (float) Revenue::query()
-                            ->where('created_by', $userId)
-                            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-                            ->sum('amount');
-                    }
-                    break;
-
-                case GoalTypeEnum::Payment:
-                    if (class_exists(Payment::class)) {
-                        $total = (float) Payment::query()
-                            ->where('created_by', $userId)
-                            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-                            ->sum('amount');
-                    }
-                    break;
-
-                default:
-                    $total = 0.0;
-            }
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to compute target for goal', [
-                'error'   => $e->getMessage(),
-                'type'    => $enum->value,
-                'user_id' => $userId,
-            ]);
-        }
-
-        $percentage = $amount > 0.0 ? ($total * 100.0) / $amount : 0.0;
-
-        return [
-            'percentage' => $percentage,
-            'total'      => $total,
-        ];
+        return app(GoalRequestService::class)->calculateTarget(
+            $type,
+            $from,
+            $to,
+            $amount
+        );
     }
 
     protected static function parseDateTimeOrNull(mixed $value): ?Carbon

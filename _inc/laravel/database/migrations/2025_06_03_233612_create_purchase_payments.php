@@ -1,51 +1,56 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants as DC};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\{HasNfeColumns, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
-
+// * this model just be a "bridge" that links purchases to payments made against them
 class CreatePurchasePayments extends Migration
 {
-    private const TABLE          = DC::TABLE_PRC_PAY;
-    private const COL_ACCOUNT_ID = 'account_id';
-    private const COL_PURCHASE_ID = 'purchase_id';
-
+    use HasNfeColumns, HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_PRC_PAY;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                                 // ! CHANGED
-            $table->uuid(self::COL_PURCHASE_ID);                           // ! CHANGED
+            $table->uuid('id')->primary();
+            $table->uuid(BC::COL_PRC_ID)->index();
+            $table->uuid(BC::COL_PAY_ID)->nullable()->index();
+            $table->uuid(BC::COL_BACC_ID)->nullable()->index();
+            $table->unique([BC::COL_PRC_ID, BC::COL_PAY_ID, BC::COL_BACC_ID], 'uniq_prc_pay_bacc');
             $table->date('date');
-            $table->decimal('amount', 15, 2)->default(0.00);               // ! CHANGED
-            $table->uuid(self::COL_ACCOUNT_ID);                            // ! CHANGED
-            $table->integer('payment_method');
+            $table->decimal('amount', 16, 2)->default(0.00);
+            $table->unsignedTinyInteger(BC::COL_PAY_MTD)->default(0);
             $table->string('reference')->nullable();
             $table->text('description')->nullable();
-            $table->string('add_receipt')->nullable();                     // * added
-            $table->timestamps();
-            $table->uuid(DC::COL_TABLE_CREATOR)->nullable();
+            $table->string(BC::COL_ADD_RCP)->nullable();
+            $this->addNfeColumns($table);
+            $table->foreign(BC::COL_PRC_ID)
+                ->references('id')
+                ->on(DC::TABLE_PURCHASES)
+                ->restrictOnDelete();
             foreach (
                 [
-                    self::COL_PURCHASE_ID               => DC::TABLE_PURCHASES,
-                    self::COL_ACCOUNT_ID                => DC::TABLE_BANK_ACC,
-                    DC::COL_TABLE_CREATOR    => DC::TABLE_USERS,
+                    BC::COL_PAY_ID => DC::TABLE_PAY,
+                    BC::COL_BACC_ID => DC::TABLE_BANK_ACC,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_PURCHASE_ID,
-                    self::COL_ACCOUNT_ID,
-                    DC::COL_TABLE_CREATOR,
+                    BC::COL_PRC_ID,
+                    BC::COL_PAY_ID,
+                    BC::COL_BACC_ID,
                 ] as $column
             ) {
                 try {

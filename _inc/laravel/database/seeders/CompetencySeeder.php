@@ -13,9 +13,11 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class CompetencySeeder extends Seeder
 {
 	private ConsoleOutput $out;
-
+	private const SECONDS_LIMIT = 2 * 10 ** 2; // 10 minutes
+	private $clock = 0.0;
 	public function run(): void
 	{
+		$this->clock = microtime(true);
 		$this->out = new ConsoleOutput();
 
 		try {
@@ -30,7 +32,7 @@ class CompetencySeeder extends Seeder
 			$rawTotal = 0;
 
 			foreach ($moduleCases as $case) {
-				$n = random_int(2, 32);
+				$n = random_int(2, 16);
 				$perModule[$case->value] = $n;
 				$rawTotal += $n;
 			}
@@ -64,8 +66,17 @@ class CompetencySeeder extends Seeder
 			$levelsPool = ['None', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
 			foreach ($moduleCases as $module) {
+				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				$count = (int) ($perModule[$module->value] ?? 0);
 				for ($i = 0; $i < $count; $i++) {
+
+					if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						return;
+					}
 					$name = $this->uniqueNameForModule($module, $faker);
 
 					$category = $faker->boolean(70) ? $faker->words(random_int(1, 2), true) : null;
@@ -177,7 +188,7 @@ class CompetencySeeder extends Seeder
 	{
 		try {
 			$faker = fake('en_US');
-
+			$this->clock ??= microtime(true);
 			$competencies = Competency::query()
 				->whereIn('id', $competencyIds)
 				->get();
@@ -206,6 +217,10 @@ class CompetencySeeder extends Seeder
 			// distribute companies across at least 2 competencies each
 			$ci = 0;
 			foreach ($companySlice as $companyId) {
+				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				$a = $competencies[$ci % $compCount];
 				$b = $competencies[($ci + 1) % $compCount];
 				$ci++;
@@ -222,6 +237,10 @@ class CompetencySeeder extends Seeder
 			// distribute branches across at least 2 competencies each
 			$bi = 0;
 			foreach ($branchSlice as $branchId) {
+				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				$a = $competencies[$bi % $compCount];
 				$b = $competencies[($bi + 3) % $compCount];
 				$bi++;
@@ -238,6 +257,10 @@ class CompetencySeeder extends Seeder
 			// ensure at least half of jobs appear at least once
 			$ji = 0;
 			foreach ($jobSlice as $jobId) {
+				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				$m = $competencies[$ji % $compCount];
 				$ji++;
 				$this->attachIdToJsonArray($m, 'jobs', $jobId);
@@ -248,6 +271,10 @@ class CompetencySeeder extends Seeder
 			$deptIds     = $this->fetchIdsRaw(DC::TABLE_DEPARTMENTS);
 
 			foreach ($competencies as $m) {
+				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					Log::warning(self::class . ' seeding time limit reached, stopping early');
+					return;
+				}
 				if ($faker->boolean(55) && !empty($jobIds))
 					$this->attachManyIdsToJsonArray($m, 'jobs', $this->pickMany($jobIds, random_int(0, 6)));
 

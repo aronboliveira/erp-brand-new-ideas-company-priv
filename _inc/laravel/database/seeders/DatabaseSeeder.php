@@ -5,7 +5,8 @@ namespace Database\Seeders;
 use App\Models\Indicator;
 use App\Models\Utility;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\{Artisan, Log, Route};
+use Illuminate\Support\Facades\{DB, Artisan, Log, Route};
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class DatabaseSeeder extends Seeder
@@ -101,9 +102,9 @@ class DatabaseSeeder extends Seeder
                     DepartmentSeeder::class,
                     ClientSeeder::class,
                     PasswordResetsSeeder::class,
-                    DocumentSeeder::class,
                     PipelineSeeder::class,
                     PlanSeeder::class,
+                    DocumentSeeder::class,
                     NotificationTemplatesSeeder::class,
                     NotificationTemplateLangsSeeder::class,
                     NotificationsLateSeeder::class,
@@ -193,8 +194,10 @@ class DatabaseSeeder extends Seeder
                     ChartOfAccountSubTypeSeeder::class,
                     ChartOfAccountSeeder::class,
                     ProductServiceCategorySeeder::class,
+                    ProductCategorySeeder::class,
                     ProductServiceSeeder::class,
                     ProductServiceUnitSeeder::class,
+                    ProductSeeder::class,
                     CustomerSeeder::class,
                     BankAccountSeeder::class,
                     BankTransferSeeder::class,
@@ -215,16 +218,16 @@ class DatabaseSeeder extends Seeder
                     EventEmployeeSeeder::class,
                     BillSeeder::class,
                     InvoiceSeeder::class,
+                    PaymentSeeder::class,
+                    BillAccountSeeder::class,
+                    BillPaymentSeeder::class,
                     BillProductSeeder::class,
                     InvoicePaymentSeeder::class,
                     ProjectInvoiceSeeder::class,
                     RevenueSeeder::class,
                     WarehouseSeeder::class,
                     PosSeeder::class,
-                    PaymentSeeder::class,
                     PosPaymentSeeder::class,
-                    InvoiceProductSeeder::class,
-                    BillPaymentSeeder::class,
                     TransactionSeeder::class,
                     AssetsSeeder::class,
                     CreditNoteSeeder::class,
@@ -243,9 +246,16 @@ class DatabaseSeeder extends Seeder
                     DealCallSeeder::class,
                     EstimationSeeder::class,
                     ProposalSeeder::class,
+                    ProposalProductSeeder::class,
+                    PurchaseSeeder::class,
+                    PurchasePaymentSeeder::class,
+                    InvoiceProductSeeder::class,
+                    PosProductSeeder::class,
+                    WarehouseProductSeeder::class,
                     HolidaySeeder::class,
                     TimeTrackerSeeder::class,
                     PlanningScheduleSeeder::class,
+                    WarehouseTransferSeeder::class,
                     BasicFavoritesSeeder::class,
                     JournalEntrySeeder::class,
                     JournalItemSeeder::class,
@@ -259,6 +269,7 @@ class DatabaseSeeder extends Seeder
                     TrackPhotoSeeder::class,
                     LogActivitySeeder::class,
                     ActivityLogSeeder::class,
+                    StockReportSeeder::class,
                 ] as $mockSeeder
             ) {
                 try {
@@ -270,7 +281,50 @@ class DatabaseSeeder extends Seeder
                     Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
                     $endTime = microtime(true);
                     $duration = $endTime - $startTime;
-                    Log::warning('Seeder ' . $mockSeeder . ' completed in ' . round($duration, 2) . ' segundos.');
+                    $rowCount = '#NULL';
+                    try {
+                        $modelName = Str::singular(str_replace('Late', '', preg_replace('/Seeder$/', '', class_basename($lastSeeder))));
+                        $modelName = match (class_basename($lastSeeder)) {
+                            'PosSeeder' => 'Pos',
+                            default => $modelName,
+                        };
+                        $modelClass = "\\App\\Models\\{$modelName}";
+                        if (!class_exists($modelClass)) {
+                            $rowCount = '#MODEL_NOT_FOUND';
+                            Log::debug('Model class not found after seeding', [
+                                'seeder' => $lastSeeder,
+                                'model' => $modelName,
+                            ]);
+                        } else {
+                            $modelInstance = new $modelClass;
+                            if (!method_exists($modelInstance, 'getTable')) {
+                                try {
+                                    $rowCount = $modelClass::count();
+                                } catch (\Throwable $e) {
+                                    $rowCount = '#MODEL_COUNT_UNAVAILABLE';
+                                }
+                            } else {
+                                try {
+                                    $tableName = $modelInstance->getTable();
+                                    $rowCount = DB::table($tableName)->count();
+                                } catch (\Throwable $e) {
+                                    try {
+                                        $rowCount = $modelClass::count();
+                                    } catch (\Throwable $e2) {
+                                        $rowCount = '#TABLE_COUNT_UNAVAILABLE';
+                                    }
+                                }
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        Log::debug('Failed to get row count for model after seeding', [
+                            'seeder' => $lastSeeder,
+                            'model' => $modelName ?? 'unknown',
+                            'error' => $e->getMessage(),
+                        ]);
+                        $rowCount = '#ERROR';
+                    }
+                    Log::warning('Seeder ' . $mockSeeder . ' completed in ' . round($duration, 2) . ' segundos, criando ' . Str::singular(preg_replace('/Seeder$/', '', class_basename($lastSeeder))) . ' records. Count: ' . $rowCount);
                     sleep(1);
                 } catch (\Throwable $e) {
                     $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');

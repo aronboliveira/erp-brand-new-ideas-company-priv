@@ -155,7 +155,10 @@ final class TaskChecklistSeeder extends Seeder
 		$created = 0;
 		$byTypeCreated = [];
 
+		$cap = 512;
 		foreach ($plan as $p) {
+			if (!$cap || $cap <= 0) break;
+			$cap--;
 			$taskId = (string)($p['task_id'] ?? '');
 			if ($taskId === '') {
 				continue;

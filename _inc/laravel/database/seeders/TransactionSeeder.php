@@ -32,12 +32,15 @@ class TransactionSeeder extends Seeder
 	private const OTHER_MAX  = 256;
 	private const MAX_AMOUNT = 8000.00;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutes
+
 	/**
 	 * Opção CLI:
 	 *  --count=INT   Limita o total aproximado de transações (mas mantendo 64 × n como piso).
 	 */
 	public function run(): void
 	{
+		$clock = microtime(true);
 		if (!Schema::hasTable(DC::TABLE_TRS)) {
 			$this->command?->warn('TransactionSeeder: tabela de transactions ausente. Seeder abortado.');
 			return;
@@ -105,7 +108,7 @@ class TransactionSeeder extends Seeder
 			$cliCount = (int) $this->command->option('count');
 		}
 
-		$minTarget = 64 * $baseCount;
+		$minTarget = 8 * $baseCount;
 		$target    = max($minTarget, $cliCount > 0 ? $cliCount : $minTarget);
 
 		$opt       = self::OPTIONALITY;
@@ -127,7 +130,7 @@ class TransactionSeeder extends Seeder
 		$hasUpdaterCol = Schema::hasColumn(DC::TABLE_TRS, DC::COL_TABLE_UPDATER);
 
 		$inserted = 0;
-
+		$stopWarned = false;
 		DB::transaction(function () use (
 			$bankAccounts,
 			$users,
@@ -147,7 +150,9 @@ class TransactionSeeder extends Seeder
 			$json,
 			$hasCreatorCol,
 			$hasUpdaterCol,
-			&$inserted
+			&$inserted,
+			&$clock,
+			&$stopWarned
 		) {
 			// Helper único de criação de uma linha de transação
 			$buildRow = function (
@@ -172,13 +177,23 @@ class TransactionSeeder extends Seeder
 				$maybe,
 				$json,
 				$hasCreatorCol,
-				$hasUpdaterCol
+				$hasUpdaterCol,
+				&$clock,
+				&$stopWarned
 			): array {
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? (self::SECONDS_LIMIT * 0.8) : ((6 * 10 ** 2) * 0.8))) {
+					if (!$stopWarned) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						$stopWarned = true;
+					}
+					return [];
+				}
 				// Se não veio payId e houver Payment para transações "other",
 				// podemos referenciar um Payment real.
 				if ($payId === null && $type === TransactionType::Other && $payments) {
 					$payId = Arr::random($payments);
 				}
+
 
 				$amount   = round(fake()->randomFloat(2, 20.0, $maxAmount), 2);
 				$discount = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.20), 2)) ?? 0.00;
@@ -347,8 +362,16 @@ class TransactionSeeder extends Seeder
 				$bankAccounts,
 				$users,
 				$now,
-				$buildRow
+				$buildRow,
+				&$clock,
+				&$stopWarned
 			): void {
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? (self::SECONDS_LIMIT * 0.8) : ((6 * 10 ** 2) * 0.8))) {
+					if (!$stopWarned) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						$stopWarned = true;
+					}
+				}
 				if (!$ids) {
 					return;
 				}
@@ -410,6 +433,14 @@ class TransactionSeeder extends Seeder
 			$otherCount = min($remaining, self::OTHER_MAX);
 
 			for ($i = 0; $i < $otherCount; $i++) {
+
+				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
+					if (!$stopWarned) {
+						Log::warning(self::class . ' seeding time limit reached, stopping early');
+						$stopWarned = true;
+					}
+					return;
+				}
 				try {
 					if ($target > 0 && $inserted >= $target) {
 						break;
@@ -442,7 +473,7 @@ class TransactionSeeder extends Seeder
 					// Ajuste de descrição para destacar que é "other"
 					$row['description'] = 'Lançamento avulso (other) gerado pelo seeder';
 
-					Transaction::query()->create($row);
+					if (!empty($row) && count($row) > 0) Transaction::query()->create($row);
 					$inserted++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());

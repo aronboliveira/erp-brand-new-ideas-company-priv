@@ -8,10 +8,11 @@ use App\Config\Constants\{
     ProjectsConstants as PJC,
     UsersConstants as UC
 };
+use App\Enums\UserType;
 use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, StoresManyRefJson, UsesUuids};
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Builder, Model, Relations\BelongsTo};
-use Illuminate\Support\Facades\{Cache, DB, Log};
+use Illuminate\Support\Facades\{Cache, DB, Log, Schema};
 use Illuminate\Support\Str;
 
 class InterviewSchedule extends Model
@@ -103,9 +104,14 @@ class InterviewSchedule extends Model
         return $this->belongsTo(JobApplication::class, 'candidate', 'id');
     }
 
-    public function users(): BelongsTo
+    public function employee(): ?BelongsTo
     {
-        return $this->belongsTo(User::class, 'employee', 'id');
+        return Utility::getEmployee($this);
+    }
+
+    public function users(): ?BelongsTo // * legacy alias for employee
+    {
+        return $this->employee();
     }
 
     public function task(): BelongsTo
@@ -221,13 +227,35 @@ class InterviewSchedule extends Model
             return true;
 
         try {
-            $empCode = DB::table(DC::TABLE_USERS)
+            $relation = Utility::getEmployee($this);
+
+            if (!$relation)
+                return false;
+
+            // Check if employee exists in either Employee table or Users table with valid types
+            $employeesTable = DC::TABLE_EMPLOYEES;
+            $usersTable = DC::TABLE_USERS;
+
+            $existsInEmployees = DB::table($employeesTable)
                 ->where('id', $employeeId)
-                ->value(UC::COL_EMP_ID);
+                ->exists();
 
-            $empCode = is_string($empCode) ? trim($empCode) : '';
+            if ($existsInEmployees)
+                return true;
 
-            if ($empCode !== '')
+            $typeColumn = Schema::hasColumn($usersTable, UC::COL_TP) ? UC::COL_TP : 'type';
+
+            $existsInUsers = DB::table($usersTable)
+                ->where('id', $employeeId)
+                ->whereIn($typeColumn, [
+                    UserType::Hr->value,
+                    UserType::Admin->value,
+                    UserType::SuperAdmin->value,
+                    UserType::Company->value
+                ])
+                ->exists();
+
+            if ($existsInUsers)
                 return true;
 
             Log::warning(self::class . ' rejected schedule: employee is not a valid interviewer', [

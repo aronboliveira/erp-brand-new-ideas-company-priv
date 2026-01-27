@@ -37,6 +37,10 @@ class PlanRequest extends Model
         'plan',
     ];
 
+    protected $casts = [
+        'attachments' => 'array',
+    ];
+
     protected static function booted(): void
     {
         static::saving(function (self $m): void {

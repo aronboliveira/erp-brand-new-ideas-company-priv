@@ -21,8 +21,10 @@ class CompanyPolicySeeder extends Seeder
 {
 	use EvaluatesMemory, EnsuresSystemUser;
 
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	public function run(): void
 	{
+		$clock = microtime(true);
 		$systemUserId = $this->ensureSystemUser();
 		$this->checkMemoryUsage();
 
@@ -39,6 +41,7 @@ class CompanyPolicySeeder extends Seeder
 		$companyIds = $this->fetchCompanyUserIds();
 		$n = max(1, count($companyIds));
 		$target = $this->resolveCountMultipleOf64($n);
+		$target = min($target, 256);
 
 		$branchIds = $this->fetchBranchIdsMaybe(); // pode retornar []
 		$signerMap = $this->fetchSignerMap();      // [id => name]
@@ -64,6 +67,10 @@ class CompanyPolicySeeder extends Seeder
 		try {
 			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			for ($i = 0; $i < $target; $i++) {
+				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
+					$output->writeln("Reached time limit of " . self::SECONDS_LIMIT . " seconds; stopping seeder.");
+					break;
+				}
 				if (($i % 8) === 0) $this->checkMemoryUsage();
 
 				$title = $faker->sentence(mt_rand(3, 7));
