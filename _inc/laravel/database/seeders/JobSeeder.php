@@ -14,7 +14,7 @@ class JobSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+	private const SECONDS_LIMIT = 3 * 10 ** 2; // 10 minutes
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
@@ -55,7 +55,7 @@ class JobSeeder extends Seeder
 		$rawTotal = 0;
 		foreach ($jobCats as $cat)
 			$rawTotal += random_int(1, 16);
-		$hardCap = 512;
+		$hardCap = 256;
 		$targetTotal = min($countJobCats * 4, $this->toNextMultipleOf64($rawTotal));
 		$targetTotalFirst = max($countJobCats * 2, (int) floor($targetTotal * 0.1));
 		$targetTotalSecond = $targetTotal - $targetTotalFirst;

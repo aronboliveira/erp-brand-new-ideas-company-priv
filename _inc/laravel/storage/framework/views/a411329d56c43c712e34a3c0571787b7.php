@@ -1,4 +1,4 @@
-@php
+<?php
 	use Illuminate\Support\Facades\{Log,Route};
 	use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
 	use Symfony\Component\Console\Output\ConsoleOutput;
@@ -133,10 +133,10 @@
 		);
 		$pages??=[];
 	}
-@endphp
-@if ($menubarStatus === 'on' && count((array) $pages))
-    @foreach ($pages as $page)
-        @php
+?>
+<?php if($menubarStatus === 'on' && count((array) $pages)): ?>
+    <?php $__currentLoopData = $pages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $page): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php
             $loginRequired??=false;
             $template??='';
             $name??='';
@@ -175,29 +175,32 @@
                     ]
                 );
             }
-        @endphp
-        @if ($loginRequired && $template === 'page_content')
+        ?>
+        <?php if($loginRequired && $template === 'page_content'): ?>
             <li class="nav-item">
                 <a class="nav-link"
-                href="{{ (Route::has('custom.page') && data_get($page, LandingPageSettingsConstants::PG_SLG)) 
+                href="<?php echo e((Route::has('custom.page') && data_get($page, LandingPageSettingsConstants::PG_SLG)) 
                         ? route('custom.page', data_get($page, LandingPageSettingsConstants::PG_SLG)) 
-                        : '#' }}">
-                    {{ $name }}
+                        : '#'); ?>">
+                    <?php echo e($name); ?>
+
                 </a>
             </li>
-        @elseif ($loginRequired && $template === 'page_url')
+        <?php elseif($loginRequired && $template === 'page_url'): ?>
             <li class="nav-item">
                 <a class="nav-link" target="_blank"
-                   href="{{ data_get($page, 'page_url', '#') }}">
-                    {{ $name }}
+                   href="<?php echo e(data_get($page, 'page_url', '#')); ?>">
+                    <?php echo e($name); ?>
+
                 </a>
             </li>
-        @endif
-    @endforeach
-@endif
+        <?php endif; ?>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<?php endif; ?>
 <script>
     (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
         'Current route:',
-        '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() ?? 'unknown' }}'
+        '<?php echo e(Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() ?? 'unknown'); ?>'
     );
 </script>
+<?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Resources/views/layouts/buttons.blade.php ENDPATH**/ ?>

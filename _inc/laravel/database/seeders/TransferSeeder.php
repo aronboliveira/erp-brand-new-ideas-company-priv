@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\{ConsoleOutput};
 final class TransferSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutes
 	private const MAX_PICK_ATTEMPTS = 24;
 	private const MAX_DATE_SHIFT_ATTEMPTS = 7;
 

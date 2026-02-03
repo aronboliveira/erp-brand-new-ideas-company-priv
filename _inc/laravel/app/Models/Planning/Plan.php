@@ -20,6 +20,9 @@ class Plan extends Model
     private const DURATION_OPTIONS = [
         'lifetime' => 'Lifetime',
         'month'    => 'Per Month',
+        'semimonthly' => 'Semi Monthly',
+        'quarterly' => 'Quarterly',
+        'semiannual' => 'Semi Annual',
         'year'     => 'Per Year',
     ];
     private static ?self $cachedPlan = null;

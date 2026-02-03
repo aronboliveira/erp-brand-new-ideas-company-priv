@@ -22,7 +22,7 @@ class JournalEntrySeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	public function __construct()
 	{
 		$this->out = new ConsoleOutput();

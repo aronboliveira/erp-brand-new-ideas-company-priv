@@ -30,7 +30,7 @@ class SupportSeeder extends Seeder
 	private const UNIQUE_TKT_ATTEMPTS = 40;
 	private const PICK_ATTEMPTS = 80;
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 
 	private $counter = 0;
 

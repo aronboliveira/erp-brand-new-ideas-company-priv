@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         $startTime = microtime(true);
         if ($this->shouldSeedStandardTables()) {
             $output->writeln('<info>Starting at ' . date('Y-m-d H:i:s') . '</info>');
-            foreach ([UsersTableSeeder::class, PlansTableSeeder::class, AiTemplateSeeder::class] as $seeder)
+            foreach ([PlansTableSeeder::class, UsersTableSeeder::class, AiTemplateSeeder::class] as $seeder)
                 $this->call($seeder);
             $this->runMocks();
             $finishedIn = round(microtime(true) - $startTime, 2);

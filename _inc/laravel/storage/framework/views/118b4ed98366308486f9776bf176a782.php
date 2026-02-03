@@ -1,0 +1,1 @@
+<script defer src="<?php echo e(asset('assets/js/generic/checkMounted.js')); ?>"></script><?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/fragments/check_mounted.blade.php ENDPATH**/ ?>

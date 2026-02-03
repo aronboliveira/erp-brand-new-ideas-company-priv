@@ -23,12 +23,12 @@ final class BugFileSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 3 * 10 ** 2;
 	private const HARD_CAP = 800;
 
 	// “Mesmo loop” do TaskFile: por bug, 1..16 “grupos” variando user_type + mime_type
 	private const GROUPS_PER_BUG_MIN = 1;
-	private const GROUPS_PER_BUG_MAX = 16;
+	private const GROUPS_PER_BUG_MAX = 8;
 
 	// Por mime:
 	private const NON_DOC_MIN = 1;

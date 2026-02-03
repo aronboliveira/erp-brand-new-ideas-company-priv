@@ -29,7 +29,7 @@ class UserToDoSeeder extends Seeder
 	private bool $hasNotificationsTable = false;
 	private bool $hasNotificationsUserCol = false;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutos
+	private const SECONDS_LIMIT = 2 * 10 ** 2; // 3 minutos
 	private const HARD_CAP = 800;
 
 	/**
