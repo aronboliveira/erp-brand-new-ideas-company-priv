@@ -229,7 +229,7 @@
                             </tr>
                             @if(!empty($item->description))
                                 <tr class="border-0 itm-description">
-                                    <td colspan="6" style="border-bottom:1px solid <?= $color }}">{{ $item->description }}</td>
+                                    <td colspan="6" style="border-bottom:1px solid <?= $color ?>">{{ $item->description }}</td>
                                 </tr>
                             @endif
                         @endforeach
@@ -278,7 +278,7 @@
                                     <td>{{ __('Paid') }}:</td>
                                     <td>{{ $fmtPrice($settings, ($total - $due) - $creditNote) }}</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid <?= $color }}">
+                                <tr style="border-bottom:1px solid <?= $color ?>">
                                     <td>{{ __('Credit Note') }}:</td>
                                     <td>{{ $fmtPrice($settings, $creditNote) }}</td>
                                 </tr>
