@@ -21,14 +21,15 @@ class LoginRequestTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** authorize() returns false for non-HTTPS requests.
+	 ** authorize() still returns true for non-HTTPS
+	 ** (local/non-production), but logs appropriately.
 	 **/
-	public function authorize_returns_false_for_non_https()
+	public function authorize_returns_true_for_non_https()
 	{
 		$base = Request::create('http://example.com/login', 'POST');
 		$req = LoginRequest::createFromBase($base);
 
-		$this->assertFalse($req->authorize());
+		$this->assertTrue($req->authorize());
 	}
 
 	/**

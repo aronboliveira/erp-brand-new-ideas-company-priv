@@ -1,0 +1,49 @@
+{
+  "cookies": [
+    {
+      "name": "erp_locale",
+      "value": "en",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1803771772.883738,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "XSRF-TOKEN",
+      "value": "eyJpdiI6IlpRaFMybUt4S1VmRlYrd29wOG1Gamc9PSIsInZhbHVlIjoiMi94eE1TNFJkSi96d3czNTVabEpyR1d3ZDJwTTd2TFdiYzlRNzJOVHpxMGVNeVpmL1RMOStsZWUxaENMd0lkNktLa0xkcURRcjFBc0VPNmpSL0FjV0k5UDVxbENMVzFmeExOUXdRUE1pZU15S0laOURXN1VxN1JLWE4rMkFNRE8iLCJtYWMiOiI5Y2M4OTYzNjY3NmQ5OTdlY2QxZTRhYjBkMDZiZjVmNmYyM2FiNGQwZjBmZDdlMzZmNTUwNzA4ODBkNTkzZjMzIiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1772242972.883662,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "erp_nova_prestech_session",
+      "value": "eyJpdiI6ImV2RVUzZS8ySUpuTHhSOUY0c2ZmSkE9PSIsInZhbHVlIjoiTHBiTHdOZlhVTFYwWkNEVUdqK0lZZFNXUmI2c2dZKzlhRHZ5VnBGNmRCSGxIakVZSjJUOU1Ba2tnemNXS1RpckJVRUprQ0NTOW1zWnNHTDF1YUs3ang1OGFBYUxnNXltUzdBTGhSVGRHSGQ3em90QzBoT3gxbWJaM2lReU9uZ1UiLCJtYWMiOiI1YjAxODYzNmI2YjRmMjQ3YTE5Y2Q5NWQyMDAwMmY2ODQ2ZGUxMTVlYTc5ZWUwMGZkNDM1MGE3OTAzYzE2ZDJmIiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1772242972.88378,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:8000",
+      "localStorage": [
+        {
+          "name": "erp-np-lang",
+          "value": "en"
+        },
+        {
+          "name": "locale",
+          "value": "en"
+        }
+      ]
+    }
+  ]
+}

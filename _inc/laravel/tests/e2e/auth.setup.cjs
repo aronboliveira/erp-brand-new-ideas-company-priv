@@ -1,0 +1,69 @@
+// @ts-check
+const { chromium } = require("@playwright/test");
+const fs = require("fs");
+const path = require("path");
+
+const BASE_URL = "http://localhost:8000";
+const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
+
+async function globalSetup() {
+  console.log("Starting authentication setup...");
+
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  try {
+    console.log("Navigating to login page...");
+    await page.goto(`${BASE_URL}/login`, { timeout: 30000 });
+
+    console.log("Waiting for login form...");
+    await page.waitForSelector("#email-input", { timeout: 10000 });
+
+    console.log("Filling credentials...");
+    await page.fill(
+      "#email-input",
+      "u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local",
+    );
+    await page.fill("#pw-input", "Admin@1234");
+
+    console.log("Clicking login button...");
+    await page.click("#saveBtn");
+
+    console.log("Waiting for redirect...");
+    await page.waitForURL(/.*(?!login).*$/, { timeout: 30000 });
+
+    const finalUrl = page.url();
+    console.log("Redirected to:", finalUrl);
+
+    if (finalUrl.includes("login")) {
+      throw new Error("Login failed - still on login page");
+    }
+
+    // Ensure auth directory exists
+    const authDir = path.dirname(STORAGE_STATE);
+    if (!fs.existsSync(authDir)) {
+      fs.mkdirSync(authDir, { recursive: true });
+    }
+
+    // Save storage state
+    await context.storageState({ path: STORAGE_STATE });
+    console.log("Authentication state saved to:", STORAGE_STATE);
+  } catch (error) {
+    console.error("Authentication setup failed:", error.message);
+    await page.screenshot({ path: "auth-error.png" });
+    throw error;
+  } finally {
+    await browser.close();
+  }
+}
+
+globalSetup()
+  .then(() => {
+    console.log("Auth setup completed successfully");
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error("Auth setup failed:", error);
+    process.exit(1);
+  });

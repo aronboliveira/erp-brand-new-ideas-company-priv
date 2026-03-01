@@ -2,7 +2,9 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\ProjectStages;
+use App\Models\ProjectStage;
+use App\Services\ProjectRequestService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Mockery;
@@ -23,9 +25,8 @@ class ProjectStagesTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** tasks() must add an “assign_to”
-	 ** condition when the user is neither
-	 ** company nor client.
+	 ** tasksForProject() must return a collection
+	 ** by delegating to ProjectRequestService.
 	 **/
 	public function tasks_method_filters_for_employee(): void
 	{
@@ -55,12 +56,19 @@ class ProjectStagesTest extends TestCase
 			->once()
 			->andReturn(new Collection);
 
-		$stage     = new ProjectStages;
+		// Mock ProjectRequestService to return an empty collection
+		$serviceMock = Mockery::mock(ProjectRequestService::class);
+		$serviceMock->shouldReceive('stageTasksForProject')
+			->once()
+			->andReturn($expectedCollection);
+		$this->app->instance(ProjectRequestService::class, $serviceMock);
+
+		$stage     = new ProjectStage;
 		$stage->id = 1;
 
-		$result = $stage->tasks(42);
+		$result = $stage->tasksForProject(42);
 
-		$this->assertInstanceOf(Collection::class, $result);
+		$this->assertInstanceOf(EloquentCollection::class, $result);
 	}
 
 	/**
@@ -95,7 +103,7 @@ class ProjectStagesTest extends TestCase
 			->getMock()->shouldReceive('join')->andReturnSelf()
 			->getMock()->shouldReceive('count')->andReturn(0);
 
-		$data = ProjectStages::getChartData();
+		$data = ProjectStage::getChartData();
 
 		$this->assertArrayHasKey('label', $data);
 		$this->assertArrayHasKey('dataset', $data);
