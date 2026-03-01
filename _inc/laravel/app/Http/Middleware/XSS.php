@@ -6,8 +6,9 @@ use Closure;
 use App\Config\Constants\{PermissionsConstants, SettingsConstants, UsersConstants};
 use App\Models\{User, Utility};
 use App\Traits\ChecksLogin;
-use Illuminate\Http\{Request, RedirectResponse};
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{App, Log};
+use Illuminate\Support\Str;
 use RachidLaasri\LaravelInstaller\Helpers\MigrationsHelper;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
