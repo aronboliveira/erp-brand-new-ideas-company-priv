@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — users</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; users</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">51 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/checkuserexists">
+        <td><code>GET</code></td>
+        <td><code>/checkuserexists</code></td>
+        <td>users.exists</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@checkUserExists</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/last-login">
+        <td><code>GET</code></td>
+        <td><code>/last-login</code></td>
+        <td>last_login</td>
+        <td class="action-col">App\Http\Controllers\Individuals\EmployeeController@lastLogin</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/permissions">
+        <td><code>GET</code></td>
+        <td><code>/permissions</code></td>
+        <td>permissions.index</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/permissions">
+        <td><code>POST</code></td>
+        <td><code>/permissions</code></td>
+        <td>permissions.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/permissions/create">
+        <td><code>GET</code></td>
+        <td><code>/permissions/create</code></td>
+        <td>permissions.create</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/permissions/{permission}">
+        <td><code>GET</code></td>
+        <td><code>/permissions/{permission}</code></td>
+        <td>permissions.show</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/permissions/{permission}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/permissions/{permission}</code></td>
+        <td>permissions.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/permissions/{permission}">
+        <td><code>DELETE</code></td>
+        <td><code>/permissions/{permission}</code></td>
+        <td>permissions.destroy</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/permissions/{permission}/edit">
+        <td><code>GET</code></td>
+        <td><code>/permissions/{permission}/edit</code></td>
+        <td>permissions.edit</td>
+        <td class="action-col">App\Http\Controllers\Configs\PermissionController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/profile">
+        <td><code>GET</code></td>
+        <td><code>/profile</code></td>
+        <td>user.profile</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@profile</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/profile">
+        <td><code>POST</code></td>
+        <td><code>/profile</code></td>
+        <td>update.profile</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@updateProfile</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/roles">
+        <td><code>GET</code></td>
+        <td><code>/roles</code></td>
+        <td>roles.index</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/roles">
+        <td><code>POST</code></td>
+        <td><code>/roles</code></td>
+        <td>roles.store</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/roles/create">
+        <td><code>GET</code></td>
+        <td><code>/roles/create</code></td>
+        <td>roles.create</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/roles/{role}">
+        <td><code>GET</code></td>
+        <td><code>/roles/{role}</code></td>
+        <td>roles.show</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/roles/{role}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/roles/{role}</code></td>
+        <td>roles.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/roles/{role}">
+        <td><code>DELETE</code></td>
+        <td><code>/roles/{role}</code></td>
+        <td>roles.destroy</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/roles/{role}/edit">
+        <td><code>GET</code></td>
+        <td><code>/roles/{role}/edit</code></td>
+        <td>roles.edit</td>
+        <td class="action-col">App\Http\Controllers\Individuals\RoleController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/user">
+        <td><code>DELETE</code></td>
+        <td><code>/user</code></td>
+        <td>current-user.destroy</td>
+        <td class="action-col">Laravel\Jetstream\Http\Controllers\Inertia\CurrentUserController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/user/confirm-password">
+        <td><code>GET</code></td>
+        <td><code>/user/confirm-password</code></td>
+        <td>password.confirm</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\ConfirmablePasswordController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/user/confirm-password">
+        <td><code>POST</code></td>
+        <td><code>/user/confirm-password</code></td>
+        <td>password.confirm.store</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\ConfirmablePasswordController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/user/password">
+        <td><code>PUT</code></td>
+        <td><code>/user/password</code></td>
+        <td>user-password.update</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\PasswordController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/users">
+        <td><code>GET</code></td>
+        <td><code>/users</code></td>
+        <td>users.index</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/users">
+        <td><code>POST</code></td>
+        <td><code>/users</code></td>
+        <td>users.store</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/users-view">
+        <td><code>GET</code></td>
+        <td><code>/users-view</code></td>
+        <td>filter.user.view</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@filterUserView</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/users/confirmed-password-status">
+        <td><code>GET</code></td>
+        <td><code>/users/confirmed-password-status</code></td>
+        <td>password.confirmation</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/users/confirmed-two-factor-authentication">
+        <td><code>POST</code></td>
+        <td><code>/users/confirmed-two-factor-authentication</code></td>
+        <td>two-factor.confirm</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\ConfirmedTwoFactorAuthenticationController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/users/create">
+        <td><code>GET</code></td>
+        <td><code>/users/create</code></td>
+        <td>users.create</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/users/infos/{id}">
+        <td><code>GET</code></td>
+        <td><code>/users/infos/{id}</code></td>
+        <td>users.info</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userInfo</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/users/logs">
+        <td><code>GET</code></td>
+        <td><code>/users/logs</code></td>
+        <td>users.log</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userLog</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/users/logs/{id}">
+        <td><code>GET</code></td>
+        <td><code>/users/logs/{id}</code></td>
+        <td>users.log.view</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userLogView</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="31" data-uri="/users/logs/{id}">
+        <td><code>DELETE</code></td>
+        <td><code>/users/logs/{id}</code></td>
+        <td>users.log.destroy</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userLogDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="31" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-31"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="32" data-uri="/users/other-browser-sessions">
+        <td><code>DELETE</code></td>
+        <td><code>/users/other-browser-sessions</code></td>
+        <td>other-browser-sessions.destroy</td>
+        <td class="action-col">Laravel\Jetstream\Http\Controllers\Inertia\OtherBrowserSessionsController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="32" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-32"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="33" data-uri="/users/profile">
+        <td><code>GET</code></td>
+        <td><code>/users/profile</code></td>
+        <td>profile.show</td>
+        <td class="action-col">Laravel\Jetstream\Http\Controllers\Inertia\UserProfileController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="33" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-33"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="34" data-uri="/users/profile-information">
+        <td><code>PUT</code></td>
+        <td><code>/users/profile-information</code></td>
+        <td>user-profile-information.update</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\ProfileInformationController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="34" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-34"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="35" data-uri="/users/profile-photo">
+        <td><code>DELETE</code></td>
+        <td><code>/users/profile-photo</code></td>
+        <td>current-user-photo.destroy</td>
+        <td class="action-col">Laravel\Jetstream\Http\Controllers\Inertia\ProfilePhotoController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="35" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-35"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="36" data-uri="/users/two-factor-authentication">
+        <td><code>POST</code></td>
+        <td><code>/users/two-factor-authentication</code></td>
+        <td>two-factor.enable</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="36" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-36"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="37" data-uri="/users/two-factor-authentication">
+        <td><code>DELETE</code></td>
+        <td><code>/users/two-factor-authentication</code></td>
+        <td>two-factor.disable</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="37" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-37"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="38" data-uri="/users/two-factor-qr-code">
+        <td><code>GET</code></td>
+        <td><code>/users/two-factor-qr-code</code></td>
+        <td>two-factor.qr-code</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorQrCodeController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="38" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-38"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="39" data-uri="/users/two-factor-recovery-codes">
+        <td><code>GET</code></td>
+        <td><code>/users/two-factor-recovery-codes</code></td>
+        <td>two-factor.recovery-codes</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\RecoveryCodeController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="39" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-39"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="40" data-uri="/users/two-factor-recovery-codes">
+        <td><code>POST</code></td>
+        <td><code>/users/two-factor-recovery-codes</code></td>
+        <td></td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\RecoveryCodeController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="40" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-40"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="41" data-uri="/users/two-factor-secret-key">
+        <td><code>GET</code></td>
+        <td><code>/users/two-factor-secret-key</code></td>
+        <td>two-factor.secret-key</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorSecretKeyController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="41" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-41"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="42" data-uri="/users/{id}">
+        <td><code>DELETE</code></td>
+        <td><code>/users/{id}</code></td>
+        <td>users.destroy</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="42" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-42"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="43" data-uri="/users/{id}/infos/{type}">
+        <td><code>GET</code></td>
+        <td><code>/users/{id}/infos/{type}</code></td>
+        <td>users.info.popup</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@getProjectTask</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="43" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-43"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="44" data-uri="/users/{id}/plan">
+        <td><code>GET</code></td>
+        <td><code>/users/{id}/plan</code></td>
+        <td>plans.upgrade</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@upgradePlan</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="44" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-44"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="45" data-uri="/users/{id}/plans/{pid}">
+        <td><code>GET</code></td>
+        <td><code>/users/{id}/plans/{pid}</code></td>
+        <td>plans.active</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@activePlan</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="45" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-45"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="46" data-uri="/users/{user}">
+        <td><code>GET</code></td>
+        <td><code>/users/{user}</code></td>
+        <td>users.show</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="46" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-46"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="47" data-uri="/users/{user}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/users/{user}</code></td>
+        <td>users.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="47" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-47"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="48" data-uri="/users/{user}">
+        <td><code>DELETE</code></td>
+        <td><code>/users/{user}</code></td>
+        <td>users.destroy</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="48" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-48"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="49" data-uri="/users/{user}/edit">
+        <td><code>GET</code></td>
+        <td><code>/users/{user}/edit</code></td>
+        <td>users.edit</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="49" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-49"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="50" data-uri="/users/{view?}">
+        <td><code>GET</code></td>
+        <td><code>/users/{view?}</code></td>
+        <td>users</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="50" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-50"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/checkuserexists', method: 'GET', hasBody: false };
+    case 1:
+      return { url: '/last-login', method: 'GET', hasBody: false };
+    case 2:
+      return { url: '/permissions', method: 'GET', hasBody: false };
+    case 3:
+      return { url: '/permissions', method: 'POST', hasBody: true };
+    case 4:
+      return { url: '/permissions/create', method: 'GET', hasBody: false };
+    case 5:
+      return { url: '/permissions/1', method: 'GET', hasBody: false };
+    case 6:
+      return { url: '/permissions/1', method: 'PUT', hasBody: true };
+    case 7:
+      return { url: '/permissions/1', method: 'DELETE', hasBody: false };
+    case 8:
+      return { url: '/permissions/1/edit', method: 'GET', hasBody: false };
+    case 9:
+      return { url: '/profile', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/profile', method: 'POST', hasBody: true };
+    case 11:
+      return { url: '/roles', method: 'GET', hasBody: false };
+    case 12:
+      return { url: '/roles', method: 'POST', hasBody: true };
+    case 13:
+      return { url: '/roles/create', method: 'GET', hasBody: false };
+    case 14:
+      return { url: '/roles/1', method: 'GET', hasBody: false };
+    case 15:
+      return { url: '/roles/1', method: 'PUT', hasBody: true };
+    case 16:
+      return { url: '/roles/1', method: 'DELETE', hasBody: false };
+    case 17:
+      return { url: '/roles/1/edit', method: 'GET', hasBody: false };
+    case 18:
+      return { url: '/user', method: 'DELETE', hasBody: false };
+    case 19:
+      return { url: '/user/confirm-password', method: 'GET', hasBody: false };
+    case 20:
+      return { url: '/user/confirm-password', method: 'POST', hasBody: true };
+    case 21:
+      return { url: '/user/password', method: 'PUT', hasBody: true };
+    case 22:
+      return { url: '/users', method: 'GET', hasBody: false };
+    case 23:
+      return { url: '/users', method: 'POST', hasBody: true };
+    case 24:
+      return { url: '/users-view', method: 'GET', hasBody: false };
+    case 25:
+      return { url: '/users/confirmed-password-status', method: 'GET', hasBody: false };
+    case 26:
+      return { url: '/users/confirmed-two-factor-authentication', method: 'POST', hasBody: true };
+    case 27:
+      return { url: '/users/create', method: 'GET', hasBody: false };
+    case 28:
+      return { url: '/users/infos/1', method: 'GET', hasBody: false };
+    case 29:
+      return { url: '/users/logs', method: 'GET', hasBody: false };
+    case 30:
+      return { url: '/users/logs/1', method: 'GET', hasBody: false };
+    case 31:
+      return { url: '/users/logs/1', method: 'DELETE', hasBody: false };
+    case 32:
+      return { url: '/users/other-browser-sessions', method: 'DELETE', hasBody: false };
+    case 33:
+      return { url: '/users/profile', method: 'GET', hasBody: false };
+    case 34:
+      return { url: '/users/profile-information', method: 'PUT', hasBody: true };
+    case 35:
+      return { url: '/users/profile-photo', method: 'DELETE', hasBody: false };
+    case 36:
+      return { url: '/users/two-factor-authentication', method: 'POST', hasBody: true };
+    case 37:
+      return { url: '/users/two-factor-authentication', method: 'DELETE', hasBody: false };
+    case 38:
+      return { url: '/users/two-factor-qr-code', method: 'GET', hasBody: false };
+    case 39:
+      return { url: '/users/two-factor-recovery-codes', method: 'GET', hasBody: false };
+    case 40:
+      return { url: '/users/two-factor-recovery-codes', method: 'POST', hasBody: true };
+    case 41:
+      return { url: '/users/two-factor-secret-key', method: 'GET', hasBody: false };
+    case 42:
+      return { url: '/users/1', method: 'DELETE', hasBody: false };
+    case 43:
+      return { url: '/users/1/infos/1', method: 'GET', hasBody: false };
+    case 44:
+      return { url: '/users/1/plan', method: 'GET', hasBody: false };
+    case 45:
+      return { url: '/users/1/plans/1', method: 'GET', hasBody: false };
+    case 46:
+      return { url: '/users/1', method: 'GET', hasBody: false };
+    case 47:
+      return { url: '/users/1', method: 'PUT', hasBody: true };
+    case 48:
+      return { url: '/users/1', method: 'DELETE', hasBody: false };
+    case 49:
+      return { url: '/users/1/edit', method: 'GET', hasBody: false };
+    case 50:
+      return { url: '/users/1', method: 'GET', hasBody: false };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

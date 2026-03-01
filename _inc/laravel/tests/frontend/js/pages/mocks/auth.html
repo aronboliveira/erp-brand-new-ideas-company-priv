@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — auth</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; auth</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">27 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/change-password">
+        <td><code>POST</code></td>
+        <td><code>/change-password</code></td>
+        <td>users.password.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@updatePassword</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/client-reset-passwords/{id}">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/client-reset-passwords/{id}</code></td>
+        <td>clients.reset</td>
+        <td class="action-col">App\Http\Controllers\Individuals\ClientController@clientPassword</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/client-reset-passwords/{id}">
+        <td><code>POST</code></td>
+        <td><code>/client-reset-passwords/{id}</code></td>
+        <td>clients.password.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\ClientController@clientPasswordReset</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/confirm-password">
+        <td><code>GET</code></td>
+        <td><code>/confirm-password</code></td>
+        <td>password.confirm</td>
+        <td class="action-col">App\Http\Controllers\Auth\ConfirmablePasswordController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/confirm-password">
+        <td><code>POST</code></td>
+        <td><code>/confirm-password</code></td>
+        <td></td>
+        <td class="action-col">App\Http\Controllers\Auth\ConfirmablePasswordController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/forgot-password">
+        <td><code>POST</code></td>
+        <td><code>/forgot-password</code></td>
+        <td>password.email</td>
+        <td class="action-col">App\Http\Controllers\Auth\PasswordResetLinkController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/forgot-password/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/forgot-password/{lang?}</code></td>
+        <td>password.request</td>
+        <td class="action-col">App\Http\Controllers\Auth\AuthenticatedSessionController@showLoginRequestForm</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/fortify-forgot-password">
+        <td><code>GET</code></td>
+        <td><code>/fortify-forgot-password</code></td>
+        <td>fortify.password.request</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\PasswordResetLinkController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/fortify-forgot-password">
+        <td><code>POST</code></td>
+        <td><code>/fortify-forgot-password</code></td>
+        <td>fortify.password.email</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\PasswordResetLinkController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/fortify-login">
+        <td><code>GET</code></td>
+        <td><code>/fortify-login</code></td>
+        <td>fortify.login</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\AuthenticatedSessionController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/fortify-login">
+        <td><code>POST</code></td>
+        <td><code>/fortify-login</code></td>
+        <td>fortify.login.store</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\AuthenticatedSessionController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/fortify-logout">
+        <td><code>POST</code></td>
+        <td><code>/fortify-logout</code></td>
+        <td>fortify.logout</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\AuthenticatedSessionController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/fortify-register">
+        <td><code>GET</code></td>
+        <td><code>/fortify-register</code></td>
+        <td>fortify.register</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\RegisteredUserController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/fortify-register">
+        <td><code>POST</code></td>
+        <td><code>/fortify-register</code></td>
+        <td>fortify.register.store</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\RegisteredUserController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/login">
+        <td><code>POST</code></td>
+        <td><code>/login</code></td>
+        <td>login.store</td>
+        <td class="action-col">App\Http\Controllers\Auth\AuthenticatedSessionController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/login/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/login/{lang?}</code></td>
+        <td>login</td>
+        <td class="action-col">App\Http\Controllers\Auth\AuthenticatedSessionController@showLoginForm</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/logout">
+        <td><code>POST</code></td>
+        <td><code>/logout</code></td>
+        <td>logout</td>
+        <td class="action-col">App\Http\Controllers\Auth\AuthenticatedSessionController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/register">
+        <td><code>POST</code></td>
+        <td><code>/register</code></td>
+        <td>register.store</td>
+        <td class="action-col">App\Http\Controllers\Auth\RegisteredUserController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/register/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/register/{lang?}</code></td>
+        <td>register</td>
+        <td class="action-col">App\Http\Controllers\Auth\RegisteredUserController@showRegistrationForm</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/reset-password">
+        <td><code>POST</code></td>
+        <td><code>/reset-password</code></td>
+        <td>password.update</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\NewPasswordController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/reset-password/{token}">
+        <td><code>GET</code></td>
+        <td><code>/reset-password/{token}</code></td>
+        <td>password.reset</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\NewPasswordController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/two-factor-challenge">
+        <td><code>GET</code></td>
+        <td><code>/two-factor-challenge</code></td>
+        <td>two-factor.login</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/two-factor-challenge">
+        <td><code>POST</code></td>
+        <td><code>/two-factor-challenge</code></td>
+        <td>two-factor.login.store</td>
+        <td class="action-col">Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/user-reset-passwords/{id}">
+        <td><code>GET, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/user-reset-passwords/{id}</code></td>
+        <td>users.reset</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userPassword</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/user-reset-passwords/{id}">
+        <td><code>POST</code></td>
+        <td><code>/user-reset-passwords/{id}</code></td>
+        <td>users.password.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@userPasswordReset</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/verify/{id}/{hash}">
+        <td><code>GET</code></td>
+        <td><code>/verify/{id}/{hash}</code></td>
+        <td>verification.verify</td>
+        <td class="action-col">App\Http\Controllers\Auth\VerifyEmailController@__invoke</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/verify/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/verify/{lang?}</code></td>
+        <td>verification.notice</td>
+        <td class="action-col">App\Http\Controllers\Auth\EmailVerificationPromptController@__invoke</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/change-password', method: 'POST', hasBody: true };
+    case 1:
+      return { url: '/client-reset-passwords/1', method: 'GET', hasBody: false };
+    case 2:
+      return { url: '/client-reset-passwords/1', method: 'POST', hasBody: true };
+    case 3:
+      return { url: '/confirm-password', method: 'GET', hasBody: false };
+    case 4:
+      return { url: '/confirm-password', method: 'POST', hasBody: true };
+    case 5:
+      return { url: '/forgot-password', method: 'POST', hasBody: true };
+    case 6:
+      return { url: '/forgot-password/1', method: 'GET', hasBody: false };
+    case 7:
+      return { url: '/fortify-forgot-password', method: 'GET', hasBody: false };
+    case 8:
+      return { url: '/fortify-forgot-password', method: 'POST', hasBody: true };
+    case 9:
+      return { url: '/fortify-login', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/fortify-login', method: 'POST', hasBody: true };
+    case 11:
+      return { url: '/fortify-logout', method: 'POST', hasBody: true };
+    case 12:
+      return { url: '/fortify-register', method: 'GET', hasBody: false };
+    case 13:
+      return { url: '/fortify-register', method: 'POST', hasBody: true };
+    case 14:
+      return { url: '/login', method: 'POST', hasBody: true };
+    case 15:
+      return { url: '/login/1', method: 'GET', hasBody: false };
+    case 16:
+      return { url: '/logout', method: 'POST', hasBody: true };
+    case 17:
+      return { url: '/register', method: 'POST', hasBody: true };
+    case 18:
+      return { url: '/register/1', method: 'GET', hasBody: false };
+    case 19:
+      return { url: '/reset-password', method: 'POST', hasBody: true };
+    case 20:
+      return { url: '/reset-password/1', method: 'GET', hasBody: false };
+    case 21:
+      return { url: '/two-factor-challenge', method: 'GET', hasBody: false };
+    case 22:
+      return { url: '/two-factor-challenge', method: 'POST', hasBody: true };
+    case 23:
+      return { url: '/user-reset-passwords/1', method: 'GET', hasBody: false };
+    case 24:
+      return { url: '/user-reset-passwords/1', method: 'POST', hasBody: true };
+    case 25:
+      return { url: '/verify/1/1', method: 'GET', hasBody: false };
+    case 26:
+      return { url: '/verify/1', method: 'GET', hasBody: false };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

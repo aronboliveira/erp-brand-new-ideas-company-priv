@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — contracts</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; contracts</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">31 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/contract_types">
+        <td><code>GET</code></td>
+        <td><code>/contract_types</code></td>
+        <td>contract_types.index</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/contract_types">
+        <td><code>POST</code></td>
+        <td><code>/contract_types</code></td>
+        <td>contract_types.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/contract_types/create">
+        <td><code>GET</code></td>
+        <td><code>/contract_types/create</code></td>
+        <td>contract_types.create</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/contract_types/{contract_type}">
+        <td><code>GET</code></td>
+        <td><code>/contract_types/{contract_type}</code></td>
+        <td>contract_types.show</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/contract_types/{contract_type}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/contract_types/{contract_type}</code></td>
+        <td>contract_types.update</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/contract_types/{contract_type}">
+        <td><code>DELETE</code></td>
+        <td><code>/contract_types/{contract_type}</code></td>
+        <td>contract_types.destroy</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/contract_types/{contract_type}/edit">
+        <td><code>GET</code></td>
+        <td><code>/contract_types/{contract_type}/edit</code></td>
+        <td>contract_types.edit</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractTypeController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/contracts">
+        <td><code>GET</code></td>
+        <td><code>/contracts</code></td>
+        <td>contracts.index</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/contracts">
+        <td><code>POST</code></td>
+        <td><code>/contracts</code></td>
+        <td>contracts.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/contracts/clients/selects/{bid}">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/contracts/clients/selects/{bid}</code></td>
+        <td>contracts.clients.select</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@clientWiseProject</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/contracts/contract_status_edits/{id}">
+        <td><code>POST</code></td>
+        <td><code>/contracts/contract_status_edits/{id}</code></td>
+        <td>contracts.status</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@contractStatusEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/contracts/copies/store">
+        <td><code>POST</code></td>
+        <td><code>/contracts/copies/store</code></td>
+        <td>contracts.copy.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@copyContractStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/contracts/copies/{id}">
+        <td><code>GET</code></td>
+        <td><code>/contracts/copies/{id}</code></td>
+        <td>contracts.copy</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@copyContract</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/contracts/create">
+        <td><code>GET</code></td>
+        <td><code>/contracts/create</code></td>
+        <td>contracts.create</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/contracts/grid">
+        <td><code>GET</code></td>
+        <td><code>/contracts/grid</code></td>
+        <td>contracts.grid</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@grid</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/contracts/pdfs/{id}">
+        <td><code>GET</code></td>
+        <td><code>/contracts/pdfs/{id}</code></td>
+        <td>contracts.download.pdf</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@pdfFromContract</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/contracts/{contract}">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{contract}</code></td>
+        <td>contracts.show</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/contracts/{contract}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/contracts/{contract}</code></td>
+        <td>contracts.update</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/contracts/{contract}">
+        <td><code>DELETE</code></td>
+        <td><code>/contracts/{contract}</code></td>
+        <td>contracts.destroy</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/contracts/{contract}/edit">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{contract}/edit</code></td>
+        <td>contracts.edit</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/contracts/{id}/comment">
+        <td><code>POST</code></td>
+        <td><code>/contracts/{id}/comment</code></td>
+        <td>contracts.comment.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@commentStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/contracts/{id}/comment">
+        <td><code>DELETE</code></td>
+        <td><code>/contracts/{id}/comment</code></td>
+        <td>contracts.comment.destroy</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@commentDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/contracts/{id}/contract_description">
+        <td><code>POST</code></td>
+        <td><code>/contracts/{id}/contract_description</code></td>
+        <td>contracts.contract_description.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@contractDescriptionStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/contracts/{id}/description">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{id}/description</code></td>
+        <td>contracts.description</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@description</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/contracts/{id}/file">
+        <td><code>POST</code></td>
+        <td><code>/contracts/{id}/file</code></td>
+        <td>contracts.file.upload</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@fileUpload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/contracts/{id}/files/deletes/{fid}">
+        <td><code>DELETE</code></td>
+        <td><code>/contracts/{id}/files/deletes/{fid}</code></td>
+        <td>contracts.file.delete</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@fileDelete</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/contracts/{id}/files/{fid}">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{id}/files/{fid}</code></td>
+        <td>contracts.file.download</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@fileDownload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/contracts/{id}/get_contract">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{id}/get_contract</code></td>
+        <td>contracts.get</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@printContract</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/contracts/{id}/mail">
+        <td><code>GET</code></td>
+        <td><code>/contracts/{id}/mail</code></td>
+        <td>contracts.send.mail</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@sendMailContract</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/contracts/{id}/notes">
+        <td><code>POST</code></td>
+        <td><code>/contracts/{id}/notes</code></td>
+        <td>contracts.note.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@noteStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/contracts/{id}/notes">
+        <td><code>DELETE</code></td>
+        <td><code>/contracts/{id}/notes</code></td>
+        <td>contracts.note.destroy</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@noteDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/contract_types', method: 'GET', hasBody: false };
+    case 1:
+      return { url: '/contract_types', method: 'POST', hasBody: true };
+    case 2:
+      return { url: '/contract_types/create', method: 'GET', hasBody: false };
+    case 3:
+      return { url: '/contract_types/1', method: 'GET', hasBody: false };
+    case 4:
+      return { url: '/contract_types/1', method: 'PUT', hasBody: true };
+    case 5:
+      return { url: '/contract_types/1', method: 'DELETE', hasBody: false };
+    case 6:
+      return { url: '/contract_types/1/edit', method: 'GET', hasBody: false };
+    case 7:
+      return { url: '/contracts', method: 'GET', hasBody: false };
+    case 8:
+      return { url: '/contracts', method: 'POST', hasBody: true };
+    case 9:
+      return { url: '/contracts/clients/selects/1', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/contracts/contract_status_edits/1', method: 'POST', hasBody: true };
+    case 11:
+      return { url: '/contracts/copies/store', method: 'POST', hasBody: true };
+    case 12:
+      return { url: '/contracts/copies/1', method: 'GET', hasBody: false };
+    case 13:
+      return { url: '/contracts/create', method: 'GET', hasBody: false };
+    case 14:
+      return { url: '/contracts/grid', method: 'GET', hasBody: false };
+    case 15:
+      return { url: '/contracts/pdfs/1', method: 'GET', hasBody: false };
+    case 16:
+      return { url: '/contracts/1', method: 'GET', hasBody: false };
+    case 17:
+      return { url: '/contracts/1', method: 'PUT', hasBody: true };
+    case 18:
+      return { url: '/contracts/1', method: 'DELETE', hasBody: false };
+    case 19:
+      return { url: '/contracts/1/edit', method: 'GET', hasBody: false };
+    case 20:
+      return { url: '/contracts/1/comment', method: 'POST', hasBody: true };
+    case 21:
+      return { url: '/contracts/1/comment', method: 'DELETE', hasBody: false };
+    case 22:
+      return { url: '/contracts/1/contract_description', method: 'POST', hasBody: true };
+    case 23:
+      return { url: '/contracts/1/description', method: 'GET', hasBody: false };
+    case 24:
+      return { url: '/contracts/1/file', method: 'POST', hasBody: true };
+    case 25:
+      return { url: '/contracts/1/files/deletes/1', method: 'DELETE', hasBody: false };
+    case 26:
+      return { url: '/contracts/1/files/1', method: 'GET', hasBody: false };
+    case 27:
+      return { url: '/contracts/1/get_contract', method: 'GET', hasBody: false };
+    case 28:
+      return { url: '/contracts/1/mail', method: 'GET', hasBody: false };
+    case 29:
+      return { url: '/contracts/1/notes', method: 'POST', hasBody: true };
+    case 30:
+      return { url: '/contracts/1/notes', method: 'DELETE', hasBody: false };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

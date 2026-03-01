@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — misc</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; misc</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">59 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/api/landingpage">
+        <td><code>GET</code></td>
+        <td><code>/api/landingpage</code></td>
+        <td></td>
+        <td class="action-col">Closure</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/api/logout">
+        <td><code>POST</code></td>
+        <td><code>/api/logout</code></td>
+        <td>auth.logout</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@logout</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/apis/add-tracker">
+        <td><code>POST</code></td>
+        <td><code>/apis/add-tracker</code></td>
+        <td>trackers.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@addTracker</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/apis/auth-login">
+        <td><code>POST</code></td>
+        <td><code>/apis/auth-login</code></td>
+        <td>auth.login</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@login</td>
+        <td><span class="badge public">Public</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/apis/get-projects">
+        <td><code>GET</code></td>
+        <td><code>/apis/get-projects</code></td>
+        <td>projects.index</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@getProjects</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/apis/stop-tracker">
+        <td><code>POST</code></td>
+        <td><code>/apis/stop-tracker</code></td>
+        <td>trackers.stop</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@stopTracker</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/apis/upload-photos">
+        <td><code>POST</code></td>
+        <td><code>/apis/upload-photos</code></td>
+        <td>photos.upload</td>
+        <td class="action-col">App\Http\Controllers\Configs\ApiController@uploadImage</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/broadcastings/auth">
+        <td><code>GET, POST</code></td>
+        <td><code>/broadcastings/auth</code></td>
+        <td></td>
+        <td class="action-col">Illuminate\Broadcasting\BroadcastController@authenticate</td>
+        <td><span class="badge public">Public</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/change-languages/{lang}">
+        <td><code>GET</code></td>
+        <td><code>/change-languages/{lang}</code></td>
+        <td>languages.change</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@changeLanguage</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/changes/mode">
+        <td><code>GET</code></td>
+        <td><code>/changes/mode</code></td>
+        <td>change.mode</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@changeMode</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/create-language">
+        <td><code>GET</code></td>
+        <td><code>/create-language</code></td>
+        <td>languages.create</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@createLanguage</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/disable-language">
+        <td><code>POST</code></td>
+        <td><code>/disable-language</code></td>
+        <td>language.disable</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@disableLang</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/emails/verification-notification">
+        <td><code>POST</code></td>
+        <td><code>/emails/verification-notification</code></td>
+        <td>verification.send</td>
+        <td class="action-col">App\Http\Controllers\Auth\EmailVerificationNotificationController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/exports/profit-loss">
+        <td><code>POST</code></td>
+        <td><code>/exports/profit-loss</code></td>
+        <td>reports.profit.loss.export</td>
+        <td class="action-col">App\Http\Controllers\Activity\ReportController@profitLossExport</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/generates/keywords/{id}">
+        <td><code>POST</code></td>
+        <td><code>/generates/keywords/{id}</code></td>
+        <td>generate.keywords</td>
+        <td class="action-col">App\Http\Controllers\Ssr\AiTemplateController@getKeywords</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/generates/response">
+        <td><code>POST</code></td>
+        <td><code>/generates/response</code></td>
+        <td>generate.response</td>
+        <td class="action-col">App\Http\Controllers\Ssr\AiTemplateController@aiGenerate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/generates/{template_name}">
+        <td><code>GET</code></td>
+        <td><code>/generates/{template_name}</code></td>
+        <td>generate</td>
+        <td class="action-col">App\Http\Controllers\Ssr\AiTemplateController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/grammars/response">
+        <td><code>POST</code></td>
+        <td><code>/grammars/response</code></td>
+        <td>grammar.response</td>
+        <td class="action-col">App\Http\Controllers\Ssr\AiTemplateController@grammarProcess</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/grammars/{template}">
+        <td><code>GET</code></td>
+        <td><code>/grammars/{template}</code></td>
+        <td>grammar</td>
+        <td class="action-col">App\Http\Controllers\Ssr\AiTemplateController@grammar</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/labels">
+        <td><code>GET</code></td>
+        <td><code>/labels</code></td>
+        <td>labels.index</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/labels">
+        <td><code>POST</code></td>
+        <td><code>/labels</code></td>
+        <td>labels.store</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/labels/create">
+        <td><code>GET</code></td>
+        <td><code>/labels/create</code></td>
+        <td>labels.create</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/labels/{label}">
+        <td><code>GET</code></td>
+        <td><code>/labels/{label}</code></td>
+        <td>labels.show</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/labels/{label}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/labels/{label}</code></td>
+        <td>labels.update</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/labels/{label}">
+        <td><code>DELETE</code></td>
+        <td><code>/labels/{label}</code></td>
+        <td>labels.destroy</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/labels/{label}/edit">
+        <td><code>GET</code></td>
+        <td><code>/labels/{label}/edit</code></td>
+        <td>labels.edit</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LabelController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/langs/{lang}">
+        <td><code>DELETE</code></td>
+        <td><code>/langs/{lang}</code></td>
+        <td>languages.destroy</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@destroyLang</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/manage-languages/{lang}">
+        <td><code>GET</code></td>
+        <td><code>/manage-languages/{lang}</code></td>
+        <td>languages.manage</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@manageLanguage</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/prints/profit-losses/{view?}">
+        <td><code>POST</code></td>
+        <td><code>/prints/profit-losses/{view?}</code></td>
+        <td>reports.profit.loss.print</td>
+        <td class="action-col">App\Http\Controllers\Activity\ReportController@profitLossPrint</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/prints/trial-balance">
+        <td><code>POST</code></td>
+        <td><code>/prints/trial-balance</code></td>
+        <td>trial.balance.print</td>
+        <td class="action-col">App\Http\Controllers\Activity\ReportController@trialBalancePrint</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/printviews/pos">
+        <td><code>GET</code></td>
+        <td><code>/printviews/pos</code></td>
+        <td>pos.printview</td>
+        <td class="action-col">App\Http\Controllers\Activity\PosController@printView</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="31" data-uri="/sancta/csrf-cookie">
+        <td><code>GET</code></td>
+        <td><code>/sancta/csrf-cookie</code></td>
+        <td>sanctum.csrf-cookie</td>
+        <td class="action-col">Laravel\Sanctum\Http\Controllers\CsrfCookieController@show</td>
+        <td><span class="badge public">Public</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="31" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-31"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="32" data-uri="/search">
+        <td><code>GET</code></td>
+        <td><code>/search</code></td>
+        <td>search.json</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@search</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="32" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-32"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="33" data-uri="/signature-store">
+        <td><code>POST</code></td>
+        <td><code>/signature-store</code></td>
+        <td>contracts.signature.store</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@signatureStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="33" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-33"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="34" data-uri="/signatures/{id}">
+        <td><code>GET</code></td>
+        <td><code>/signatures/{id}</code></td>
+        <td>contracts.signature</td>
+        <td class="action-col">App\Http\Controllers\Planning\ContractController@signature</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="34" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-34"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="35" data-uri="/stages">
+        <td><code>GET</code></td>
+        <td><code>/stages</code></td>
+        <td>stages.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="35" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-35"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="36" data-uri="/stages">
+        <td><code>POST</code></td>
+        <td><code>/stages</code></td>
+        <td>stages.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="36" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-36"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="37" data-uri="/stages/create">
+        <td><code>GET</code></td>
+        <td><code>/stages/create</code></td>
+        <td>stages.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="37" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-37"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="38" data-uri="/stages/json">
+        <td><code>POST</code></td>
+        <td><code>/stages/json</code></td>
+        <td>stages.json</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@json</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="38" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-38"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="39" data-uri="/stages/order">
+        <td><code>POST</code></td>
+        <td><code>/stages/order</code></td>
+        <td>stages.order</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@order</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="39" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-39"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="40" data-uri="/stages/{id}/tasks">
+        <td><code>GET</code></td>
+        <td><code>/stages/{id}/tasks</code></td>
+        <td>projects.tasks.stage</td>
+        <td class="action-col">App\Http\Controllers\Planning\ProjectTaskController@getStageTasks</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="40" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-40"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="41" data-uri="/stages/{stage}">
+        <td><code>GET</code></td>
+        <td><code>/stages/{stage}</code></td>
+        <td>stages.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="41" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-41"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="42" data-uri="/stages/{stage}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/stages/{stage}</code></td>
+        <td>stages.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="42" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-42"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="43" data-uri="/stages/{stage}">
+        <td><code>DELETE</code></td>
+        <td><code>/stages/{stage}</code></td>
+        <td>stages.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="43" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-43"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="44" data-uri="/stages/{stage}/edit">
+        <td><code>GET</code></td>
+        <td><code>/stages/{stage}/edit</code></td>
+        <td>stages.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\StageController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="44" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-44"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="45" data-uri="/store-language">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/store-language</code></td>
+        <td>languages.store</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@storeLanguage</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="45" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-45"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="46" data-uri="/store-language-datas/{lang}">
+        <td><code>POST</code></td>
+        <td><code>/store-language-datas/{lang}</code></td>
+        <td>languages.store.data</td>
+        <td class="action-col">App\Http\Controllers\Shapes\LanguageController@storeLanguageData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="46" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-46"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="47" data-uri="/test-mail">
+        <td><code>GET</code></td>
+        <td><code>/test-mail</code></td>
+        <td>tests.mail</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@testMail</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="47" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-47"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="48" data-uri="/test-mail">
+        <td><code>POST</code></td>
+        <td><code>/test-mail</code></td>
+        <td>tests.mail</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@testMail</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="48" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-48"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="49" data-uri="/test-mails/send">
+        <td><code>POST</code></td>
+        <td><code>/test-mails/send</code></td>
+        <td>tests.send.mail</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@testSendMail</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="49" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-49"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="50" data-uri="/todos/create">
+        <td><code>POST</code></td>
+        <td><code>/todos/create</code></td>
+        <td>todos.store</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@todoStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="50" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-50"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="51" data-uri="/todos/{id}/delete">
+        <td><code>DELETE</code></td>
+        <td><code>/todos/{id}/delete</code></td>
+        <td>todos.destroy</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@todoDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="51" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-51"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="52" data-uri="/todos/{id}/update">
+        <td><code>POST</code></td>
+        <td><code>/todos/{id}/update</code></td>
+        <td>todos.update</td>
+        <td class="action-col">App\Http\Controllers\Individuals\UserController@todoUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="52" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-52"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="53" data-uri="/webhook-settings">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/webhook-settings</code></td>
+        <td>webhooks.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhook</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="53" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-53"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="54" data-uri="/webhook-settings/create">
+        <td><code>GET</code></td>
+        <td><code>/webhook-settings/create</code></td>
+        <td>webhooks.create</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhookCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="54" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-54"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="55" data-uri="/webhook-settings/store">
+        <td><code>POST</code></td>
+        <td><code>/webhook-settings/store</code></td>
+        <td>webhooks.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhookStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="55" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-55"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="56" data-uri="/webhook-settings/{wid}">
+        <td><code>DELETE</code></td>
+        <td><code>/webhook-settings/{wid}</code></td>
+        <td>webhooks.destroy</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhookDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="56" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-56"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="57" data-uri="/webhook-settings/{wid}/edit">
+        <td><code>GET</code></td>
+        <td><code>/webhook-settings/{wid}/edit</code></td>
+        <td>webhooks.edit</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhookEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="57" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-57"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="58" data-uri="/webhook-settings/{wid}/edit">
+        <td><code>POST</code></td>
+        <td><code>/webhook-settings/{wid}/edit</code></td>
+        <td>webhooks.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@webhookUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="58" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-58"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/api/landingpage', method: 'GET', hasBody: false };
+    case 1:
+      return { url: '/api/logout', method: 'POST', hasBody: true };
+    case 2:
+      return { url: '/apis/add-tracker', method: 'POST', hasBody: true };
+    case 3:
+      return { url: '/apis/auth-login', method: 'POST', hasBody: true };
+    case 4:
+      return { url: '/apis/get-projects', method: 'GET', hasBody: false };
+    case 5:
+      return { url: '/apis/stop-tracker', method: 'POST', hasBody: true };
+    case 6:
+      return { url: '/apis/upload-photos', method: 'POST', hasBody: true };
+    case 7:
+      return { url: '/broadcastings/auth', method: 'GET', hasBody: false };
+    case 8:
+      return { url: '/change-languages/1', method: 'GET', hasBody: false };
+    case 9:
+      return { url: '/changes/mode', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/create-language', method: 'GET', hasBody: false };
+    case 11:
+      return { url: '/disable-language', method: 'POST', hasBody: true };
+    case 12:
+      return { url: '/emails/verification-notification', method: 'POST', hasBody: true };
+    case 13:
+      return { url: '/exports/profit-loss', method: 'POST', hasBody: true };
+    case 14:
+      return { url: '/generates/keywords/1', method: 'POST', hasBody: true };
+    case 15:
+      return { url: '/generates/response', method: 'POST', hasBody: true };
+    case 16:
+      return { url: '/generates/1', method: 'GET', hasBody: false };
+    case 17:
+      return { url: '/grammars/response', method: 'POST', hasBody: true };
+    case 18:
+      return { url: '/grammars/1', method: 'GET', hasBody: false };
+    case 19:
+      return { url: '/labels', method: 'GET', hasBody: false };
+    case 20:
+      return { url: '/labels', method: 'POST', hasBody: true };
+    case 21:
+      return { url: '/labels/create', method: 'GET', hasBody: false };
+    case 22:
+      return { url: '/labels/1', method: 'GET', hasBody: false };
+    case 23:
+      return { url: '/labels/1', method: 'PUT', hasBody: true };
+    case 24:
+      return { url: '/labels/1', method: 'DELETE', hasBody: false };
+    case 25:
+      return { url: '/labels/1/edit', method: 'GET', hasBody: false };
+    case 26:
+      return { url: '/langs/1', method: 'DELETE', hasBody: false };
+    case 27:
+      return { url: '/manage-languages/1', method: 'GET', hasBody: false };
+    case 28:
+      return { url: '/prints/profit-losses/1', method: 'POST', hasBody: true };
+    case 29:
+      return { url: '/prints/trial-balance', method: 'POST', hasBody: true };
+    case 30:
+      return { url: '/printviews/pos', method: 'GET', hasBody: false };
+    case 31:
+      return { url: '/sancta/csrf-cookie', method: 'GET', hasBody: false };
+    case 32:
+      return { url: '/search', method: 'GET', hasBody: false };
+    case 33:
+      return { url: '/signature-store', method: 'POST', hasBody: true };
+    case 34:
+      return { url: '/signatures/1', method: 'GET', hasBody: false };
+    case 35:
+      return { url: '/stages', method: 'GET', hasBody: false };
+    case 36:
+      return { url: '/stages', method: 'POST', hasBody: true };
+    case 37:
+      return { url: '/stages/create', method: 'GET', hasBody: false };
+    case 38:
+      return { url: '/stages/json', method: 'POST', hasBody: true };
+    case 39:
+      return { url: '/stages/order', method: 'POST', hasBody: true };
+    case 40:
+      return { url: '/stages/1/tasks', method: 'GET', hasBody: false };
+    case 41:
+      return { url: '/stages/1', method: 'GET', hasBody: false };
+    case 42:
+      return { url: '/stages/1', method: 'PUT', hasBody: true };
+    case 43:
+      return { url: '/stages/1', method: 'DELETE', hasBody: false };
+    case 44:
+      return { url: '/stages/1/edit', method: 'GET', hasBody: false };
+    case 45:
+      return { url: '/store-language', method: 'GET', hasBody: false };
+    case 46:
+      return { url: '/store-language-datas/1', method: 'POST', hasBody: true };
+    case 47:
+      return { url: '/test-mail', method: 'GET', hasBody: false };
+    case 48:
+      return { url: '/test-mail', method: 'POST', hasBody: true };
+    case 49:
+      return { url: '/test-mails/send', method: 'POST', hasBody: true };
+    case 50:
+      return { url: '/todos/create', method: 'POST', hasBody: true };
+    case 51:
+      return { url: '/todos/1/delete', method: 'DELETE', hasBody: false };
+    case 52:
+      return { url: '/todos/1/update', method: 'POST', hasBody: true };
+    case 53:
+      return { url: '/webhook-settings', method: 'GET', hasBody: false };
+    case 54:
+      return { url: '/webhook-settings/create', method: 'GET', hasBody: false };
+    case 55:
+      return { url: '/webhook-settings/store', method: 'POST', hasBody: true };
+    case 56:
+      return { url: '/webhook-settings/1', method: 'DELETE', hasBody: false };
+    case 57:
+      return { url: '/webhook-settings/1/edit', method: 'GET', hasBody: false };
+    case 58:
+      return { url: '/webhook-settings/1/edit', method: 'POST', hasBody: true };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

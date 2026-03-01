@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — meetings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; meetings</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">36 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/calendars/get_task_data">
+        <td><code>POST</code></td>
+        <td><code>/calendars/get_task_data</code></td>
+        <td>projects.tasks.calendar.get_task_data</td>
+        <td class="action-col">App\Http\Controllers\Planning\ProjectTaskController@getTaskData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/calendars/{id}/drag">
+        <td><code>POST</code></td>
+        <td><code>/calendars/{id}/drag</code></td>
+        <td>projects.tasks.calendar.drag</td>
+        <td class="action-col">App\Http\Controllers\Planning\ProjectTaskController@calendarDrag</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/calendars/{id}/show">
+        <td><code>GET</code></td>
+        <td><code>/calendars/{id}/show</code></td>
+        <td>projects.tasks.calendar.show</td>
+        <td class="action-col">App\Http\Controllers\Planning\ProjectTaskController@calendarShow</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/calendars/{task}/{pid?}">
+        <td><code>GET</code></td>
+        <td><code>/calendars/{task}/{pid?}</code></td>
+        <td>projects.tasks.calendar</td>
+        <td class="action-col">App\Http\Controllers\Planning\ProjectTaskController@calendarView</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/events">
+        <td><code>GET</code></td>
+        <td><code>/events</code></td>
+        <td>events.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/events">
+        <td><code>POST</code></td>
+        <td><code>/events</code></td>
+        <td>events.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/events/create">
+        <td><code>GET</code></td>
+        <td><code>/events/create</code></td>
+        <td>events.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/events/get-department">
+        <td><code>POST</code></td>
+        <td><code>/events/get-department</code></td>
+        <td>events.getdepartment</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@getDepartment</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/events/get-employee">
+        <td><code>POST</code></td>
+        <td><code>/events/get-employee</code></td>
+        <td>events.getemployee</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@getEmployee</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/events/get_dashboard_event_data">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/events/get_dashboard_event_data</code></td>
+        <td>events.get_dashboard_event_data</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@getDashboardEventData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/events/get_event_data">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/events/get_event_data</code></td>
+        <td>events.get_event_data</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@getEventData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/events/{event}">
+        <td><code>GET</code></td>
+        <td><code>/events/{event}</code></td>
+        <td>events.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/events/{event}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/events/{event}</code></td>
+        <td>events.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/events/{event}">
+        <td><code>DELETE</code></td>
+        <td><code>/events/{event}</code></td>
+        <td>events.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/events/{event}/edit">
+        <td><code>GET</code></td>
+        <td><code>/events/{event}/edit</code></td>
+        <td>events.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\EventController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/meeting-calendar">
+        <td><code>GET</code></td>
+        <td><code>/meeting-calendar</code></td>
+        <td>meetings.calendar</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@calendar</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/meetings">
+        <td><code>GET</code></td>
+        <td><code>/meetings</code></td>
+        <td>meetings.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/meetings">
+        <td><code>POST</code></td>
+        <td><code>/meetings</code></td>
+        <td>meetings.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/meetings/create">
+        <td><code>GET</code></td>
+        <td><code>/meetings/create</code></td>
+        <td>meetings.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/meetings/get-department">
+        <td><code>POST</code></td>
+        <td><code>/meetings/get-department</code></td>
+        <td>meetings.getdepartment</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@getDepartment</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/meetings/get-employee">
+        <td><code>POST</code></td>
+        <td><code>/meetings/get-employee</code></td>
+        <td>meetings.getemployee</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@getEmployee</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/meetings/get_meeting_data">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/meetings/get_meeting_data</code></td>
+        <td>meetings.get_meeting_data</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@getMeetingData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/meetings/{meeting}">
+        <td><code>GET</code></td>
+        <td><code>/meetings/{meeting}</code></td>
+        <td>meetings.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/meetings/{meeting}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/meetings/{meeting}</code></td>
+        <td>meetings.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/meetings/{meeting}">
+        <td><code>DELETE</code></td>
+        <td><code>/meetings/{meeting}</code></td>
+        <td>meetings.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/meetings/{meeting}/edit">
+        <td><code>GET</code></td>
+        <td><code>/meetings/{meeting}/edit</code></td>
+        <td>meetings.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\MeetingController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/zoom-meeting-calendar">
+        <td><code>GET</code></td>
+        <td><code>/zoom-meeting-calendar</code></td>
+        <td>zoom_meetings.calendar</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@calendar</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/zoom-meetings/get_zoom_meeting_data">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/zoom-meetings/get_zoom_meeting_data</code></td>
+        <td>zoom_meetings.get_zoom_meeting_data</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@getZoomMeetingData</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/zoom_meetings">
+        <td><code>GET</code></td>
+        <td><code>/zoom_meetings</code></td>
+        <td>zoom_meetings.index</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/zoom_meetings">
+        <td><code>POST</code></td>
+        <td><code>/zoom_meetings</code></td>
+        <td>zoom_meetings.store</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/zoom_meetings/create">
+        <td><code>GET</code></td>
+        <td><code>/zoom_meetings/create</code></td>
+        <td>zoom_meetings.create</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="31" data-uri="/zoom_meetings/projects/selects/{bid}">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/zoom_meetings/projects/selects/{bid}</code></td>
+        <td>zoom_meetings.projects.select</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@projectWiseUser</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="31" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-31"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="32" data-uri="/zoom_meetings/{zoom_meeting}">
+        <td><code>GET</code></td>
+        <td><code>/zoom_meetings/{zoom_meeting}</code></td>
+        <td>zoom_meetings.show</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="32" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-32"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="33" data-uri="/zoom_meetings/{zoom_meeting}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/zoom_meetings/{zoom_meeting}</code></td>
+        <td>zoom_meetings.update</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="33" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-33"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="34" data-uri="/zoom_meetings/{zoom_meeting}">
+        <td><code>DELETE</code></td>
+        <td><code>/zoom_meetings/{zoom_meeting}</code></td>
+        <td>zoom_meetings.destroy</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="34" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-34"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="35" data-uri="/zoom_meetings/{zoom_meeting}/edit">
+        <td><code>GET</code></td>
+        <td><code>/zoom_meetings/{zoom_meeting}/edit</code></td>
+        <td>zoom_meetings.edit</td>
+        <td class="action-col">App\Http\Controllers\Contact\ZoomMeetingController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="35" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-35"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/calendars/get_task_data', method: 'POST', hasBody: true };
+    case 1:
+      return { url: '/calendars/1/drag', method: 'POST', hasBody: true };
+    case 2:
+      return { url: '/calendars/1/show', method: 'GET', hasBody: false };
+    case 3:
+      return { url: '/calendars/1/1', method: 'GET', hasBody: false };
+    case 4:
+      return { url: '/events', method: 'GET', hasBody: false };
+    case 5:
+      return { url: '/events', method: 'POST', hasBody: true };
+    case 6:
+      return { url: '/events/create', method: 'GET', hasBody: false };
+    case 7:
+      return { url: '/events/get-department', method: 'POST', hasBody: true };
+    case 8:
+      return { url: '/events/get-employee', method: 'POST', hasBody: true };
+    case 9:
+      return { url: '/events/get_dashboard_event_data', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/events/get_event_data', method: 'GET', hasBody: false };
+    case 11:
+      return { url: '/events/1', method: 'GET', hasBody: false };
+    case 12:
+      return { url: '/events/1', method: 'PUT', hasBody: true };
+    case 13:
+      return { url: '/events/1', method: 'DELETE', hasBody: false };
+    case 14:
+      return { url: '/events/1/edit', method: 'GET', hasBody: false };
+    case 15:
+      return { url: '/meeting-calendar', method: 'GET', hasBody: false };
+    case 16:
+      return { url: '/meetings', method: 'GET', hasBody: false };
+    case 17:
+      return { url: '/meetings', method: 'POST', hasBody: true };
+    case 18:
+      return { url: '/meetings/create', method: 'GET', hasBody: false };
+    case 19:
+      return { url: '/meetings/get-department', method: 'POST', hasBody: true };
+    case 20:
+      return { url: '/meetings/get-employee', method: 'POST', hasBody: true };
+    case 21:
+      return { url: '/meetings/get_meeting_data', method: 'GET', hasBody: false };
+    case 22:
+      return { url: '/meetings/1', method: 'GET', hasBody: false };
+    case 23:
+      return { url: '/meetings/1', method: 'PUT', hasBody: true };
+    case 24:
+      return { url: '/meetings/1', method: 'DELETE', hasBody: false };
+    case 25:
+      return { url: '/meetings/1/edit', method: 'GET', hasBody: false };
+    case 26:
+      return { url: '/zoom-meeting-calendar', method: 'GET', hasBody: false };
+    case 27:
+      return { url: '/zoom-meetings/get_zoom_meeting_data', method: 'GET', hasBody: false };
+    case 28:
+      return { url: '/zoom_meetings', method: 'GET', hasBody: false };
+    case 29:
+      return { url: '/zoom_meetings', method: 'POST', hasBody: true };
+    case 30:
+      return { url: '/zoom_meetings/create', method: 'GET', hasBody: false };
+    case 31:
+      return { url: '/zoom_meetings/projects/selects/1', method: 'GET', hasBody: false };
+    case 32:
+      return { url: '/zoom_meetings/1', method: 'GET', hasBody: false };
+    case 33:
+      return { url: '/zoom_meetings/1', method: 'PUT', hasBody: true };
+    case 34:
+      return { url: '/zoom_meetings/1', method: 'DELETE', hasBody: false };
+    case 35:
+      return { url: '/zoom_meetings/1/edit', method: 'GET', hasBody: false };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

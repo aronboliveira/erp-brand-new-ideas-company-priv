@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — settings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; settings</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">62 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/business-setting">
+        <td><code>POST</code></td>
+        <td><code>/business-setting</code></td>
+        <td>business.setting</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveBusinessSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/cache-settings">
+        <td><code>POST</code></td>
+        <td><code>/cache-settings</code></td>
+        <td>cache.settings.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@cacheSettingStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/chatgpt-settings">
+        <td><code>POST</code></td>
+        <td><code>/chatgpt-settings</code></td>
+        <td>settings.chatgpt.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@chatGptSetting</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/company-email-settings">
+        <td><code>POST</code></td>
+        <td><code>/company-email-settings</code></td>
+        <td>companies.email.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveCompanyEmailSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/company-payment-setting">
+        <td><code>POST</code></td>
+        <td><code>/company-payment-setting</code></td>
+        <td>companies.payment.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveCompanyPaymentSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/company-settings">
+        <td><code>POST</code></td>
+        <td><code>/company-settings</code></td>
+        <td>companies.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveCompanySettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/cookie-consent">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/cookie-consent</code></td>
+        <td>cookie-consent</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@cookieConsent</td>
+        <td><span class="badge public">Public</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/cookie-setting">
+        <td><code>POST</code></td>
+        <td><code>/cookie-setting</code></td>
+        <td>settings.cookies.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveCookieSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/email-settings">
+        <td><code>POST</code></td>
+        <td><code>/email-settings</code></td>
+        <td>email.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveEmailSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/email_template">
+        <td><code>GET</code></td>
+        <td><code>/email_template</code></td>
+        <td>email_template.index</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/email_template">
+        <td><code>POST</code></td>
+        <td><code>/email_template</code></td>
+        <td>email_template.store</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/email_template_langs/{id}/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/email_template_langs/{id}/{lang?}</code></td>
+        <td>emails.manage.language</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@manageEmailLang</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/email_template_store">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/email_template_store</code></td>
+        <td>emails.status.language</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@updateStatus</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/email_template_stores/{pid}">
+        <td><code>GET, POST, PUT, PATCH, DELETE, OPTIONS</code></td>
+        <td><code>/email_template_stores/{pid}</code></td>
+        <td>emails.store.language</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@storeEmailLang</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/email_templates/create">
+        <td><code>GET</code></td>
+        <td><code>/email_templates/create</code></td>
+        <td>email_template.create</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/email_templates/{email_template}">
+        <td><code>GET</code></td>
+        <td><code>/email_templates/{email_template}</code></td>
+        <td>email_template.show</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/email_templates/{email_template}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/email_templates/{email_template}</code></td>
+        <td>email_template.update</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/email_templates/{email_template}">
+        <td><code>DELETE</code></td>
+        <td><code>/email_templates/{email_template}</code></td>
+        <td>email_template.destroy</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/email_templates/{email_template}/edit">
+        <td><code>GET</code></td>
+        <td><code>/email_templates/{email_template}/edit</code></td>
+        <td>email_template.edit</td>
+        <td class="action-col">App\Http\Controllers\Shapes\EmailTemplateController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/notification_templates">
+        <td><code>GET</code></td>
+        <td><code>/notification_templates</code></td>
+        <td>notification_templates.index</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/notification_templates">
+        <td><code>POST</code></td>
+        <td><code>/notification_templates</code></td>
+        <td>notification_templates.store</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/notification_templates/create">
+        <td><code>GET</code></td>
+        <td><code>/notification_templates/create</code></td>
+        <td>notification_templates.create</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/notification_templates/{id?}/{lang?}">
+        <td><code>GET</code></td>
+        <td><code>/notification_templates/{id?}/{lang?}</code></td>
+        <td>notification_templates.index</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/notification_templates/{notification_template}">
+        <td><code>GET</code></td>
+        <td><code>/notification_templates/{notification_template}</code></td>
+        <td>notification_templates.show</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/notification_templates/{notification_template}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/notification_templates/{notification_template}</code></td>
+        <td>notification_templates.update</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/notification_templates/{notification_template}">
+        <td><code>DELETE</code></td>
+        <td><code>/notification_templates/{notification_template}</code></td>
+        <td>notification_templates.destroy</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/notification_templates/{notification_template}/edit">
+        <td><code>GET</code></td>
+        <td><code>/notification_templates/{notification_template}/edit</code></td>
+        <td>notification_templates.edit</td>
+        <td class="action-col">App\Http\Controllers\Info\NotificationTemplateController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/pusher-setting">
+        <td><code>POST</code></td>
+        <td><code>/pusher-setting</code></td>
+        <td>settings.pusher</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@savePusherSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/recaptcha-settings">
+        <td><code>POST</code></td>
+        <td><code>/recaptcha-settings</code></td>
+        <td>settings.recaptcha.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@recaptchaSettingStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/seo-settings">
+        <td><code>POST</code></td>
+        <td><code>/seo-settings</code></td>
+        <td>settings.seo.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@seoSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/settings">
+        <td><code>GET</code></td>
+        <td><code>/settings</code></td>
+        <td>settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@companyIndex</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="31" data-uri="/settings/barcode">
+        <td><code>POST</code></td>
+        <td><code>/settings/barcode</code></td>
+        <td>pos.barcode.setting</td>
+        <td class="action-col">App\Http\Controllers\Activity\PosController@barcodeSettingStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="31" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-31"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="32" data-uri="/settings/exp">
+        <td><code>GET</code></td>
+        <td><code>/settings/exp</code></td>
+        <td>settings.experience_certificate.language</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@companyIndex</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="32" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-32"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="33" data-uri="/settings/exps/{lang?}">
+        <td><code>POST</code></td>
+        <td><code>/settings/exps/{lang?}</code></td>
+        <td>experience_certificate.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@experienceCertificateUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="33" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-33"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="34" data-uri="/settings/google-calendar">
+        <td><code>POST</code></td>
+        <td><code>/settings/google-calendar</code></td>
+        <td>settingsgoogle.calendar</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveGoogleCalendarSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="34" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-34"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="35" data-uri="/settings/joining-letter">
+        <td><code>GET</code></td>
+        <td><code>/settings/joining-letter</code></td>
+        <td>settingsjoining_letter.language</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@companyIndex</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="35" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-35"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="36" data-uri="/settings/joining-letters/{lang?}">
+        <td><code>POST</code></td>
+        <td><code>/settings/joining-letters/{lang?}</code></td>
+        <td>joining_letter.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@joiningLetterUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="36" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-36"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="37" data-uri="/settings/noc">
+        <td><code>GET</code></td>
+        <td><code>/settings/noc</code></td>
+        <td>settings.noc.language</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@companyIndex</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="37" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-37"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="38" data-uri="/settings/nocs/{lang?}">
+        <td><code>POST</code></td>
+        <td><code>/settings/nocs/{lang?}</code></td>
+        <td>noc.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@nocUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="38" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-38"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="39" data-uri="/settings/offer-letter">
+        <td><code>GET</code></td>
+        <td><code>/settings/offer-letter</code></td>
+        <td>settings.offer_letter.language</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@companyIndex</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="39" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-39"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="40" data-uri="/settings/offer-letters/{lang?}">
+        <td><code>POST</code></td>
+        <td><code>/settings/offer-letters/{lang?}</code></td>
+        <td>offer_letter.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@offerLetterUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="40" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-40"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="41" data-uri="/settings/pos">
+        <td><code>GET</code></td>
+        <td><code>/settings/pos</code></td>
+        <td>pos.setting</td>
+        <td class="action-col">App\Http\Controllers\Activity\PosController@setting</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="41" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-41"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="42" data-uri="/slack-settings">
+        <td><code>POST</code></td>
+        <td><code>/slack-settings</code></td>
+        <td>slack.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveSlackSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="42" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-42"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="43" data-uri="/storage-settings">
+        <td><code>POST</code></td>
+        <td><code>/storage-settings</code></td>
+        <td>settings.storage.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@storageSettingStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="43" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-43"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="44" data-uri="/stripe-settings">
+        <td><code>POST</code></td>
+        <td><code>/stripe-settings</code></td>
+        <td>payments.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@savePaymentSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="44" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-44"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="45" data-uri="/system-settings">
+        <td><code>POST</code></td>
+        <td><code>/system-settings</code></td>
+        <td>systems.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveSystemSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="45" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-45"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="46" data-uri="/system-settings/note">
+        <td><code>POST</code></td>
+        <td><code>/system-settings/note</code></td>
+        <td>systems.settings.footernote</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@footerNoteStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="46" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-46"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="47" data-uri="/systems">
+        <td><code>GET</code></td>
+        <td><code>/systems</code></td>
+        <td>systems.index</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="47" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-47"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="48" data-uri="/systems">
+        <td><code>POST</code></td>
+        <td><code>/systems</code></td>
+        <td>systems.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="48" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-48"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="49" data-uri="/systems/create">
+        <td><code>GET</code></td>
+        <td><code>/systems/create</code></td>
+        <td>systems.create</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="49" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-49"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="50" data-uri="/systems/creates/ip">
+        <td><code>GET</code></td>
+        <td><code>/systems/creates/ip</code></td>
+        <td>systems.ip.create</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@createIp</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="50" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-50"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="51" data-uri="/systems/creates/ip">
+        <td><code>POST</code></td>
+        <td><code>/systems/creates/ip</code></td>
+        <td>systems.ip.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@storeIp</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="51" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-51"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="52" data-uri="/systems/destroys/ips/{id}">
+        <td><code>DELETE</code></td>
+        <td><code>/systems/destroys/ips/{id}</code></td>
+        <td>systems.ip.destroy</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@destroyIp</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="52" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-52"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="53" data-uri="/systems/edits/ips/{id}">
+        <td><code>GET</code></td>
+        <td><code>/systems/edits/ips/{id}</code></td>
+        <td>systems.ip.edit</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@editIp</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="53" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-53"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="54" data-uri="/systems/edits/ips/{id}">
+        <td><code>POST</code></td>
+        <td><code>/systems/edits/ips/{id}</code></td>
+        <td>systems.ip.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@updateIp</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="54" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-54"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="55" data-uri="/systems/{system}">
+        <td><code>GET</code></td>
+        <td><code>/systems/{system}</code></td>
+        <td>systems.show</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="55" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-55"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="56" data-uri="/systems/{system}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/systems/{system}</code></td>
+        <td>systems.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="56" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-56"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="57" data-uri="/systems/{system}">
+        <td><code>DELETE</code></td>
+        <td><code>/systems/{system}</code></td>
+        <td>systems.destroy</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="57" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-57"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="58" data-uri="/systems/{system}/edit">
+        <td><code>GET</code></td>
+        <td><code>/systems/{system}/edit</code></td>
+        <td>systems.edit</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="58" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-58"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="59" data-uri="/telegram-settings">
+        <td><code>POST</code></td>
+        <td><code>/telegram-settings</code></td>
+        <td>telegram.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveTelegramSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="59" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-59"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="60" data-uri="/twilio-settings">
+        <td><code>POST</code></td>
+        <td><code>/twilio-settings</code></td>
+        <td>twilio.setting</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveTwilioSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="60" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-60"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="61" data-uri="/zoom-settings">
+        <td><code>POST</code></td>
+        <td><code>/zoom-settings</code></td>
+        <td>zoom.settings</td>
+        <td class="action-col">App\Http\Controllers\Configs\SystemController@saveZoomSettings</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="61" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-61"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/business-setting', method: 'POST', hasBody: true };
+    case 1:
+      return { url: '/cache-settings', method: 'POST', hasBody: true };
+    case 2:
+      return { url: '/chatgpt-settings', method: 'POST', hasBody: true };
+    case 3:
+      return { url: '/company-email-settings', method: 'POST', hasBody: true };
+    case 4:
+      return { url: '/company-payment-setting', method: 'POST', hasBody: true };
+    case 5:
+      return { url: '/company-settings', method: 'POST', hasBody: true };
+    case 6:
+      return { url: '/cookie-consent', method: 'GET', hasBody: false };
+    case 7:
+      return { url: '/cookie-setting', method: 'POST', hasBody: true };
+    case 8:
+      return { url: '/email-settings', method: 'POST', hasBody: true };
+    case 9:
+      return { url: '/email_template', method: 'GET', hasBody: false };
+    case 10:
+      return { url: '/email_template', method: 'POST', hasBody: true };
+    case 11:
+      return { url: '/email_template_langs/1/1', method: 'GET', hasBody: false };
+    case 12:
+      return { url: '/email_template_store', method: 'GET', hasBody: false };
+    case 13:
+      return { url: '/email_template_stores/1', method: 'GET', hasBody: false };
+    case 14:
+      return { url: '/email_templates/create', method: 'GET', hasBody: false };
+    case 15:
+      return { url: '/email_templates/1', method: 'GET', hasBody: false };
+    case 16:
+      return { url: '/email_templates/1', method: 'PUT', hasBody: true };
+    case 17:
+      return { url: '/email_templates/1', method: 'DELETE', hasBody: false };
+    case 18:
+      return { url: '/email_templates/1/edit', method: 'GET', hasBody: false };
+    case 19:
+      return { url: '/notification_templates', method: 'GET', hasBody: false };
+    case 20:
+      return { url: '/notification_templates', method: 'POST', hasBody: true };
+    case 21:
+      return { url: '/notification_templates/create', method: 'GET', hasBody: false };
+    case 22:
+      return { url: '/notification_templates/1/1', method: 'GET', hasBody: false };
+    case 23:
+      return { url: '/notification_templates/1', method: 'GET', hasBody: false };
+    case 24:
+      return { url: '/notification_templates/1', method: 'PUT', hasBody: true };
+    case 25:
+      return { url: '/notification_templates/1', method: 'DELETE', hasBody: false };
+    case 26:
+      return { url: '/notification_templates/1/edit', method: 'GET', hasBody: false };
+    case 27:
+      return { url: '/pusher-setting', method: 'POST', hasBody: true };
+    case 28:
+      return { url: '/recaptcha-settings', method: 'POST', hasBody: true };
+    case 29:
+      return { url: '/seo-settings', method: 'POST', hasBody: true };
+    case 30:
+      return { url: '/settings', method: 'GET', hasBody: false };
+    case 31:
+      return { url: '/settings/barcode', method: 'POST', hasBody: true };
+    case 32:
+      return { url: '/settings/exp', method: 'GET', hasBody: false };
+    case 33:
+      return { url: '/settings/exps/1', method: 'POST', hasBody: true };
+    case 34:
+      return { url: '/settings/google-calendar', method: 'POST', hasBody: true };
+    case 35:
+      return { url: '/settings/joining-letter', method: 'GET', hasBody: false };
+    case 36:
+      return { url: '/settings/joining-letters/1', method: 'POST', hasBody: true };
+    case 37:
+      return { url: '/settings/noc', method: 'GET', hasBody: false };
+    case 38:
+      return { url: '/settings/nocs/1', method: 'POST', hasBody: true };
+    case 39:
+      return { url: '/settings/offer-letter', method: 'GET', hasBody: false };
+    case 40:
+      return { url: '/settings/offer-letters/1', method: 'POST', hasBody: true };
+    case 41:
+      return { url: '/settings/pos', method: 'GET', hasBody: false };
+    case 42:
+      return { url: '/slack-settings', method: 'POST', hasBody: true };
+    case 43:
+      return { url: '/storage-settings', method: 'POST', hasBody: true };
+    case 44:
+      return { url: '/stripe-settings', method: 'POST', hasBody: true };
+    case 45:
+      return { url: '/system-settings', method: 'POST', hasBody: true };
+    case 46:
+      return { url: '/system-settings/note', method: 'POST', hasBody: true };
+    case 47:
+      return { url: '/systems', method: 'GET', hasBody: false };
+    case 48:
+      return { url: '/systems', method: 'POST', hasBody: true };
+    case 49:
+      return { url: '/systems/create', method: 'GET', hasBody: false };
+    case 50:
+      return { url: '/systems/creates/ip', method: 'GET', hasBody: false };
+    case 51:
+      return { url: '/systems/creates/ip', method: 'POST', hasBody: true };
+    case 52:
+      return { url: '/systems/destroys/ips/1', method: 'DELETE', hasBody: false };
+    case 53:
+      return { url: '/systems/edits/ips/1', method: 'GET', hasBody: false };
+    case 54:
+      return { url: '/systems/edits/ips/1', method: 'POST', hasBody: true };
+    case 55:
+      return { url: '/systems/1', method: 'GET', hasBody: false };
+    case 56:
+      return { url: '/systems/1', method: 'PUT', hasBody: true };
+    case 57:
+      return { url: '/systems/1', method: 'DELETE', hasBody: false };
+    case 58:
+      return { url: '/systems/1/edit', method: 'GET', hasBody: false };
+    case 59:
+      return { url: '/telegram-settings', method: 'POST', hasBody: true };
+    case 60:
+      return { url: '/twilio-settings', method: 'POST', hasBody: true };
+    case 61:
+      return { url: '/zoom-settings', method: 'POST', hasBody: true };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

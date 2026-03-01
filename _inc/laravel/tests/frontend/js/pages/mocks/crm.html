@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Page — crm</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .timestamp { font-size: 0.75rem; color: #888; margin-bottom: 1rem; }
+    .summary { font-size: 0.85rem; margin-bottom: 1rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; position: sticky; top: 0; }
+    .action-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+    .badge.auth { background: #fde68a; color: #92400e; }
+    .badge.public { background: #bbf7d0; color: #166534; }
+    .btn-fetch { cursor: pointer; border: 1px solid #aaa; background: #fff; border-radius: 3px; padding: 2px 6px; }
+    .btn-fetch:hover { background: #e0e0e0; }
+    .status { font-size: 0.75rem; margin-left: 4px; }
+    .status.ok { color: green; }
+    .status.err { color: red; }
+    .status.pending { color: orange; }
+    #results { margin-top: 1rem; }
+    .result-card { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .result-card.ok { border-color: #4ade80; }
+    .result-card.err { border-color: #f87171; }
+    .result-card pre { font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #bulk-controls { margin-bottom: 0.5rem; }
+    #bulk-controls button { margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }
+    #filter { margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Mock Test Page &mdash; crm</h1>
+  <p class="timestamp">Generated: 2026-02-28T17:57:03Z</p>
+  <p class="summary">108 route(s) in this group</p>
+
+  <div id="bulk-controls">
+    <button id="btn-fetch-all" title="Fetch all GET endpoints sequentially">Fetch All GET</button>
+    <button id="btn-clear" title="Clear results">Clear Results</button>
+    <input type="text" id="filter" placeholder="Filter routes by URI or name..." />
+  </div>
+
+  <table id="route-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>URI</th>
+        <th>Name</th>
+        <th>Action</th>
+        <th>Auth</th>
+        <th>Test</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-route-idx="0" data-uri="/deals">
+        <td><code>GET</code></td>
+        <td><code>/deals</code></td>
+        <td>deals.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="0" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-0"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="1" data-uri="/deals">
+        <td><code>POST</code></td>
+        <td><code>/deals</code></td>
+        <td>deals.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="1" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-1"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="2" data-uri="/deals/change-deal-statuses/{id}">
+        <td><code>POST</code></td>
+        <td><code>/deals/change-deal-statuses/{id}</code></td>
+        <td>deals.change.status</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@changeStatus</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="2" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-2"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="3" data-uri="/deals/change-pipeline">
+        <td><code>POST</code></td>
+        <td><code>/deals/change-pipeline</code></td>
+        <td>deals.change.pipeline</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@changePipeline</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="3" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-3"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="4" data-uri="/deals/create">
+        <td><code>GET</code></td>
+        <td><code>/deals/create</code></td>
+        <td>deals.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="4" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-4"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="5" data-uri="/deals/list">
+        <td><code>GET</code></td>
+        <td><code>/deals/list</code></td>
+        <td>deals.list</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@dealList</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="5" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-5"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="6" data-uri="/deals/order">
+        <td><code>POST</code></td>
+        <td><code>/deals/order</code></td>
+        <td>deals.order</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@order</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="6" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-6"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="7" data-uri="/deals/user">
+        <td><code>POST</code></td>
+        <td><code>/deals/user</code></td>
+        <td>deals.user.json</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@jsonUser</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="7" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-7"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="8" data-uri="/deals/{deal}">
+        <td><code>GET</code></td>
+        <td><code>/deals/{deal}</code></td>
+        <td>deals.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="8" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-8"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="9" data-uri="/deals/{deal}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/deals/{deal}</code></td>
+        <td>deals.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="9" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-9"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="10" data-uri="/deals/{deal}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{deal}</code></td>
+        <td>deals.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="10" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-10"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="11" data-uri="/deals/{deal}/edit">
+        <td><code>GET</code></td>
+        <td><code>/deals/{deal}/edit</code></td>
+        <td>deals.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="11" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-11"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="12" data-uri="/deals/{id}/call">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/call</code></td>
+        <td>deals.calls.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@callCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="12" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-12"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="13" data-uri="/deals/{id}/call">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/call</code></td>
+        <td>deals.calls.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@callStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="13" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-13"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="14" data-uri="/deals/{id}/calls/{cid}">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/calls/{cid}</code></td>
+        <td>deals.calls.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@callUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="14" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-14"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="15" data-uri="/deals/{id}/calls/{cid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/calls/{cid}</code></td>
+        <td>deals.calls.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@callDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="15" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-15"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="16" data-uri="/deals/{id}/calls/{cid}/edit">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/calls/{cid}/edit</code></td>
+        <td>deals.calls.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@callEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="16" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-16"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="17" data-uri="/deals/{id}/clients">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/clients</code></td>
+        <td>deals.clients.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@clientEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="17" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-17"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="18" data-uri="/deals/{id}/clients">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/clients</code></td>
+        <td>deals.clients.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@clientUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="18" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-18"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="19" data-uri="/deals/{id}/clients/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/clients/{uid}</code></td>
+        <td>deals.clients.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@clientDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="19" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-19"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="20" data-uri="/deals/{id}/discussions">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/discussions</code></td>
+        <td>deals.discussions.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@discussionCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="20" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-20"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="21" data-uri="/deals/{id}/discussions">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/discussions</code></td>
+        <td>deals.discussion.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@discussionStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="21" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-21"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="22" data-uri="/deals/{id}/email">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/email</code></td>
+        <td>deals.emails.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@emailCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="22" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-22"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="23" data-uri="/deals/{id}/email">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/email</code></td>
+        <td>deals.emails.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@emailStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="23" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-23"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="24" data-uri="/deals/{id}/file">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/file</code></td>
+        <td>deals.file.upload</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@fileUpload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="24" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-24"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="25" data-uri="/deals/{id}/files/deletes/{fid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/files/deletes/{fid}</code></td>
+        <td>deals.file.delete</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@fileDelete</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="25" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-25"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="26" data-uri="/deals/{id}/files/{fid}">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/files/{fid}</code></td>
+        <td>deals.file.download</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@fileDownload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="26" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-26"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="27" data-uri="/deals/{id}/labels">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/labels</code></td>
+        <td>deals.labels</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@labels</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="27" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-27"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="28" data-uri="/deals/{id}/labels">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/labels</code></td>
+        <td>deals.labels.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@labelStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="28" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-28"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="29" data-uri="/deals/{id}/note">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/note</code></td>
+        <td>deals.note.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@noteStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="29" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-29"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="30" data-uri="/deals/{id}/permissions/{cid}">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/permissions/{cid}</code></td>
+        <td>deals.client.permission</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@permission</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="30" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-30"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="31" data-uri="/deals/{id}/permissions/{cid}">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/permissions/{cid}</code></td>
+        <td>deals.client.permissions.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@permissionStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="31" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-31"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="32" data-uri="/deals/{id}/products">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/products</code></td>
+        <td>deals.products.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@productEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="32" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-32"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="33" data-uri="/deals/{id}/products">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/products</code></td>
+        <td>deals.products.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@productUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="33" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-33"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="34" data-uri="/deals/{id}/products/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/products/{uid}</code></td>
+        <td>deals.products.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@productDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="34" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-34"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="35" data-uri="/deals/{id}/sources">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/sources</code></td>
+        <td>deals.sources.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@sourceEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="35" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-35"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="36" data-uri="/deals/{id}/sources">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/sources</code></td>
+        <td>deals.sources.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@sourceUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="36" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-36"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="37" data-uri="/deals/{id}/sources/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/sources/{uid}</code></td>
+        <td>deals.sources.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@sourceDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="37" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-37"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="38" data-uri="/deals/{id}/task_statuses/{tid}">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/task_statuses/{tid}</code></td>
+        <td>deals.tasks.update_status</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskUpdateStatus</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="38" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-38"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="39" data-uri="/deals/{id}/tasks">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/tasks</code></td>
+        <td>deals.tasks.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="39" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-39"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="40" data-uri="/deals/{id}/tasks">
+        <td><code>POST</code></td>
+        <td><code>/deals/{id}/tasks</code></td>
+        <td>deals.tasks.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="40" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-40"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="41" data-uri="/deals/{id}/tasks/{tid}">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/tasks/{tid}</code></td>
+        <td>deals.tasks.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="41" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-41"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="42" data-uri="/deals/{id}/tasks/{tid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/tasks/{tid}</code></td>
+        <td>deals.tasks.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="42" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-42"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="43" data-uri="/deals/{id}/tasks/{tid}/edit">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/tasks/{tid}/edit</code></td>
+        <td>deals.tasks.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="43" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-43"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="44" data-uri="/deals/{id}/tasks/{tid}/show">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/tasks/{tid}/show</code></td>
+        <td>deals.tasks.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@taskShow</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="44" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-44"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="45" data-uri="/deals/{id}/users">
+        <td><code>GET</code></td>
+        <td><code>/deals/{id}/users</code></td>
+        <td>deals.users.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@userEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="45" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-45"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="46" data-uri="/deals/{id}/users">
+        <td><code>PUT</code></td>
+        <td><code>/deals/{id}/users</code></td>
+        <td>deals.users.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@userUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="46" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-46"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="47" data-uri="/deals/{id}/users/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/deals/{id}/users/{uid}</code></td>
+        <td>deals.users.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\DealController@userDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="47" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-47"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="48" data-uri="/lead_stages">
+        <td><code>GET</code></td>
+        <td><code>/lead_stages</code></td>
+        <td>lead_stages.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="48" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-48"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="49" data-uri="/lead_stages">
+        <td><code>POST</code></td>
+        <td><code>/lead_stages</code></td>
+        <td>lead_stages.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="49" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-49"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="50" data-uri="/lead_stages/create">
+        <td><code>GET</code></td>
+        <td><code>/lead_stages/create</code></td>
+        <td>lead_stages.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="50" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-50"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="51" data-uri="/lead_stages/order">
+        <td><code>POST</code></td>
+        <td><code>/lead_stages/order</code></td>
+        <td>lead_stages.order</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@order</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="51" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-51"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="52" data-uri="/lead_stages/{lead_stage}">
+        <td><code>GET</code></td>
+        <td><code>/lead_stages/{lead_stage}</code></td>
+        <td>lead_stages.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="52" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-52"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="53" data-uri="/lead_stages/{lead_stage}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/lead_stages/{lead_stage}</code></td>
+        <td>lead_stages.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="53" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-53"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="54" data-uri="/lead_stages/{lead_stage}">
+        <td><code>DELETE</code></td>
+        <td><code>/lead_stages/{lead_stage}</code></td>
+        <td>lead_stages.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="54" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-54"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="55" data-uri="/lead_stages/{lead_stage}/edit">
+        <td><code>GET</code></td>
+        <td><code>/lead_stages/{lead_stage}/edit</code></td>
+        <td>lead_stages.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadStageController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="55" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-55"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="56" data-uri="/leads">
+        <td><code>GET</code></td>
+        <td><code>/leads</code></td>
+        <td>leads.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="56" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-56"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="57" data-uri="/leads">
+        <td><code>POST</code></td>
+        <td><code>/leads</code></td>
+        <td>leads.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="57" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-57"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="58" data-uri="/leads/create">
+        <td><code>GET</code></td>
+        <td><code>/leads/create</code></td>
+        <td>leads.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="58" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-58"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="59" data-uri="/leads/json">
+        <td><code>POST</code></td>
+        <td><code>/leads/json</code></td>
+        <td>leads.json</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@json</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="59" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-59"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="60" data-uri="/leads/list">
+        <td><code>GET</code></td>
+        <td><code>/leads/list</code></td>
+        <td>leads.list</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@leadList</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="60" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-60"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="61" data-uri="/leads/order">
+        <td><code>POST</code></td>
+        <td><code>/leads/order</code></td>
+        <td>leads.order</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@order</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="61" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-61"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="62" data-uri="/leads/{id}/call">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/call</code></td>
+        <td>leads.calls.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@callCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="62" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-62"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="63" data-uri="/leads/{id}/call">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/call</code></td>
+        <td>leads.calls.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@callStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="63" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-63"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="64" data-uri="/leads/{id}/calls/{cid}">
+        <td><code>PUT</code></td>
+        <td><code>/leads/{id}/calls/{cid}</code></td>
+        <td>leads.calls.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@callUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="64" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-64"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="65" data-uri="/leads/{id}/calls/{cid}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{id}/calls/{cid}</code></td>
+        <td>leads.calls.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@callDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="65" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-65"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="66" data-uri="/leads/{id}/calls/{cid}/edit">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/calls/{cid}/edit</code></td>
+        <td>leads.calls.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@callEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="66" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-66"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="67" data-uri="/leads/{id}/convert">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/convert</code></td>
+        <td>leads.convert.to.deal</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@convertToDeal</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="67" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-67"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="68" data-uri="/leads/{id}/discussions">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/discussions</code></td>
+        <td>leads.discussions.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@discussionCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="68" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-68"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="69" data-uri="/leads/{id}/discussions">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/discussions</code></td>
+        <td>leads.discussion.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@discussionStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="69" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-69"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="70" data-uri="/leads/{id}/email">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/email</code></td>
+        <td>leads.emails.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@emailCreate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="70" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-70"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="71" data-uri="/leads/{id}/email">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/email</code></td>
+        <td>leads.emails.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@emailStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="71" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-71"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="72" data-uri="/leads/{id}/file">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/file</code></td>
+        <td>leads.file.upload</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@fileUpload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="72" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-72"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="73" data-uri="/leads/{id}/files/deletes/{fid}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{id}/files/deletes/{fid}</code></td>
+        <td>leads.file.delete</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@fileDelete</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="73" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-73"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="74" data-uri="/leads/{id}/files/{fid}">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/files/{fid}</code></td>
+        <td>leads.file.download</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@fileDownload</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="74" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-74"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="75" data-uri="/leads/{id}/labels">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/labels</code></td>
+        <td>leads.labels</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@labels</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="75" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-75"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="76" data-uri="/leads/{id}/labels">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/labels</code></td>
+        <td>leads.labels.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@labelStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="76" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-76"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="77" data-uri="/leads/{id}/note">
+        <td><code>POST</code></td>
+        <td><code>/leads/{id}/note</code></td>
+        <td>leads.note.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@noteStore</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="77" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-77"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="78" data-uri="/leads/{id}/products">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/products</code></td>
+        <td>leads.products.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@productEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="78" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-78"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="79" data-uri="/leads/{id}/products">
+        <td><code>PUT</code></td>
+        <td><code>/leads/{id}/products</code></td>
+        <td>leads.products.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@productUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="79" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-79"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="80" data-uri="/leads/{id}/products/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{id}/products/{uid}</code></td>
+        <td>leads.products.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@productDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="80" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-80"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="81" data-uri="/leads/{id}/show_convert">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/show_convert</code></td>
+        <td>leads.convert.deal</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@showConvertToDeal</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="81" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-81"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="82" data-uri="/leads/{id}/sources">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/sources</code></td>
+        <td>leads.sources.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@sourceEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="82" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-82"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="83" data-uri="/leads/{id}/sources">
+        <td><code>PUT</code></td>
+        <td><code>/leads/{id}/sources</code></td>
+        <td>leads.sources.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@sourceUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="83" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-83"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="84" data-uri="/leads/{id}/sources/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{id}/sources/{uid}</code></td>
+        <td>leads.sources.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@sourceDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="84" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-84"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="85" data-uri="/leads/{id}/users">
+        <td><code>GET</code></td>
+        <td><code>/leads/{id}/users</code></td>
+        <td>leads.users.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@userEdit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="85" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-85"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="86" data-uri="/leads/{id}/users">
+        <td><code>PUT</code></td>
+        <td><code>/leads/{id}/users</code></td>
+        <td>leads.users.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@userUpdate</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="86" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-86"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="87" data-uri="/leads/{id}/users/{uid}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{id}/users/{uid}</code></td>
+        <td>leads.users.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@userDestroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="87" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-87"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="88" data-uri="/leads/{lead}">
+        <td><code>GET</code></td>
+        <td><code>/leads/{lead}</code></td>
+        <td>leads.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="88" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-88"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="89" data-uri="/leads/{lead}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/leads/{lead}</code></td>
+        <td>leads.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="89" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-89"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="90" data-uri="/leads/{lead}">
+        <td><code>DELETE</code></td>
+        <td><code>/leads/{lead}</code></td>
+        <td>leads.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="90" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-90"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="91" data-uri="/leads/{lead}/edit">
+        <td><code>GET</code></td>
+        <td><code>/leads/{lead}/edit</code></td>
+        <td>leads.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\LeadController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="91" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-91"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="92" data-uri="/pipelines">
+        <td><code>GET</code></td>
+        <td><code>/pipelines</code></td>
+        <td>pipelines.index</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="92" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-92"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="93" data-uri="/pipelines">
+        <td><code>POST</code></td>
+        <td><code>/pipelines</code></td>
+        <td>pipelines.store</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="93" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-93"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="94" data-uri="/pipelines/create">
+        <td><code>GET</code></td>
+        <td><code>/pipelines/create</code></td>
+        <td>pipelines.create</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="94" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-94"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="95" data-uri="/pipelines/{pipeline}">
+        <td><code>GET</code></td>
+        <td><code>/pipelines/{pipeline}</code></td>
+        <td>pipelines.show</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="95" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-95"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="96" data-uri="/pipelines/{pipeline}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/pipelines/{pipeline}</code></td>
+        <td>pipelines.update</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="96" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-96"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="97" data-uri="/pipelines/{pipeline}">
+        <td><code>DELETE</code></td>
+        <td><code>/pipelines/{pipeline}</code></td>
+        <td>pipelines.destroy</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="97" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-97"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="98" data-uri="/pipelines/{pipeline}/edit">
+        <td><code>GET</code></td>
+        <td><code>/pipelines/{pipeline}/edit</code></td>
+        <td>pipelines.edit</td>
+        <td class="action-col">App\Http\Controllers\Configs\PipelineController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="98" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-98"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="99" data-uri="/reports-deal">
+        <td><code>GET</code></td>
+        <td><code>/reports-deal</code></td>
+        <td>reports.deal</td>
+        <td class="action-col">App\Http\Controllers\Activity\ReportController@dealReport</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="99" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-99"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="100" data-uri="/reports-lead">
+        <td><code>GET</code></td>
+        <td><code>/reports-lead</code></td>
+        <td>reports.lead</td>
+        <td class="action-col">App\Http\Controllers\Activity\ReportController@leadReport</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="100" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-100"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="101" data-uri="/sources">
+        <td><code>GET</code></td>
+        <td><code>/sources</code></td>
+        <td>sources.index</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@index</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="101" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-101"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="102" data-uri="/sources">
+        <td><code>POST</code></td>
+        <td><code>/sources</code></td>
+        <td>sources.store</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@store</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="102" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-102"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="103" data-uri="/sources/create">
+        <td><code>GET</code></td>
+        <td><code>/sources/create</code></td>
+        <td>sources.create</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@create</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="103" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-103"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="104" data-uri="/sources/{source}">
+        <td><code>GET</code></td>
+        <td><code>/sources/{source}</code></td>
+        <td>sources.show</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@show</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="104" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-104"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="105" data-uri="/sources/{source}">
+        <td><code>PUT, PATCH</code></td>
+        <td><code>/sources/{source}</code></td>
+        <td>sources.update</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@update</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="105" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-105"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="106" data-uri="/sources/{source}">
+        <td><code>DELETE</code></td>
+        <td><code>/sources/{source}</code></td>
+        <td>sources.destroy</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@destroy</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="106" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-106"></span>
+        </td>
+      </tr>
+      <tr data-route-idx="107" data-uri="/sources/{source}/edit">
+        <td><code>GET</code></td>
+        <td><code>/sources/{source}/edit</code></td>
+        <td>sources.edit</td>
+        <td class="action-col">App\Http\Controllers\Activity\SourceController@edit</td>
+        <td><span class="badge auth">Auth</span></td>
+        <td>
+          <button class="btn-fetch" data-idx="107" title="Fetch endpoint">&#9654;</button>
+          <span class="status" id="status-107"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div id="results"></div>
+
+  <script>
+    const BASE_URL = window.__TEST_BASE_URL__ || '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function getRouteInfo(idx) {
+      switch (idx) {
+    case 0:
+      return { url: '/deals', method: 'GET', hasBody: false };
+    case 1:
+      return { url: '/deals', method: 'POST', hasBody: true };
+    case 2:
+      return { url: '/deals/change-deal-statuses/1', method: 'POST', hasBody: true };
+    case 3:
+      return { url: '/deals/change-pipeline', method: 'POST', hasBody: true };
+    case 4:
+      return { url: '/deals/create', method: 'GET', hasBody: false };
+    case 5:
+      return { url: '/deals/list', method: 'GET', hasBody: false };
+    case 6:
+      return { url: '/deals/order', method: 'POST', hasBody: true };
+    case 7:
+      return { url: '/deals/user', method: 'POST', hasBody: true };
+    case 8:
+      return { url: '/deals/1', method: 'GET', hasBody: false };
+    case 9:
+      return { url: '/deals/1', method: 'PUT', hasBody: true };
+    case 10:
+      return { url: '/deals/1', method: 'DELETE', hasBody: false };
+    case 11:
+      return { url: '/deals/1/edit', method: 'GET', hasBody: false };
+    case 12:
+      return { url: '/deals/1/call', method: 'GET', hasBody: false };
+    case 13:
+      return { url: '/deals/1/call', method: 'POST', hasBody: true };
+    case 14:
+      return { url: '/deals/1/calls/1', method: 'PUT', hasBody: true };
+    case 15:
+      return { url: '/deals/1/calls/1', method: 'DELETE', hasBody: false };
+    case 16:
+      return { url: '/deals/1/calls/1/edit', method: 'GET', hasBody: false };
+    case 17:
+      return { url: '/deals/1/clients', method: 'GET', hasBody: false };
+    case 18:
+      return { url: '/deals/1/clients', method: 'PUT', hasBody: true };
+    case 19:
+      return { url: '/deals/1/clients/1', method: 'DELETE', hasBody: false };
+    case 20:
+      return { url: '/deals/1/discussions', method: 'GET', hasBody: false };
+    case 21:
+      return { url: '/deals/1/discussions', method: 'POST', hasBody: true };
+    case 22:
+      return { url: '/deals/1/email', method: 'GET', hasBody: false };
+    case 23:
+      return { url: '/deals/1/email', method: 'POST', hasBody: true };
+    case 24:
+      return { url: '/deals/1/file', method: 'POST', hasBody: true };
+    case 25:
+      return { url: '/deals/1/files/deletes/1', method: 'DELETE', hasBody: false };
+    case 26:
+      return { url: '/deals/1/files/1', method: 'GET', hasBody: false };
+    case 27:
+      return { url: '/deals/1/labels', method: 'GET', hasBody: false };
+    case 28:
+      return { url: '/deals/1/labels', method: 'POST', hasBody: true };
+    case 29:
+      return { url: '/deals/1/note', method: 'POST', hasBody: true };
+    case 30:
+      return { url: '/deals/1/permissions/1', method: 'GET', hasBody: false };
+    case 31:
+      return { url: '/deals/1/permissions/1', method: 'PUT', hasBody: true };
+    case 32:
+      return { url: '/deals/1/products', method: 'GET', hasBody: false };
+    case 33:
+      return { url: '/deals/1/products', method: 'PUT', hasBody: true };
+    case 34:
+      return { url: '/deals/1/products/1', method: 'DELETE', hasBody: false };
+    case 35:
+      return { url: '/deals/1/sources', method: 'GET', hasBody: false };
+    case 36:
+      return { url: '/deals/1/sources', method: 'PUT', hasBody: true };
+    case 37:
+      return { url: '/deals/1/sources/1', method: 'DELETE', hasBody: false };
+    case 38:
+      return { url: '/deals/1/task_statuses/1', method: 'PUT', hasBody: true };
+    case 39:
+      return { url: '/deals/1/tasks', method: 'GET', hasBody: false };
+    case 40:
+      return { url: '/deals/1/tasks', method: 'POST', hasBody: true };
+    case 41:
+      return { url: '/deals/1/tasks/1', method: 'PUT', hasBody: true };
+    case 42:
+      return { url: '/deals/1/tasks/1', method: 'DELETE', hasBody: false };
+    case 43:
+      return { url: '/deals/1/tasks/1/edit', method: 'GET', hasBody: false };
+    case 44:
+      return { url: '/deals/1/tasks/1/show', method: 'GET', hasBody: false };
+    case 45:
+      return { url: '/deals/1/users', method: 'GET', hasBody: false };
+    case 46:
+      return { url: '/deals/1/users', method: 'PUT', hasBody: true };
+    case 47:
+      return { url: '/deals/1/users/1', method: 'DELETE', hasBody: false };
+    case 48:
+      return { url: '/lead_stages', method: 'GET', hasBody: false };
+    case 49:
+      return { url: '/lead_stages', method: 'POST', hasBody: true };
+    case 50:
+      return { url: '/lead_stages/create', method: 'GET', hasBody: false };
+    case 51:
+      return { url: '/lead_stages/order', method: 'POST', hasBody: true };
+    case 52:
+      return { url: '/lead_stages/1', method: 'GET', hasBody: false };
+    case 53:
+      return { url: '/lead_stages/1', method: 'PUT', hasBody: true };
+    case 54:
+      return { url: '/lead_stages/1', method: 'DELETE', hasBody: false };
+    case 55:
+      return { url: '/lead_stages/1/edit', method: 'GET', hasBody: false };
+    case 56:
+      return { url: '/leads', method: 'GET', hasBody: false };
+    case 57:
+      return { url: '/leads', method: 'POST', hasBody: true };
+    case 58:
+      return { url: '/leads/create', method: 'GET', hasBody: false };
+    case 59:
+      return { url: '/leads/json', method: 'POST', hasBody: true };
+    case 60:
+      return { url: '/leads/list', method: 'GET', hasBody: false };
+    case 61:
+      return { url: '/leads/order', method: 'POST', hasBody: true };
+    case 62:
+      return { url: '/leads/1/call', method: 'GET', hasBody: false };
+    case 63:
+      return { url: '/leads/1/call', method: 'POST', hasBody: true };
+    case 64:
+      return { url: '/leads/1/calls/1', method: 'PUT', hasBody: true };
+    case 65:
+      return { url: '/leads/1/calls/1', method: 'DELETE', hasBody: false };
+    case 66:
+      return { url: '/leads/1/calls/1/edit', method: 'GET', hasBody: false };
+    case 67:
+      return { url: '/leads/1/convert', method: 'POST', hasBody: true };
+    case 68:
+      return { url: '/leads/1/discussions', method: 'GET', hasBody: false };
+    case 69:
+      return { url: '/leads/1/discussions', method: 'POST', hasBody: true };
+    case 70:
+      return { url: '/leads/1/email', method: 'GET', hasBody: false };
+    case 71:
+      return { url: '/leads/1/email', method: 'POST', hasBody: true };
+    case 72:
+      return { url: '/leads/1/file', method: 'POST', hasBody: true };
+    case 73:
+      return { url: '/leads/1/files/deletes/1', method: 'DELETE', hasBody: false };
+    case 74:
+      return { url: '/leads/1/files/1', method: 'GET', hasBody: false };
+    case 75:
+      return { url: '/leads/1/labels', method: 'GET', hasBody: false };
+    case 76:
+      return { url: '/leads/1/labels', method: 'POST', hasBody: true };
+    case 77:
+      return { url: '/leads/1/note', method: 'POST', hasBody: true };
+    case 78:
+      return { url: '/leads/1/products', method: 'GET', hasBody: false };
+    case 79:
+      return { url: '/leads/1/products', method: 'PUT', hasBody: true };
+    case 80:
+      return { url: '/leads/1/products/1', method: 'DELETE', hasBody: false };
+    case 81:
+      return { url: '/leads/1/show_convert', method: 'GET', hasBody: false };
+    case 82:
+      return { url: '/leads/1/sources', method: 'GET', hasBody: false };
+    case 83:
+      return { url: '/leads/1/sources', method: 'PUT', hasBody: true };
+    case 84:
+      return { url: '/leads/1/sources/1', method: 'DELETE', hasBody: false };
+    case 85:
+      return { url: '/leads/1/users', method: 'GET', hasBody: false };
+    case 86:
+      return { url: '/leads/1/users', method: 'PUT', hasBody: true };
+    case 87:
+      return { url: '/leads/1/users/1', method: 'DELETE', hasBody: false };
+    case 88:
+      return { url: '/leads/1', method: 'GET', hasBody: false };
+    case 89:
+      return { url: '/leads/1', method: 'PUT', hasBody: true };
+    case 90:
+      return { url: '/leads/1', method: 'DELETE', hasBody: false };
+    case 91:
+      return { url: '/leads/1/edit', method: 'GET', hasBody: false };
+    case 92:
+      return { url: '/pipelines', method: 'GET', hasBody: false };
+    case 93:
+      return { url: '/pipelines', method: 'POST', hasBody: true };
+    case 94:
+      return { url: '/pipelines/create', method: 'GET', hasBody: false };
+    case 95:
+      return { url: '/pipelines/1', method: 'GET', hasBody: false };
+    case 96:
+      return { url: '/pipelines/1', method: 'PUT', hasBody: true };
+    case 97:
+      return { url: '/pipelines/1', method: 'DELETE', hasBody: false };
+    case 98:
+      return { url: '/pipelines/1/edit', method: 'GET', hasBody: false };
+    case 99:
+      return { url: '/reports-deal', method: 'GET', hasBody: false };
+    case 100:
+      return { url: '/reports-lead', method: 'GET', hasBody: false };
+    case 101:
+      return { url: '/sources', method: 'GET', hasBody: false };
+    case 102:
+      return { url: '/sources', method: 'POST', hasBody: true };
+    case 103:
+      return { url: '/sources/create', method: 'GET', hasBody: false };
+    case 104:
+      return { url: '/sources/1', method: 'GET', hasBody: false };
+    case 105:
+      return { url: '/sources/1', method: 'PUT', hasBody: true };
+    case 106:
+      return { url: '/sources/1', method: 'DELETE', hasBody: false };
+    case 107:
+      return { url: '/sources/1/edit', method: 'GET', hasBody: false };
+        default: return null;
+      }
+    }
+
+    async function fetchRoute(idx) {
+      const info = getRouteInfo(idx);
+      if (!info) return;
+      const statusEl = document.getElementById('status-' + idx);
+      statusEl.textContent = '⏳';
+      statusEl.className = 'status pending';
+      try {
+        const opts = { method: info.method, credentials: 'same-origin' };
+        if (info.hasBody) {
+          opts.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          opts.body = JSON.stringify({ _token: csrfToken });
+        }
+        const resp = await fetch(BASE_URL + info.url, opts);
+        const text = await resp.text().catch(() => '');
+        const ok = resp.status < 400;
+        statusEl.textContent = resp.status;
+        statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+        appendResult(idx, info, resp.status, text.substring(0, 2000), ok);
+      } catch (e) {
+        statusEl.textContent = 'ERR';
+        statusEl.className = 'status err';
+        appendResult(idx, info, 0, e.message, false);
+      }
+    }
+
+    function appendResult(idx, info, status, body, ok) {
+      const div = document.createElement('div');
+      div.className = 'result-card ' + (ok ? 'ok' : 'err');
+      div.innerHTML = '<strong>' + info.method + ' ' + info.url + '</strong> &mdash; ' + status +
+        '<pre>' + escapeHtml(body) + '</pre>';
+      document.getElementById('results').prepend(div);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Bind individual fetch buttons
+    document.querySelectorAll('.btn-fetch').forEach(btn => {
+      btn.addEventListener('click', () => fetchRoute(parseInt(btn.dataset.idx)));
+    });
+
+    // Bulk fetch all GET routes
+    document.getElementById('btn-fetch-all').addEventListener('click', async () => {
+      const rows = document.querySelectorAll('#route-table tbody tr');
+      for (const row of rows) {
+        if (row.style.display === 'none') continue;
+        const idx = parseInt(row.dataset.routeIdx);
+        const info = getRouteInfo(idx);
+        if (info && info.method === 'GET') {
+          await fetchRoute(idx);
+          await new Promise(r => setTimeout(r, 100)); // throttle
+        }
+      }
+    });
+
+    // Clear results
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.querySelectorAll('.status').forEach(el => { el.textContent = ''; el.className = 'status'; });
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#route-table tbody tr').forEach(row => {
+        const uri = row.dataset.uri || '';
+        const text = row.textContent.toLowerCase();
+        row.style.display = (text.includes(q) || uri.includes(q)) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
