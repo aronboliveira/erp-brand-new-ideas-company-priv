@@ -18,7 +18,20 @@
     "watch-h:mix": "mix watch --hot",
     "watch-poll:mix": "mix watch -- --watch-options-poll=1000",
     "legacy:prod": "npm run production",
-    "production:mix": "mix --production"
+    "production:mix": "mix --production",
+
+    "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
+
+    "test:jest:core": "npx jest --config jest.config.cjs --verbose",
+    "test:jest:core:watch": "npx jest --config jest.config.cjs --verbose --watch",
+    "test:jest:pages": "cd tests/frontend/js && npx jest pages/ --verbose",
+    "test:jest:generic": "cd tests/frontend/js && npx jest generic/ --verbose",
+    "test:jest:e2e": "cd tests/frontend/js && npx jest e2e/ --verbose",
+    "test:playwright": "cd tests/frontend/js && npx playwright test --reporter=list",
+    "test:playwright:headed": "cd tests/frontend/js && npx playwright test --headed --reporter=list",
+    "test:playwright:debug": "cd tests/frontend/js && npx playwright test --debug",
+    "test:eslint": "npx eslint public/assets/js/ --ext .js --max-warnings=50 || true",
+    "test:all": "npm run test:jest:core && npm run test && npm run test:playwright"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
