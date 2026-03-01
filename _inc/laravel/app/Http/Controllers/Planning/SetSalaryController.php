@@ -195,7 +195,7 @@ class SetSalaryController extends Controller
     }
 
     public const EMP_SL_UPDATE = 'employeeSalaryUpdate';
-    public function employeeUpdateSalary(Request $request, string|int $id): RedirectResponse
+    public function employeeSalaryUpdate(Request $request, string|int $id): RedirectResponse
     {
         $action = __METHOD__;
 

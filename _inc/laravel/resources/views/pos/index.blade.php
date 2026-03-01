@@ -325,12 +325,12 @@
         <script defer src="{{ asset('assets/js/plugins/flatpickr.min.js') }}"></script>
         @if($message = Session::get('success'))
             <script>
-                (() => {typeof show_toastr === 'function' && show_toastr('success', '{!! $message !!}');})()
+                (() => {typeof show_toastr === 'function' && show_toastr('success', {!! json_encode($message) !!});})()
             </script>
         @endif
         @if($message = Session::get('error'))
             <script>
-                (() => {typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');})()
+                (() => {typeof show_toastr === 'function' && show_toastr('error', {!! json_encode($message) !!});})()
             </script>
         @endif
         @stack('script-page')

@@ -22,7 +22,7 @@
                                 <p data-v-f2a183a6="">
                                     {{-- @dd($Offerletter) --}}
                                     @if(!empty($noc_certificate) && isset($noc_certificate->content))
-                                        <div>{!!$noc_certificate->content!!}</div>
+                                        <div>{!! \App\Http\Controllers\Helpers\purify_html($noc_certificate->content) !!}</div>
                                     @else
                                         <div>{{ __('No content available') }}</div>
                                     @endif

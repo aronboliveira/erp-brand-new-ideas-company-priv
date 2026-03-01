@@ -2,7 +2,7 @@
   if (!window.translations) {
     window.translations = {};
   }
-  var t = {
+  const t = {
     ar: {
       payslip_unavailable: "تعذر تحميل قسائم الرواتب.",
       permission_denied: "الإذن مرفوض.",

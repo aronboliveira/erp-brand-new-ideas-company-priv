@@ -30,7 +30,7 @@
       })
   );
   (function () {
-    var t = {
+    const t = {
       ar: {
         action_unavailable: "الإجراء غير متاح.",
         update_unavailable: "تحديث غير متاح.",
@@ -107,7 +107,7 @@
       });
   })();
   (function () {
-    var t = {
+    const t = {
       ar: {
         ai_generate_unavailable: "إنشاء المحتوى بالذكاء الاصطناعي غير متاح.",
         action_unavailable: "الإجراء غير متاح.",

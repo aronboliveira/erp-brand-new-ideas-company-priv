@@ -4,7 +4,7 @@
       if (el.dataset.guardBound === "1") return;
       el.dataset.guardBound = "1";
       el.addEventListener("change", function (e) {
-        var url = el.getAttribute("data-url") || "#";
+        const url = el.getAttribute("data-url") || "#";
         if (url !== "#") return;
         e.preventDefault();
         el.checked = !el.checked;

@@ -1765,6 +1765,32 @@ R::get('.well-known/appspecific/com.chrome.devtools.json', function () {
     ]);
 });
 
+//=========================== IPN SAFETY WRAPPER ===========================//
+// Override the vendor paytabs IPN route to catch \Throwable (not just
+// \Exception) and prevent 500 errors when PayTabs config values are missing.
+use Illuminate\Support\Facades\Route as R2;
+use Illuminate\Support\Facades\Log as RL;
+
+R2::post('/paymentIPN', function (\Illuminate\Http\Request $request) {
+    try {
+        $requiredKeys = ['paytabs.profile_id', 'paytabs.server_key', 'paytabs.region'];
+        foreach ($requiredKeys as $key) {
+            if (empty(config($key))) {
+                RL::warning('PayTabs IPN rejected — missing config: ' . $key);
+                return response()->json(['message' => 'Payment gateway not configured'], 503);
+            }
+        }
+        $controller = app(\Paytabscom\Laravel_paytabs\PaytabsLaravelListenerApi::class);
+        return $controller->paymentIPN($request);
+    } catch (\Throwable $e) {
+        RL::error('PayTabs IPN error: ' . get_class($e) . ' — ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+        return response()->json(['message' => 'IPN processing failed'], 400);
+    }
+})->name('payment_ipn');
+
 //================================= OUT ====================================//
             // R::post('{id}/pay-with-paypal', [PaypalController::class, 'customerPayWithPaypal'])->name(VW::CST.'.pay.with.paypal');
             // R::get('{id}/get-payment-status/{amount}', [PaypalController::class, 'customerGetPaymentStatus'])->name(VW::CST.'.get.payment.status')

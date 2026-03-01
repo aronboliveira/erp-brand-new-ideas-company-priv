@@ -196,9 +196,9 @@ class TaxController extends Controller
             }
 
             try {
-                $inUse = ProposalProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
-                    || BillProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
-                    || InvoiceProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists();
+                $inUse = ProposalProduct::whereRaw('find_in_set(?,tax)', [$tax->id])->exists()
+                    || BillProduct::whereRaw('find_in_set(?,tax)', [$tax->id])->exists()
+                    || InvoiceProduct::whereRaw('find_in_set(?,tax)', [$tax->id])->exists();
 
                 if ($inUse) {
                     Log::debug($action . ' tax in use', ['tax_id' => $tax->id]);

@@ -46,12 +46,12 @@
 <script src="{{ asset('js/custom.js') }}"></script>
 @if($message = Session::get('success'))
     <script>
-        show_toastr('success', '{!! $message !!}');
+        show_toastr('success', {!! json_encode($message) !!});
     </script>
 @endif
 @if($message = Session::get('error'))
     <script>
-        show_toastr('error', '{!! $message !!}');
+        show_toastr('error', {!! json_encode($message) !!});
     </script>
 @endif
 @if($settings['enable_cookie'] == 'on')

@@ -39,6 +39,7 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\{
     Auth,
+    Cache,
     Crypt,
     DB,
     Log,
@@ -53,6 +54,8 @@ use Throwable;
 final class ExpenseController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
+    /** Cache TTL in seconds — 2 minutes for expense list data */
+    private const CACHE_TTL = 120;
 
     public function __construct()
     {
@@ -88,10 +91,10 @@ final class ExpenseController extends Controller
                 $this->logExecutionTime($qryStart, $action, 'queryExpenses');
                 Log::info("[{$base}::{$action}] expenses loaded", ['count' => $expenses->count()]);
                 $venStart = microtime(true);
-                $vendorLst = Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendorLst = Cache::remember("exp.vendors.{$uid}", self::CACHE_TTL, fn() => Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id'))->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $catStart = microtime(true);
-                $catLst = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $catLst = Cache::remember("exp.categories.{$uid}", self::CACHE_TTL, fn() => ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id'))->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $viewPath = ViewsConstants::EXP . '.index';
                 if (!ViewFacade::exists($viewPath)) {

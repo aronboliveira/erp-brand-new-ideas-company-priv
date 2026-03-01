@@ -52,6 +52,7 @@ class ProjectController extends Controller
     use ChecksLogin, ChecksPermissions;
 
     private const ENTITY = 'project';
+    private const CACHE_TTL = 120;
 
     public function index(Request $request, string $view = 'grid'): View|RedirectResponse|null
     {

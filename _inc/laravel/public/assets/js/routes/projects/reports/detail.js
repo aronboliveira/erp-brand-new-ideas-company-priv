@@ -29,8 +29,8 @@
     if (!a || a.getAttribute("data-guard-bound") === "1") return;
     a.setAttribute("data-guard-bound", "1");
     a.addEventListener("click", function (e) {
-      var href = (a.getAttribute("href") || "#").trim();
-      var url = (a.getAttribute("data-url") || href || "#").trim();
+      const href = (a.getAttribute("href") || "#").trim();
+      const url = (a.getAttribute("data-url") || href || "#").trim();
       if (url !== "#" && href !== "#") return;
       e.preventDefault();
       toast(a.getAttribute("data-guard-msg"));
@@ -38,10 +38,10 @@
   }
 
   function init() {
-    var ids = ["#project-report-index-link"];
+    const ids = ["#project-report-index-link"];
 
     ids.forEach(function (sel) {
-      var el = document.querySelector(sel);
+      const el = document.querySelector(sel);
       if (el) guardClick(el);
     });
 

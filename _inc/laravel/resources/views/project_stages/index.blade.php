@@ -323,7 +323,13 @@
                                                                         if (window.confirm(finalMsg)) {
                                                                             const yes = a.getAttribute('data-confirm-yes') || '';
                                                                             if (yes) {
-                                                                                try { eval(yes); } catch (_) { f.submit(); }
+                                                                                const m = yes.match(/document\.getElementById\(['"]([^'"]+)['"]\)\.submit\(\)/);
+                                                                                if (m) {
+                                                                                    const el = document.getElementById(m[1]);
+                                                                                    if (el) el.submit(); else f.submit();
+                                                                                } else {
+                                                                                    f.submit();
+                                                                                }
                                                                             } else {
                                                                                 f.submit();
                                                                             }

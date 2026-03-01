@@ -348,7 +348,7 @@ class FaqController extends AppController
     }
 
     public const FQ_EDT = 'faqEdit';
-    public function faqEdit(Request $request, int $key): Renderable|RedirectResponse|null
+    public function faqEdit(Request $request, string|int $key): Renderable|RedirectResponse|null
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['key' => $key]);
@@ -371,7 +371,7 @@ class FaqController extends AppController
     }
 
     public const FQ_UPD = 'faqUpdate';
-    public function faqUpdate(Request $request, int $key): RedirectResponse|null
+    public function faqUpdate(Request $request, string|int $key): RedirectResponse|null
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {

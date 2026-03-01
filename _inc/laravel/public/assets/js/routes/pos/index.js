@@ -80,8 +80,8 @@
           const items = Array.isArray(data)
             ? data
             : Array.isArray(data?.items)
-            ? data.items
-            : [];
+              ? data.items
+              : [];
           if (!list) return;
           list.innerHTML = items.length
             ? items
@@ -101,7 +101,7 @@
                   }">${p.add_label || "Add"}</button>
                 </div>
               </div>
-            </div>`
+            </div>`,
                 )
                 .join("")
             : `<div class="col-12 text-center text-muted py-3">No products found</div>`;
@@ -109,7 +109,7 @@
           toast(guardMsg(searchInput, "search_products_unavailable"));
         }
       },
-      { passive: true }
+      { passive: true },
     );
   }
 
@@ -136,7 +136,7 @@
       const totalDom = q("#displaytotal");
       if (totalDom) totalDom.textContent = payload.total_formatted;
       qa(".totalamount").forEach(
-        el => (el.textContent = payload.total_formatted)
+        el => (el.textContent = payload.total_formatted),
       );
     }
   };
@@ -227,7 +227,7 @@
   };
 
   qa(".bs-pass-para-pos").forEach(a =>
-    bindConfirm(a, "confirm-modal-row", "confirm-row-yes")
+    bindConfirm(a, "confirm-modal-row", "confirm-row-yes"),
   );
   const payBtn = q("#btn-pur button.btn-primary[data-url]");
   if (payBtn) {

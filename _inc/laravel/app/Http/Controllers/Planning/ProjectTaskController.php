@@ -384,7 +384,7 @@ class ProjectTaskController extends Controller
             if (self::guard($req, 'view project task', self::REDIRECT_INDEX)) return response()->json(['error' => __('Permission denied.')], 401);
             Log::info("[{$class}::{$action}] start", ['stage_id' => $stageId]);
             try {
-                $count = ProjectTask::where('stage_id', $stageId)->count();
+                $count = ProjectTask::where(PJC::COL_STAGE_ID, $stageId)->count();
                 return response()->json(['count' => $count]);
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
@@ -506,7 +506,7 @@ class ProjectTaskController extends Controller
     }
 
     public const CHKL_UPD = 'checkListUpdate';
-    public function checklistUpdate(Request $request, string|int $projectId, string|int $checklistId): JsonResponse|RedirectResponse|null
+    public function checkListUpdate(Request $request, string|int $projectId, string|int $checklistId): JsonResponse|RedirectResponse|null
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

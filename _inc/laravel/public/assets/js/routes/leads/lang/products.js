@@ -1,5 +1,5 @@
 (function () {
-  var t = {
+  const t = {
     ar: {
       action_unavailable: "الإجراء غير متاح.",
       update_unavailable: "التحديث غير متاح.",

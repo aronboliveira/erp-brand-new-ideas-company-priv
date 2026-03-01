@@ -1197,7 +1197,7 @@ class SystemController extends Controller
                     $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
                     $device = Utility::getDeviceType($_SERVER['HTTP_USER_AGENT']);
                     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-                    $geo = @unserialize(file_get_contents('http://ip-api.com/php/' . $ip)) ?: [];
+                    $geo = @json_decode((string) file_get_contents('https://ip-api.com/json/' . $ip), true) ?: [];
                     $row = implode(',', [
                         $ip,
                         date('Y-m-d'),

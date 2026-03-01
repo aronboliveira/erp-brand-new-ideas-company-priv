@@ -76,3 +76,34 @@ function userIdValidation(array $data, $manager, array $filters = []): array
 
     return $errors;
 }
+
+/**
+ * Sanitise HTML using HTMLPurifier – keeps safe formatting tags produced
+ * by Summernote / rich-text editors while stripping scripts, iframes,
+ * event-handler attributes, etc.
+ */
+function purify_html(?string $dirty): string
+{
+    if ($dirty === null || $dirty === '') {
+        return '';
+    }
+
+    static $purifier = null;
+
+    if ($purifier === null) {
+        $config = \HTMLPurifier_Config::createDefault();
+        $config->set('HTML.Allowed', 'p,br,b,i,u,strong,em,ul,ol,li,h1,h2,h3,h4,h5,h6,a[href|title|target],table,thead,tbody,tfoot,tr,th,td,div,span,img[src|alt|width|height],blockquote,pre,code,hr,sub,sup,small,dl,dt,dd');
+        $config->set('HTML.TargetBlank', true);
+        $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
+        $config->set('AutoFormat.RemoveEmpty', true);
+        $config->set('Cache.SerializerPath', storage_path('framework/cache/htmlpurifier'));
+
+        if (!is_dir(storage_path('framework/cache/htmlpurifier'))) {
+            @mkdir(storage_path('framework/cache/htmlpurifier'), 0775, true);
+        }
+
+        $purifier = new \HTMLPurifier($config);
+    }
+
+    return $purifier->purify($dirty);
+}

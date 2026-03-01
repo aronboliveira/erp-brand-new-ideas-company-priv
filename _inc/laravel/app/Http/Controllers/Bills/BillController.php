@@ -36,13 +36,14 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\{Crypt, DB, Log, Mail, Redirect, Route, Storage, View as ViewFacade};
+use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Mail, Redirect, Route, Storage, View as ViewFacade};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class BillController extends Controller
 {
+    private const CACHE_TTL = 120;
 
     use ChecksLogin;
     use ChecksPermissions;
@@ -1495,25 +1496,25 @@ final class BillController extends Controller
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        return Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id');
+        return Cache::remember("bil.vendors.{$uid}", self::CACHE_TTL, fn() => Vendor::where(DC::COL_TABLE_CREATOR, $uid)->pluck(UC::COL_NM, 'id'));
     }
 
     private static function _categories(): Collection
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        return ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
+        return Cache::remember("bil.categories.{$uid}", self::CACHE_TTL, fn() => ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $uid)
             ->whereNotIn('type', ['product & service', 'income'])
-            ->pluck('name', 'id');
+            ->pluck('name', 'id'));
     }
 
     private static function _chartAccounts(): Collection
     {
         $user = self::_checkLogin();
         $uid = $user?->creatorId();
-        return ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')
+        return Cache::remember("bil.chart_accounts.{$uid}", self::CACHE_TTL, fn() => ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')
             ->where(DC::COL_TABLE_CREATOR, $uid)
-            ->pluck('code_name', 'id');
+            ->pluck('code_name', 'id'));
     }
 
     private static function _billNumber(): int|string

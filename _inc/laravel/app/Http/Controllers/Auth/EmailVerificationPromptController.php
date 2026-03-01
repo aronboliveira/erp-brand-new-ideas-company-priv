@@ -45,7 +45,7 @@ class EmailVerificationPromptController extends Controller
     );
   }
 
-  private static function _setLocale(string $lang = null): string
+  private static function _setLocale(?string $lang = null): string
   {
     $lang ??= Utility::getValByName(SettingsConstants::DEF_LNG);
     App::setLocale($lang);

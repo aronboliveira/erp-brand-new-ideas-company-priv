@@ -433,7 +433,7 @@
                             </div>
                             <div class="col ml-n2">
                                 <span class="text-dark {{ VC::TXSM }}">{{ $logType }}</span>
-                                <a class="{{ VC::DBL }} {{ VC::H6 }} {{ VC::TXSM }} font-weight-light {{ VC::MB0 }}">{!! $remark !!}</a>
+                                <a class="{{ VC::DBL }} {{ VC::H6 }} {{ VC::TXSM }} font-weight-light {{ VC::MB0 }}">{{ $remark }}</a>
                                 <small class="{{ VC::DBL }}">{{ $when }}</small>
                             </div>
                         </div>

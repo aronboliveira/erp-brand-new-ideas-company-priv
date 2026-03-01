@@ -1039,7 +1039,7 @@ class AuthenticatedSessionController extends Controller
       $ip = $req->server('REMOTE_ADDR');
       $this->logExecutionTime($stepStart, 'getClientIp', 'completed');
       $stepStart = microtime(true);
-      $query = @unserialize(file_get_contents("http://ip-api.com/php/{$ip}"));
+      $query = @json_decode((string) file_get_contents("https://ip-api.com/json/{$ip}"), true) ?: [];
       $this->logExecutionTime($stepStart, 'fetchGeoIp', 'completed');
       $stepStart = microtime(true);
       $ua = $req->server('HTTP_USER_AGENT');

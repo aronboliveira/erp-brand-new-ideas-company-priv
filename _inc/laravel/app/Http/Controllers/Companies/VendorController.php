@@ -20,7 +20,7 @@ use App\Models\{
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{Crypt, DB, Log, Route, Validator, View as ViewFacade};
+use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -88,7 +88,7 @@ class VendorController extends Controller
             $t = microtime(true);
             $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                 ->where('module', 'vendor')
-                ->get();
+                ->get());
             $this->logExecutionTime($t, $action, 'loadCustomFields');
             $view = self::SINGULAR . '.create';
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $base . '::' . $action, route(self::ROUTE_INDEX));

@@ -31,13 +31,13 @@
     }
 
     function guardByAction(formSelector, anchorSelector) {
-      var forms = document.querySelectorAll(formSelector);
+      const forms = document.querySelectorAll(formSelector);
       Array.prototype.forEach.call(forms, function (f) {
-        var act = (f.getAttribute("action") || "").trim();
+        const act = (f.getAttribute("action") || "").trim();
         if (!act || act === "#") {
-          var a = f.querySelector(anchorSelector);
+          const a = f.querySelector(anchorSelector);
           if (!a) return;
-          var msg =
+          const msg =
             a.getAttribute("data-guard-msg") || "This action is unavailable.";
           a.addEventListener("click", function (e) {
             e.preventDefault();
@@ -49,9 +49,9 @@
 
     function guardByHref(anchor) {
       if (!anchor) return;
-      var href = (anchor.getAttribute("href") || "").trim();
+      const href = (anchor.getAttribute("href") || "").trim();
       if (!href || href === "#") {
-        var msg =
+        const msg =
           anchor.getAttribute("data-guard-msg") ||
           "This action is unavailable.";
         anchor.addEventListener("click", function (e) {
@@ -63,9 +63,9 @@
 
     function guardByDataUrl(anchor) {
       if (!anchor) return;
-      var url = (anchor.getAttribute("data-url") || "").trim();
+      const url = (anchor.getAttribute("data-url") || "").trim();
       if (!url || url === "#") {
-        var msg =
+        const msg =
           anchor.getAttribute("data-guard-msg") ||
           "This action is unavailable.";
         anchor.addEventListener("click", function (e) {
@@ -79,12 +79,12 @@
     guardByAction('form[id^="comment-del-form-"]', "a");
     guardByAction('form[id^="note-del-form-"]', "a");
 
-    var cForm = document.getElementById("form-comment");
-    var cBtn = document.getElementById("comment_submit");
+    const cForm = document.getElementById("form-comment");
+    const cBtn = document.getElementById("comment_submit");
     if (cForm && cBtn) {
-      var act = (cForm.getAttribute("data-action") || "").trim();
+      const act = (cForm.getAttribute("data-action") || "").trim();
       if (!act || act === "#") {
-        var msg =
+        const msg =
           cForm.getAttribute("data-guard-msg") || "This action is unavailable.";
         cBtn.addEventListener("click", function (e) {
           e.preventDefault();

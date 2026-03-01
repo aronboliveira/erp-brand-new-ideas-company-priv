@@ -314,7 +314,7 @@ final class BugStatusController extends Controller
         Request $request,
         int     $statusCode,
         string  $message,
-        array   $errors = null
+        ?array  $errors = null
     ): JsonResponse|RedirectResponse {
         if ($request->expectsJson()) {
             $payload = ['message' => $message];

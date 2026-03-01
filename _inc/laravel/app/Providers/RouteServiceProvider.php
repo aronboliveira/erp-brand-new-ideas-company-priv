@@ -227,6 +227,12 @@ final class RouteServiceProvider extends ServiceProvider
         }
     }
 
+    // ── Rate-limit constants ───────────────────────────────────────────────
+    /** Login attempts per minute in production */
+    private const LOGIN_RATE_LIMIT_PROD  = 5;
+    /** Login attempts per minute in dev/local/testing (generous for e2e tests) */
+    private const LOGIN_RATE_LIMIT_LOCAL = 60;
+
     protected function configureRateLimiting(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
@@ -236,6 +242,7 @@ final class RouteServiceProvider extends ServiceProvider
             ? $output->writeln('<question> ' . $msg . ' </question> ')
             : $output->writeln($msg);
         try {
+            // API rate limiter
             RateLimiter::for(
                 self::API_RATE_LIMITER,
                 fn(Request $request) =>

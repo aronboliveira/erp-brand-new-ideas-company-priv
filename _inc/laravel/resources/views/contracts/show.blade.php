@@ -1095,7 +1095,7 @@
                     <div class="card-body">
                         <div class="{{ VC::CM12 }}">
                             <div class="form-group {{ VC::MT3 }}">
-                                <textarea class="summernote-simple">{!! !empty($contract->contract_description) ? $contract->contract_description : e(__('No contract description available')) !!}</textarea>
+                                <textarea class="summernote-simple">{!! !empty($contract->contract_description) ? \App\Http\Controllers\Helpers\purify_html($contract->contract_description) : e(__('No contract description available')) !!}</textarea>
                             </div>
                         </div>
                     </div>

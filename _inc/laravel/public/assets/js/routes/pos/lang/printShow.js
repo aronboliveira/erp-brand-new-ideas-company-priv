@@ -1,6 +1,6 @@
 (function () {
   if (!window.translations) window.translations = {};
-  var t = {
+  const t = {
     ar: {
       action_unavailable: "الإجراء غير متاح.",
       print_unavailable: "الطباعة غير متاحة حاليًا.",

@@ -8,7 +8,6 @@ use App\Models\{User, Utility};
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\Facades\{App, Log};
-use Illuminate\Support\Str;
 use RachidLaasri\LaravelInstaller\Helpers\MigrationsHelper;
 use Symfony\Component\Console\Output\ConsoleOutput;
 

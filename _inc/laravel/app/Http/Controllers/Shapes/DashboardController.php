@@ -631,7 +631,8 @@ class DashboardController extends Controller
                         $weekLabels = collect(range(0, 6))->map(fn($i) => now()->subDays($i)->format('D'));
                         $chartData = ['date' => $weekLabels, 'invoice' => array_fill(0, 7, 10), 'payment' => array_fill(0, 7, 20)];
                         $calendarTasks = [];
-                        foreach ($user->clientDeals as $deal) {
+                        $clientDeals = $user->clientDeals()->with('tasks')->get();
+                        foreach ($clientDeals as $deal) {
                             foreach ($deal->tasks as $task) $calendarTasks[] = ['title' => $task->name, 'start' => $task->date, 'url' => route('deals.tasks.show', [$deal->id, $task->id]), 'className' => $task->status ? 'bg-primary border-primary' : 'bg-warning border-warning'];
                             $calendarTasks[] = ['title' => $deal->name, 'start' => $deal->created_at->toDateString(), 'url' => route('deals.show', $deal->id), 'className' => 'deal bg-primary border-primary'];
                         }

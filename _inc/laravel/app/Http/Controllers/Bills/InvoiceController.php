@@ -40,6 +40,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{
     Auth,
+    Cache,
     Crypt,
     DB,
     Log,
@@ -58,6 +59,7 @@ final class InvoiceController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
     private const SINGULAR = 'invoice';
+    private const CACHE_TTL = 120;
 
     public function __construct()
     {
@@ -75,6 +77,7 @@ final class InvoiceController extends Controller
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id ?? null, PermissionsConstants::CT => $req->customer ?? null, 'issue_date' => $req->issue_date ?? null, 'status' => $req->status ?? null, 'ip' => $req->ip(), 'method' => $method]);
             if (($r = self::guard($req, PermissionsConstants::MNG_INV)) !== true) return $r;
             try {
+                $creatorId = $req->user()->creatorId();
                 $custStart = microtime(true);
                 $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($custStart, $action, 'fetchCustomers');
@@ -121,6 +124,7 @@ final class InvoiceController extends Controller
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id ?? null, 'customer_id' => $customer_id ?? null, 'ip' => $req->ip(), 'method' => $method]);
             if (($r = self::guard($req, 'create invoice', VW::INV . '.index')) !== true) return $r;
             try {
+                $creatorId = $req->user()->creatorId();
                 $cfStart = microtime(true);
                 $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');

@@ -25,7 +25,7 @@
                                 <p data-v-f2a183a6="">
                                 {{-- @dd($Offerletter) --}}
                                 @if(!empty($joiningletter) && isset($joiningletter->content))
-                                    <div>{!!$joiningletter->content!!}</div>
+                                    <div>{!! \App\Http\Controllers\Helpers\purify_html($joiningletter->content) !!}</div>
                                 @else
                                     <div>{{ __('No content available') }}</div>
                                 @endif

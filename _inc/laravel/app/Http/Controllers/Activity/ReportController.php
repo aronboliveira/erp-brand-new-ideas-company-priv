@@ -71,6 +71,7 @@ use Illuminate\Http\{
 };
 use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Facades\{
+    Cache,
     DB,
     Log,
     Redirect,
@@ -121,6 +122,10 @@ final class ReportController extends Controller
     private const ROUTE_POS_MONTHLY     = VW::RPT . '.pos_monthly';
     private const ROUTE_POS_VS_PURCHASE = VW::RPT . '.pos_vs_purchase';
     private static ?\Illuminate\Support\Collection $dealData = null;
+    /** Cache TTL in seconds — 2 minutes for report data */
+    private const CACHE_TTL = 120;
+    /** Cache TTL for aggregated report data — 3 minutes */
+    private const CACHE_TTL_REPORT = 180;
 
     public const INC_SM = 'incomeSummary';
     public function incomeSummary(Request $request): RedirectResponse|View
@@ -2312,16 +2317,14 @@ final class ReportController extends Controller
 
     private function _buildIncomeSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
-            ->pluck('holder_name', 'id')
-            ->prepend('Select Account', '');
-        $customer  = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
-            ->pluck('name', 'id')
-            ->prepend('Select Customer', '');
-        $category  = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
+        // Cache static lookup data
+        $account   = Cache::remember("rpt.accounts.{$creatorId}", self::CACHE_TTL, fn() => BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
+            ->pluck('holder_name', 'id'))->prepend('Select Account', '');
+        $customer  = Cache::remember("rpt.customers.{$creatorId}", self::CACHE_TTL, fn() => Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
+            ->pluck('name', 'id'))->prepend('Select Customer', '');
+        $category  = Cache::remember("rpt.income_categories.{$creatorId}", self::CACHE_TTL, fn() => ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 1)
-            ->pluck('name', 'id')
-            ->prepend('Select Category', '');
+            ->pluck('name', 'id'))->prepend('Select Category', '');
         $monthList = $this->yearMonth();
         $yearList  = $this->yearList();
         $filter    = ['category' => __('All'), 'customer' => __('All')];
@@ -3137,52 +3140,58 @@ final class ReportController extends Controller
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
-            ->get();
-        $chartAccounts = [];
+        
+        // Cache the chart accounts data with 3-minute TTL
+        $cacheKey = "rpt.balance_sheet.{$creatorId}.{$start}.{$end}";
+        $chartAccounts = Cache::remember($cacheKey, self::CACHE_TTL_REPORT, function () use ($creatorId, $start, $end) {
+            $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
+                ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
+                ->get();
+            $accounts = [];
 
-        foreach ($types as $type) {
-            $subTypes = ChartOfAccountSubType::where('type', $type->id)->get();
-            $subArr  = [];
+            foreach ($types as $type) {
+                $subTypes = ChartOfAccountSubType::where('type', $type->id)->get();
+                $subArr  = [];
 
-            foreach ($subTypes as $st) {
-                $accs = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
-                    ->where('type', $type->id)
-                    ->where('sub_type', $st->id)
-                    ->get();
-                $arr  = [];
-                $total = 0;
+                foreach ($subTypes as $st) {
+                    $accs = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
+                        ->where('type', $type->id)
+                        ->where('sub_type', $st->id)
+                        ->get();
+                    $arr  = [];
+                    $total = 0;
 
-                foreach ($accs as $a) {
-                    $bal = Utility::getAccountBalance($a->id, $start, $end);
-                    if ($bal != 0) {
+                    foreach ($accs as $a) {
+                        $bal = Utility::getAccountBalance($a->id, $start, $end);
+                        if ($bal != 0) {
+                            $arr[] = [
+                                'account_id'   => $a->id,
+                                'account_code' => $a->code,
+                                'account_name' => $a->name,
+                                'totalCredit'  => 0,
+                                'totalDebit'   => 0,
+                                'netAmount'    => $bal,
+                            ];
+                            $total += $bal;
+                        }
+                    }
+
+                    if ($arr) {
                         $arr[] = [
-                            'account_id'   => $a->id,
-                            'account_code' => $a->code,
-                            'account_name' => $a->name,
+                            'account_id'   => '',
+                            'account_code' => '',
+                            'account_name' => 'Total ' . $st->name,
                             'totalCredit'  => 0,
                             'totalDebit'   => 0,
-                            'netAmount'    => $bal,
+                            'netAmount'    => $total,
                         ];
-                        $total += $bal;
+                        $subArr[] = ['subType' => $st->name, 'account' => $arr];
                     }
                 }
-
-                if ($arr) {
-                    $arr[] = [
-                        'account_id'   => '',
-                        'account_code' => '',
-                        'account_name' => 'Total ' . $st->name,
-                        'totalCredit'  => 0,
-                        'totalDebit'   => 0,
-                        'netAmount'    => $total,
-                    ];
-                    $subArr[] = ['subType' => $st->name, 'account' => $arr];
-                }
+                $accounts[$type->name] = $subArr;
             }
-            $chartAccounts[$type->name] = $subArr;
-        }
+            return $accounts;
+        });
 
         $filter = [
             'startDateRange' => $start,

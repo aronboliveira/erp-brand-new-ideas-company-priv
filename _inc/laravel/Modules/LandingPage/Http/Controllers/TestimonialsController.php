@@ -383,7 +383,7 @@ final class TestimonialsController extends AppController
     }
 
     public const TTM_EDT = 'testimonialsEdit';
-    public function testimonialsEdit(Request $request, int $key)
+    public function testimonialsEdit(Request $request, string|int $key)
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => auth()->id(), 'key' => $key]);
@@ -394,7 +394,7 @@ final class TestimonialsController extends AppController
     }
 
     public const TTM_UPD = 'testimonialsUpdate';
-    public function testimonialsUpdate(Request $request, int $key)
+    public function testimonialsUpdate(Request $request, string|int $key)
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {

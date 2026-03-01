@@ -28,6 +28,7 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\{
     Auth,
+    Cache,
     Crypt,
     Log,
     Validator,
@@ -41,6 +42,8 @@ use Maatwebsite\Excel\Facades\Excel;
 class CustomerController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
+    /** Cache TTL in seconds — 2 minutes */
+    private const CACHE_TTL = 120;
 
     private const PERM_MANAGE = PermissionsConstants::MNG_CST;
     private const PERM_CREATE = 'create customer';
