@@ -1,0 +1,97 @@
+Route Smoke Test Summary
+Generated: 2026-02-22T19:03:41.638623
+Total Routes Tested: 377
+
+================================================================================
+
+Scenario: basic
+Description: Basic status code check
+
+Status Code Distribution:
+  200: 9
+  204: 1
+  302: 358
+  403: 1
+  404: 8
+
+Failed Routes (9):
+  [404] /install (LaravelInstaller::welcome)
+  [404] /installs/database (LaravelInstaller::database)
+  [404] /installs/environment (LaravelInstaller::environment)
+  [404] /installs/environments/classic
+  [404] /installs/environments/wizard
+  [404] /installs/final (LaravelInstaller::final)
+  [404] /installs/permissions (LaravelInstaller::permissions)
+  [404] /installs/requirements (LaravelInstaller::requirements)
+  [403] /projects.timesheets/table-view
+
+--------------------------------------------------------------------------------
+
+Scenario: with_redirects
+Description: Follow redirects and track final destination
+
+Status Code Distribution:
+  200: 367
+  204: 1
+  403: 1
+  404: 8
+
+Failed Routes (9):
+  [404] /install (LaravelInstaller::welcome)
+  [404] /installs/database (LaravelInstaller::database)
+  [404] /installs/environment (LaravelInstaller::environment)
+  [404] /installs/environments/classic
+  [404] /installs/environments/wizard
+  [404] /installs/final (LaravelInstaller::final)
+  [404] /installs/permissions (LaravelInstaller::permissions)
+  [404] /installs/requirements (LaravelInstaller::requirements)
+  [403] /projects.timesheets/table-view
+
+--------------------------------------------------------------------------------
+
+Scenario: timing
+Description: Performance timing
+
+Status Code Distribution:
+  200: 9
+  204: 1
+  302: 358
+  403: 1
+  404: 8
+
+Failed Routes (9):
+  [404] /install (LaravelInstaller::welcome)
+  [404] /installs/database (LaravelInstaller::database)
+  [404] /installs/environment (LaravelInstaller::environment)
+  [404] /installs/environments/classic
+  [404] /installs/environments/wizard
+  [404] /installs/final (LaravelInstaller::final)
+  [404] /installs/permissions (LaravelInstaller::permissions)
+  [404] /installs/requirements (LaravelInstaller::requirements)
+  [403] /projects.timesheets/table-view
+
+--------------------------------------------------------------------------------
+
+Scenario: headers
+Description: HEAD request with content type
+
+Status Code Distribution:
+  200: 9
+  204: 1
+  302: 358
+  403: 1
+  404: 8
+
+Failed Routes (9):
+  [404] /install (LaravelInstaller::welcome)
+  [404] /installs/database (LaravelInstaller::database)
+  [404] /installs/environment (LaravelInstaller::environment)
+  [404] /installs/environments/classic
+  [404] /installs/environments/wizard
+  [404] /installs/final (LaravelInstaller::final)
+  [404] /installs/permissions (LaravelInstaller::permissions)
+  [404] /installs/requirements (LaravelInstaller::requirements)
+  [403] /projects.timesheets/table-view
+
+--------------------------------------------------------------------------------
+

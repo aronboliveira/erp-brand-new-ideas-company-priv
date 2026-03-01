@@ -1,0 +1,4550 @@
+{
+  "timestamp": "2026-02-22T19:22:25.917568",
+  "total_routes": 377,
+  "authenticated": true,
+  "status_counts": {
+    "200": 361,
+    "404": 8,
+    "302": 1,
+    "429": 5,
+    "403": 1,
+    "204": 1
+  },
+  "categories": {
+    "working": [
+      {
+        "uri": "/",
+        "name": "home_section.index",
+        "status": "200"
+      },
+      {
+        "uri": "about_us",
+        "name": "about_us",
+        "status": "200"
+      },
+      {
+        "uri": "account-dashboard",
+        "name": "dashboard",
+        "status": "200"
+      },
+      {
+        "uri": "account_assets",
+        "name": "account_assets.index",
+        "status": "200"
+      },
+      {
+        "uri": "account_assets/create",
+        "name": "account_assets.create",
+        "status": "200"
+      },
+      {
+        "uri": "account_statements/export",
+        "name": "account_statements.export",
+        "status": "200"
+      },
+      {
+        "uri": "allowance_options",
+        "name": "allowance_options.index",
+        "status": "200"
+      },
+      {
+        "uri": "allowance_options/create",
+        "name": "allowance_options.create",
+        "status": "200"
+      },
+      {
+        "uri": "allowances",
+        "name": "allowances.index",
+        "status": "200"
+      },
+      {
+        "uri": "allowances/create",
+        "name": "allowances.create",
+        "status": "200"
+      },
+      {
+        "uri": "announcement",
+        "name": "announcement.index",
+        "status": "200"
+      },
+      {
+        "uri": "announcements/create",
+        "name": "announcement.create",
+        "status": "200"
+      },
+      {
+        "uri": "api/landingpage",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "apis/get-projects",
+        "name": "projects.index",
+        "status": "200"
+      },
+      {
+        "uri": "appraisals",
+        "name": "appraisals.index",
+        "status": "200"
+      },
+      {
+        "uri": "appraisals/create",
+        "name": "appraisals.create",
+        "status": "200"
+      },
+      {
+        "uri": "attendances/imports/file",
+        "name": "attendance.file.import",
+        "status": "200"
+      },
+      {
+        "uri": "award_types",
+        "name": "award_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "award_types/create",
+        "name": "award_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "awards",
+        "name": "awards.index",
+        "status": "200"
+      },
+      {
+        "uri": "awards/create",
+        "name": "awards.create",
+        "status": "200"
+      },
+      {
+        "uri": "bank_accounts",
+        "name": "bank_accounts.index",
+        "status": "200"
+      },
+      {
+        "uri": "bank_accounts/create",
+        "name": "bank_accounts.create",
+        "status": "200"
+      },
+      {
+        "uri": "bank_transfers",
+        "name": "bank_transfers.index",
+        "status": "200"
+      },
+      {
+        "uri": "bank_transfers/create",
+        "name": "bank_transfers.create",
+        "status": "200"
+      },
+      {
+        "uri": "bank_transfers/index",
+        "name": "bank_transfers.index",
+        "status": "200"
+      },
+      {
+        "uri": "bills",
+        "name": "bills.index",
+        "status": "200"
+      },
+      {
+        "uri": "bills/create",
+        "name": "bills.create",
+        "status": "200"
+      },
+      {
+        "uri": "bills/export",
+        "name": "bills.export",
+        "status": "200"
+      },
+      {
+        "uri": "billsindex",
+        "name": "bills.index",
+        "status": "200"
+      },
+      {
+        "uri": "billsitems",
+        "name": "bills.items",
+        "status": "200"
+      },
+      {
+        "uri": "branches",
+        "name": "branches.index",
+        "status": "200"
+      },
+      {
+        "uri": "branches/create",
+        "name": "branches.create",
+        "status": "200"
+      },
+      {
+        "uri": "budgets",
+        "name": "budgets.index",
+        "status": "200"
+      },
+      {
+        "uri": "budgets/create",
+        "name": "budgets.create",
+        "status": "200"
+      },
+      {
+        "uri": "bug_status",
+        "name": "bug_status.index",
+        "status": "200"
+      },
+      {
+        "uri": "bug_statuses/create",
+        "name": "bug_status.create",
+        "status": "200"
+      },
+      {
+        "uri": "candidates-job-applications",
+        "name": "jobs.application.candidate",
+        "status": "200"
+      },
+      {
+        "uri": "changes/mode",
+        "name": "change.mode",
+        "status": "200"
+      },
+      {
+        "uri": "chart_of_accounts",
+        "name": "chart_of_accounts.index",
+        "status": "200"
+      },
+      {
+        "uri": "chart_of_accounts/create",
+        "name": "chart_of_accounts.create",
+        "status": "200"
+      },
+      {
+        "uri": "chats",
+        "name": "chats",
+        "status": "200"
+      },
+      {
+        "uri": "checkuserexists",
+        "name": "users.exists",
+        "status": "200"
+      },
+      {
+        "uri": "clients",
+        "name": "clients.index",
+        "status": "200"
+      },
+      {
+        "uri": "clients/create",
+        "name": "clients.create",
+        "status": "200"
+      },
+      {
+        "uri": "commissions",
+        "name": "commissions.index",
+        "status": "200"
+      },
+      {
+        "uri": "commissions/create",
+        "name": "commissions.create",
+        "status": "200"
+      },
+      {
+        "uri": "company_policies",
+        "name": "company_policies.index",
+        "status": "200"
+      },
+      {
+        "uri": "company_policies/create",
+        "name": "company_policies.create",
+        "status": "200"
+      },
+      {
+        "uri": "competencies",
+        "name": "competencies.index",
+        "status": "200"
+      },
+      {
+        "uri": "competencies/create",
+        "name": "competencies.create",
+        "status": "200"
+      },
+      {
+        "uri": "complaints",
+        "name": "complaints.index",
+        "status": "200"
+      },
+      {
+        "uri": "complaints/create",
+        "name": "complaints.create",
+        "status": "200"
+      },
+      {
+        "uri": "confirm-password",
+        "name": "password.confirm",
+        "status": "200"
+      },
+      {
+        "uri": "contract_types",
+        "name": "contract_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "contract_types/create",
+        "name": "contract_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "contracts",
+        "name": "contracts.index",
+        "status": "200"
+      },
+      {
+        "uri": "contracts/create",
+        "name": "contracts.create",
+        "status": "200"
+      },
+      {
+        "uri": "contracts/grid",
+        "name": "contracts.grid",
+        "status": "200"
+      },
+      {
+        "uri": "coupons",
+        "name": "coupons.index",
+        "status": "200"
+      },
+      {
+        "uri": "coupons/apply",
+        "name": "coupons.apply",
+        "status": "200"
+      },
+      {
+        "uri": "coupons/create",
+        "name": "coupons.create",
+        "status": "200"
+      },
+      {
+        "uri": "create-language",
+        "name": "languages.create",
+        "status": "200"
+      },
+      {
+        "uri": "credit-notes",
+        "name": "credit.note",
+        "status": "200"
+      },
+      {
+        "uri": "credit_notes/invoice",
+        "name": "invoices.get",
+        "status": "200"
+      },
+      {
+        "uri": "crm-dashboard",
+        "name": "crm.dashboard",
+        "status": "200"
+      },
+      {
+        "uri": "custom-credit-note",
+        "name": "invoices.custom.credit.note",
+        "status": "200"
+      },
+      {
+        "uri": "custom-debit-note",
+        "name": "bills.custom.debit.note",
+        "status": "200"
+      },
+      {
+        "uri": "custom-question",
+        "name": "custom_questions.index",
+        "status": "200"
+      },
+      {
+        "uri": "custom-questions/create",
+        "name": "custom-question.create",
+        "status": "200"
+      },
+      {
+        "uri": "custom-questions/create",
+        "name": "custom_questions.create",
+        "status": "200"
+      },
+      {
+        "uri": "custom_fields",
+        "name": "custom_fields.index",
+        "status": "200"
+      },
+      {
+        "uri": "custom_fields/create",
+        "name": "custom_fields.create",
+        "status": "200"
+      },
+      {
+        "uri": "custom_pages",
+        "name": "custom_pages.index",
+        "status": "200"
+      },
+      {
+        "uri": "custom_pages/create",
+        "name": "custom_pages.create",
+        "status": "200"
+      },
+      {
+        "uri": "customers",
+        "name": "customers.index",
+        "status": "200"
+      },
+      {
+        "uri": "customers/create",
+        "name": "customers.create",
+        "status": "200"
+      },
+      {
+        "uri": "customers/export",
+        "name": "customers.export",
+        "status": "200"
+      },
+      {
+        "uri": "customers/imports/file",
+        "name": "customers.file.import",
+        "status": "200"
+      },
+      {
+        "uri": "dashboard",
+        "name": "client.dashboard.view",
+        "status": "200"
+      },
+      {
+        "uri": "dashboard-view",
+        "name": "dashboard.view",
+        "status": "200"
+      },
+      {
+        "uri": "deals",
+        "name": "deals.index",
+        "status": "200"
+      },
+      {
+        "uri": "deals/create",
+        "name": "deals.create",
+        "status": "200"
+      },
+      {
+        "uri": "deals/list",
+        "name": "deals.list",
+        "status": "200"
+      },
+      {
+        "uri": "debit_notes",
+        "name": "debit.note",
+        "status": "200"
+      },
+      {
+        "uri": "debit_notes/bill",
+        "name": "bills.get",
+        "status": "200"
+      },
+      {
+        "uri": "deduction_options",
+        "name": "deduction_options.index",
+        "status": "200"
+      },
+      {
+        "uri": "deduction_options/create",
+        "name": "deduction_options.create",
+        "status": "200"
+      },
+      {
+        "uri": "departments",
+        "name": "departments.index",
+        "status": "200"
+      },
+      {
+        "uri": "departments/create",
+        "name": "departments.create",
+        "status": "200"
+      },
+      {
+        "uri": "designations",
+        "name": "designations.index",
+        "status": "200"
+      },
+      {
+        "uri": "designations/create",
+        "name": "designations.create",
+        "status": "200"
+      },
+      {
+        "uri": "discover",
+        "name": "discover.index",
+        "status": "200"
+      },
+      {
+        "uri": "discover/create",
+        "name": "discover.create",
+        "status": "200"
+      },
+      {
+        "uri": "document_uploads",
+        "name": "document_uploads.index",
+        "status": "200"
+      },
+      {
+        "uri": "document_uploads/create",
+        "name": "document_uploads.create",
+        "status": "200"
+      },
+      {
+        "uri": "documents",
+        "name": "documents.index",
+        "status": "200"
+      },
+      {
+        "uri": "documents/create",
+        "name": "documents.create",
+        "status": "200"
+      },
+      {
+        "uri": "email_template",
+        "name": "email_template.index",
+        "status": "200"
+      },
+      {
+        "uri": "email_templates/create",
+        "name": "email_template.create",
+        "status": "200"
+      },
+      {
+        "uri": "employee-profile",
+        "name": "employees.profile",
+        "status": "200"
+      },
+      {
+        "uri": "employee_attendances",
+        "name": "employee_attendances.index",
+        "status": "200"
+      },
+      {
+        "uri": "employee_attendances/bulk-attendance",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "employee_attendances/create",
+        "name": "employee_attendances.create",
+        "status": "200"
+      },
+      {
+        "uri": "employees",
+        "name": "employees.index",
+        "status": "200"
+      },
+      {
+        "uri": "employees/create",
+        "name": "employees.create",
+        "status": "200"
+      },
+      {
+        "uri": "employees/export",
+        "name": "employees.export",
+        "status": "200"
+      },
+      {
+        "uri": "employees/imports/file",
+        "name": "employees.file.import",
+        "status": "200"
+      },
+      {
+        "uri": "employees/salary",
+        "name": "employees.salary",
+        "status": "200"
+      },
+      {
+        "uri": "events",
+        "name": "events.index",
+        "status": "200"
+      },
+      {
+        "uri": "events/create",
+        "name": "events.create",
+        "status": "200"
+      },
+      {
+        "uri": "expense-list",
+        "name": "expenses.list",
+        "status": "200"
+      },
+      {
+        "uri": "expenses",
+        "name": "expenses.index",
+        "status": "200"
+      },
+      {
+        "uri": "expenses/create",
+        "name": "expenses.create",
+        "status": "200"
+      },
+      {
+        "uri": "expenses/index",
+        "name": "expenses.index",
+        "status": "200"
+      },
+      {
+        "uri": "expenses/items",
+        "name": "expenses.items",
+        "status": "200"
+      },
+      {
+        "uri": "faqs",
+        "name": "faqs.index",
+        "status": "200"
+      },
+      {
+        "uri": "faqs/create",
+        "name": "faqs.create",
+        "status": "200"
+      },
+      {
+        "uri": "features",
+        "name": "features.index",
+        "status": "200"
+      },
+      {
+        "uri": "features/create",
+        "name": "features.create",
+        "status": "200"
+      },
+      {
+        "uri": "form_builders",
+        "name": "form_builders.index",
+        "status": "200"
+      },
+      {
+        "uri": "form_builders/create",
+        "name": "form_builders.create",
+        "status": "200"
+      },
+      {
+        "uri": "fortify-forgot-password",
+        "name": "fortify.password.request",
+        "status": "200"
+      },
+      {
+        "uri": "fortify-login",
+        "name": "fortify.login",
+        "status": "200"
+      },
+      {
+        "uri": "fortify-register",
+        "name": "fortify.register",
+        "status": "200"
+      },
+      {
+        "uri": "goal_trackings",
+        "name": "goal_trackings.index",
+        "status": "200"
+      },
+      {
+        "uri": "goal_trackings/create",
+        "name": "goal_trackings.create",
+        "status": "200"
+      },
+      {
+        "uri": "goal_types",
+        "name": "goal_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "goal_types/create",
+        "name": "goal_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "goals",
+        "name": "goals.index",
+        "status": "200"
+      },
+      {
+        "uri": "goals/create",
+        "name": "goals.create",
+        "status": "200"
+      },
+      {
+        "uri": "holiday-calendar",
+        "name": "holidays.calendar",
+        "status": "200"
+      },
+      {
+        "uri": "holidays",
+        "name": "holidays.index",
+        "status": "200"
+      },
+      {
+        "uri": "holidays/create",
+        "name": "holidays.create",
+        "status": "200"
+      },
+      {
+        "uri": "home",
+        "name": "home_section.index",
+        "status": "200"
+      },
+      {
+        "uri": "home_section",
+        "name": "home_section.index",
+        "status": "200"
+      },
+      {
+        "uri": "home_section/create",
+        "name": "home_section.create",
+        "status": "200"
+      },
+      {
+        "uri": "hrm-dashboard",
+        "name": "hrm.dashboard",
+        "status": "200"
+      },
+      {
+        "uri": "indicators",
+        "name": "indicators.index",
+        "status": "200"
+      },
+      {
+        "uri": "indicators/create",
+        "name": "indicators.create",
+        "status": "200"
+      },
+      {
+        "uri": "interview-schedule",
+        "name": "interview-schedule.index",
+        "status": "200"
+      },
+      {
+        "uri": "interview-schedules/create",
+        "name": "interview-schedule.create",
+        "status": "200"
+      },
+      {
+        "uri": "invoices",
+        "name": "invoices.index",
+        "status": "200"
+      },
+      {
+        "uri": "invoices/create",
+        "name": "invoices.create",
+        "status": "200"
+      },
+      {
+        "uri": "invoices/export",
+        "name": "invoices.export",
+        "status": "200"
+      },
+      {
+        "uri": "invoices/index",
+        "name": "invoices.index",
+        "status": "200"
+      },
+      {
+        "uri": "invoices/items",
+        "name": "invoices.items",
+        "status": "200"
+      },
+      {
+        "uri": "job-application",
+        "name": "job-application.index",
+        "status": "200"
+      },
+      {
+        "uri": "job-applications/create",
+        "name": "job-application.create",
+        "status": "200"
+      },
+      {
+        "uri": "job-categories/create",
+        "name": "job-category.create",
+        "status": "200"
+      },
+      {
+        "uri": "job-category",
+        "name": "job-category.index",
+        "status": "200"
+      },
+      {
+        "uri": "job-onboard",
+        "name": "jobs.on.board",
+        "status": "200"
+      },
+      {
+        "uri": "job-stage",
+        "name": "job-stage.index",
+        "status": "200"
+      },
+      {
+        "uri": "job-stages/create",
+        "name": "job-stage.create",
+        "status": "200"
+      },
+      {
+        "uri": "jobs",
+        "name": "jobs.index",
+        "status": "200"
+      },
+      {
+        "uri": "jobs/create",
+        "name": "jobs.create",
+        "status": "200"
+      },
+      {
+        "uri": "join_us",
+        "name": "join_us.index",
+        "status": "200"
+      },
+      {
+        "uri": "join_us/create",
+        "name": "join_us.create",
+        "status": "200"
+      },
+      {
+        "uri": "journal_entries",
+        "name": "journal_entries.index",
+        "status": "200"
+      },
+      {
+        "uri": "journal_entries/create",
+        "name": "journal_entries.create",
+        "status": "200"
+      },
+      {
+        "uri": "labels",
+        "name": "labels.index",
+        "status": "200"
+      },
+      {
+        "uri": "labels/create",
+        "name": "labels.create",
+        "status": "200"
+      },
+      {
+        "uri": "landingpage",
+        "name": "landingpage.index",
+        "status": "200"
+      },
+      {
+        "uri": "last-login",
+        "name": "last_login",
+        "status": "200"
+      },
+      {
+        "uri": "lead_stages",
+        "name": "lead_stages.index",
+        "status": "200"
+      },
+      {
+        "uri": "lead_stages/create",
+        "name": "lead_stages.create",
+        "status": "200"
+      },
+      {
+        "uri": "leads",
+        "name": "leads.index",
+        "status": "200"
+      },
+      {
+        "uri": "leads/create",
+        "name": "leads.create",
+        "status": "200"
+      },
+      {
+        "uri": "leads/list",
+        "name": "leads.list",
+        "status": "200"
+      },
+      {
+        "uri": "leave",
+        "name": "leave.index",
+        "status": "200"
+      },
+      {
+        "uri": "leave_types",
+        "name": "leave_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "leave_types/create",
+        "name": "leave_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "leaves/create",
+        "name": "leave.create",
+        "status": "200"
+      },
+      {
+        "uri": "leaves/export",
+        "name": "leaves.export",
+        "status": "200"
+      },
+      {
+        "uri": "loan_options",
+        "name": "loan_options.index",
+        "status": "200"
+      },
+      {
+        "uri": "loan_options/create",
+        "name": "loan_options.create",
+        "status": "200"
+      },
+      {
+        "uri": "loans",
+        "name": "loans.index",
+        "status": "200"
+      },
+      {
+        "uri": "loans/create",
+        "name": "loans.create",
+        "status": "200"
+      },
+      {
+        "uri": "meeting-calendar",
+        "name": "meetings.calendar",
+        "status": "200"
+      },
+      {
+        "uri": "meetings",
+        "name": "meetings.index",
+        "status": "200"
+      },
+      {
+        "uri": "meetings/create",
+        "name": "meetings.create",
+        "status": "200"
+      },
+      {
+        "uri": "name-search-products",
+        "name": "name.search.products",
+        "status": "200"
+      },
+      {
+        "uri": "notification_templates",
+        "name": "notification_templates.index",
+        "status": "200"
+      },
+      {
+        "uri": "notification_templates/create",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "orders",
+        "name": "orders.index",
+        "status": "200"
+      },
+      {
+        "uri": "other_payments",
+        "name": "other_payments.index",
+        "status": "200"
+      },
+      {
+        "uri": "other_payments/create",
+        "name": "other_payments.create",
+        "status": "200"
+      },
+      {
+        "uri": "overtimes",
+        "name": "overtimes.index",
+        "status": "200"
+      },
+      {
+        "uri": "overtimes/create",
+        "name": "overtimes.create",
+        "status": "200"
+      },
+      {
+        "uri": "payments",
+        "name": "payments.index",
+        "status": "200"
+      },
+      {
+        "uri": "payments/create",
+        "name": "payments.create",
+        "status": "200"
+      },
+      {
+        "uri": "payments/index",
+        "name": "payments.index",
+        "status": "200"
+      },
+      {
+        "uri": "payslips",
+        "name": "payslips.index",
+        "status": "200"
+      },
+      {
+        "uri": "payslips/create",
+        "name": "payslips.create",
+        "status": "200"
+      },
+      {
+        "uri": "payslips/employeepayslip",
+        "name": "payslips.employeepayslip",
+        "status": "200"
+      },
+      {
+        "uri": "performance_types",
+        "name": "performance_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "performance_types/create",
+        "name": "performance_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "permissions",
+        "name": "permissions.index",
+        "status": "200"
+      },
+      {
+        "uri": "permissions/create",
+        "name": "permissions.create",
+        "status": "200"
+      },
+      {
+        "uri": "pipelines",
+        "name": "pipelines.index",
+        "status": "200"
+      },
+      {
+        "uri": "pipelines/create",
+        "name": "pipelines.create",
+        "status": "200"
+      },
+      {
+        "uri": "plan_requests",
+        "name": "plan_requests.index",
+        "status": "200"
+      },
+      {
+        "uri": "plans",
+        "name": "plans.index",
+        "status": "200"
+      },
+      {
+        "uri": "plans/create",
+        "name": "plans.create",
+        "status": "200"
+      },
+      {
+        "uri": "pos",
+        "name": "pos.index",
+        "status": "200"
+      },
+      {
+        "uri": "pos-dashboard",
+        "name": "pos.dashboard",
+        "status": "200"
+      },
+      {
+        "uri": "pos-print-setting",
+        "name": "pos.print.setting",
+        "status": "200"
+      },
+      {
+        "uri": "pos/barcode",
+        "name": "pos.barcode",
+        "status": "200"
+      },
+      {
+        "uri": "pos/create",
+        "name": "pos.create",
+        "status": "200"
+      },
+      {
+        "uri": "pos/data/store",
+        "name": "pos.data.store",
+        "status": "200"
+      },
+      {
+        "uri": "pos/print",
+        "name": "pos.print",
+        "status": "200"
+      },
+      {
+        "uri": "pricing_plans",
+        "name": "pricing_plans.index",
+        "status": "200"
+      },
+      {
+        "uri": "print-setting",
+        "name": "print.setting",
+        "status": "200"
+      },
+      {
+        "uri": "printviews/pos",
+        "name": "pos.printview",
+        "status": "200"
+      },
+      {
+        "uri": "privacy_policy",
+        "name": "privacy_policy",
+        "status": "200"
+      },
+      {
+        "uri": "product-categories",
+        "name": "product_service_categories.categories",
+        "status": "200"
+      },
+      {
+        "uri": "product_service_categories",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "product_service_categories/create",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "product_service_units",
+        "name": "product_service_units.index",
+        "status": "200"
+      },
+      {
+        "uri": "product_service_units/create",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "product_services",
+        "name": "product_services.index",
+        "status": "200"
+      },
+      {
+        "uri": "product_services/create",
+        "name": "product_services.create",
+        "status": "200"
+      },
+      {
+        "uri": "product_services/export",
+        "name": "product_services.export",
+        "status": "200"
+      },
+      {
+        "uri": "product_services/index",
+        "name": "product_services.index",
+        "status": "200"
+      },
+      {
+        "uri": "product_stocks",
+        "name": "product_stocks.index",
+        "status": "200"
+      },
+      {
+        "uri": "product_stocks/create",
+        "name": "product_stocks.create",
+        "status": "200"
+      },
+      {
+        "uri": "product_stocks/export",
+        "name": "product_stocks.export",
+        "status": "200"
+      },
+      {
+        "uri": "profile",
+        "name": "user.profile",
+        "status": "200"
+      },
+      {
+        "uri": "project-dashboard",
+        "name": "projects.dashboard",
+        "status": "200"
+      },
+      {
+        "uri": "project_reports",
+        "name": "project_reports.index",
+        "status": "200"
+      },
+      {
+        "uri": "project_reports/create",
+        "name": "project_reports.create",
+        "status": "200"
+      },
+      {
+        "uri": "project_stages",
+        "name": "project_stages.index",
+        "status": "200"
+      },
+      {
+        "uri": "project_stages/create",
+        "name": "project_stages.create",
+        "status": "200"
+      },
+      {
+        "uri": "project_task_stages",
+        "name": "project_task_stages.index",
+        "status": "200"
+      },
+      {
+        "uri": "project_task_stages/create",
+        "name": "project_task_stages.create",
+        "status": "200"
+      },
+      {
+        "uri": "projects",
+        "name": "projects.index",
+        "status": "200"
+      },
+      {
+        "uri": "projects-users",
+        "name": "projects.user",
+        "status": "200"
+      },
+      {
+        "uri": "projects-view",
+        "name": "filter.project.view",
+        "status": "200"
+      },
+      {
+        "uri": "projects.timesheets/append-task",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "projects.timesheets/list",
+        "name": "projects.timesheets.list",
+        "status": "200"
+      },
+      {
+        "uri": "projects.timesheets/list-get",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "projects.timesheets/view",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "projects/create",
+        "name": "projects.create",
+        "status": "200"
+      },
+      {
+        "uri": "promotions",
+        "name": "promotions.index",
+        "status": "200"
+      },
+      {
+        "uri": "promotions/create",
+        "name": "promotions.create",
+        "status": "200"
+      },
+      {
+        "uri": "proposal",
+        "name": "proposal.index",
+        "status": "200"
+      },
+      {
+        "uri": "proposals/create",
+        "name": "proposal.create",
+        "status": "200"
+      },
+      {
+        "uri": "proposals/export",
+        "name": "proposals.export",
+        "status": "200"
+      },
+      {
+        "uri": "proposals/items",
+        "name": "proposals.items",
+        "status": "200"
+      },
+      {
+        "uri": "purchases",
+        "name": "purchases.index",
+        "status": "200"
+      },
+      {
+        "uri": "purchases/create",
+        "name": "purchases.create",
+        "status": "200"
+      },
+      {
+        "uri": "purchases/items",
+        "name": "purchases.items",
+        "status": "200"
+      },
+      {
+        "uri": "reports-daily-pos",
+        "name": "reports.daily.pos",
+        "status": "200"
+      },
+      {
+        "uri": "reports-daily-purchase",
+        "name": "reports.daily.purchase",
+        "status": "200"
+      },
+      {
+        "uri": "reports-deal",
+        "name": "reports.deal",
+        "status": "200"
+      },
+      {
+        "uri": "reports-lead",
+        "name": "reports.lead",
+        "status": "200"
+      },
+      {
+        "uri": "reports-leave",
+        "name": "reports.leave",
+        "status": "200"
+      },
+      {
+        "uri": "reports-monthly-attendance",
+        "name": "reports.monthly.attendance",
+        "status": "200"
+      },
+      {
+        "uri": "reports-monthly-cashflow",
+        "name": "reports.monthly.cashflow",
+        "status": "200"
+      },
+      {
+        "uri": "reports-monthly-pos",
+        "name": "reports.monthly.pos",
+        "status": "200"
+      },
+      {
+        "uri": "reports-monthly-purchase",
+        "name": "reports.monthly.purchase",
+        "status": "200"
+      },
+      {
+        "uri": "reports-payroll",
+        "name": "reports.payroll",
+        "status": "200"
+      },
+      {
+        "uri": "reports-pos-vs-purchase",
+        "name": "reports.pos.vs.purchase",
+        "status": "200"
+      },
+      {
+        "uri": "reports-quarterly-cashflow",
+        "name": "reports.quarterly.cashflow",
+        "status": "200"
+      },
+      {
+        "uri": "reports-warehouse",
+        "name": "reports.warehouse",
+        "status": "200"
+      },
+      {
+        "uri": "reports/account-statement-report",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "reports/bill-summary",
+        "name": "reports.bill.summary",
+        "status": "200"
+      },
+      {
+        "uri": "reports/expense-summary",
+        "name": "reports.expense.summary",
+        "status": "200"
+      },
+      {
+        "uri": "reports/income-summary",
+        "name": "reports.income.summary",
+        "status": "200"
+      },
+      {
+        "uri": "reports/income-vs-expense-summary",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "reports/invoice-report",
+        "name": "reports.invoice",
+        "status": "200"
+      },
+      {
+        "uri": "reports/invoice-summary",
+        "name": "reports.invoice.summary",
+        "status": "200"
+      },
+      {
+        "uri": "reports/leave",
+        "name": "reports.leave",
+        "status": "200"
+      },
+      {
+        "uri": "reports/payables",
+        "name": "reports.payables",
+        "status": "200"
+      },
+      {
+        "uri": "reports/payrolls/export",
+        "name": "reports.payroll.export",
+        "status": "200"
+      },
+      {
+        "uri": "reports/product-stock-report",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "reports/receivables",
+        "name": "reports.receivables",
+        "status": "200"
+      },
+      {
+        "uri": "reports/sales",
+        "name": "reports.sales",
+        "status": "200"
+      },
+      {
+        "uri": "reports/tax-summary",
+        "name": "reports.tax.summary",
+        "status": "200"
+      },
+      {
+        "uri": "reports/transaction",
+        "name": "transactions.index",
+        "status": "200"
+      },
+      {
+        "uri": "reports/trial-balance",
+        "name": "reports.trial.balance",
+        "status": "200"
+      },
+      {
+        "uri": "resignations",
+        "name": "resignations.index",
+        "status": "200"
+      },
+      {
+        "uri": "resignations/create",
+        "name": "resignations.create",
+        "status": "200"
+      },
+      {
+        "uri": "revenues",
+        "name": "revenues.index",
+        "status": "200"
+      },
+      {
+        "uri": "revenues/create",
+        "name": "revenues.create",
+        "status": "200"
+      },
+      {
+        "uri": "revenues/index",
+        "name": "revenues.index",
+        "status": "200"
+      },
+      {
+        "uri": "roles",
+        "name": "roles.index",
+        "status": "200"
+      },
+      {
+        "uri": "roles/create",
+        "name": "roles.create",
+        "status": "200"
+      },
+      {
+        "uri": "sancta/csrf-cookie",
+        "name": "sanctum.csrf-cookie",
+        "status": "204"
+      },
+      {
+        "uri": "saturation_deductions",
+        "name": "saturation_deductions.index",
+        "status": "200"
+      },
+      {
+        "uri": "saturation_deductions/create",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "search",
+        "name": "search.json",
+        "status": "200"
+      },
+      {
+        "uri": "search-products",
+        "name": "search.products",
+        "status": "200"
+      },
+      {
+        "uri": "set_salaries",
+        "name": "set_salaries.index",
+        "status": "200"
+      },
+      {
+        "uri": "set_salaries/create",
+        "name": "set_salaries.create",
+        "status": "200"
+      },
+      {
+        "uri": "settings",
+        "name": "settings",
+        "status": "200"
+      },
+      {
+        "uri": "settings/exp",
+        "name": "settings.experience_certificate.language",
+        "status": "200"
+      },
+      {
+        "uri": "settings/joining-letter",
+        "name": "settingsjoining_letter.language",
+        "status": "200"
+      },
+      {
+        "uri": "settings/noc",
+        "name": "settings.noc.language",
+        "status": "200"
+      },
+      {
+        "uri": "settings/offer-letter",
+        "name": "settings.offer_letter.language",
+        "status": "200"
+      },
+      {
+        "uri": "settings/pos",
+        "name": "pos.setting",
+        "status": "200"
+      },
+      {
+        "uri": "sources",
+        "name": "sources.index",
+        "status": "200"
+      },
+      {
+        "uri": "sources/create",
+        "name": "sources.create",
+        "status": "200"
+      },
+      {
+        "uri": "stages",
+        "name": "stages.index",
+        "status": "200"
+      },
+      {
+        "uri": "stages/create",
+        "name": "stages.create",
+        "status": "200"
+      },
+      {
+        "uri": "supports",
+        "name": "supports.index",
+        "status": "200"
+      },
+      {
+        "uri": "supports/create",
+        "name": "supports.create",
+        "status": "200"
+      },
+      {
+        "uri": "supports/grid",
+        "name": "supports.grid",
+        "status": "200"
+      },
+      {
+        "uri": "systems",
+        "name": "systems.index",
+        "status": "200"
+      },
+      {
+        "uri": "systems/create",
+        "name": "systems.create",
+        "status": "200"
+      },
+      {
+        "uri": "systems/creates/ip",
+        "name": "systems.ip.create",
+        "status": "200"
+      },
+      {
+        "uri": "task-board-view",
+        "name": "projects.taskboard.view",
+        "status": "200"
+      },
+      {
+        "uri": "taxes",
+        "name": "taxes.index",
+        "status": "200"
+      },
+      {
+        "uri": "taxes/create",
+        "name": "taxes.create",
+        "status": "200"
+      },
+      {
+        "uri": "terminations",
+        "name": "terminations.index",
+        "status": "200"
+      },
+      {
+        "uri": "terminations/create",
+        "name": "terminations.create",
+        "status": "200"
+      },
+      {
+        "uri": "terminationtype",
+        "name": "termination_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "terminationtypes/create",
+        "name": "terminationtype.create",
+        "status": "200"
+      },
+      {
+        "uri": "terminationtypes/create",
+        "name": "termination_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "terms_and_conditions",
+        "name": "terms_and_conditions",
+        "status": "200"
+      },
+      {
+        "uri": "test-mail",
+        "name": "tests.mail",
+        "status": "200"
+      },
+      {
+        "uri": "time_trackers",
+        "name": "time.tracker",
+        "status": "200"
+      },
+      {
+        "uri": "trainers",
+        "name": "trainers.index",
+        "status": "200"
+      },
+      {
+        "uri": "trainers/create",
+        "name": "trainers.create",
+        "status": "200"
+      },
+      {
+        "uri": "training_types",
+        "name": "training_types.index",
+        "status": "200"
+      },
+      {
+        "uri": "training_types/create",
+        "name": "training_types.create",
+        "status": "200"
+      },
+      {
+        "uri": "trainings",
+        "name": "trainings.index",
+        "status": "200"
+      },
+      {
+        "uri": "trainings/create",
+        "name": "trainings.create",
+        "status": "200"
+      },
+      {
+        "uri": "transactions/export",
+        "name": "transactions.export",
+        "status": "200"
+      },
+      {
+        "uri": "transfers",
+        "name": "transfers.index",
+        "status": "200"
+      },
+      {
+        "uri": "transfers/create",
+        "name": "transfers.create",
+        "status": "200"
+      },
+      {
+        "uri": "travels",
+        "name": "travels.index",
+        "status": "200"
+      },
+      {
+        "uri": "travels/create",
+        "name": "travels.create",
+        "status": "200"
+      },
+      {
+        "uri": "two-factor-challenge",
+        "name": "two-factor.login",
+        "status": "200"
+      },
+      {
+        "uri": "update",
+        "name": "LaravelUpdater::welcome",
+        "status": "200"
+      },
+      {
+        "uri": "updates/database",
+        "name": "LaravelUpdater::database",
+        "status": "200"
+      },
+      {
+        "uri": "updates/final",
+        "name": "LaravelUpdater::final",
+        "status": "200"
+      },
+      {
+        "uri": "updates/overview",
+        "name": "LaravelUpdater::overview",
+        "status": "200"
+      },
+      {
+        "uri": "user/confirm-password",
+        "name": "password.confirm",
+        "status": "200"
+      },
+      {
+        "uri": "users",
+        "name": "users.index",
+        "status": "200"
+      },
+      {
+        "uri": "users-view",
+        "name": "filter.user.view",
+        "status": "200"
+      },
+      {
+        "uri": "users/confirmed-password-status",
+        "name": "password.confirmation",
+        "status": "200"
+      },
+      {
+        "uri": "users/create",
+        "name": "users.create",
+        "status": "200"
+      },
+      {
+        "uri": "users/logs",
+        "name": "users.log",
+        "status": "200"
+      },
+      {
+        "uri": "users/profile",
+        "name": "profile.show",
+        "status": "200"
+      },
+      {
+        "uri": "users/two-factor-qr-code",
+        "name": "two-factor.qr-code",
+        "status": "200"
+      },
+      {
+        "uri": "users/two-factor-recovery-codes",
+        "name": "",
+        "status": "200"
+      },
+      {
+        "uri": "users/two-factor-secret-key",
+        "name": "two-factor.secret-key",
+        "status": "200"
+      },
+      {
+        "uri": "vendors",
+        "name": "vendors.index",
+        "status": "200"
+      },
+      {
+        "uri": "vendors/create",
+        "name": "vendors.create",
+        "status": "200"
+      },
+      {
+        "uri": "vendors/export",
+        "name": "vendors.export",
+        "status": "200"
+      },
+      {
+        "uri": "vendors/imports/file",
+        "name": "vendors.file.import",
+        "status": "200"
+      },
+      {
+        "uri": "warehouse_transfers",
+        "name": "warehouse_transfers.index",
+        "status": "200"
+      },
+      {
+        "uri": "warehouse_transfers/create",
+        "name": "warehouse_transfers.create",
+        "status": "200"
+      },
+      {
+        "uri": "warehouses",
+        "name": "warehouses.index",
+        "status": "200"
+      },
+      {
+        "uri": "warehouses/create",
+        "name": "warehouses.create",
+        "status": "200"
+      },
+      {
+        "uri": "warnings",
+        "name": "warnings.index",
+        "status": "200"
+      },
+      {
+        "uri": "warnings/create",
+        "name": "warnings.create",
+        "status": "200"
+      },
+      {
+        "uri": "webhook-settings/create",
+        "name": "webhooks.create",
+        "status": "200"
+      },
+      {
+        "uri": "zoom-meeting-calendar",
+        "name": "zoom_meetings.calendar",
+        "status": "200"
+      },
+      {
+        "uri": "zoom_meetings",
+        "name": "zoom_meetings.index",
+        "status": "200"
+      },
+      {
+        "uri": "zoom_meetings/create",
+        "name": "zoom_meetings.create",
+        "status": "200"
+      }
+    ],
+    "redirects": [
+      {
+        "uri": "landingpage/create",
+        "name": "landingpage.create",
+        "status": "302"
+      }
+    ],
+    "auth_required": [
+      {
+        "uri": "projects.timesheets/table-view",
+        "name": "",
+        "status": "403"
+      }
+    ],
+    "not_found": [
+      {
+        "uri": "install",
+        "name": "LaravelInstaller::welcome",
+        "status": "404"
+      },
+      {
+        "uri": "installs/database",
+        "name": "LaravelInstaller::database",
+        "status": "404"
+      },
+      {
+        "uri": "installs/environment",
+        "name": "LaravelInstaller::environment",
+        "status": "404"
+      },
+      {
+        "uri": "installs/environments/classic",
+        "name": "",
+        "status": "404"
+      },
+      {
+        "uri": "installs/environments/wizard",
+        "name": "",
+        "status": "404"
+      },
+      {
+        "uri": "installs/final",
+        "name": "LaravelInstaller::final",
+        "status": "404"
+      },
+      {
+        "uri": "installs/permissions",
+        "name": "LaravelInstaller::permissions",
+        "status": "404"
+      },
+      {
+        "uri": "installs/requirements",
+        "name": "LaravelInstaller::requirements",
+        "status": "404"
+      }
+    ],
+    "server_errors": [],
+    "other": [
+      {
+        "uri": "pricing_plans/create",
+        "name": "pricing_plans.create",
+        "status": "429"
+      },
+      {
+        "uri": "screenshots",
+        "name": "screenshots.index",
+        "status": "429"
+      },
+      {
+        "uri": "screenshots/create",
+        "name": "screenshots.create",
+        "status": "429"
+      },
+      {
+        "uri": "testimonials",
+        "name": "testimonials.index",
+        "status": "429"
+      },
+      {
+        "uri": "testimonials/create",
+        "name": "testimonials.create",
+        "status": "429"
+      }
+    ]
+  },
+  "slow_routes": [
+    {
+      "uri": "landingpage/create",
+      "time": 3.237442,
+      "status": "302"
+    },
+    {
+      "uri": "pricing_plans/create",
+      "time": 2.575906,
+      "status": "429"
+    }
+  ],
+  "results": {
+    "/": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.231394,
+      "error": null
+    },
+    "about_us": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.098979,
+      "error": null
+    },
+    "account-dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.169702,
+      "error": null
+    },
+    "account_assets": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.124517,
+      "error": null
+    },
+    "account_assets/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.168042,
+      "error": null
+    },
+    "account_statements/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.159641,
+      "error": null
+    },
+    "allowance_options": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.235489,
+      "error": null
+    },
+    "allowance_options/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.278567,
+      "error": null
+    },
+    "allowances": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.184466,
+      "error": null
+    },
+    "allowances/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.302424,
+      "error": null
+    },
+    "announcement": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.219106,
+      "error": null
+    },
+    "announcements/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.296157,
+      "error": null
+    },
+    "api/landingpage": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.527131,
+      "error": null
+    },
+    "apis/get-projects": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.39836,
+      "error": null
+    },
+    "appraisals": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.135915,
+      "error": null
+    },
+    "appraisals/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.198599,
+      "error": null
+    },
+    "attendances/imports/file": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.134188,
+      "error": null
+    },
+    "award_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.12341,
+      "error": null
+    },
+    "award_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.211697,
+      "error": null
+    },
+    "awards": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126142,
+      "error": null
+    },
+    "awards/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.17145,
+      "error": null
+    },
+    "bank_accounts": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.164458,
+      "error": null
+    },
+    "bank_accounts/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.230626,
+      "error": null
+    },
+    "bank_transfers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123754,
+      "error": null
+    },
+    "bank_transfers/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.203784,
+      "error": null
+    },
+    "bank_transfers/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.13472,
+      "error": null
+    },
+    "bills": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117036,
+      "error": null
+    },
+    "bills/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.124676,
+      "error": null
+    },
+    "bills/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.129322,
+      "error": null
+    },
+    "billsindex": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15259,
+      "error": null
+    },
+    "billsitems": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127892,
+      "error": null
+    },
+    "branches": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.158042,
+      "error": null
+    },
+    "branches/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.191802,
+      "error": null
+    },
+    "budgets": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.137492,
+      "error": null
+    },
+    "budgets/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.1366,
+      "error": null
+    },
+    "bug_status": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123108,
+      "error": null
+    },
+    "bug_statuses/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.161877,
+      "error": null
+    },
+    "candidates-job-applications": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.176928,
+      "error": null
+    },
+    "changes/mode": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.179093,
+      "error": null
+    },
+    "chart_of_accounts": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.146983,
+      "error": null
+    },
+    "chart_of_accounts/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.223024,
+      "error": null
+    },
+    "chats": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.110532,
+      "error": null
+    },
+    "checkuserexists": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.128537,
+      "error": null
+    },
+    "clients": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.157155,
+      "error": null
+    },
+    "clients/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.188243,
+      "error": null
+    },
+    "commissions": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.199387,
+      "error": null
+    },
+    "commissions/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.173587,
+      "error": null
+    },
+    "company_policies": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.158681,
+      "error": null
+    },
+    "company_policies/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.235569,
+      "error": null
+    },
+    "competencies": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.152817,
+      "error": null
+    },
+    "competencies/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.196214,
+      "error": null
+    },
+    "complaints": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140994,
+      "error": null
+    },
+    "complaints/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.19673,
+      "error": null
+    },
+    "confirm-password": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.07849,
+      "error": null
+    },
+    "contract_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.134843,
+      "error": null
+    },
+    "contract_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.295397,
+      "error": null
+    },
+    "contracts": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.161507,
+      "error": null
+    },
+    "contracts/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.253966,
+      "error": null
+    },
+    "contracts/grid": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.167176,
+      "error": null
+    },
+    "coupons": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.172526,
+      "error": null
+    },
+    "coupons/apply": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.217891,
+      "error": null
+    },
+    "coupons/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.275816,
+      "error": null
+    },
+    "create-language": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.2154,
+      "error": null
+    },
+    "credit-notes": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.118653,
+      "error": null
+    },
+    "credit_notes/invoice": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.113796,
+      "error": null
+    },
+    "crm-dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.116625,
+      "error": null
+    },
+    "custom-credit-note": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.129936,
+      "error": null
+    },
+    "custom-debit-note": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.131351,
+      "error": null
+    },
+    "custom-question": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.11407,
+      "error": null
+    },
+    "custom-questions/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.12455,
+      "error": null
+    },
+    "custom_fields": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126904,
+      "error": null
+    },
+    "custom_fields/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.245851,
+      "error": null
+    },
+    "custom_pages": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.153785,
+      "error": null
+    },
+    "custom_pages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.196403,
+      "error": null
+    },
+    "customers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.135788,
+      "error": null
+    },
+    "customers/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.171481,
+      "error": null
+    },
+    "customers/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.168905,
+      "error": null
+    },
+    "customers/imports/file": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.172525,
+      "error": null
+    },
+    "dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126373,
+      "error": null
+    },
+    "dashboard-view": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.125191,
+      "error": null
+    },
+    "deals": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117993,
+      "error": null
+    },
+    "deals/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.228145,
+      "error": null
+    },
+    "deals/list": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.180594,
+      "error": null
+    },
+    "debit_notes": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.182186,
+      "error": null
+    },
+    "debit_notes/bill": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16748,
+      "error": null
+    },
+    "deduction_options": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.163073,
+      "error": null
+    },
+    "deduction_options/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.201094,
+      "error": null
+    },
+    "departments": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.192329,
+      "error": null
+    },
+    "departments/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.231475,
+      "error": null
+    },
+    "designations": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.131439,
+      "error": null
+    },
+    "designations/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.179205,
+      "error": null
+    },
+    "discover": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.194143,
+      "error": null
+    },
+    "discover/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.057491,
+      "error": null
+    },
+    "document_uploads": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127376,
+      "error": null
+    },
+    "document_uploads/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.181149,
+      "error": null
+    },
+    "documents": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.154023,
+      "error": null
+    },
+    "documents/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.175532,
+      "error": null
+    },
+    "email_template": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.148133,
+      "error": null
+    },
+    "email_templates/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.189577,
+      "error": null
+    },
+    "employee-profile": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.209743,
+      "error": null
+    },
+    "employee_attendances": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.115745,
+      "error": null
+    },
+    "employee_attendances/bulk-attendance": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.207928,
+      "error": null
+    },
+    "employee_attendances/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.172939,
+      "error": null
+    },
+    "employees": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15268,
+      "error": null
+    },
+    "employees/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.14796,
+      "error": null
+    },
+    "employees/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117925,
+      "error": null
+    },
+    "employees/imports/file": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.145701,
+      "error": null
+    },
+    "employees/salary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.113257,
+      "error": null
+    },
+    "events": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.135404,
+      "error": null
+    },
+    "events/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.264203,
+      "error": null
+    },
+    "expense-list": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15455,
+      "error": null
+    },
+    "expenses": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.12263,
+      "error": null
+    },
+    "expenses/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.119377,
+      "error": null
+    },
+    "expenses/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.145894,
+      "error": null
+    },
+    "expenses/items": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.158403,
+      "error": null
+    },
+    "faqs": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.152719,
+      "error": null
+    },
+    "faqs/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.190838,
+      "error": null
+    },
+    "features": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.121127,
+      "error": null
+    },
+    "features/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.059188,
+      "error": null
+    },
+    "form_builders": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.172596,
+      "error": null
+    },
+    "form_builders/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.18222,
+      "error": null
+    },
+    "fortify-forgot-password": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.271083,
+      "error": null
+    },
+    "fortify-login": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.368798,
+      "error": null
+    },
+    "fortify-register": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.317246,
+      "error": null
+    },
+    "goal_trackings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.138983,
+      "error": null
+    },
+    "goal_trackings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.192055,
+      "error": null
+    },
+    "goal_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123382,
+      "error": null
+    },
+    "goal_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.1748,
+      "error": null
+    },
+    "goals": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.184097,
+      "error": null
+    },
+    "goals/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170948,
+      "error": null
+    },
+    "holiday-calendar": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.166753,
+      "error": null
+    },
+    "holidays": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170221,
+      "error": null
+    },
+    "holidays/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.224592,
+      "error": null
+    },
+    "home": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.131203,
+      "error": null
+    },
+    "home_section": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123073,
+      "error": null
+    },
+    "home_section/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.133477,
+      "error": null
+    },
+    "hrm-dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.11211,
+      "error": null
+    },
+    "indicators": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.114231,
+      "error": null
+    },
+    "indicators/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.266801,
+      "error": null
+    },
+    "install": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.069635,
+      "error": null
+    },
+    "installs/database": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.06923,
+      "error": null
+    },
+    "installs/environment": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.065467,
+      "error": null
+    },
+    "installs/environments/classic": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.06001,
+      "error": null
+    },
+    "installs/environments/wizard": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.04492,
+      "error": null
+    },
+    "installs/final": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.067058,
+      "error": null
+    },
+    "installs/permissions": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.069354,
+      "error": null
+    },
+    "installs/requirements": {
+      "success": true,
+      "status_code": "404",
+      "redirect_url": "",
+      "time_total": 0.057366,
+      "error": null
+    },
+    "interview-schedule": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117638,
+      "error": null
+    },
+    "interview-schedules/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.178184,
+      "error": null
+    },
+    "invoices": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.139285,
+      "error": null
+    },
+    "invoices/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.151857,
+      "error": null
+    },
+    "invoices/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.113234,
+      "error": null
+    },
+    "invoices/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.11974,
+      "error": null
+    },
+    "invoices/items": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.12871,
+      "error": null
+    },
+    "job-application": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160511,
+      "error": null
+    },
+    "job-applications/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.244996,
+      "error": null
+    },
+    "job-categories/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.212973,
+      "error": null
+    },
+    "job-category": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.202178,
+      "error": null
+    },
+    "job-onboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140074,
+      "error": null
+    },
+    "job-stage": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.142125,
+      "error": null
+    },
+    "job-stages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.177195,
+      "error": null
+    },
+    "jobs": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.115895,
+      "error": null
+    },
+    "jobs/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.171257,
+      "error": null
+    },
+    "join_us": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126096,
+      "error": null
+    },
+    "join_us/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.186691,
+      "error": null
+    },
+    "journal_entries": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.110064,
+      "error": null
+    },
+    "journal_entries/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.164762,
+      "error": null
+    },
+    "labels": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140918,
+      "error": null
+    },
+    "labels/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.184759,
+      "error": null
+    },
+    "landingpage": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.162984,
+      "error": null
+    },
+    "landingpage/create": {
+      "success": true,
+      "status_code": "302",
+      "redirect_url": "http://127.0.0.1:8888/landingpage",
+      "time_total": 3.237442,
+      "error": null
+    },
+    "last-login": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.177965,
+      "error": null
+    },
+    "lead_stages": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16992,
+      "error": null
+    },
+    "lead_stages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.185964,
+      "error": null
+    },
+    "leads": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.128082,
+      "error": null
+    },
+    "leads/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.21992,
+      "error": null
+    },
+    "leads/list": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.129355,
+      "error": null
+    },
+    "leave": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.121095,
+      "error": null
+    },
+    "leave_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.173398,
+      "error": null
+    },
+    "leave_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.214701,
+      "error": null
+    },
+    "leaves/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.236539,
+      "error": null
+    },
+    "leaves/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.132477,
+      "error": null
+    },
+    "loan_options": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.118254,
+      "error": null
+    },
+    "loan_options/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.23945,
+      "error": null
+    },
+    "loans": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140832,
+      "error": null
+    },
+    "loans/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.186317,
+      "error": null
+    },
+    "meeting-calendar": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.159783,
+      "error": null
+    },
+    "meetings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15605,
+      "error": null
+    },
+    "meetings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160534,
+      "error": null
+    },
+    "name-search-products": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15716,
+      "error": null
+    },
+    "notification_templates": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.120714,
+      "error": null
+    },
+    "notification_templates/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.176225,
+      "error": null
+    },
+    "orders": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.119447,
+      "error": null
+    },
+    "other_payments": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.116546,
+      "error": null
+    },
+    "other_payments/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160748,
+      "error": null
+    },
+    "overtimes": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.180441,
+      "error": null
+    },
+    "overtimes/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.184767,
+      "error": null
+    },
+    "payments": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.111417,
+      "error": null
+    },
+    "payments/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.216214,
+      "error": null
+    },
+    "payments/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.149634,
+      "error": null
+    },
+    "payslips": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.114769,
+      "error": null
+    },
+    "payslips/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.136446,
+      "error": null
+    },
+    "payslips/employeepayslip": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.114313,
+      "error": null
+    },
+    "performance_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.139658,
+      "error": null
+    },
+    "performance_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.23555,
+      "error": null
+    },
+    "permissions": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.116737,
+      "error": null
+    },
+    "permissions/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.133709,
+      "error": null
+    },
+    "pipelines": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117729,
+      "error": null
+    },
+    "pipelines/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.17497,
+      "error": null
+    },
+    "plan_requests": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.161222,
+      "error": null
+    },
+    "plans": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.138018,
+      "error": null
+    },
+    "plans/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.195993,
+      "error": null
+    },
+    "pos": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.120574,
+      "error": null
+    },
+    "pos-dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.171271,
+      "error": null
+    },
+    "pos-print-setting": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.121882,
+      "error": null
+    },
+    "pos/barcode": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.128562,
+      "error": null
+    },
+    "pos/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.210027,
+      "error": null
+    },
+    "pos/data/store": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.25791,
+      "error": null
+    },
+    "pos/print": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.18935,
+      "error": null
+    },
+    "pricing_plans": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.183048,
+      "error": null
+    },
+    "pricing_plans/create": {
+      "success": true,
+      "status_code": "429",
+      "redirect_url": "",
+      "time_total": 2.575906,
+      "error": null
+    },
+    "print-setting": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.192478,
+      "error": null
+    },
+    "printviews/pos": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16529,
+      "error": null
+    },
+    "privacy_policy": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.081202,
+      "error": null
+    },
+    "product-categories": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.176974,
+      "error": null
+    },
+    "product_service_categories": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.142815,
+      "error": null
+    },
+    "product_service_categories/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.216685,
+      "error": null
+    },
+    "product_service_units": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.162942,
+      "error": null
+    },
+    "product_service_units/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.194054,
+      "error": null
+    },
+    "product_services": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126852,
+      "error": null
+    },
+    "product_services/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.176937,
+      "error": null
+    },
+    "product_services/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.162016,
+      "error": null
+    },
+    "product_services/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.125056,
+      "error": null
+    },
+    "product_stocks": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.131357,
+      "error": null
+    },
+    "product_stocks/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127323,
+      "error": null
+    },
+    "product_stocks/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126302,
+      "error": null
+    },
+    "profile": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.114928,
+      "error": null
+    },
+    "project-dashboard": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16482,
+      "error": null
+    },
+    "project_reports": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.178813,
+      "error": null
+    },
+    "project_reports/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170466,
+      "error": null
+    },
+    "project_stages": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123239,
+      "error": null
+    },
+    "project_stages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.200616,
+      "error": null
+    },
+    "project_task_stages": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.150564,
+      "error": null
+    },
+    "project_task_stages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.262501,
+      "error": null
+    },
+    "projects": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.20482,
+      "error": null
+    },
+    "projects-users": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160541,
+      "error": null
+    },
+    "projects-view": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.159289,
+      "error": null
+    },
+    "projects.timesheets/append-task": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.179534,
+      "error": null
+    },
+    "projects.timesheets/list": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.176683,
+      "error": null
+    },
+    "projects.timesheets/list-get": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.149083,
+      "error": null
+    },
+    "projects.timesheets/table-view": {
+      "success": true,
+      "status_code": "403",
+      "redirect_url": "",
+      "time_total": 0.07309,
+      "error": null
+    },
+    "projects.timesheets/view": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127001,
+      "error": null
+    },
+    "projects/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.167182,
+      "error": null
+    },
+    "promotions": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.129809,
+      "error": null
+    },
+    "promotions/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.175994,
+      "error": null
+    },
+    "proposal": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.135518,
+      "error": null
+    },
+    "proposals/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.205098,
+      "error": null
+    },
+    "proposals/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.122612,
+      "error": null
+    },
+    "proposals/items": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.124599,
+      "error": null
+    },
+    "purchases": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170838,
+      "error": null
+    },
+    "purchases/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.137608,
+      "error": null
+    },
+    "purchases/items": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.13447,
+      "error": null
+    },
+    "reports-daily-pos": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127044,
+      "error": null
+    },
+    "reports-daily-purchase": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123034,
+      "error": null
+    },
+    "reports-deal": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.180996,
+      "error": null
+    },
+    "reports-lead": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.172283,
+      "error": null
+    },
+    "reports-leave": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.156453,
+      "error": null
+    },
+    "reports-monthly-attendance": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15713,
+      "error": null
+    },
+    "reports-monthly-cashflow": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.132323,
+      "error": null
+    },
+    "reports-monthly-pos": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126602,
+      "error": null
+    },
+    "reports-monthly-purchase": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.118507,
+      "error": null
+    },
+    "reports-payroll": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127787,
+      "error": null
+    },
+    "reports-pos-vs-purchase": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126486,
+      "error": null
+    },
+    "reports-quarterly-cashflow": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.117285,
+      "error": null
+    },
+    "reports-warehouse": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.184924,
+      "error": null
+    },
+    "reports/account-statement-report": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.154063,
+      "error": null
+    },
+    "reports/bill-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.13412,
+      "error": null
+    },
+    "reports/expense-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.128515,
+      "error": null
+    },
+    "reports/income-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.177594,
+      "error": null
+    },
+    "reports/income-vs-expense-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.15131,
+      "error": null
+    },
+    "reports/invoice-report": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160755,
+      "error": null
+    },
+    "reports/invoice-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.123876,
+      "error": null
+    },
+    "reports/leave": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.13715,
+      "error": null
+    },
+    "reports/payables": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.166817,
+      "error": null
+    },
+    "reports/payrolls/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140626,
+      "error": null
+    },
+    "reports/product-stock-report": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.122206,
+      "error": null
+    },
+    "reports/receivables": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.156217,
+      "error": null
+    },
+    "reports/sales": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.139073,
+      "error": null
+    },
+    "reports/tax-summary": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16975,
+      "error": null
+    },
+    "reports/transaction": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.13106,
+      "error": null
+    },
+    "reports/trial-balance": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126371,
+      "error": null
+    },
+    "resignations": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.122928,
+      "error": null
+    },
+    "resignations/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.23683,
+      "error": null
+    },
+    "revenues": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.160321,
+      "error": null
+    },
+    "revenues/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.18023,
+      "error": null
+    },
+    "revenues/index": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.2033,
+      "error": null
+    },
+    "roles": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.163361,
+      "error": null
+    },
+    "roles/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.164864,
+      "error": null
+    },
+    "sancta/csrf-cookie": {
+      "success": true,
+      "status_code": "204",
+      "redirect_url": "",
+      "time_total": 0.044673,
+      "error": null
+    },
+    "saturation_deductions": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.165022,
+      "error": null
+    },
+    "saturation_deductions/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.20258,
+      "error": null
+    },
+    "screenshots": {
+      "success": true,
+      "status_code": "429",
+      "redirect_url": "",
+      "time_total": 0.054484,
+      "error": null
+    },
+    "screenshots/create": {
+      "success": true,
+      "status_code": "429",
+      "redirect_url": "",
+      "time_total": 0.051581,
+      "error": null
+    },
+    "search": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.153369,
+      "error": null
+    },
+    "search-products": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.142518,
+      "error": null
+    },
+    "set_salaries": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170371,
+      "error": null
+    },
+    "set_salaries/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140422,
+      "error": null
+    },
+    "settings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.168449,
+      "error": null
+    },
+    "settings/exp": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.145912,
+      "error": null
+    },
+    "settings/joining-letter": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.127639,
+      "error": null
+    },
+    "settings/noc": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.135936,
+      "error": null
+    },
+    "settings/offer-letter": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.125645,
+      "error": null
+    },
+    "settings/pos": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.12159,
+      "error": null
+    },
+    "sources": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170746,
+      "error": null
+    },
+    "sources/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.217991,
+      "error": null
+    },
+    "stages": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.120026,
+      "error": null
+    },
+    "stages/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.171227,
+      "error": null
+    },
+    "supports": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.146233,
+      "error": null
+    },
+    "supports/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.242981,
+      "error": null
+    },
+    "supports/grid": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.174335,
+      "error": null
+    },
+    "systems": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.144523,
+      "error": null
+    },
+    "systems/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.208001,
+      "error": null
+    },
+    "systems/creates/ip": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.119244,
+      "error": null
+    },
+    "task-board-view": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.147878,
+      "error": null
+    },
+    "taxes": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.126458,
+      "error": null
+    },
+    "taxes/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.162761,
+      "error": null
+    },
+    "terminations": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.116946,
+      "error": null
+    },
+    "terminations/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170075,
+      "error": null
+    },
+    "terminationtype": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.139162,
+      "error": null
+    },
+    "terminationtypes/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.122881,
+      "error": null
+    },
+    "terms_and_conditions": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.07946,
+      "error": null
+    },
+    "test-mail": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.149866,
+      "error": null
+    },
+    "testimonials": {
+      "success": true,
+      "status_code": "429",
+      "redirect_url": "",
+      "time_total": 0.068864,
+      "error": null
+    },
+    "testimonials/create": {
+      "success": true,
+      "status_code": "429",
+      "redirect_url": "",
+      "time_total": 0.062808,
+      "error": null
+    },
+    "time_trackers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.129781,
+      "error": null
+    },
+    "trainers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140221,
+      "error": null
+    },
+    "trainers/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.252793,
+      "error": null
+    },
+    "training_types": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.216093,
+      "error": null
+    },
+    "training_types/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.275765,
+      "error": null
+    },
+    "trainings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.212283,
+      "error": null
+    },
+    "trainings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.213536,
+      "error": null
+    },
+    "transactions/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.195793,
+      "error": null
+    },
+    "transfers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.16146,
+      "error": null
+    },
+    "transfers/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.193814,
+      "error": null
+    },
+    "travels": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140151,
+      "error": null
+    },
+    "travels/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.24884,
+      "error": null
+    },
+    "two-factor-challenge": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.357867,
+      "error": null
+    },
+    "update": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.058958,
+      "error": null
+    },
+    "updates/database": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.197011,
+      "error": null
+    },
+    "updates/final": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.132221,
+      "error": null
+    },
+    "updates/overview": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.125,
+      "error": null
+    },
+    "user/confirm-password": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.073011,
+      "error": null
+    },
+    "users": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.140263,
+      "error": null
+    },
+    "users-view": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.158562,
+      "error": null
+    },
+    "users/confirmed-password-status": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.193617,
+      "error": null
+    },
+    "users/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.187372,
+      "error": null
+    },
+    "users/logs": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.161239,
+      "error": null
+    },
+    "users/profile": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.090188,
+      "error": null
+    },
+    "users/two-factor-qr-code": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.171022,
+      "error": null
+    },
+    "users/two-factor-recovery-codes": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.179435,
+      "error": null
+    },
+    "users/two-factor-secret-key": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.120289,
+      "error": null
+    },
+    "vendors": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.177856,
+      "error": null
+    },
+    "vendors/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.202759,
+      "error": null
+    },
+    "vendors/export": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.145192,
+      "error": null
+    },
+    "vendors/imports/file": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.188466,
+      "error": null
+    },
+    "warehouse_transfers": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.174385,
+      "error": null
+    },
+    "warehouse_transfers/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.206555,
+      "error": null
+    },
+    "warehouses": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.169825,
+      "error": null
+    },
+    "warehouses/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.27335,
+      "error": null
+    },
+    "warnings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.154155,
+      "error": null
+    },
+    "warnings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.257246,
+      "error": null
+    },
+    "webhook-settings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.170609,
+      "error": null
+    },
+    "zoom-meeting-calendar": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.164147,
+      "error": null
+    },
+    "zoom_meetings": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.159638,
+      "error": null
+    },
+    "zoom_meetings/create": {
+      "success": true,
+      "status_code": "200",
+      "redirect_url": "",
+      "time_total": 0.158729,
+      "error": null
+    }
+  }
+}
