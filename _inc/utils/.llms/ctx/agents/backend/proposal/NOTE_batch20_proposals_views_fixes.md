@@ -1,0 +1,1 @@
+../../../../notes/20260210/copilot/batch20_proposals_views_fixes.md
