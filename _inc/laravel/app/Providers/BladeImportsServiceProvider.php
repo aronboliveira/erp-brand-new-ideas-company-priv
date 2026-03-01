@@ -107,7 +107,7 @@ class BladeImportsServiceProvider extends ServiceProvider
 		'LandingPageSetting'        => \Modules\LandingPage\Entities\LandingPageSetting::class,
 
 		// ── App\Http\Controllers (constants used in views) ───────
-		'EAC'                       => \App\Http\Controllers\Individuals\EmployeeAttendanceController::class,
+		'EAC'                       => \App\Http\Controllers\EmployeeAttendanceController::class,
 
 		// ── Illuminate non-facade helpers ───────────────────────────
 		'Arr'                       => \Illuminate\Support\Arr::class,
