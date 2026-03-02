@@ -4,7 +4,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use Tests\TestCase;
 use App\Models\{Customer, Pos, PosPayment, ProductService, User, Warehouse};
-use App\Traits\CreatesMockUser;
+use Tests\Unit\Traits\CreatesMockUser;
 use Illuminate\FileSystem\FileSystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;

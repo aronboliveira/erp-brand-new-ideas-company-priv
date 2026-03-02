@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace Tests\Unit\Traits;
 
 use App\Models\User;
 use Illuminate\Support\Facades\{Gate, Hash};

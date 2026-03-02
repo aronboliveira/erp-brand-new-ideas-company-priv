@@ -59,6 +59,12 @@ final class AppServiceProvider extends ServiceProvider
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' booting...');
         try {
             Schema::defaultStringLength(self::DEFAULT_STRING_LENGTH);
+            Fortify::loginView(function () {
+                return view(ViewsConstants::AUT . '.login', [
+                    'lang'     => \App\Models\Utility::fetchUserLang(),
+                    'settings' => \App\Models\Utility::settings(),
+                ]);
+            });
             Fortify::requestPasswordResetLinkView(function () {
                 return view(ViewsConstants::AUT . '.forgot_password');
             });

@@ -88,7 +88,7 @@ class VendorController extends Controller
             $t = microtime(true);
             $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                 ->where('module', 'vendor')
-                ->get());
+                ->get();
             $this->logExecutionTime($t, $action, 'loadCustomFields');
             $view = self::SINGULAR . '.create';
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $base . '::' . $action, route(self::ROUTE_INDEX));

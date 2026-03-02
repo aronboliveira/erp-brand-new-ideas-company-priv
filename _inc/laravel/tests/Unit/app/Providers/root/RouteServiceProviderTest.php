@@ -1,7 +1,7 @@
 <?php
 // tests/Unit/Providers/RouteServiceProviderTest.php
 
-namespace Tests\Unit\Providers;
+namespace Tests\Unit\Providers\Root;
 
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;

@@ -73,10 +73,6 @@
     </li>
     <li class="breadcrumb-item">{{!empty($employeesId) ? $employeesId : __('Employees ids not found') }}</li>
 @endsection
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-	{{ __('Employee') }}
-@endsection
 @section(YieldingConstants::ADM_ACT_BTN)
 	@if(!empty($employee))
 		<div class="{{ VC::FEND }} {{ VC::MT3 }} m-2">

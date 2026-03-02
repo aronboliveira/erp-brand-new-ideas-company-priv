@@ -9,7 +9,7 @@ use App\Models\User;
 use Modules\LandingPage\Entities\LandingPageSetting;
 use Modules\LandingPage\Http\Controllers\ScreenshotsController;
 
-class ScreenshotsControllerTest extends TestCase
+class ScreenshotPageControllerTest extends TestCase
 {
 	use RefreshDatabase;
 

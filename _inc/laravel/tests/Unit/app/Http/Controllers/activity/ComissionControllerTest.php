@@ -4,7 +4,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Http\Controllers\CommissionController;
 use App\Models\{Commission, Employee, User};
-use App\Traits\CreatesMockUser;
+use Tests\Unit\Traits\CreatesMockUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{Auth, Request};

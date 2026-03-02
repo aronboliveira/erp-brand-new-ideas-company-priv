@@ -76,11 +76,11 @@
       "App\\Helpers\\": [
         "app/Helpers/"
       ],
+      "App\\Http\\Controllers\\Auth\\": [
+        "app/Http/Controllers/Auth/"
+      ],
       "App\\Http\\Controllers\\": [
-        "app/Http/Controllers/",
-        "app/Http/Controllers/Abstracts/",
         "app/Http/Controllers/Activity/",
-        "app/Http/Controllers/Auth/",
         "app/Http/Controllers/Bills/",
         "app/Http/Controllers/Bugs/",
         "app/Http/Controllers/Charts/",
@@ -105,7 +105,6 @@
         "app/Logging/"
       ],
       "App\\Models\\": [
-        "app/Models/",
         "app/Models/Activity",
         "app/Models/Bills",
         "app/Models/Bugs",
@@ -120,10 +119,10 @@
         "app/Models/Shapes",
         "app/Models/Ssr",
         "app/Models/Abstracts",
-        "app/Models/_dev",
         "app/Models/Abstracts/Entities",
         "app/Models/Abstracts/Fields",
-        "app/Models/utils"
+        "app/Models/utils",
+        "app/Models/_dev"
       ],
       "App\\Traits\\": [
         "app/Traits/",
@@ -179,6 +178,7 @@
       "**/*TestCase.php"
     ],
     "files": [
+      "app/Http/Controllers/Controller.php",
       "app/Models/Helpers/fields.php",
       "app/Http/Controllers/Helpers/http.php",
       "app/Http/Controllers/Helpers/ErrorHandlers.php",

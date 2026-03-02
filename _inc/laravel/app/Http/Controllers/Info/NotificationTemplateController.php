@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Info;
-
-use App\Http\Controllers\Abstracts\Controller;
+namespace App\Http\Controllers;
 
 use App\Config\Constants\{
     DatabaseConstants as DC,

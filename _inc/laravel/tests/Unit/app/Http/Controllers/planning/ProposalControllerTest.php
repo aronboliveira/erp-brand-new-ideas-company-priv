@@ -10,7 +10,7 @@ use App\Models\{
 	ProposalProduct,
 	User
 };
-use App\Traits\CreatesMockUser;
+use Tests\Unit\Traits\CreatesMockUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\{Crypt, Gate, Http};

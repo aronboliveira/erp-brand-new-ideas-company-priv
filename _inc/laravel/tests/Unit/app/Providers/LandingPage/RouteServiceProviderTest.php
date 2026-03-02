@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Providers;
+namespace Tests\Unit\Providers\LandingPage;
 
 use Illuminate\Support\Facades\{Log, Route};
 use Modules\LandingPage\Providers\RouteServiceProvider;

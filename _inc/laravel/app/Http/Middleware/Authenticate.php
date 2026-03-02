@@ -10,7 +10,7 @@ use Illuminate\Auth\{
     Access\AuthorizationException
 };
 use Illuminate\Http\{Request};
-use Illuminate\{Support\Facades\Log, Support\Str};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\{HttpFoundation\Response, Console\Output\ConsoleOutput};
 
@@ -18,7 +18,6 @@ final class Authenticate extends Middleware
 {
     use MeasuresPerformance;
     private const REDIRECT_ROUTE = 'login';
-    private const SCRIPT_CLASS = 'unauth-redirect-script';
 
     /**
      * Ensure the user is authenticated for one of the given guards.
@@ -96,9 +95,7 @@ final class Authenticate extends Middleware
             'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
             'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
             'params'    => $request->route()?->parameters() ?? [],
-            'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
             'session_id'   => $sessionId,
-            'session_token' => session()->token(),
         ];
         Log::debug("{$base}::" . __FUNCTION__ . " start", $ctx);
         $msg = "[Auth] {$base} Starting authentication for {$ctx['method']} {$request->getRequestUri()}";
@@ -129,14 +126,6 @@ final class Authenticate extends Middleware
             Log::notice(__METHOD__ . ' AuthenticationException', ['message' => $e->getMessage(), 'guards' => $guards, 'uri' => $request->getRequestUri()]);
             $this->logExecutionTime($start, __METHOD__ . '::AuthenticationException');
             session()->flash('error', 'Authentication required.');
-            try {
-                $uuid  = (string) Str::uuid();
-                $class = static::SCRIPT_CLASS;
-                echo "<script id=\"{$uuid}\" class=\"{$class}\">(function(){if(!document.querySelector('.{$class}')){alert('Redirected: please log in');setTimeout(()=>{document.getElementById('{$uuid}')?.remove()},3000)}})();</script>";
-                Log::debug(__METHOD__ . ' redirect_script_echoed', ['id' => $uuid, 'class' => $class]);
-            } catch (\Throwable $scriptEx) {
-                Log::error(__METHOD__ . ' script_echo_failed', ['message' => $scriptEx->getMessage()]);
-            }
             return redirect()->route(self::REDIRECT_ROUTE)->with('error', __('Authentication error occurred.'));
         } catch (AuthorizationException $e) {
             Log::warning(__METHOD__ . ' AuthorizationException', ['message' => $e->getMessage(), 'user_id' => $request->user()?->id]);

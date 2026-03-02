@@ -51,15 +51,15 @@ class LoginRequestTest extends TestCase
 	}
 
 	#[Test]
-	public function authorize_returns_true_for_insecure_remote(): void
+	public function authorize_returns_false_for_insecure_remote(): void
 	{
 		$request = LoginRequest::create('http://example.com/login', 'POST', [
 			'email'    => 'test@example.com',
 			'password' => 'password123',
 		]);
 
-		// authorize() always returns true; insecure remote just logs a warning
-		$this->assertTrue($request->authorize());
+		// authorize() returns false for insecure (HTTP) non-local origins
+		$this->assertFalse($request->authorize());
 	}
 
 	// ───────── rules() ─────────
