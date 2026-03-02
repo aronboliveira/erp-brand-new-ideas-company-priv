@@ -1,3 +1,22 @@
+# KNOWN ISSUES
+
+> Last updated: 2026-03-01
+> This file documents structural and naming issues from the original fork.
+> For **active runtime issues**, see `CURRENT_WORKING_ISSUES.md`.
+
+## ACTIVE NON-BLOCKING ISSUES (2026-03-01)
+
+| ID | Issue | Severity | Status |
+|----|-------|----------|--------|
+| K1 | DNS2D static facade broken globally | Medium | Workaround in template1 only |
+| K2 | `PhpSpreadsheet::getInsideHorizontal()` undefined | Low | 2 export files affected |
+| K3 | `task_stages/show.blade.php` missing | Low | Controller redirects gracefully |
+| K4 | `ProposalSeeder` uses `where` instead of `whereIn` | Low | Wrong data, not crash |
+| K5 | `TrainingTypeSeeder` refs non-existent `duration_min` | Low | Fails silently |
+| K6 | Arabic locale shown when `languages.created_by` ≠ SA UUID | Medium | Fix with UPDATE languages |
+
+---
+
 # MIGRATIONS
 
 ## FILES AND CLASSES NAMING
