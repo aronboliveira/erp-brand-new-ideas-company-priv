@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Accountant Role</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="accountant" data-user-id="acct-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show account dashboard"
+          >Dashboard</a
+        >
+        <a href="#crm" class="nav-link" data-permission="view crm activity"
+          >CRM</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#projects"
+          class="nav-link"
+          data-permission="show project dashboard"
+          >Projects</a
+        >
+        <a
+          href="#finance"
+          class="nav-link"
+          data-permission="show account dashboard"
+          >Finance</a
+        >
+        <a href="#reports" class="nav-link" data-permission="manage report"
+          >Reports</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage system settings"
+          >Settings</a
+        >
+        <a
+          href="#admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Admin Panel</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Account Manager</span>
+        <span class="user-role badge role-accountant">Accountant</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section
+          class="sidebar-section"
+          data-permission="manage super admin dashboard"
+        >
+          <h3>Admin Controls</h3>
+          <ul>
+            <li><a href="#users">User Management</a></li>
+            <li><a href="#roles">Role Management</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show hrm dashboard">
+          <h3>HRM</h3>
+          <ul>
+            <li><a href="#employees">Employees</a></li>
+          </ul>
+        </section>
+        <section
+          class="sidebar-section"
+          data-permission="show account dashboard"
+        >
+          <h3>Accounting</h3>
+          <ul>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#bills">Bills</a></li>
+            <li><a href="#payments">Payments</a></li>
+            <li><a href="#expenses">Expenses</a></li>
+            <li><a href="#taxes">Taxes</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="manage banking">
+          <h3>Banking</h3>
+          <ul>
+            <li><a href="#accounts">Bank Accounts</a></li>
+            <li><a href="#transfers">Transfers</a></li>
+            <li><a href="#reconciliation">Reconciliation</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Accounting Dashboard</h1>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="create invoice"
+              id="btn-new-invoice"
+            >
+              + New Invoice
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="create bill"
+              id="btn-new-bill"
+            >
+              + New Bill
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="create expense"
+              id="btn-new-expense"
+            >
+              + New Expense
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-grid">
+          <div
+            class="widget"
+            data-permission="show account dashboard"
+            id="widget-revenue"
+          >
+            <h3>Total Revenue</h3>
+            <div class="widget-value" id="revenue-value">$125,430</div>
+            <div class="widget-trend up">+12.5% vs last month</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage invoice"
+            id="widget-receivables"
+          >
+            <h3>Accounts Receivable</h3>
+            <div class="widget-value" id="receivables-value">$32,100</div>
+            <div class="widget-meta">15 pending invoices</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage bill"
+            id="widget-payables"
+          >
+            <h3>Accounts Payable</h3>
+            <div class="widget-value" id="payables-value">$18,750</div>
+            <div class="widget-meta">8 pending bills</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage expense"
+            id="widget-expenses"
+          >
+            <h3>Monthly Expenses</h3>
+            <div class="widget-value" id="expenses-value">$45,200</div>
+            <div class="widget-trend neutral">On track with budget</div>
+          </div>
+          <!-- Should NOT be visible to Accountant -->
+          <div
+            class="widget"
+            data-permission="manage super admin dashboard"
+            id="widget-system"
+          >
+            <h3>System Health</h3>
+            <div class="widget-value">N/A</div>
+          </div>
+          <!-- Should NOT be visible to Accountant -->
+          <div
+            class="widget"
+            data-permission="show hrm dashboard"
+            id="widget-hrm"
+          >
+            <h3>Employee Count</h3>
+            <div class="widget-value">N/A</div>
+          </div>
+        </div>
+
+        <section class="data-section" id="invoices-section">
+          <h2>Recent Invoices</h2>
+          <table class="data-table" id="invoices-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th data-permission="manage invoice">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody"></tbody>
+          </table>
+        </section>
+
+        <section class="data-section" id="bills-section">
+          <h2>Pending Bills</h2>
+          <table class="data-table" id="bills-table">
+            <thead>
+              <tr>
+                <th>Bill #</th>
+                <th>Vendor</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th data-permission="manage bill">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bills-tbody"></tbody>
+          </table>
+        </section>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — Accountant Role Test</p>
+    </footer>
+
+    <script type="module">
+      import {
+        createMockUser,
+        setUserContext,
+        userCan,
+        hideElementsWithoutPermission,
+        Permissions,
+        createTestRunner,
+      } from "../../utils/rbac-test-utils.js";
+
+      const user = createMockUser("accountant");
+      setUserContext(user);
+      document.getElementById("user-name").textContent = user.name;
+      hideElementsWithoutPermission(user);
+
+      const mockInvoices = [
+        {
+          num: "INV-2026-001",
+          client: "Acme Corp",
+          amount: "$5,200",
+          status: "Pending",
+          due: "2026-03-15",
+        },
+        {
+          num: "INV-2026-002",
+          client: "TechStart Inc",
+          amount: "$12,800",
+          status: "Overdue",
+          due: "2026-02-28",
+        },
+        {
+          num: "INV-2026-003",
+          client: "Global Ltd",
+          amount: "$3,450",
+          status: "Paid",
+          due: "2026-03-01",
+        },
+      ];
+
+      const mockBills = [
+        {
+          num: "BILL-2026-001",
+          vendor: "Office Supplies Co",
+          amount: "$850",
+          status: "Pending",
+          due: "2026-03-10",
+        },
+        {
+          num: "BILL-2026-002",
+          vendor: "Cloud Services Inc",
+          amount: "$2,400",
+          status: "Due Soon",
+          due: "2026-03-05",
+        },
+      ];
+
+      // Populate invoices
+      const invTbody = document.getElementById("invoices-tbody");
+      mockInvoices.forEach(inv => {
+        const row = document.createElement("tr");
+        const statusClass =
+          inv.status === "Paid"
+            ? "role-hr"
+            : inv.status === "Overdue"
+              ? "role-accountant"
+              : "role-client";
+        row.innerHTML = `
+        <td>${inv.num}</td>
+        <td>${inv.client}</td>
+        <td>${inv.amount}</td>
+        <td><span class="badge ${statusClass}">${inv.status}</span></td>
+        <td>${inv.due}</td>
+        <td data-permission="manage invoice">
+          <button class="btn btn-sm btn-edit">Edit</button>
+          <button class="btn btn-sm">Send</button>
+        </td>
+      `;
+        invTbody.appendChild(row);
+      });
+
+      // Populate bills
+      const billsTbody = document.getElementById("bills-tbody");
+      mockBills.forEach(bill => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${bill.num}</td>
+        <td>${bill.vendor}</td>
+        <td>${bill.amount}</td>
+        <td><span class="badge role-client">${bill.status}</span></td>
+        <td>${bill.due}</td>
+        <td data-permission="manage bill">
+          <button class="btn btn-sm" style="background: var(--success); color: white;">Pay</button>
+          <button class="btn btn-sm btn-edit">Edit</button>
+        </td>
+      `;
+        billsTbody.appendChild(row);
+      });
+
+      window.runRbacTests = async () => {
+        const runner = createTestRunner();
+
+        await runner.test("Accountant can see Finance nav link", () => {
+          runner.assertVisible('#main-nav a[href="#finance"]');
+        });
+
+        await runner.test("Accountant cannot see HRM nav link", () => {
+          runner.assertHidden('#main-nav a[href="#hrm"]');
+        });
+
+        await runner.test("Accountant cannot see Admin Panel nav link", () => {
+          runner.assertHidden('#main-nav a[href="#admin"]');
+        });
+
+        await runner.test("Accountant cannot see Settings nav link", () => {
+          runner.assertHidden('#main-nav a[href="#settings"]');
+        });
+
+        await runner.test("Accountant can see revenue widget", () => {
+          runner.assertVisible("#widget-revenue");
+        });
+
+        await runner.test("Accountant can see receivables widget", () => {
+          runner.assertVisible("#widget-receivables");
+        });
+
+        await runner.test("Accountant cannot see system widget", () => {
+          runner.assertHidden("#widget-system");
+        });
+
+        await runner.test("Accountant cannot see HRM widget", () => {
+          runner.assertHidden("#widget-hrm");
+        });
+
+        await runner.test("Accountant has manage invoice permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_INV),
+            "Should have manage invoice",
+          );
+        });
+
+        await runner.test("Accountant has manage bill permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_BL),
+            "Should have manage bill",
+          );
+        });
+
+        await runner.test("Accountant has manage expense permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_EXP),
+            "Should have manage expense",
+          );
+        });
+
+        await runner.test(
+          "Accountant does NOT have manage employee permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_EMP),
+              "Should NOT have manage employee",
+            );
+          },
+        );
+
+        await runner.test(
+          "Accountant does NOT have manage system settings permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_SYS_ST),
+              "Should NOT have system settings",
+            );
+          },
+        );
+
+        await runner.test("Accountant sidebar shows Accounting section", () => {
+          runner.assertVisible(
+            '.sidebar-section[data-permission="show account dashboard"]',
+          );
+        });
+
+        await runner.test("Accountant sidebar hides HRM section", () => {
+          runner.assertHidden(
+            '.sidebar-section[data-permission="show hrm dashboard"]',
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Accountant RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

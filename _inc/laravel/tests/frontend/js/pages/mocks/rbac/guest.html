@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Guest (Unauthenticated)</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="guest" data-user-id="">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#contact" class="nav-link">Contact</a>
+        <!-- These should NOT be visible to guests -->
+        <a
+          href="#dashboard"
+          class="nav-link"
+          data-permission="show client dashboard"
+          >Dashboard</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Admin</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage system settings"
+          >Settings</a
+        >
+      </nav>
+      <div class="user-menu">
+        <a href="#login" class="btn btn-primary" id="btn-login">Login</a>
+        <a href="#register" class="btn btn-secondary" id="btn-register"
+          >Register</a
+        >
+      </div>
+    </header>
+
+    <main class="app-main guest-view">
+      <div class="content" id="content" style="margin-left: 0">
+        <div class="login-container" id="login-container">
+          <div class="login-box">
+            <h1>Welcome to ERP Prestech</h1>
+            <p>Please login to access the system.</p>
+
+            <form id="login-form" class="login-form">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" name="remember" /> Remember me
+                </label>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-primary btn-block"
+                id="btn-submit-login"
+              >
+                Login
+              </button>
+            </form>
+
+            <div class="login-links">
+              <a href="#forgot-password">Forgot Password?</a>
+              <a href="#register">Create Account</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content that requires authentication - should be hidden -->
+        <div
+          class="protected-content"
+          data-permission="show client dashboard"
+          id="protected-dashboard"
+        >
+          <h2>Dashboard Content</h2>
+          <p>This content requires authentication.</p>
+        </div>
+
+        <div
+          class="protected-content"
+          data-permission="manage super admin dashboard"
+          id="protected-admin"
+        >
+          <h2>Admin Panel</h2>
+          <p>This content requires admin permissions.</p>
+        </div>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — Guest View</p>
+    </footer>
+
+    <style>
+      .guest-view {
+        justify-content: center;
+      }
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+      }
+      .login-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+      .login-box h1 {
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+      }
+      .login-box p {
+        color: #666;
+        margin-bottom: 1.5rem;
+      }
+      .login-form {
+        text-align: left;
+      }
+      .login-form .form-group {
+        margin-bottom: 1rem;
+      }
+      .login-form label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+      }
+      .login-form input[type="email"],
+      .login-form input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+      .login-form input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+      .btn-block {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      .login-links {
+        margin-top: 1rem;
+      }
+      .login-links a {
+        color: var(--primary);
+        text-decoration: none;
+        margin: 0 0.5rem;
+      }
+      .login-links a:hover {
+        text-decoration: underline;
+      }
+      .protected-content {
+        display: none;
+      } /* Hidden by default, shown if authenticated */
+    </style>
+
+    <script>
+      // ========================================================================
+      // Inlined RBAC utilities (avoids ES module CORS issues on file:// protocol)
+      // ========================================================================
+      var Permissions = {
+        SA: "super admin",
+        ADM: "admin",
+        ACT: "accountant",
+        HR: "hr",
+        CL: "client",
+        CT: "customer",
+        VD: "vendor",
+        CPN: "company",
+        MNG_PERM: "manage permission",
+        CR_PERM: "create permission",
+        ED_PERM: "edit permission",
+        DEL_PERM: "delete permission",
+        MNG_ROLE: "manage role",
+        CR_ROLE: "create role",
+        ED_ROLE: "edit role",
+        DEL_ROLE: "delete role",
+        SHW_ACC_DSB: "show account dashboard",
+        SHW_CRM_DSB: "show crm dashboard",
+        SHW_HRM_DSB: "show hrm dashboard",
+        SHW_POS_DSB: "show pos dashboard",
+        SHW_PRJ_DSB: "show project dashboard",
+        MNG_CLT_DSB: "manage client dashboard",
+        MNG_SA_DSB: "manage super admin dashboard",
+        MNG_USER: "manage user",
+        CR_USER: "create user",
+        ED_USER: "edit user",
+        DEL_USER: "delete user",
+        MNG_EMP: "manage employee",
+        MNG_CLT: "manage client",
+        CR_CLT: "create client",
+        MNG_CST: "manage customer",
+        MNG_VD: "manage vendor",
+        MNG_BIL: "manage bill",
+        MNG_INV: "manage invoice",
+        MNG_RVN: "manage revenue",
+        MNG_PMT: "manage payment",
+        MNG_BACC: "manage bank account",
+        MNG_BTF: "manage bank transfer",
+        MNG_TRT: "manage transaction",
+        MNG_COA: "manage chart of account",
+        MNG_JNL: "manage journal entry",
+        MNG_CRD: "manage credit note",
+        MNG_DBT: "manage debit note",
+        MNG_RPT: "manage report",
+        MNG_ATD: "manage attendance",
+        CR_ATD: "create attendance",
+        MNG_LV: "manage leave",
+        MNG_PSL: "manage payslip",
+        CR_PSL: "create payslip",
+        MNG_SSL: "manage set salary",
+        MNG_APR: "manage appraisal",
+        MNG_AWD: "manage award",
+        MNG_TRM: "manage termination",
+        MNG_RSG: "manage resignation",
+        MNG_PRM: "manage promotion",
+        MNG_TRF: "manage transfer",
+        MNG_TRV: "manage travel",
+        MNG_CPT: "manage complaint",
+        MNG_WRN: "manage warning",
+        MNG_TNG: "manage training",
+        MNG_TNR: "manage trainer",
+        MNG_HLD: "manage holiday",
+        MNG_PRJ: "manage project",
+        MNG_PRJ_TSK: "manage project task",
+        MNG_TS: "manage timesheet",
+        MNG_LD: "manage lead",
+        MNG_DL: "manage deal",
+        MNG_POS: "manage pos",
+        MNG_OD: "manage order",
+        MNG_PPS: "manage proposal",
+        MNG_CTC: "manage contract",
+        MNG_PRC: "manage purchase",
+        MNG_SYS_ST: "manage system settings",
+        MNG_CPN_SET: "manage company settings",
+      };
+
+      var RoleTemplates = {
+        guest: { id: "role-guest", name: "Guest", permissions: [] },
+      };
+
+      function createMockUser(role, overrides) {
+        var tpl = RoleTemplates[role] || RoleTemplates.guest;
+        var base = {
+          id: "user-" + role + "-" + Date.now(),
+          name: "Test " + tpl.name,
+          email: "test." + role + "@prestech.com.br",
+          role: tpl,
+          permissions: tpl.permissions,
+          company_id: "company-1",
+          is_active: true,
+          isAuthenticated: role !== "guest",
+          session_token: "token-" + Date.now(),
+          session_expires_at: new Date(Date.now() + 3600000),
+        };
+        if (overrides) {
+          for (var k in overrides) base[k] = overrides[k];
+        }
+        return base;
+      }
+
+      function userCan(user, permission) {
+        if (!user || !user.is_active) return false;
+        if (user.role.permissions.indexOf(Permissions.SA) !== -1) return true;
+        return user.role.permissions.indexOf(permission) !== -1;
+      }
+
+      function setUserContext(user) {
+        window.__mockUser = user;
+        if (user) {
+          localStorage.setItem("auth_token", user.session_token || "");
+          localStorage.setItem("user_role", user.role.name);
+          localStorage.setItem(
+            "user_permissions",
+            JSON.stringify(user.role.permissions),
+          );
+        } else {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_role");
+          localStorage.removeItem("user_permissions");
+        }
+      }
+
+      function hideElementsWithoutPermission(user) {
+        document.querySelectorAll("[data-permission]").forEach(function (el) {
+          var req = el.getAttribute("data-permission");
+          if (req && !userCan(user, req)) {
+            el.style.display = "none";
+            el.setAttribute("aria-hidden", "true");
+          }
+        });
+        document.querySelectorAll("[data-role]").forEach(function (el) {
+          if (el === document.body) return;
+          var reqRole = el.getAttribute("data-role");
+          if (
+            reqRole &&
+            user &&
+            user.role.name.toLowerCase() !== reqRole.toLowerCase()
+          ) {
+            el.style.display = "none";
+            el.setAttribute("aria-hidden", "true");
+          }
+        });
+      }
+
+      function getStatusText(status) {
+        var m = {
+          200: "OK",
+          201: "Created",
+          400: "Bad Request",
+          401: "Unauthorized",
+          403: "Forbidden",
+          404: "Not Found",
+          422: "Unprocessable Entity",
+          500: "Internal Server Error",
+          503: "Service Unavailable",
+        };
+        return m[status] || "Unknown";
+      }
+
+      function createMockFetch(config) {
+        config = config || {};
+        var delay =
+          config.delay || (config.simulateDelay ? config.delayMs || 100 : 100);
+        var requireAuth = !!config.requireAuth;
+        var usr = config.user || null;
+        return function mockFetch(url, options) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              if (
+                requireAuth &&
+                (!usr ||
+                  !window.__mockUser ||
+                  !window.__mockUser.isAuthenticated)
+              ) {
+                resolve({
+                  ok: false,
+                  status: 401,
+                  statusText: "Unauthorized",
+                  json: function () {
+                    return Promise.resolve({
+                      message: "Unauthenticated. Please log in.",
+                    });
+                  },
+                  text: function () {
+                    return Promise.resolve(
+                      JSON.stringify({
+                        message: "Unauthenticated. Please log in.",
+                      }),
+                    );
+                  },
+                  success: false,
+                  message: "Unauthenticated. Please log in.",
+                });
+                return;
+              }
+              resolve({
+                ok: true,
+                status: 200,
+                statusText: "OK",
+                json: function () {
+                  return Promise.resolve({ message: "Success" });
+                },
+                text: function () {
+                  return Promise.resolve(
+                    JSON.stringify({ message: "Success" }),
+                  );
+                },
+                success: true,
+                message: "Success",
+              });
+            }, delay);
+          });
+        };
+      }
+
+      function createTestRunner() {
+        var results = [];
+        return {
+          test: function (name, fn) {
+            var start = performance.now();
+            try {
+              var result = fn();
+              if (result && typeof result.then === "function") {
+                return result
+                  .then(function () {
+                    results.push({
+                      name: name,
+                      passed: true,
+                      message: "Passed",
+                      duration: performance.now() - start,
+                    });
+                  })
+                  .catch(function (err) {
+                    results.push({
+                      name: name,
+                      passed: false,
+                      message: err.message || String(err),
+                      duration: performance.now() - start,
+                    });
+                  });
+              }
+              results.push({
+                name: name,
+                passed: true,
+                message: "Passed",
+                duration: performance.now() - start,
+              });
+              return Promise.resolve();
+            } catch (err) {
+              results.push({
+                name: name,
+                passed: false,
+                message: err.message || String(err),
+                duration: performance.now() - start,
+              });
+              return Promise.resolve();
+            }
+          },
+          assert: function (cond, msg) {
+            if (!cond) throw new Error("Assertion failed: " + msg);
+          },
+          assertEqual: function (a, b, msg) {
+            if (a !== b)
+              throw new Error(
+                msg ||
+                  "Expected " +
+                    JSON.stringify(b) +
+                    ", got " +
+                    JSON.stringify(a),
+              );
+          },
+          assertVisible: function (sel) {
+            var el = document.querySelector(sel);
+            if (!el) throw new Error("Element not found: " + sel);
+            var s = window.getComputedStyle(el);
+            if (
+              s.display === "none" ||
+              s.visibility === "hidden" ||
+              s.opacity === "0"
+            )
+              throw new Error("Element not visible: " + sel);
+          },
+          assertHidden: function (sel) {
+            var el = document.querySelector(sel);
+            if (!el) return;
+            var s = window.getComputedStyle(el);
+            if (
+              s.display !== "none" &&
+              s.visibility !== "hidden" &&
+              s.opacity !== "0"
+            )
+              throw new Error("Element should be hidden: " + sel);
+          },
+          getResults: function () {
+            return results;
+          },
+          getSummary: function () {
+            return {
+              total: results.length,
+              passed: results.filter(function (r) {
+                return r.passed;
+              }).length,
+              failed: results.filter(function (r) {
+                return !r.passed;
+              }).length,
+              duration: results.reduce(function (s, r) {
+                return s + r.duration;
+              }, 0),
+            };
+          },
+        };
+      }
+
+      // ========================================================================
+      // Page initialization
+      // ========================================================================
+      var user = createMockUser("guest");
+      setUserContext(user);
+      hideElementsWithoutPermission(user);
+
+      // Mock login handler
+      var loginForm = document.getElementById("login-form");
+      if (loginForm) {
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("email").value;
+          var password = document.getElementById("password").value;
+
+          var mockFetch = createMockFetch({
+            requireAuth: false,
+            simulateDelay: true,
+            delayMs: 500,
+          });
+
+          mockFetch("/api/login", {
+            method: "POST",
+            body: JSON.stringify({ email: email, password: password }),
+          })
+            .then(function (response) {
+              if (response.success) {
+                showNotification("Login successful! Redirecting...", "success");
+                sessionStorage.setItem(
+                  "auth_token",
+                  "mock_token_" + Date.now(),
+                );
+                setTimeout(function () {
+                  var urlParams = new URLSearchParams(window.location.search);
+                  var redirect =
+                    urlParams.get("redirect") || "super-admin.html";
+                  window.location.href = redirect;
+                }, 1000);
+              } else {
+                showNotification(response.message || "Login failed", "error");
+              }
+            })
+            .catch(function () {
+              showNotification("Network error. Please try again.", "error");
+            });
+        });
+      }
+
+      function showNotification(message, type) {
+        var notifications = document.getElementById("notifications");
+        if (!notifications) return;
+        var notification = document.createElement("div");
+        notification.className = "notification " + type;
+        notification.textContent = message;
+        notifications.appendChild(notification);
+        setTimeout(function () {
+          notification.remove();
+        }, 5000);
+      }
+
+      // ========================================================================
+      // RBAC tests (invoked by Playwright)
+      // ========================================================================
+      window.runRbacTests = function () {
+        var runner = createTestRunner();
+
+        return runner
+          .test("Guest can see login form", function () {
+            runner.assertVisible("#login-form");
+          })
+          .then(function () {
+            return runner.test("Guest can see login button", function () {
+              runner.assertVisible("#btn-login");
+            });
+          })
+          .then(function () {
+            return runner.test("Guest can see register button", function () {
+              runner.assertVisible("#btn-register");
+            });
+          })
+          .then(function () {
+            return runner.test(
+              "Guest cannot see Dashboard nav link",
+              function () {
+                runner.assertHidden('#main-nav a[href="#dashboard"]');
+              },
+            );
+          })
+          .then(function () {
+            return runner.test("Guest cannot see HRM nav link", function () {
+              runner.assertHidden('#main-nav a[href="#hrm"]');
+            });
+          })
+          .then(function () {
+            return runner.test("Guest cannot see POS nav link", function () {
+              runner.assertHidden('#main-nav a[href="#pos"]');
+            });
+          })
+          .then(function () {
+            return runner.test("Guest cannot see Admin nav link", function () {
+              runner.assertHidden('#main-nav a[href="#admin"]');
+            });
+          })
+          .then(function () {
+            return runner.test(
+              "Guest cannot see Settings nav link",
+              function () {
+                runner.assertHidden('#main-nav a[href="#settings"]');
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "Guest cannot see protected dashboard content",
+              function () {
+                runner.assertHidden("#protected-dashboard");
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "Guest cannot see protected admin content",
+              function () {
+                runner.assertHidden("#protected-admin");
+              },
+            );
+          })
+          .then(function () {
+            return runner.test("Guest has NO permissions", function () {
+              runner.assert(
+                user.permissions.length === 0,
+                "Guest should have no permissions",
+              );
+            });
+          })
+          .then(function () {
+            return runner.test("Guest is NOT authenticated", function () {
+              runner.assert(
+                !user.isAuthenticated,
+                "Guest should not be authenticated",
+              );
+            });
+          })
+          .then(function () {
+            var mockFetchAuth = createMockFetch({ requireAuth: true });
+            return runner.test("Guest gets 401 on protected API", function () {
+              return mockFetchAuth("/api/users").then(function (response) {
+                runner.assert(
+                  response.status === 401,
+                  "Should get 401 Unauthorized",
+                );
+              });
+            });
+          })
+          .then(function () {
+            return runner.test("Login form has email field", function () {
+              var emailInput = document.getElementById("email");
+              runner.assert(emailInput !== null, "Email input should exist");
+              runner.assert(
+                emailInput.type === "email",
+                "Should be email type",
+              );
+            });
+          })
+          .then(function () {
+            return runner.test("Login form has password field", function () {
+              var passwordInput = document.getElementById("password");
+              runner.assert(
+                passwordInput !== null,
+                "Password input should exist",
+              );
+              runner.assert(
+                passwordInput.type === "password",
+                "Should be password type",
+              );
+            });
+          })
+          .then(function () {
+            return runner.getResults();
+          });
+      };
+
+      if (window.location.search.indexOf("autorun=true") !== -1) {
+        window.runRbacTests().then(function (results) {
+          console.log("Guest RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

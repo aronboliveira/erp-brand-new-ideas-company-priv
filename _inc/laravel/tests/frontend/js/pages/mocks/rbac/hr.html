@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — HR Role</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="hr" data-user-id="hr-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show hrm dashboard"
+          >Dashboard</a
+        >
+        <a href="#crm" class="nav-link" data-permission="view crm activity"
+          >CRM</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#projects"
+          class="nav-link"
+          data-permission="show project dashboard"
+          >Projects</a
+        >
+        <a href="#finance" class="nav-link" data-permission="manage invoice"
+          >Finance</a
+        >
+        <a href="#reports" class="nav-link" data-permission="manage report"
+          >Reports</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage system settings"
+          >Settings</a
+        >
+        <a
+          href="#admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Admin Panel</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">HR Manager</span>
+        <span class="user-role badge role-hr">HR</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section
+          class="sidebar-section"
+          data-permission="manage super admin dashboard"
+        >
+          <h3>Admin Controls</h3>
+          <ul>
+            <li><a href="#users">User Management</a></li>
+            <li><a href="#roles">Role Management</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show hrm dashboard">
+          <h3>HRM</h3>
+          <ul>
+            <li><a href="#employees">Employees</a></li>
+            <li><a href="#attendance">Attendance</a></li>
+            <li><a href="#payroll">Payroll</a></li>
+            <li><a href="#leaves">Leave Management</a></li>
+            <li><a href="#recruitment">Recruitment</a></li>
+            <li><a href="#training">Training</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="manage invoice">
+          <h3>Finance</h3>
+          <ul>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#bills">Bills</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>HR Dashboard</h1>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="manage employee"
+              id="btn-add-employee"
+            >
+              + Add Employee
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="create attendance"
+              id="btn-mark-attendance"
+            >
+              Mark Attendance
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-grid">
+          <div
+            class="widget"
+            data-permission="show hrm dashboard"
+            id="widget-employees"
+          >
+            <h3>Total Employees</h3>
+            <div class="widget-value" id="employees-value">42</div>
+            <div class="widget-trend up">+3 this month</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage attendance"
+            id="widget-attendance"
+          >
+            <h3>Today's Attendance</h3>
+            <div class="widget-value" id="attendance-value">38/42</div>
+            <div class="widget-meta">90.5% Present</div>
+          </div>
+          <div class="widget" data-permission="manage leave" id="widget-leaves">
+            <h3>Pending Leave Requests</h3>
+            <div class="widget-value" id="leaves-value">5</div>
+            <div class="widget-trend neutral">Awaiting approval</div>
+          </div>
+          <div class="widget" data-permission="manage job" id="widget-openings">
+            <h3>Open Positions</h3>
+            <div class="widget-value" id="openings-value">8</div>
+            <div class="widget-meta">23 applications</div>
+          </div>
+          <!-- This should NOT be visible to HR -->
+          <div
+            class="widget"
+            data-permission="manage super admin dashboard"
+            id="widget-system"
+          >
+            <h3>System Health</h3>
+            <div class="widget-value">N/A</div>
+          </div>
+          <!-- This should NOT be visible to HR -->
+          <div
+            class="widget"
+            data-permission="show account dashboard"
+            id="widget-revenue"
+          >
+            <h3>Total Revenue</h3>
+            <div class="widget-value">N/A</div>
+          </div>
+        </div>
+
+        <section class="data-section" id="employee-list">
+          <h2>Employee Directory</h2>
+          <table class="data-table" id="employees-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Status</th>
+                <th data-permission="manage employee">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+        </section>
+
+        <section class="data-section" id="leave-requests">
+          <h2>Pending Leave Requests</h2>
+          <table class="data-table" id="leaves-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Days</th>
+                <th data-permission="manage leave">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leaves-tbody"></tbody>
+          </table>
+        </section>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — HR Role Test</p>
+    </footer>
+
+    <script type="module">
+      import {
+        createMockUser,
+        setUserContext,
+        userCan,
+        hideElementsWithoutPermission,
+        Permissions,
+        createTestRunner,
+      } from "../../utils/rbac-test-utils.js";
+
+      const user = createMockUser("hr");
+      setUserContext(user);
+      document.getElementById("user-name").textContent = user.name;
+      hideElementsWithoutPermission(user);
+
+      const mockEmployees = [
+        {
+          name: "John Doe",
+          department: "Engineering",
+          position: "Developer",
+          status: "Active",
+        },
+        {
+          name: "Jane Smith",
+          department: "Marketing",
+          position: "Manager",
+          status: "Active",
+        },
+        {
+          name: "Bob Wilson",
+          department: "Sales",
+          position: "Representative",
+          status: "On Leave",
+        },
+      ];
+
+      const mockLeaves = [
+        {
+          employee: "Alice Brown",
+          type: "Vacation",
+          from: "2026-03-05",
+          to: "2026-03-10",
+          days: 5,
+        },
+        {
+          employee: "Charlie Davis",
+          type: "Sick Leave",
+          from: "2026-03-02",
+          to: "2026-03-03",
+          days: 2,
+        },
+      ];
+
+      // Populate employees
+      const empTbody = document.getElementById("employees-tbody");
+      mockEmployees.forEach((emp, idx) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${emp.name}</td>
+        <td>${emp.department}</td>
+        <td>${emp.position}</td>
+        <td><span class="badge ${emp.status === "Active" ? "role-hr" : "role-client"}">${emp.status}</span></td>
+        <td data-permission="manage employee">
+          <button class="btn btn-sm btn-edit">Edit</button>
+          <button class="btn btn-sm btn-delete">Delete</button>
+        </td>
+      `;
+        empTbody.appendChild(row);
+      });
+
+      // Populate leaves
+      const leavesTbody = document.getElementById("leaves-tbody");
+      mockLeaves.forEach((leave, idx) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${leave.employee}</td>
+        <td>${leave.type}</td>
+        <td>${leave.from}</td>
+        <td>${leave.to}</td>
+        <td>${leave.days}</td>
+        <td data-permission="manage leave">
+          <button class="btn btn-sm" style="background: var(--success); color: white;">Approve</button>
+          <button class="btn btn-sm btn-delete">Reject</button>
+        </td>
+      `;
+        leavesTbody.appendChild(row);
+      });
+
+      window.runRbacTests = async () => {
+        const runner = createTestRunner();
+
+        await runner.test("HR can see HRM nav link", () => {
+          runner.assertVisible('#main-nav a[href="#hrm"]');
+        });
+
+        await runner.test("HR cannot see Admin Panel nav link", () => {
+          runner.assertHidden('#main-nav a[href="#admin"]');
+        });
+
+        await runner.test("HR cannot see Settings nav link", () => {
+          runner.assertHidden('#main-nav a[href="#settings"]');
+        });
+
+        await runner.test("HR cannot see Finance nav link", () => {
+          runner.assertHidden('#main-nav a[href="#finance"]');
+        });
+
+        await runner.test("HR can see employee widget", () => {
+          runner.assertVisible("#widget-employees");
+        });
+
+        await runner.test("HR can see attendance widget", () => {
+          runner.assertVisible("#widget-attendance");
+        });
+
+        await runner.test("HR cannot see system health widget", () => {
+          runner.assertHidden("#widget-system");
+        });
+
+        await runner.test("HR cannot see revenue widget", () => {
+          runner.assertHidden("#widget-revenue");
+        });
+
+        await runner.test("HR has manage employee permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_EMP),
+            "Should have manage employee",
+          );
+        });
+
+        await runner.test("HR has manage leave permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_LV),
+            "Should have manage leave",
+          );
+        });
+
+        await runner.test("HR does NOT have manage invoice permission", () => {
+          runner.assert(
+            !userCan(user, Permissions.MNG_INV),
+            "Should NOT have manage invoice",
+          );
+        });
+
+        await runner.test(
+          "HR does NOT have manage system settings permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_SYS_ST),
+              "Should NOT have system settings",
+            );
+          },
+        );
+
+        await runner.test("HR sidebar shows HRM section", () => {
+          runner.assertVisible(
+            '.sidebar-section[data-permission="show hrm dashboard"]',
+          );
+        });
+
+        await runner.test("HR sidebar hides Admin section", () => {
+          runner.assertHidden(
+            '.sidebar-section[data-permission="manage super admin dashboard"]',
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("HR RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

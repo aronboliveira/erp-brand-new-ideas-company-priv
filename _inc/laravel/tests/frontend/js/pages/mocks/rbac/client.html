@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Client Role</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="client" data-user-id="client-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech — Client Portal</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show client dashboard"
+          >Dashboard</a
+        >
+        <a
+          href="#projects"
+          class="nav-link"
+          data-permission="show client dashboard"
+          >My Projects</a
+        >
+        <a
+          href="#invoices"
+          class="nav-link"
+          data-permission="show client dashboard"
+          >Invoices</a
+        >
+        <a
+          href="#support"
+          class="nav-link"
+          data-permission="show client dashboard"
+          >Support</a
+        >
+        <!-- These should NOT be visible to clients -->
+        <a
+          href="#admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Admin</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage system settings"
+          >Settings</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Client User</span>
+        <span class="user-role badge role-client">Client</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section
+          class="sidebar-section"
+          data-permission="show client dashboard"
+        >
+          <h3>My Portal</h3>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#tickets">Support Tickets</a></li>
+            <li><a href="#profile">My Profile</a></li>
+          </ul>
+        </section>
+        <!-- Should NOT be visible to clients -->
+        <section
+          class="sidebar-section"
+          data-permission="manage super admin dashboard"
+        >
+          <h3>Admin Controls</h3>
+          <ul>
+            <li><a href="#users">Users</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show hrm dashboard">
+          <h3>HRM</h3>
+          <ul>
+            <li><a href="#employees">Employees</a></li>
+          </ul>
+        </section>
+        <section
+          class="sidebar-section"
+          data-permission="show account dashboard"
+        >
+          <h3>Finance</h3>
+          <ul>
+            <li><a href="#accounting">Full Accounting</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Welcome to Your Portal</h1>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="show client dashboard"
+              id="btn-new-ticket"
+            >
+              + New Support Ticket
+            </button>
+            <!-- Should NOT be visible -->
+            <button
+              class="btn btn-secondary"
+              data-permission="create invoice"
+              id="btn-create-invoice"
+            >
+              Create Invoice
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-grid">
+          <div
+            class="widget"
+            data-permission="show client dashboard"
+            id="widget-projects"
+          >
+            <h3>Active Projects</h3>
+            <div class="widget-value" id="projects-value">3</div>
+            <div class="widget-meta">2 in progress, 1 pending</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show client dashboard"
+            id="widget-invoices"
+          >
+            <h3>Pending Invoices</h3>
+            <div class="widget-value" id="invoices-value">2</div>
+            <div class="widget-meta">$3,450 total</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show client dashboard"
+            id="widget-tickets"
+          >
+            <h3>Open Tickets</h3>
+            <div class="widget-value" id="tickets-value">1</div>
+            <div class="widget-trend up">Response within 24h</div>
+          </div>
+          <!-- Should NOT be visible to clients -->
+          <div
+            class="widget"
+            data-permission="show account dashboard"
+            id="widget-revenue"
+          >
+            <h3>Total Revenue</h3>
+            <div class="widget-value">$125,430</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage super admin dashboard"
+            id="widget-system"
+          >
+            <h3>System Health</h3>
+            <div class="widget-value">100%</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show hrm dashboard"
+            id="widget-employees"
+          >
+            <h3>Employees</h3>
+            <div class="widget-value">42</div>
+          </div>
+        </div>
+
+        <section class="data-section" id="projects-section">
+          <h2>My Projects</h2>
+          <table class="data-table" id="projects-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Due Date</th>
+                <th data-permission="show client dashboard">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projects-tbody"></tbody>
+          </table>
+        </section>
+
+        <section class="data-section" id="invoices-section">
+          <h2>My Invoices</h2>
+          <table class="data-table" id="invoices-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th data-permission="show client dashboard">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody"></tbody>
+          </table>
+        </section>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — Client Portal</p>
+    </footer>
+
+    <script type="module">
+      import {
+        createMockUser,
+        setUserContext,
+        userCan,
+        hideElementsWithoutPermission,
+        Permissions,
+        createTestRunner,
+      } from "../../utils/rbac-test-utils.js";
+
+      const user = createMockUser("client");
+      setUserContext(user);
+      document.getElementById("user-name").textContent = user.name;
+      hideElementsWithoutPermission(user);
+
+      const mockProjects = [
+        {
+          name: "Website Redesign",
+          status: "In Progress",
+          progress: "65%",
+          due: "2026-04-01",
+        },
+        {
+          name: "Mobile App v2",
+          status: "In Progress",
+          progress: "40%",
+          due: "2026-05-15",
+        },
+        {
+          name: "API Integration",
+          status: "Pending",
+          progress: "0%",
+          due: "2026-06-01",
+        },
+      ];
+
+      const mockInvoices = [
+        {
+          num: "INV-2026-050",
+          amount: "$2,500",
+          status: "Pending",
+          due: "2026-03-15",
+        },
+        {
+          num: "INV-2026-045",
+          amount: "$950",
+          status: "Overdue",
+          due: "2026-02-28",
+        },
+      ];
+
+      // Populate projects
+      const projTbody = document.getElementById("projects-tbody");
+      mockProjects.forEach(proj => {
+        const row = document.createElement("tr");
+        const statusClass =
+          proj.status === "In Progress" ? "role-hr" : "role-client";
+        row.innerHTML = `
+        <td>${proj.name}</td>
+        <td><span class="badge ${statusClass}">${proj.status}</span></td>
+        <td>${proj.progress}</td>
+        <td>${proj.due}</td>
+        <td data-permission="show client dashboard">
+          <button class="btn btn-sm">View Details</button>
+        </td>
+      `;
+        projTbody.appendChild(row);
+      });
+
+      // Populate invoices
+      const invTbody = document.getElementById("invoices-tbody");
+      mockInvoices.forEach(inv => {
+        const row = document.createElement("tr");
+        const statusClass =
+          inv.status === "Overdue" ? "role-accountant" : "role-client";
+        row.innerHTML = `
+        <td>${inv.num}</td>
+        <td>${inv.amount}</td>
+        <td><span class="badge ${statusClass}">${inv.status}</span></td>
+        <td>${inv.due}</td>
+        <td data-permission="show client dashboard">
+          <button class="btn btn-sm">View</button>
+          <button class="btn btn-sm" style="background: var(--success); color: white;">Pay</button>
+        </td>
+      `;
+        invTbody.appendChild(row);
+      });
+
+      window.runRbacTests = async () => {
+        const runner = createTestRunner();
+
+        await runner.test("Client can see Dashboard nav link", () => {
+          runner.assertVisible('#main-nav a[href="#dashboard"]');
+        });
+
+        await runner.test("Client can see My Projects nav link", () => {
+          runner.assertVisible('#main-nav a[href="#projects"]');
+        });
+
+        await runner.test("Client cannot see Admin nav link", () => {
+          runner.assertHidden('#main-nav a[href="#admin"]');
+        });
+
+        await runner.test("Client cannot see HRM nav link", () => {
+          runner.assertHidden('#main-nav a[href="#hrm"]');
+        });
+
+        await runner.test("Client cannot see POS nav link", () => {
+          runner.assertHidden('#main-nav a[href="#pos"]');
+        });
+
+        await runner.test("Client cannot see Settings nav link", () => {
+          runner.assertHidden('#main-nav a[href="#settings"]');
+        });
+
+        await runner.test("Client can see projects widget", () => {
+          runner.assertVisible("#widget-projects");
+        });
+
+        await runner.test("Client can see invoices widget", () => {
+          runner.assertVisible("#widget-invoices");
+        });
+
+        await runner.test("Client cannot see revenue widget", () => {
+          runner.assertHidden("#widget-revenue");
+        });
+
+        await runner.test("Client cannot see system widget", () => {
+          runner.assertHidden("#widget-system");
+        });
+
+        await runner.test("Client cannot see employees widget", () => {
+          runner.assertHidden("#widget-employees");
+        });
+
+        await runner.test("Client can open support ticket", () => {
+          runner.assertVisible("#btn-new-ticket");
+        });
+
+        await runner.test("Client cannot create invoices", () => {
+          runner.assertHidden("#btn-create-invoice");
+        });
+
+        await runner.test("Client has show client dashboard permission", () => {
+          runner.assert(
+            userCan(user, Permissions.SH_CLIENT_DB),
+            "Should have client dashboard",
+          );
+        });
+
+        await runner.test(
+          "Client does NOT have manage invoice permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_INV),
+              "Should NOT have manage invoice",
+            );
+          },
+        );
+
+        await runner.test(
+          "Client does NOT have show hrm dashboard permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.SH_HRM_DB),
+              "Should NOT have HRM dashboard",
+            );
+          },
+        );
+
+        await runner.test("Client sidebar shows My Portal section", () => {
+          runner.assertVisible(
+            '.sidebar-section[data-permission="show client dashboard"]',
+          );
+        });
+
+        await runner.test("Client sidebar hides Admin Controls", () => {
+          runner.assertHidden(
+            '.sidebar-section[data-permission="manage super admin dashboard"]',
+          );
+        });
+
+        await runner.test("Client sidebar hides HRM section", () => {
+          runner.assertHidden(
+            '.sidebar-section[data-permission="show hrm dashboard"]',
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Client RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

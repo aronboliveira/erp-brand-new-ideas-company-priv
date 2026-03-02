@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Super Admin</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="super-admin" data-user-id="sa-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show account dashboard"
+          >Dashboard</a
+        >
+        <a href="#crm" class="nav-link" data-permission="view crm activity"
+          >CRM</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#projects"
+          class="nav-link"
+          data-permission="show project dashboard"
+          >Projects</a
+        >
+        <a href="#finance" class="nav-link" data-permission="manage invoice"
+          >Finance</a
+        >
+        <a href="#reports" class="nav-link" data-permission="manage report"
+          >Reports</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage system settings"
+          >Settings</a
+        >
+        <a
+          href="#admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Admin Panel</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Super Admin</span>
+        <span class="user-role badge role-sa">Super Admin</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section
+          class="sidebar-section"
+          data-permission="manage super admin dashboard"
+        >
+          <h3>Admin Controls</h3>
+          <ul>
+            <li><a href="#users">User Management</a></li>
+            <li><a href="#roles">Role Management</a></li>
+            <li><a href="#permissions">Permission Management</a></li>
+            <li><a href="#companies">Company Management</a></li>
+            <li><a href="#plans">Plan Management</a></li>
+            <li><a href="#system-settings">System Settings</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show hrm dashboard">
+          <h3>HRM</h3>
+          <ul>
+            <li><a href="#employees">Employees</a></li>
+            <li><a href="#attendance">Attendance</a></li>
+            <li><a href="#payroll">Payroll</a></li>
+            <li><a href="#recruitment">Recruitment</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="manage invoice">
+          <h3>Finance</h3>
+          <ul>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#bills">Bills</a></li>
+            <li><a href="#expenses">Expenses</a></li>
+            <li><a href="#banking">Banking</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Dashboard</h1>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="create user"
+              id="btn-create-user"
+            >
+              + New User
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="manage report"
+              id="btn-export"
+            >
+              Export Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Widget Grid -->
+        <div class="widget-grid">
+          <div
+            class="widget"
+            data-permission="show account dashboard"
+            id="widget-revenue"
+          >
+            <h3>Total Revenue</h3>
+            <div class="widget-value" id="revenue-value">$0.00</div>
+            <div class="widget-trend up">+12.5%</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show hrm dashboard"
+            id="widget-employees"
+          >
+            <h3>Active Employees</h3>
+            <div class="widget-value" id="employees-value">0</div>
+            <div class="widget-trend neutral">+0</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show project dashboard"
+            id="widget-projects"
+          >
+            <h3>Active Projects</h3>
+            <div class="widget-value" id="projects-value">0</div>
+            <div class="widget-trend up">+3</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="view crm activity"
+            id="widget-leads"
+          >
+            <h3>New Leads</h3>
+            <div class="widget-value" id="leads-value">0</div>
+            <div class="widget-trend down">-5</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage super admin dashboard"
+            id="widget-system"
+          >
+            <h3>System Health</h3>
+            <div class="widget-value status-ok">Healthy</div>
+            <div class="widget-meta">All services running</div>
+          </div>
+        </div>
+
+        <!-- Data Table -->
+        <section class="data-section" id="recent-activities">
+          <h2>Recent Activities</h2>
+          <table class="data-table" id="activities-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Resource</th>
+                <th data-permission="manage user">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="activities-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+          <div class="pagination" id="pagination">
+            <button class="btn btn-sm" id="btn-prev" disabled>Previous</button>
+            <span class="page-info"
+              >Page <span id="current-page">1</span> of
+              <span id="total-pages">1</span></span
+            >
+            <button class="btn btn-sm" id="btn-next">Next</button>
+          </div>
+        </section>
+
+        <!-- CRUD Modal -->
+        <div class="modal" id="modal-create" style="display: none">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 id="modal-title">Create New User</h2>
+              <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <form id="form-create" class="modal-form">
+              <div class="form-group">
+                <label for="input-name">Name</label>
+                <input type="text" id="input-name" name="name" required />
+                <span class="error-message" id="error-name"></span>
+              </div>
+              <div class="form-group">
+                <label for="input-email">Email</label>
+                <input type="email" id="input-email" name="email" required />
+                <span class="error-message" id="error-email"></span>
+              </div>
+              <div class="form-group" data-permission="manage role">
+                <label for="input-role">Role</label>
+                <select id="input-role" name="role">
+                  <option value="">Select Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="hr">HR</option>
+                  <option value="accountant">Accountant</option>
+                  <option value="client">Client</option>
+                </select>
+                <span class="error-message" id="error-role"></span>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" id="btn-submit">
+                  Create
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — RBAC Test Environment</p>
+    </footer>
+
+    <script type="module">
+      import {
+        createMockUser,
+        setUserContext,
+        userCan,
+        hideElementsWithoutPermission,
+        Permissions,
+        createTestRunner,
+      } from "../../utils/rbac-test-utils.js";
+
+      // Initialize Super Admin user context
+      const user = createMockUser("superAdmin");
+      setUserContext(user);
+
+      // Update UI with user info
+      document.getElementById("user-name").textContent = user.name;
+
+      // Apply permission-based visibility (Super Admin sees everything)
+      hideElementsWithoutPermission(user);
+
+      // Mock data
+      const mockActivities = [
+        {
+          date: "2026-03-01 10:30",
+          user: "John Doe",
+          action: "Created",
+          resource: "Invoice #1234",
+        },
+        {
+          date: "2026-03-01 10:25",
+          user: "Jane Smith",
+          action: "Updated",
+          resource: "Project Alpha",
+        },
+        {
+          date: "2026-03-01 10:20",
+          user: "Bob Wilson",
+          action: "Deleted",
+          resource: "Lead #567",
+        },
+        {
+          date: "2026-03-01 10:15",
+          user: "Alice Brown",
+          action: "Created",
+          resource: "Employee Record",
+        },
+        {
+          date: "2026-03-01 10:10",
+          user: "Charlie Davis",
+          action: "Approved",
+          resource: "Leave Request",
+        },
+      ];
+
+      const mockDashboardData = {
+        revenue: "$125,430.50",
+        employees: 42,
+        projects: 15,
+        leads: 28,
+      };
+
+      // Populate dashboard widgets
+      document.getElementById("revenue-value").textContent =
+        mockDashboardData.revenue;
+      document.getElementById("employees-value").textContent =
+        mockDashboardData.employees;
+      document.getElementById("projects-value").textContent =
+        mockDashboardData.projects;
+      document.getElementById("leads-value").textContent =
+        mockDashboardData.leads;
+
+      // Populate activities table
+      const tbody = document.getElementById("activities-tbody");
+      mockActivities.forEach((activity, idx) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${activity.date}</td>
+        <td>${activity.user}</td>
+        <td>${activity.action}</td>
+        <td>${activity.resource}</td>
+        <td data-permission="manage user">
+          <button class="btn btn-sm btn-edit" data-idx="${idx}">Edit</button>
+          <button class="btn btn-sm btn-delete" data-idx="${idx}">Delete</button>
+        </td>
+      `;
+        tbody.appendChild(row);
+      });
+
+      // Modal handlers
+      const modal = document.getElementById("modal-create");
+      const btnCreate = document.getElementById("btn-create-user");
+      const btnClose = document.getElementById("modal-close");
+      const btnCancel = document.getElementById("btn-cancel");
+
+      btnCreate?.addEventListener("click", () => {
+        if (userCan(user, Permissions.CR_USER)) {
+          modal.style.display = "flex";
+        } else {
+          showNotification(
+            "error",
+            "You do not have permission to create users.",
+          );
+        }
+      });
+
+      btnClose?.addEventListener("click", () => (modal.style.display = "none"));
+      btnCancel?.addEventListener(
+        "click",
+        () => (modal.style.display = "none"),
+      );
+
+      // Form submission
+      document
+        .getElementById("form-create")
+        ?.addEventListener("submit", async e => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+
+          // Simulate API call
+          showNotification("info", "Creating user...");
+
+          await new Promise(r => setTimeout(r, 500));
+
+          if (userCan(user, Permissions.CR_USER)) {
+            showNotification(
+              "success",
+              `User "${formData.get("name")}" created successfully!`,
+            );
+            modal.style.display = "none";
+            e.target.reset();
+          } else {
+            showNotification("error", "Permission denied.");
+          }
+        });
+
+      // Notification helper
+      function showNotification(type, message) {
+        const container = document.getElementById("notifications");
+        const notification = document.createElement("div");
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        container.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+      }
+
+      // Export test runner for Playwright
+      window.runRbacTests = async () => {
+        const runner = createTestRunner();
+
+        await runner.test("Super Admin can see all nav links", () => {
+          runner.assertVisible('#main-nav a[href="#settings"]');
+          runner.assertVisible('#main-nav a[href="#admin"]');
+        });
+
+        await runner.test("Super Admin can see system health widget", () => {
+          runner.assertVisible("#widget-system");
+        });
+
+        await runner.test("Super Admin can see user management sidebar", () => {
+          runner.assertVisible(
+            '.sidebar-section[data-permission="manage super admin dashboard"]',
+          );
+        });
+
+        await runner.test("Create user button is visible", () => {
+          runner.assertVisible("#btn-create-user");
+        });
+
+        await runner.test("User has all permissions", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_SYS_ST),
+            "Should have manage system settings",
+          );
+          runner.assert(
+            userCan(user, Permissions.MNG_SA_DSB),
+            "Should have manage super admin dashboard",
+          );
+          runner.assert(
+            userCan(user, Permissions.CR_USER),
+            "Should have create user",
+          );
+          runner.assert(
+            userCan(user, Permissions.DEL_USER),
+            "Should have delete user",
+          );
+        });
+
+        await runner.test("Dashboard data is populated", () => {
+          const revenue = document.getElementById("revenue-value").textContent;
+          runner.assert(revenue !== "$0.00", "Revenue should be populated");
+        });
+
+        return runner.getResults();
+      };
+
+      // Auto-run tests if in test mode
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

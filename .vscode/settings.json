@@ -1,0 +1,90 @@
+{
+  "python.languageServer": "Pylance",
+  "python.analysis.extraPaths": [".venv/lib/python3.11/site-packages"],
+  "files.autoSave": "onFocusChange",
+
+  // ──────────────────────────────────────────────────────────────
+  // IntelliPHP (devsense) — resource-light config
+  // ──────────────────────────────────────────────────────────────
+  "intelephp.enabled": true,
+  "intelephp.trace.server": "off",
+  "intelephp.diagnostics.enable": false,
+  "intelephp.format.enable": false,
+  "intelephp.codeAction.enable": false,
+
+  // ──────────────────────────────────────────────────────────────
+  // File and search exclusions (heavy folders)
+  // ──────────────────────────────────────────────────────────────
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/storage": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/.pytest_cache": true,
+    "**/__pycache__": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true
+  },
+  "search.exclude": {
+    "**/vendor": true,
+    "**/node_modules": true,
+    "**/storage": true,
+    "**/.git": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/__pycache__": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.formatOnSave": true
+  },
+  "php.suggest.basic": false,
+  "php.validate.enable": true,
+  "intelephense.files.maxSize": 5000000,
+  "intelephense.maxFileSize": 5000000,
+  "intelephense.files.associations": ["*.php", "*.blade.php"],
+  "intelephense.files.exclude": [
+    "**/vendor/**/Tests/**",
+    "**/vendor/**/tests/**",
+    "**/vendor/**/test/**",
+    "**/node_modules/**",
+    "**/storage/logs/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/storage/framework/views/**"
+  ],
+  "intelephense.telemetry.enabled": false,
+  "intelephense.trace.server": "off",
+  "intelephense.completion.maxItems": 100,
+  "intelephense.phpdoc.returnVoid": false,
+  "intelephense.format.enable": false,
+  "intelephense.diagnostics.enable": true,
+  "intelephense.environment.documentRoot": "${workspaceFolder}/_inc/laravel/public",
+  "intelephense.environment.phpVersion": "8.4.5",
+  "intelephense.environment.includePaths": [
+    "${workspaceFolder}/_inc/laravel/vendor",
+    "${workspaceFolder}/_inc/laravel"
+  ],
+  "[blade]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "blade.format.enable": true,
+  "bladeFormatter.format.wrapAttributes": "auto",
+  "bladeFormatter.format.sortTailwindcssClasses": false,
+  "files.associations": {
+    "**/templates/**/*.php": "blade",
+    "**/templates/**/*.js": "javascript",
+    "*.js": "javascript",
+    "*.blade.php": "blade"
+  },
+  "emmet.includeLanguages": {
+    "blade": "html"
+  },
+  "editor.formatOnSave": true,
+  "git.ignoreLimitWarning": true
+}

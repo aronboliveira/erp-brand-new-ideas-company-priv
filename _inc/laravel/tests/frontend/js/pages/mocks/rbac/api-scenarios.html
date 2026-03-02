@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Response Scenarios Test</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="admin" data-user-id="admin-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech — API Testing</div>
+      <nav class="main-nav">
+        <a href="#success" class="nav-link">Success (2xx)</a>
+        <a href="#client-errors" class="nav-link">Client Errors (4xx)</a>
+        <a href="#server-errors" class="nav-link">Server Errors (5xx)</a>
+        <a href="#network" class="nav-link">Network Issues</a>
+      </nav>
+    </header>
+
+    <main class="app-main" style="display: block">
+      <div class="content" id="content" style="margin: 0; max-width: 100%">
+        <h1>API Response Scenario Testing</h1>
+        <p>
+          This page tests various API response scenarios and how the frontend
+          handles them.
+        </p>
+
+        <div
+          class="test-controls"
+          style="
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+          "
+        >
+          <h2>Test Controls</h2>
+          <div
+            style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem"
+          >
+            <button class="btn btn-primary" id="test-200">Test 200 OK</button>
+            <button class="btn btn-primary" id="test-201">
+              Test 201 Created
+            </button>
+            <button class="btn btn-secondary" id="test-400">
+              Test 400 Bad Request
+            </button>
+            <button class="btn btn-secondary" id="test-401">
+              Test 401 Unauthorized
+            </button>
+            <button class="btn btn-secondary" id="test-403">
+              Test 403 Forbidden
+            </button>
+            <button class="btn btn-secondary" id="test-404">
+              Test 404 Not Found
+            </button>
+            <button class="btn btn-secondary" id="test-422">
+              Test 422 Validation Error
+            </button>
+            <button class="btn btn-delete" id="test-500">
+              Test 500 Server Error
+            </button>
+            <button class="btn btn-delete" id="test-503">
+              Test 503 Service Unavailable
+            </button>
+            <button class="btn btn-delete" id="test-network">
+              Test Network Failure
+            </button>
+            <button class="btn btn-delete" id="test-timeout">
+              Test Timeout
+            </button>
+          </div>
+        </div>
+
+        <section class="data-section" id="results-section">
+          <h2>API Response Results</h2>
+          <div id="response-panel" class="response-panel">
+            <div class="response-empty">
+              Click a test button above to see the response
+            </div>
+          </div>
+        </section>
+
+        <section class="data-section" id="data-section">
+          <h2>Data Operations (CRUD)</h2>
+          <div style="margin-bottom: 1rem">
+            <button class="btn btn-primary" id="btn-fetch-users">
+              Fetch Users
+            </button>
+            <button class="btn btn-primary" id="btn-create-user">
+              Create User
+            </button>
+            <button class="btn btn-secondary" id="btn-update-user">
+              Update User
+            </button>
+            <button class="btn btn-delete" id="btn-delete-user">
+              Delete User
+            </button>
+          </div>
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="data-tbody"></tbody>
+          </table>
+          <div id="data-loading" class="loading-state" style="display: none">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+          </div>
+          <div id="data-error" class="error-state" style="display: none"></div>
+        </section>
+
+        <section class="data-section" id="form-section">
+          <h2>Form Submission Test</h2>
+          <form id="test-form" class="form-grid" style="max-width: 500px">
+            <div class="form-group">
+              <label for="form-name">Name *</label>
+              <input type="text" id="form-name" name="name" required />
+              <span class="field-error" id="error-name"></span>
+            </div>
+            <div class="form-group">
+              <label for="form-email">Email *</label>
+              <input type="email" id="form-email" name="email" required />
+              <span class="field-error" id="error-email"></span>
+            </div>
+            <div class="form-group">
+              <label for="form-role">Role</label>
+              <select id="form-role" name="role">
+                <option value="">Select a role</option>
+                <option value="admin">Admin</option>
+                <option value="hr">HR</option>
+                <option value="accountant">Accountant</option>
+              </select>
+              <span class="field-error" id="error-role"></span>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btn-submit">
+                Submit
+              </button>
+              <button type="reset" class="btn btn-secondary">Reset</button>
+            </div>
+          </form>
+          <div id="form-result" style="margin-top: 1rem"></div>
+        </section>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <style>
+      .response-panel {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 1rem;
+        border-radius: 8px;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 0.875rem;
+        min-height: 200px;
+        max-height: 400px;
+        overflow: auto;
+      }
+      .response-empty {
+        color: #666;
+        font-style: italic;
+      }
+      .response-success {
+        color: #4ade80;
+      }
+      .response-error {
+        color: #f87171;
+      }
+      .response-info {
+        color: #60a5fa;
+      }
+      .response-meta {
+        color: #a78bfa;
+        margin-bottom: 0.5rem;
+      }
+      .response-body {
+        margin-top: 0.5rem;
+        white-space: pre-wrap;
+      }
+      .loading-state {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        padding: 1rem;
+      }
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .error-state {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 4px;
+        border: 1px solid #fecaca;
+      }
+      .field-error {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+    </style>
+
+    <script>
+      /* ====================================================================
+       * Inlined mock API utilities (no ES module imports — works with file://)
+       * ==================================================================== */
+
+      /* ---------- response factories ---------- */
+      function createSuccessResponse(data, status) {
+        status = status || 200;
+        return { success: true, status: status, message: "OK", data: data };
+      }
+      function create201Response(data) {
+        return { success: true, status: 201, message: "Created", data: data };
+      }
+      function create400Response(msg) {
+        return { success: false, status: 400, message: msg || "Bad request" };
+      }
+      function create401Response() {
+        return {
+          success: false,
+          status: 401,
+          message: "Unauthenticated. Please log in.",
+        };
+      }
+      function create403Response(perm) {
+        return {
+          success: false,
+          status: 403,
+          message: perm
+            ? "You do not have permission to " + perm + "."
+            : "You do not have permission to perform this action.",
+        };
+      }
+      function create404Response(resource) {
+        return {
+          success: false,
+          status: 404,
+          message: (resource || "Resource") + " not found.",
+        };
+      }
+      function create422Response(errors) {
+        return {
+          success: false,
+          status: 422,
+          message: "The given data was invalid.",
+          errors: errors,
+        };
+      }
+      function create500Response(msg) {
+        return {
+          success: false,
+          status: 500,
+          message: msg || "Internal server error.",
+        };
+      }
+      function create503Response(retryAfter) {
+        return {
+          success: false,
+          status: 503,
+          message: "Service unavailable.",
+          retryAfter: retryAfter || 60,
+        };
+      }
+      function createNetworkErrorResponse() {
+        return {
+          success: false,
+          status: 0,
+          message: "Network error",
+          error: "NETWORK_ERROR",
+        };
+      }
+
+      /* ---------- mock fetch ---------- */
+      function createMockFetch(config) {
+        config = config || {};
+        var delay = config.simulateDelay
+          ? config.delayMs || 300
+          : config.delay || 100;
+        return function mockFetch(url, options) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              resolve({ success: true, status: 200, message: "OK", data: {} });
+            }, delay);
+          });
+        };
+      }
+
+      /* ---------- simple user mock ---------- */
+      function createMockUser(role) {
+        return {
+          id: "user-" + role,
+          name: "Test " + role,
+          role: { name: role },
+        };
+      }
+      function setUserContext(u) {
+        window.__mockUser = u;
+      }
+
+      /* ---------- test runner (inline page tests) ---------- */
+      function createTestRunner() {
+        var results = [];
+        return {
+          test: function (name, fn) {
+            var start = performance.now();
+            try {
+              var r = fn();
+              if (r && typeof r.then === "function") {
+                return r
+                  .then(function () {
+                    results.push({
+                      name: name,
+                      passed: true,
+                      duration: performance.now() - start,
+                    });
+                  })
+                  .catch(function (e) {
+                    results.push({
+                      name: name,
+                      passed: false,
+                      error: e.message,
+                      duration: performance.now() - start,
+                    });
+                  });
+              }
+              results.push({
+                name: name,
+                passed: true,
+                duration: performance.now() - start,
+              });
+              return Promise.resolve();
+            } catch (e) {
+              results.push({
+                name: name,
+                passed: false,
+                error: e.message,
+                duration: performance.now() - start,
+              });
+              return Promise.resolve();
+            }
+          },
+          assert: function (cond, msg) {
+            if (!cond) throw new Error("Assertion failed: " + msg);
+          },
+          assertEqual: function (a, b, msg) {
+            if (a !== b) throw new Error(msg || "Expected " + b + ", got " + a);
+          },
+          assertVisible: function (sel) {
+            var el = document.querySelector(sel);
+            if (!el) throw new Error("Element not found: " + sel);
+            var s = window.getComputedStyle(el);
+            if (s.display === "none" || s.visibility === "hidden")
+              throw new Error("Not visible: " + sel);
+          },
+          getResults: function () {
+            return {
+              passed: results.filter(function (r) {
+                return r.passed;
+              }).length,
+              failed: results.filter(function (r) {
+                return !r.passed;
+              }).length,
+              total: results.length,
+              results: results,
+            };
+          },
+        };
+      }
+
+      /* ==================================================================== */
+
+      var user = createMockUser("admin");
+      setUserContext(user);
+
+      var responsePanel = document.getElementById("response-panel");
+      var notifications = document.getElementById("notifications");
+
+      function displayResponse(response, meta) {
+        meta = meta || {};
+        var isSuccess = response.success;
+        var statusClass = isSuccess ? "response-success" : "response-error";
+        responsePanel.innerHTML =
+          '<div class="response-meta">' +
+          "<strong>Status:</strong> " +
+          (response.status || "N/A") +
+          (meta.duration
+            ? " | <strong>Duration:</strong> " + meta.duration + "ms"
+            : "") +
+          (meta.endpoint
+            ? " | <strong>Endpoint:</strong> " + meta.endpoint
+            : "") +
+          "</div>" +
+          '<div class="' +
+          statusClass +
+          '">' +
+          "<strong>" +
+          (isSuccess ? "\u2713 Success" : "\u2717 Error") +
+          "</strong>" +
+          "</div>" +
+          '<div class="response-body">' +
+          JSON.stringify(response, null, 2) +
+          "</div>";
+      }
+
+      function showNotification(message, type) {
+        type = type || "info";
+        var n = document.createElement("div");
+        n.className = "notification " + type;
+        n.textContent = message;
+        notifications.appendChild(n);
+        setTimeout(function () {
+          n.remove();
+        }, 5000);
+      }
+
+      /* ---------- createTestFetch ---------- */
+      function createTestFetch(responseType) {
+        return function (url, options) {
+          var startTime = Date.now();
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              var duration = Date.now() - startTime;
+              var response;
+              switch (responseType) {
+                case 200:
+                  response = createSuccessResponse({
+                    users: [{ id: 1, name: "Test" }],
+                  });
+                  break;
+                case 201:
+                  response = create201Response({ id: 99, name: "New User" });
+                  break;
+                case 400:
+                  response = create400Response("Invalid request format");
+                  break;
+                case 401:
+                  response = create401Response();
+                  break;
+                case 403:
+                  response = create403Response("manage users");
+                  break;
+                case 404:
+                  response = create404Response("User");
+                  break;
+                case 422:
+                  response = create422Response({
+                    email: ["Email is required", "Email must be valid"],
+                    name: ["Name is required"],
+                  });
+                  break;
+                case 500:
+                  response = create500Response("Database connection failed");
+                  break;
+                case 503:
+                  response = create503Response(300);
+                  break;
+                case "network":
+                  response = createNetworkErrorResponse();
+                  break;
+                case "timeout":
+                  response = {
+                    success: false,
+                    status: 0,
+                    message: "Request timeout",
+                    error: "TIMEOUT",
+                  };
+                  break;
+                default:
+                  response = createSuccessResponse({});
+                  break;
+              }
+              response._meta = { duration: duration, endpoint: url };
+              resolve(response);
+            }, 200);
+          });
+        };
+      }
+
+      /* ---------- test-button handlers ---------- */
+      var testButtons = [
+        ["test-200", 200],
+        ["test-201", 201],
+        ["test-400", 400],
+        ["test-401", 401],
+        ["test-403", 403],
+        ["test-404", 404],
+        ["test-422", 422],
+        ["test-500", 500],
+        ["test-503", 503],
+        ["test-network", "network"],
+        ["test-timeout", "timeout"],
+      ];
+
+      testButtons.forEach(function (pair) {
+        var id = pair[0],
+          code = pair[1];
+        document.getElementById(id).addEventListener("click", function () {
+          var fetch = createTestFetch(code);
+          fetch("/api/test").then(function (response) {
+            displayResponse(response, response._meta);
+            var type = response.success ? "success" : "error";
+            showNotification(
+              code + ": " + (response.message || "Completed"),
+              type,
+            );
+          });
+        });
+      });
+
+      /* ---------- CRUD operations ---------- */
+      var mockData = [];
+
+      function renderData() {
+        var tbody = document.getElementById("data-tbody");
+        tbody.innerHTML = mockData
+          .map(function (u) {
+            return (
+              '<tr data-id="' +
+              u.id +
+              '">' +
+              "<td>" +
+              u.id +
+              "</td>" +
+              "<td>" +
+              u.name +
+              "</td>" +
+              "<td>" +
+              u.email +
+              "</td>" +
+              '<td><span class="badge ' +
+              (u.status === "Active" ? "role-hr" : "role-client") +
+              '">' +
+              u.status +
+              "</span></td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      }
+
+      function fetchUsers() {
+        var loading = document.getElementById("data-loading");
+        var tbody = document.getElementById("data-tbody");
+        var errorEl = document.getElementById("data-error");
+
+        loading.style.display = "flex";
+        errorEl.style.display = "none";
+        tbody.innerHTML = "";
+
+        var mock = createMockFetch({ simulateDelay: true, delayMs: 300 });
+        return mock("/api/users").then(function (response) {
+          loading.style.display = "none";
+          if (response.success) {
+            mockData = [
+              {
+                id: 1,
+                name: "Alice Johnson",
+                email: "alice@example.com",
+                status: "Active",
+              },
+              {
+                id: 2,
+                name: "Bob Smith",
+                email: "bob@example.com",
+                status: "Active",
+              },
+              {
+                id: 3,
+                name: "Carol White",
+                email: "carol@example.com",
+                status: "Inactive",
+              },
+            ];
+            renderData();
+            showNotification("Users loaded successfully", "success");
+          } else {
+            errorEl.textContent = response.message || "Failed to load users";
+            errorEl.style.display = "block";
+            showNotification("Failed to load users", "error");
+          }
+        });
+      }
+
+      document
+        .getElementById("btn-fetch-users")
+        .addEventListener("click", fetchUsers);
+
+      document
+        .getElementById("btn-create-user")
+        .addEventListener("click", function () {
+          var fetch = createTestFetch(201);
+          fetch("/api/users").then(function (response) {
+            displayResponse(response, response._meta);
+            if (response.success) {
+              mockData.push({
+                id: response.data.id,
+                name: response.data.name,
+                email: "new@example.com",
+                status: "Active",
+              });
+              renderData();
+              showNotification("User created", "success");
+            }
+          });
+        });
+
+      document
+        .getElementById("btn-update-user")
+        .addEventListener("click", function () {
+          if (mockData.length === 0) {
+            showNotification(
+              "No users to update. Fetch users first.",
+              "warning",
+            );
+            return;
+          }
+          var fetch = createTestFetch(200);
+          fetch("/api/users/1").then(function (response) {
+            displayResponse(response, response._meta);
+            showNotification("User updated", "success");
+          });
+        });
+
+      document
+        .getElementById("btn-delete-user")
+        .addEventListener("click", function () {
+          if (mockData.length === 0) {
+            showNotification(
+              "No users to delete. Fetch users first.",
+              "warning",
+            );
+            return;
+          }
+          var fetch = createTestFetch(200);
+          fetch("/api/users/1").then(function (response) {
+            displayResponse(response, response._meta);
+            mockData = mockData.slice(1);
+            renderData();
+            showNotification("User deleted", "success");
+          });
+        });
+
+      /* ---------- form submission ---------- */
+      var form = document.getElementById("test-form");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        document.querySelectorAll(".field-error").forEach(function (el) {
+          el.textContent = "";
+        });
+
+        var formData = new FormData(form);
+        var data = {};
+        formData.forEach(function (v, k) {
+          data[k] = v;
+        });
+
+        if (data.name && data.name.toLowerCase() === "error") {
+          var fetchErr = createTestFetch(422);
+          fetchErr("/api/users").then(function (response) {
+            displayResponse(response, response._meta);
+            if (response.errors) {
+              Object.keys(response.errors).forEach(function (field) {
+                var el = document.getElementById("error-" + field);
+                if (el) el.textContent = response.errors[field].join(", ");
+              });
+            }
+            showNotification("Validation failed", "error");
+          });
+          return;
+        }
+
+        var fetchOk = createTestFetch(201);
+        fetchOk("/api/users").then(function (response) {
+          displayResponse(response, response._meta);
+          document.getElementById("form-result").innerHTML =
+            '<div class="notification success">Form submitted successfully!</div>';
+          showNotification("Form submitted successfully", "success");
+        });
+      });
+
+      /* ---------- automated inline tests ---------- */
+      window.runApiTests = function () {
+        var runner = createTestRunner();
+
+        return runner
+          .test("200 OK response has success=true", function () {
+            return createTestFetch(200)("/api/test").then(function (r) {
+              runner.assert(r.success === true, "success should be true");
+              runner.assert(r.status === 200, "status should be 200");
+            });
+          })
+          .then(function () {
+            return runner.test("201 Created response has data", function () {
+              return createTestFetch(201)("/api/test").then(function (r) {
+                runner.assert(r.success === true, "success should be true");
+                runner.assert(r.status === 201, "status should be 201");
+                runner.assert(r.data !== undefined, "should have data");
+              });
+            });
+          })
+          .then(function () {
+            return runner.test(
+              "401 Unauthorized response has success=false",
+              function () {
+                return createTestFetch(401)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 401, "status should be 401");
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "403 Forbidden response has permission info",
+              function () {
+                return createTestFetch(403)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 403, "status should be 403");
+                  runner.assert(
+                    r.message.indexOf("permission") !== -1,
+                    "message should mention permission",
+                  );
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "404 Not Found response identifies resource",
+              function () {
+                return createTestFetch(404)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 404, "status should be 404");
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "422 Validation error has field errors",
+              function () {
+                return createTestFetch(422)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 422, "status should be 422");
+                  runner.assert(
+                    r.errors !== undefined,
+                    "should have errors object",
+                  );
+                  runner.assert(
+                    Array.isArray(r.errors.email),
+                    "email errors should be array",
+                  );
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "500 Server error indicates server-side issue",
+              function () {
+                return createTestFetch(500)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 500, "status should be 500");
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "503 Service Unavailable has retry info",
+              function () {
+                return createTestFetch(503)("/api/test").then(function (r) {
+                  runner.assert(r.success === false, "success should be false");
+                  runner.assert(r.status === 503, "status should be 503");
+                  runner.assert(
+                    r.retryAfter !== undefined,
+                    "should have retryAfter",
+                  );
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test("Network error is identifiable", function () {
+              return createTestFetch("network")("/api/test").then(function (r) {
+                runner.assert(r.success === false, "success should be false");
+                runner.assert(
+                  r.error === "NETWORK_ERROR",
+                  "error should be NETWORK_ERROR",
+                );
+              });
+            });
+          })
+          .then(function () {
+            return runner.test("Response panel renders correctly", function () {
+              runner.assertVisible("#response-panel");
+            });
+          })
+          .then(function () {
+            return runner.test("Form has required fields", function () {
+              runner.assertVisible("#form-name");
+              runner.assertVisible("#form-email");
+              runner.assertVisible("#btn-submit");
+            });
+          })
+          .then(function () {
+            return runner.getResults();
+          });
+      };
+
+      if (window.location.search.indexOf("autorun=true") !== -1) {
+        window.runApiTests().then(function (results) {
+          console.log("API Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

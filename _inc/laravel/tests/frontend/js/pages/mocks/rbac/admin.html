@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Admin Role</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="admin" data-user-id="admin-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show admin dashboard"
+          >Dashboard</a
+        >
+        <a href="#crm" class="nav-link" data-permission="view crm activity"
+          >CRM</a
+        >
+        <a href="#hrm" class="nav-link" data-permission="show hrm dashboard"
+          >HRM</a
+        >
+        <a href="#pos" class="nav-link" data-permission="show pos dashboard"
+          >POS</a
+        >
+        <a
+          href="#projects"
+          class="nav-link"
+          data-permission="show project dashboard"
+          >Projects</a
+        >
+        <a
+          href="#finance"
+          class="nav-link"
+          data-permission="show account dashboard"
+          >Finance</a
+        >
+        <a href="#reports" class="nav-link" data-permission="manage report"
+          >Reports</a
+        >
+        <a
+          href="#settings"
+          class="nav-link"
+          data-permission="manage company settings"
+          >Company Settings</a
+        >
+        <!-- Super Admin only -->
+        <a
+          href="#super-admin"
+          class="nav-link"
+          data-permission="manage super admin dashboard"
+          >Super Admin</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Admin User</span>
+        <span class="user-role badge role-admin">Admin</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section class="sidebar-section" data-permission="show admin dashboard">
+          <h3>Administration</h3>
+          <ul>
+            <li><a href="#users">Users</a></li>
+            <li><a href="#roles">Roles</a></li>
+            <li><a href="#company">Company</a></li>
+            <li><a href="#logs">Activity Logs</a></li>
+          </ul>
+        </section>
+        <!-- Super Admin only -->
+        <section
+          class="sidebar-section"
+          data-permission="manage super admin dashboard"
+        >
+          <h3>Super Admin</h3>
+          <ul>
+            <li><a href="#system-config">System Config</a></li>
+            <li><a href="#modules">Modules</a></li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show hrm dashboard">
+          <h3>HRM</h3>
+          <ul>
+            <li><a href="#employees">Employees</a></li>
+            <li><a href="#attendance">Attendance</a></li>
+          </ul>
+        </section>
+        <section
+          class="sidebar-section"
+          data-permission="show account dashboard"
+        >
+          <h3>Finance</h3>
+          <ul>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#reports">Reports</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Admin Dashboard</h1>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="manage user"
+              id="btn-add-user"
+            >
+              + Add User
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="manage role"
+              id="btn-manage-roles"
+            >
+              Manage Roles
+            </button>
+            <!-- Super Admin only -->
+            <button
+              class="btn btn-secondary"
+              data-permission="manage system settings"
+              id="btn-system-settings"
+            >
+              System Settings
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-grid">
+          <div
+            class="widget"
+            data-permission="show admin dashboard"
+            id="widget-users"
+          >
+            <h3>Total Users</h3>
+            <div class="widget-value" id="users-value">156</div>
+            <div class="widget-trend up">+5 this week</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show admin dashboard"
+            id="widget-active"
+          >
+            <h3>Active Sessions</h3>
+            <div class="widget-value" id="active-value">42</div>
+            <div class="widget-meta">Online now</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show hrm dashboard"
+            id="widget-employees"
+          >
+            <h3>Employees</h3>
+            <div class="widget-value" id="employees-value">85</div>
+            <div class="widget-meta">Across 6 departments</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="show account dashboard"
+            id="widget-revenue"
+          >
+            <h3>Monthly Revenue</h3>
+            <div class="widget-value" id="revenue-value">$87,500</div>
+            <div class="widget-trend up">+8.2%</div>
+          </div>
+          <!-- Super Admin only -->
+          <div
+            class="widget"
+            data-permission="manage super admin dashboard"
+            id="widget-system"
+          >
+            <h3>System Health</h3>
+            <div class="widget-value">100%</div>
+          </div>
+          <div
+            class="widget"
+            data-permission="manage system settings"
+            id="widget-config"
+          >
+            <h3>Pending Configs</h3>
+            <div class="widget-value">3</div>
+          </div>
+        </div>
+
+        <section class="data-section" id="users-section">
+          <h2>Recent Users</h2>
+          <table class="data-table" id="users-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Last Login</th>
+                <th data-permission="manage user">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </section>
+
+        <section class="data-section" id="activity-section">
+          <h2>Activity Log</h2>
+          <table class="data-table" id="activity-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Resource</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="activity-tbody"></tbody>
+          </table>
+        </section>
+
+        <div class="notifications" id="notifications"></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ERP Prestech — Admin Role Test</p>
+    </footer>
+
+    <script type="module">
+      import {
+        createMockUser,
+        setUserContext,
+        userCan,
+        hideElementsWithoutPermission,
+        Permissions,
+        createTestRunner,
+      } from "../../utils/rbac-test-utils.js";
+
+      const user = createMockUser("admin");
+      setUserContext(user);
+      document.getElementById("user-name").textContent = user.name;
+      hideElementsWithoutPermission(user);
+
+      const mockUsers = [
+        {
+          name: "John Doe",
+          email: "john@example.com",
+          role: "HR",
+          status: "Active",
+          lastLogin: "2026-03-01 10:30",
+        },
+        {
+          name: "Jane Smith",
+          email: "jane@example.com",
+          role: "Accountant",
+          status: "Active",
+          lastLogin: "2026-03-01 09:15",
+        },
+        {
+          name: "Bob Wilson",
+          email: "bob@example.com",
+          role: "Client",
+          status: "Inactive",
+          lastLogin: "2026-02-15 14:00",
+        },
+      ];
+
+      const mockActivity = [
+        {
+          time: "10:45",
+          user: "Admin",
+          action: "Updated",
+          resource: "User role",
+          details: "Changed John to HR",
+        },
+        {
+          time: "10:30",
+          user: "System",
+          action: "Created",
+          resource: "Backup",
+          details: "Daily backup completed",
+        },
+        {
+          time: "09:15",
+          user: "Jane",
+          action: "Login",
+          resource: "Session",
+          details: "From 192.168.1.100",
+        },
+      ];
+
+      // Populate users
+      const usersTbody = document.getElementById("users-tbody");
+      mockUsers.forEach(u => {
+        const row = document.createElement("tr");
+        const statusClass = u.status === "Active" ? "role-hr" : "role-client";
+        row.innerHTML = `
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td><span class="badge role-admin">${u.role}</span></td>
+        <td><span class="badge ${statusClass}">${u.status}</span></td>
+        <td>${u.lastLogin}</td>
+        <td data-permission="manage user">
+          <button class="btn btn-sm btn-edit">Edit</button>
+          <button class="btn btn-sm btn-delete">Delete</button>
+        </td>
+      `;
+        usersTbody.appendChild(row);
+      });
+
+      // Populate activity
+      const activityTbody = document.getElementById("activity-tbody");
+      mockActivity.forEach(a => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${a.time}</td>
+        <td>${a.user}</td>
+        <td>${a.action}</td>
+        <td>${a.resource}</td>
+        <td>${a.details}</td>
+      `;
+        activityTbody.appendChild(row);
+      });
+
+      window.runRbacTests = async () => {
+        const runner = createTestRunner();
+
+        await runner.test("Admin can see dashboard nav link", () => {
+          runner.assertVisible('#main-nav a[href="#dashboard"]');
+        });
+
+        await runner.test("Admin can see HRM nav link", () => {
+          runner.assertVisible('#main-nav a[href="#hrm"]');
+        });
+
+        await runner.test("Admin can see Finance nav link", () => {
+          runner.assertVisible('#main-nav a[href="#finance"]');
+        });
+
+        await runner.test("Admin can see Company Settings nav link", () => {
+          runner.assertVisible('#main-nav a[href="#settings"]');
+        });
+
+        await runner.test("Admin cannot see Super Admin nav link", () => {
+          runner.assertHidden('#main-nav a[href="#super-admin"]');
+        });
+
+        await runner.test("Admin can see users widget", () => {
+          runner.assertVisible("#widget-users");
+        });
+
+        await runner.test("Admin can see employees widget", () => {
+          runner.assertVisible("#widget-employees");
+        });
+
+        await runner.test("Admin can see revenue widget", () => {
+          runner.assertVisible("#widget-revenue");
+        });
+
+        await runner.test("Admin cannot see system health widget", () => {
+          runner.assertHidden("#widget-system");
+        });
+
+        await runner.test("Admin cannot see pending configs widget", () => {
+          runner.assertHidden("#widget-config");
+        });
+
+        await runner.test("Admin can add users", () => {
+          runner.assertVisible("#btn-add-user");
+        });
+
+        await runner.test("Admin can manage roles", () => {
+          runner.assertVisible("#btn-manage-roles");
+        });
+
+        await runner.test("Admin cannot access system settings", () => {
+          runner.assertHidden("#btn-system-settings");
+        });
+
+        await runner.test("Admin has manage user permission", () => {
+          runner.assert(
+            userCan(user, Permissions.MNG_USR),
+            "Should have manage user",
+          );
+        });
+
+        await runner.test("Admin has show hrm dashboard permission", () => {
+          runner.assert(
+            userCan(user, Permissions.SH_HRM_DB),
+            "Should have HRM dashboard",
+          );
+        });
+
+        await runner.test(
+          "Admin does NOT have manage super admin dashboard permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_SA_DB),
+              "Should NOT have super admin dashboard",
+            );
+          },
+        );
+
+        await runner.test(
+          "Admin does NOT have manage system settings permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.MNG_SYS_ST),
+              "Should NOT have system settings",
+            );
+          },
+        );
+
+        await runner.test("Admin sidebar shows administration section", () => {
+          runner.assertVisible(
+            '.sidebar-section[data-permission="show admin dashboard"]',
+          );
+        });
+
+        await runner.test("Admin sidebar hides super admin section", () => {
+          runner.assertHidden(
+            '.sidebar-section[data-permission="manage super admin dashboard"]',
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Admin RBAC Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>
