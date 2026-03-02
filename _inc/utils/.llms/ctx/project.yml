@@ -1,0 +1,80 @@
+# ERP Nova Prestech — Project Configuration
+# Format: YAML (objective simple entry configurations)
+# Last updated: 2026-03-01
+# Purpose: Single-source-of-truth for stack versions, paths, auth, and env keys
+
+meta:
+  app_name: "ERP Nova Prestech"
+  branch: main
+  head: c509faac
+  last_updated: "2026-03-01"
+
+stack:
+  framework: laravel
+  framework_version: "10.49.0"
+  php: "8.4.5"
+  database: mysql
+  database_name: erp_prestech_db
+  database_user: test
+  database_password: test
+  database_host: 127.0.0.1
+  database_port: 3306
+  node: "22.22.0"
+  playwright: "1.58.2"
+  jest: "29.7.0"
+  phpunit: "10.5.55"
+  python: "3.x"
+  os: ubuntu_linux
+  bundler: laravel_mix
+
+paths:
+  repo_root: /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech
+  laravel: _inc/laravel
+  app: _inc/laravel/app
+  views: _inc/laravel/resources/views
+  routes: _inc/laravel/routes/web.php
+  config: _inc/laravel/config
+  public: _inc/laravel/public
+  storage: _inc/laravel/storage
+  tests_unit: _inc/laravel/tests/Unit
+  tests_feature: _inc/laravel/tests/Feature
+  tests_js: _inc/laravel/tests/frontend/js
+  tests_e2e: _inc/laravel/tests/frontend/js/e2e
+  notes: notes
+  llm_notes: _inc/utils/.llms/notes
+  llm_ctx: _inc/utils/.llms/ctx
+  scripts: _inc/utils/scripts
+  ignored:
+    - _old/
+    - origin/
+    - .deprecated/
+
+auth:
+  sa_email: suporte@prestech.com.br
+  sa_uuid: a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7
+  sa_password: test1234
+  sa_type: "super admin"
+  sa_name: "Suporte Prestech"
+  sa_lang: pt-br
+  session_cookie: erp_nova_prestech_session
+  login_url: /login
+  post_login_redirect: /home
+
+env:
+  APP_NAME: "ERP Nova Prestech"
+  APP_ENV: local
+  APP_DEBUG: true
+  APP_URL: "http://localhost/"
+  APP_TIMEZONE: America/Sao_Paulo
+  CACHE_DRIVER: file
+  SESSION_DRIVER: file
+  QUEUE_DRIVER: sync
+  SESSION_SECURE_COOKIE: false
+
+git:
+  branch: main
+  remote_name: origin
+  remote_url: "https://github.com/aronboliveira/erp-prestech-priv"
+  old_remote_name: comp
+  old_remote_url: "https://github.com/Desenvolvimento-Prestch/erp_unix"
+  convention: "type(scope): short description\n\n- bullet detail"

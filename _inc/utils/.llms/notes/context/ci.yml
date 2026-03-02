@@ -1,0 +1,85 @@
+# ci.yml
+# Format: YAML (simple configuration / key-value sets)
+# Purpose: CI/CD and test run configuration reference for ERP Nova Prestech
+# Last updated: 2026-03-01
+
+test_commands:
+  phpunit:
+    all:             "cd _inc/laravel && php artisan test"
+    unit_only:       "php artisan test --testsuite=Unit"
+    feature_only:    "php artisan test --testsuite=Feature"
+    parallel:        "php artisan test --parallel --processes=4"
+    coverage:        "php artisan test --coverage"
+    stop_on_fail:    "php artisan test --stop-on-failure"
+
+  jest:
+    all:             "cd _inc/laravel && npm test"
+    watch:           "npm test -- --watch"
+    coverage:        "npm test -- --coverage"
+
+  playwright:
+    all:             "npx playwright test"
+    headed:          "npx playwright test --headed"
+    ui_mode:         "npx playwright test --ui"
+    chromium_only:   "npx playwright test --project=chromium"
+    firefox_only:    "npx playwright test --project=firefox"
+    webkit_only:     "npx playwright test --project=webkit"
+    single_file:     "npx playwright test <path-to-spec>"
+    with_retries:    "npx playwright test --retries=2"
+    workers:         "npx playwright test --workers=4"
+    trace_viewer:    "npx playwright show-trace trace.zip"
+    install:         "npx playwright install"
+
+  pytest:
+    all:             "pytest"
+    verbose:         "pytest -v"
+
+browsers:
+  - chromium
+  - firefox
+  - webkit
+  - mobile-chrome   # Pixel 5
+  - mobile-safari   # iPhone 12
+
+worker_counts:
+  playwright_default: 1
+  playwright_ci:      4
+  phpunit_parallel:   4
+
+timeouts:
+  playwright_action_ms:     10000
+  playwright_navigation_ms: 30000
+  playwright_test_ms:       60000
+  phpunit_per_test_s:       30
+
+skip_patterns:
+  playwright:
+    - "**/calendar-sync*"    # Google credentials absent in test env
+  phpunit:
+    - "PaytabsWebhookTest"   # Paytabs namespace fix pending
+  jest:
+    - "**/QrCode*"           # DNS2D not available in Node env
+
+seed_before_e2e:
+  command:  "cd _inc/laravel && php artisan migrate:fresh --seed"
+  sa_user:
+    uuid:     "a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7"
+    email:    "suporte@prestech.com.br"
+    password: "test1234"
+
+server_for_e2e:
+  command:     "cd _inc/laravel && php artisan serve --port=8000"
+  base_url:    "http://localhost:8000"
+  wait_for_ms: 3000          # wait before starting playwright
+
+last_known_results:
+  playwright:
+    passed: 1909
+    failed: 0
+    skipped: 1
+    date: "2026-02"
+    browsers_run: 5
+  phpunit:
+    note: "Run to update — expect all green after namespace fix"
+  jest:
+    note: "Run to update"
