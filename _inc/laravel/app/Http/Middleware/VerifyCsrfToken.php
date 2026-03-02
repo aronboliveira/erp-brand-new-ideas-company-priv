@@ -22,30 +22,12 @@ final class VerifyCsrfToken extends Middleware
     public function handle($request, Closure $next)
     {
         $output = new ConsoleOutput();
-        $xsrf = '# NO TOKEN';
-        try {
-            $xsrf = collect($request->cookies->all())
-                ->flatMap(fn($cookie, $name) => str_replace('_', '-', strtolower($name)) === 'xsrf-token'
-                    ? [$name => $cookie] : [])
-                ->filter(fn($v) => !is_null($v) && $v !== '')
-                ->all();
-        } catch (\Throwable) {
-            $xsrf = '# FAILED TO PARSE COOKIES';
-        }
         Log::debug('VerifyCsrfToken start', [
-            'ip'     => $request->ip(),
-            'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
-            'method' => $request->getMethod(),
-            'uri' => $request->getRequestUri(),
-            'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
-            'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
-            'user_agent' => $request->header('User-Agent') ?? '# UNIDENTIFIED',
-            'params' => $request->route()?->parameters() ?? [],
-            'session_token' => $request->session()->token() ?? '# NO TOKEN',
-            'bearer_token' => $request->bearerToken() ?? '# NO TOKEN',
-            'header_csrf_token'  => $request->header('X-CSRF-TOKEN') ?? $request->header('x-csrf-token') ?? '# NO TOKEN',
-            'raw_xsrf_token'  => $request->cookie('XSRF-TOKEN') ?? $request->cookie('xsrf-token') ?? '# NO TOKEN',
-            'cookies_xsrf_token' => count($xsrf) ? $xsrf : '# NO XSRF TOKEN',
+            'ip'           => $request->ip(),
+            'method'       => $request->getMethod(),
+            'uri'          => $request->getRequestUri(),
+            'route'        => $request->route()?->getName() ?? '# UNIDENTIFIED',
+            'action_method'=> $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
         ]);
         $output->writeln("[VerifyCsrfToken] Checking CSRF for {$request->getMethod()} {$request->getRequestUri()}");
         $response = null;
@@ -64,12 +46,6 @@ final class VerifyCsrfToken extends Middleware
                 'exempts' => json_encode(self::EXEMPT_URIS),
                 'status' => '100',
                 'next'   => $this->searchForNext($request),
-                'common_headers' => array_filter(
-                    $headers,
-                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
-                    ARRAY_FILTER_USE_BOTH
-                ),
-                'cookie_data' => $this->parseCookies($response),
             ]);
             $output->writeln('[VerifyCsrfToken] CSRF token valid');
             return $response;
@@ -79,12 +55,6 @@ final class VerifyCsrfToken extends Middleware
                 'uri'    => $request->getRequestUri(),
                 'method' => $request->getMethod(),
                 'info'   => '419',
-                'common_headers' => array_filter(
-                    $headers,
-                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
-                    ARRAY_FILTER_USE_BOTH
-                ),
-                'cookie_data' => $this->parseCookies($response),
             ]);
             $output->writeln('[VerifyCsrfToken] CSRF token mismatch');
             if ($request->expectsJson())
@@ -100,12 +70,6 @@ final class VerifyCsrfToken extends Middleware
                 'message'   => $e->getMessage(),
                 'uri'       => $request->getRequestUri(),
                 'status'    => '403',
-                'common_headers' => array_filter(
-                    $headers,
-                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
-                    ARRAY_FILTER_USE_BOTH
-                ),
-                'cookie_data' => $this->parseCookies($response),
             ]);
             $msg = "[VerifyCsrfToken] Error: {$e->getMessage()}";
             app()->runningInConsole() ?

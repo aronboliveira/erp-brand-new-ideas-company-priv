@@ -292,8 +292,12 @@ class ApiController extends Controller
           return $this->error('Not authenticated', 401);
         }
         $user = $userOrRedirect;
-        $fileName  = $request->input('imgName', 'image.png');
-        $trackerId = $request->input('trackerId', '');
+        $fileName  = basename($request->input('imgName', 'image.png'));
+        $trackerId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->input('trackerId', ''));
+        if ($trackerId === '') {
+          Log::warning("[$action] invalid trackerId", ['uri' => $request->getRequestUri()]);
+          return $this->error('Invalid tracker ID.', 422);
+        }
         $dir = storage_path("uploads/trackerImages/{$trackerId}/");
         $dirStart = microtime(true);
         if (!is_dir($dir)) {

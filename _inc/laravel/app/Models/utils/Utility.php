@@ -65,7 +65,7 @@ class Utility extends Model
     use ChecksLogin;
 
     private static $getSettings    = null;
-    private static $getSettingsId  = null;
+    private static $getSettingsId  = [];
     private static $taxsData       = null;
     private static $taxRateData    = null;
     private static $taxData        = null;
@@ -1059,7 +1059,7 @@ class Utility extends Model
         $tag   = "{$class}::{$method}";
         Log::debug("{$tag} called", [UC::COL_USER_ID => $id]);
         $output->writeln("## [{$tag}] Fetching settings for user ID {$id}");
-        if (!self::$getSettingsId) {
+        if (!isset(self::$getSettingsId[$id])) {
             try {
                 $data = DB::table(DC::TABLE_SETTINGS)
                     ->where(DC::COL_TABLE_CREATOR, $id)
@@ -1076,13 +1076,13 @@ class Utility extends Model
                     Log::notice("{$tag} no default settings found; using system default");
                     $data = SC::DFT_SETTINGS;
                 }
-                self::$getSettingsId = $data;
+                self::$getSettingsId[$id] = $data;
                 Log::debug("{$tag} found settings", ['count' => count($data)]);
                 $output->writeln("## [{$tag}] Retrieved " . count($data) . " rows");
             } catch (QueryException $qe) {
                 Log::error("{$tag} QueryException", ['message' => $qe->getMessage()]);
                 $output->writeln("## [{$tag}] DB error: {$qe->getMessage()}");
-                self::$getSettingsId = SC::DFT_SETTINGS;
+                self::$getSettingsId[$id] = SC::DFT_SETTINGS;
             } catch (\Throwable $e) {
                 Log::error("{$tag} unexpected exception", [
                     UC::COL_USER_ID => $id,
@@ -1094,13 +1094,13 @@ class Utility extends Model
                     'trace'                    => $e->getTraceAsString(),
                 ]);
                 $output->writeln("## [{$tag}] Error fetching settings: {$e->getMessage()}");
-                self::$getSettingsId = SC::DFT_SETTINGS;
+                self::$getSettingsId[$id] = SC::DFT_SETTINGS;
             }
         } else {
-            Log::debug("{$tag} returning cached settings", ['count' => count(self::$getSettingsId)]);
-            $output->writeln("## [{$tag}] Returning cached settings (" . count(self::$getSettingsId) . ")");
+            Log::debug("{$tag} returning cached settings", ['count' => count(self::$getSettingsId[$id])]);
+            $output->writeln("## [{$tag}] Returning cached settings (" . count(self::$getSettingsId[$id]) . ")");
         }
-        return self::$getSettingsId;
+        return self::$getSettingsId[$id];
     }
 
     public static function fallbackSettings(mixed $data): mixed

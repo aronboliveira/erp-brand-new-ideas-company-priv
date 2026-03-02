@@ -57,19 +57,12 @@ final class XSS
                 if (!($userOrRedirect instanceof User)) {
                     Log::warning("{$class} auth failed", ['uri' => $request->getPathInfo(), 'status' => 401]);
                     $output->writeln("[{$class}] auth failed – halting");
-                    try {
-                        $uuid  = (string) Str::uuid();
-                        $scriptClass = static::SCRIPT_CLASS;
-                        echo "<script id=\"{$uuid}\" class=\"{$scriptClass}\">(function(){if(!document.querySelector('.{$scriptClass}')){alert('You cannot submit this request due to authentication issues');setTimeout(()=>{document.getElementById('{$uuid}')?.remove()},3000)}})();</script>";
-                        Log::debug("{$class} auth-fail script echoed", ['id' => $uuid, 'class' => $scriptClass]);
-                        session()->increment(self::FAILURES, 1);
-                    } catch (\Throwable $scriptEx) {
-                        Log::error("{$class} failed to echo auth-fail script", ['exception' => get_class($scriptEx), 'message' => $scriptEx->getMessage()]);
-                        $output->writeln("[{$class}] script echo failed: {$scriptEx->getMessage()}");
-                        session()->increment(self::FAILURES, 1);
-                    }
+                    session()->increment(self::FAILURES, 1);
                     $this->logExecutionTime($authStart, 'authentication_error');
-                    exit;
+                    if ($request->expectsJson()) {
+                        return response()->json(['error' => 'Not authenticated'], 401);
+                    }
+                    return redirect()->route('login')->withErrors(['error' => __('auth.unauthenticated')]);
                 }
                 $user = $userOrRedirect;
             } else if (!in_array(
