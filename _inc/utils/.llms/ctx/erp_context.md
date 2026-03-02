@@ -1,6 +1,6 @@
 # ERP Prestech — Subagent Context File
 
-# Last updated: 2026-02-28T21:30Z
+# Last updated: 2026-03-01T00:00Z
 
 # Purpose: Structured context for AI subagent coordination
 
@@ -124,3 +124,25 @@ All chains populated and functional:
 - CLI references in `_inc/utils/.llms/cli/` (by date)
 - Session notes in `_inc/utils/.llms/notes/` (by date)
 - Subagent context in `_inc/utils/.llms/ctx/` (this file)
+
+## Format-Based Context Files (added 2026-03-01)
+
+These files split the monolithic context into format-appropriate files for faster agent lookup:
+
+| File                     | Format | Contents                                            |
+| ------------------------ | ------ | --------------------------------------------------- |
+| `ctx/project.yml`        | YAML   | Stack versions, all paths, SA auth, .env keys, git  |
+| `ctx/server.toml`        | TOML   | Artisan, logging, git, composer, docker, supervisor |
+| `ctx/db_state.json`      | JSON   | Schema, SA UUID, table counts, UUID pitfalls, SQL   |
+| `ctx/constants_map.json` | JSON   | All constant class aliases, user types, VW::* keys  |
+| `ctx/middleware_pipeline.xml` | XML | Full middleware stack, guard flow, route pipeline  |
+| `ctx/test_suites.xml`    | XML    | PHPUnit/Jest/Playwright/Pytest suite hierarchy      |
+| `notes/context/ci.yml`   | YAML   | Test run commands, browsers, workers, timeouts      |
+
+**Reading guidance for agents:**
+- For stack/env questions → `project.yml`
+- For server/deploy operations → `server.toml`
+- For database queries/schema → `db_state.json`
+- For constant/permission lookups → `constants_map.json`
+- For middleware/auth flow questions → `middleware_pipeline.xml`
+- For running tests / CI config → `test_suites.xml` + `notes/context/ci.yml`

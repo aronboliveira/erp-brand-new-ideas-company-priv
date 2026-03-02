@@ -1,9 +1,10 @@
-# 10 — CURRENT STATUS (2026-02-28)
+# 10 — CURRENT STATUS (2026-03-01)
 
 ## Branch & HEAD
 
-- **Branch:** `agent`
-- **HEAD:** `3cc44472` — `feat(lint): ESLint flat config + zero-error pass on core & route JS`
+- **Branch:** `main`
+- **HEAD:** `c509faac` — `fix(providers): Correct EmployeeAttendanceController namespace in Blade imports`
+- **Previous notable HEAD:** `3cc44472` — `feat(lint): ESLint flat config + zero-error pass on core & route JS`
 
 ## What is working (code-level)
 
@@ -27,9 +28,10 @@
 | PHPUnit (unit)     | 8,459+  | 31      | 0      |
 | Root Jest           | 524     | 0       | 0      |
 | Frontend Jest       | 949     | 0       | 0      |
-| Playwright          | 223     | 0       | 0      |
+| Playwright (5 browsers) | 1,909 | 1    | 0      |
 | Mock pages Jest     | 376     | 0       | 0      |
 
+> ✅ Playwright updated to 1,909 passed across 5 browser projects (2026-02).
 > ⚠️ PHPUnit Controllers C and Feature suite results may be stale — rerun needed.
 
 ## What is BROKEN / Known Issues
@@ -68,22 +70,21 @@ Currently only patched in invoice template1. Other PDF templates (bill, payslip,
 - Reorganize `_inc/utils/` scripts
 - Structure agent context files by frontend/backend/infra
 
-## Recent commits (post Batch 23)
+## Recent commits (post Batch 38)
 
-| Commit     | Summary                                                                |
-| ---------- | ---------------------------------------------------------------------- |
-| `3cc44472` | ESLint flat config + zero-error pass on core & route JS                |
-| `557aa8ae` | Singleton bootstrap architecture + refactor 27 route files             |
-| `c10f971d` | 3 orphan ProjectController routes + 35 missing consts + 96 const refs  |
-| `407b1bb6` | DealController ModelNotFoundException → 500 fixed                      |
-| `faec8ce3` | All 9 PHPStan level-5 errors resolved                                  |
-| `4a3b7ca4` | Missing public consts + snake_case methods + route constants            |
-| `aaef3f39` | Expense create page failures (3 bugs)                                  |
-| `6f4e49f1` | i18n locale bugs + 204 translation tests                               |
-| `9e7d78eb` | Pre-existing PHPUnit Feature + Playwright failures resolved             |
-| `6ea8febc` | PHP 8 nested ternary, ContractNotes collision, finance selector         |
-| `3d67d687` | budgets/create 500 and debit_notes SQL error                            |
-| `d19468a3` | Comprehensive route smoke test framework                                |
+| Commit     | Summary                                                                         |
+| ---------- | ------------------------------------------------------------------------------- |
+| `c509faac` | fix(providers): Correct EmployeeAttendanceController namespace in Blade imports |
+| `dd6d4ef6` | fix(views): Correct mixed PHP/Blade syntax in template6 invoice template        |
+| `c4996052` | fix(middleware): Add missing Str import, remove unused RedirectResponse in XSS  |
+| `729620ab` | feat: new migrations, test specs, and tooling from prior sessions (comp sync)   |
+| `9bb5e945` | test: update test suites — PHPUnit, Jest, Playwright, Python (162 files)        |
+| `b5fb0fcb` | fix: accumulated source code changes — controllers, exporters, views, middleware |
+| `423a7585` | feat: add isolated testing CLI scripts to composer.json and package.json        |
+| `96ca46c7` | refactor: reorganize _inc/utils/ scripts and reports                            |
+| `aca93d90` | refactor: reorganize ctx/agents/ into frontend/backend/infrastructure           |
+| `a4fe5515` | docs: update 8 context files — SA user, DB state, status, git history, versions |
+| `3cc44472` | ESLint flat config + zero-error pass on core & route JS (Batch 38)              |
 
 ## App server
 

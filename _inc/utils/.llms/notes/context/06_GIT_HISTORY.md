@@ -1,6 +1,8 @@
 # 06 — GIT HISTORY
 
-## Branch: `agent`
+## Branch: `main`
+
+> Branch was renamed from `agent` → `main` after batch 38. All subsequent work is on `main`.
 
 All work is on this branch. Each "batch" = one logical set of fixes.
 
@@ -42,7 +44,17 @@ All work is on this branch. Each "batch" = one logical set of fixes.
 | 35     | `407b1bb6`     | DealController ModelNotFoundException → 500 fixed                                                                               |
 | 36     | `c10f971d`     | 3 orphan ProjectController routes + 35 missing consts + 96 const refs + PurchaseController 12×                                  |
 | 37     | `557aa8ae`     | Singleton bootstrap architecture + refactor 27 route files                                                                      |
-| **38** | **`3cc44472`** | **ESLint flat config + zero-error pass on core & route JS (HEAD)**                                                              |
+| **38** | **`3cc44472`** | **ESLint flat config + zero-error pass on core & route JS**                                                                     |
+| docs   | `a4fe5515`     | docs: update 8 context files — SA user, DB state, status, git history, versions                                                 |
+| docs   | `aca93d90`     | refactor: reorganize ctx/agents/ into frontend/backend/infrastructure                                                           |
+| docs   | `96ca46c7`     | refactor: reorganize _inc/utils/ scripts and reports                                                                            |
+| feat   | `423a7585`     | feat: add isolated testing CLI scripts to composer.json and package.json                                                        |
+| fix    | `b5fb0fcb`     | fix: accumulated source code changes — controllers, exporters, views, middleware, configs                                       |
+| test   | `9bb5e945`     | test: update test suites — PHPUnit, Jest, Playwright, Python (162 files)                                                        |
+| feat   | `729620ab`     | feat: new migrations, test specs, and tooling from prior sessions (comp sync point)                                             |
+| fix    | `c4996052`     | fix(middleware): Add missing Str import, remove unused RedirectResponse in XSS middleware                                       |
+| fix    | `dd6d4ef6`     | fix(views): Correct mixed PHP/Blade syntax in template6 invoice template                                                        |
+| **fix**| **`c509faac`** | **fix(providers): Correct EmployeeAttendanceController namespace in Blade imports (HEAD)**                                      |
 
 ### Batch 23 details
 
