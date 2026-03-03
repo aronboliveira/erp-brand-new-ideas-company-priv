@@ -19,19 +19,30 @@
     "watch-poll:mix": "mix watch -- --watch-options-poll=1000",
     "legacy:prod": "npm run production",
     "production:mix": "mix --production",
-
     "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
-
     "test:jest:core": "npx jest --config jest.config.cjs --verbose",
     "test:jest:core:watch": "npx jest --config jest.config.cjs --verbose --watch",
     "test:jest:pages": "cd tests/frontend/js && npx jest pages/ --verbose",
     "test:jest:generic": "cd tests/frontend/js && npx jest generic/ --verbose",
     "test:jest:e2e": "cd tests/frontend/js && npx jest e2e/ --verbose",
-    "test:playwright": "cd tests/frontend/js && npx playwright test --reporter=list",
-    "test:playwright:headed": "cd tests/frontend/js && npx playwright test --headed --reporter=list",
-    "test:playwright:debug": "cd tests/frontend/js && npx playwright test --debug",
+    "test:playwright": "npx playwright test --config=playwright.config.cjs --reporter=list",
+    "test:playwright:headed": "npx playwright test --config=playwright.config.cjs --headed --reporter=list",
+    "test:playwright:debug": "npx playwright test --config=playwright.config.cjs --debug",
+    "__ FRONTEND MOCK PAGE TESTS __": "--- section marker ---",
+    "test:frontend": "npx playwright test --config=playwright-frontend.config.cjs",
+    "test:frontend:rbac": "npx playwright test --config=playwright-frontend.config.cjs rbac.spec.ts",
+    "test:frontend:api": "npx playwright test --config=playwright-frontend.config.cjs api-responses.spec.ts",
+    "test:frontend:forms": "npx playwright test --config=playwright-frontend.config.cjs forms.spec.ts",
+    "test:frontend:nav": "npx playwright test --config=playwright-frontend.config.cjs navigation.spec.ts",
+    "test:frontend:headed": "npx playwright test --config=playwright-frontend.config.cjs --headed",
+    "test:frontend:debug": "npx playwright test --config=playwright-frontend.config.cjs --debug",
+    "test:frontend:ui": "npx playwright test --config=playwright-frontend.config.cjs --ui",
+    "test:frontend:report": "npx playwright show-report tests/frontend/js/playwright-report",
+    "test:frontend:jest": "npx jest --config tests/frontend/jest.frontend.config.cjs --runInBand --verbose",
+    "test:frontend:eslint": "npx eslint --config tests/frontend/eslint.frontend.config.mjs tests/frontend/js --ext .cjs,.ts --max-warnings=0",
+    "test:frontend:all": "npm run test:frontend:eslint && npm run test:frontend:jest && npm run test:frontend",
     "test:eslint": "npx eslint public/assets/js/ --ext .js --max-warnings=50 || true",
-    "test:all": "npm run test:jest:core && npm run test && npm run test:playwright"
+    "test:all": "npm run test:jest:core && npm run test && npm run test:playwright && npm run test:frontend"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -89,7 +100,9 @@
     "@mui/styles": "^5.14.0",
     "@mui/x-date-pickers": "^6.0.0",
     "@next/eslint-plugin-next": "^15.3.0",
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "16.2.0",
     "@testing-library/user-event": "^14.4.3",
@@ -106,7 +119,13 @@
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.2.0",
+    "laravel-mix": "^6.0.49",
     "typescript": "^5",
-    "vanilla-cookieconsent": "^2.9.2"
+    "vanilla-cookieconsent": "^2.9.2",
+    "vite": "^7.3.1",
+    "webpack": "^5.105.3",
+    "webpack-cli": "^6.0.1"
   }
 }
