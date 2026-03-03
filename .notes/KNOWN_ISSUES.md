@@ -1,103 +1,24 @@
 # KNOWN ISSUES
 
-> Last updated: 2026-03-01
-> This file documents structural and naming issues from the original fork.
-> For **active runtime issues**, see `CURRENT_WORKING_ISSUES.md`.
+> Last updated: 2026-03-06
+> Active issues only. Resolved items archived to `.notes/.llms/.history/fixes/`.
+> Naming history moved to `.notes/.llms/.history/fixes/naming-history.md`.
+> Coding conventions in `.notes/.llms/.guidelines/`.
 
-## ACTIVE NON-BLOCKING ISSUES (2026-03-01)
+## DEFERRED (monitoring only)
 
-| ID | Issue | Severity | Status |
-|----|-------|----------|--------|
-| K1 | DNS2D static facade broken globally | Medium | Workaround in template1 only |
-| K2 | `PhpSpreadsheet::getInsideHorizontal()` undefined | Low | 2 export files affected |
-| K3 | `task_stages/show.blade.php` missing | Low | Controller redirects gracefully |
-| K4 | `ProposalSeeder` uses `where` instead of `whereIn` | Low | Wrong data, not crash |
-| K5 | `TrainingTypeSeeder` refs non-existent `duration_min` | Low | Fails silently |
-| K6 | Arabic locale shown when `languages.created_by` ≠ SA UUID | Medium | Fix with UPDATE languages |
+| ID   | Issue                                                                     | Severity | Notes                                                                         |
+| ---- | ------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| FP-1 | BankTransferPaymentController L380: "Expected array, found Collection"    | Info     | Collection implements ArrayAccess — Intelephense false positive               |
+| FP-2 | ComissionControllerTest L254/282/310: "Undefined method commissionCreate" | Info     | Called on Mockery partial mock — Intelephense can’t resolve                   |
+| FP-3 | jest.config.cjs L17/28: "`__dirname` is not defined"                      | Info     | ESLint false positive — `__dirname` is valid in .cjs (CommonJS) files         |
+| FP-4 | web.php L1783: "Undefined type PaytabsLaravelListenerApi"                 | Info     | Runtime container resolution via `app()` — works if Paytabs package installed |
+
+## RECENTLY RESOLVED
+
+| ID  | Issue                                   | Resolution                                                                       |
+| --- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| —   | Intelephense batch (14 fixes, 12 files) | Import aliases, static properties, case fixes, types, test bugs (2026-03-06)     |
+| —   | Playwright Firefox flaky render-timing  | Browser-aware timeouts, `test.slow()`, separated skip vs fail logic (2026-03-05) |
 
 ---
-
-# MIGRATIONS
-
-## FILES AND CLASSES NAMING
-
-- Files that had their base name changed need to be renamed in migrations as well (ex.:
-  AnnouncementEmployee -> EmployeeAnnouncement,
-  AttendanceEmployee -> EmployeeAttendance,
-  Contract_attachment -> ContractAttachment,
-  GenerateOfferLetter -> GeneratedOfferLetter,
-  Vender -> Vendor,
-  Projectstages -> ProjectStages,
-  TrialBalancExport → TrialBalanceExport
-  task_reportExport → TaskReportExport,
-  );
-  puserhConfig → PusherConfig
-
-## FIELDS NAMING
-
-- Misspell on Purchase::$statues (corrected to $statuses)
-- Misspel on SaturationDeduction::$saturationDeductiontype (corrected to $saturationDeductionType)
-- Misspel on ZoomMeetingTrait::MEETING_TYPE_SCHEDULE (corrected to MEETING_TYPE_SCHEDULED)
-- Activity→get_activity (corrected to getActivity)
-- ActivityLog→{userdetail (to userDetail), fetchgetRemark(to fetchGetRemark)}
-- Comission::$comissiontype → comissionType
-- DocumentUploads table named as ducument_uploads;
-
-## METHODS NAMING
-
-- Several methods from the original fork had their naming casing not following what is expected from Laravel (thus renamed in new versions), as in the list:
-
-- AppraisalController.getemployee
-- DealController.deal_list
-- EventController.get_event_data
-- EventController.getdepartment
-- EventController.getemployee
-- LeadController.lead_list
-- MeetingController.getdepartment
-- MeetingController.getemployee
-- MeetingController.get_meeting_data
-- PosController.getproduct
-- PosController.cartdiscount
-- AuthenticatedSessionController.get_device_type
-- BenefitPaymentController.call_back
-- CreditNoteController.getinvoice
-- DebitNoteController.getbill
-- PayslipController.showemployee
-- PayslipController.search_json
-- PayslipController.paysalary
-- PayslipController.bulk_pay_create
-- PayslipController.bulkpayment
-- PayslipController.employeepayslip
-- OtherPaymentController.otherpaymentCreate
-- BranchController.getdepartment
-- BranchController.getemployee
-- ContractController.contract_status_edit
-- ContractController.contract_descriptionStore
-- ContractController.clientwiseproject
-- ContractController.copycontract
-- ContractController.copycontractstore
-- ContractController.sendmailContract
-- ContractController.pdffromcontract
-- UserController::{todo_store, todo_update, todo_destroy}
-- ProductServiceController.warehouseemptyCart
-- InterviewScheduleController.get_interview_data
-- LeaveController.changeaction
-- LeaveController.jsonCount
-- ProjectController.copyproject
-- ProjectController.copyprojectstore
-- ProjectController.copylink_setting_create
-- ProjectController.copylinksetting
-- ProjectController.projectlink
-- DashboardController.{account_dashboard_index, project_dashboard_index, hrm_dashboard_index, crm_dashboard_index,
-  pos_dashboard_index}
-- ReportController.{stock_report, PayrollReportExport, LeaveReportExport, getdepartment, getemployee, leadreport, dealreport, monthlyCashflow, ReceivablesExport, ReceivablesPrint, PayablesReport, PayablesPrint}
-- VendorController.{editprofile, changeLanqage}
-- WarehouseTransferController.{getproduct, getquantity}
-- ZoomMeetingController.{projectwiseuser, get_zoom_meeting_data}
-- SystyemController.{offerletterupdate, joiningletterupdate, experienceCertificateupdate, CookieConsent, chatgptSetting}
-- DiscoverController.{discover_create, discover_store, discover_edit, discover_update, discover_delete}
-- FaqController.{faq_create, faq_store, faq_edit, faq_update, faq_delete}
-- FeaturesController.{feature_create, feature_store, feature_edit, feature_update, feature_delete, feature_highlight_create, features_create, features_store, features_edit, features_update, features_delete}
-- ScreenshootsController.{screenshots_createm screenshots_store, screenshots_edit, screenshots_update, screenshots_delete}
-- TestimonialsController.{testimonials_create, testimonials_store, testimonials_edit, testimonials_update, testimonials_delete}
-- ZoomMeetingTraits.{createmitting, meetingUpdate, get}

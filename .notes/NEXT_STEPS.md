@@ -1,8 +1,42 @@
-What was deferred (needs further work or decision)
-Needs systematic cross-controller work (Findings 4-5, 15-19): IDOR / cross-tenant scoping in UserController, EmployeeController, ClientController, RoleController, JobCategoryController, CompanyPolicyController, ProjectController. The right approach is a scoped query helper or global scope on these models — doing individual findOrFail() replacements in 6 controllers is error-prone.
+# NEXT STEPS
 
-Needs data migration before code change (Finding 6): Shared-link base64 "passwords" — hashing the new value with Hash::make() is trivial, but existing rows store base64 and must be re-generated, which means invalidating all current shared links.
+> Last updated: 2026-03-06
+> Full resolution history in `.notes/.llms/.history/`. Coding patterns in `.notes/.llms/.guidelines/`.
 
-Needs business intent clarification (Finding 7): JobController::jobApplyData() calls \_checkLogin() on what's routed as a public guest endpoint. Was that intentional (application requires account) or a bug (public career form)?
+---
 
-Note on Handler.php: Codex Finding 3 also cites app/Exceptions/Handler.php:82-92 and :160-170 for logging full request headers in exception paths. These were not in scope for this commit — the exception handler is correct behaviour in principle (log context on errors) but should redact Cookie, Authorization, and X-CSRF-TOKEN headers. Let me know if you want that cleaned up as a follow-on.
+## IMMEDIATE
+
+1. **Run ContentValidationSeeder** — `cd _inc/laravel && php artisan db:seed --class=ContentValidationSeeder` to populate empty catalog tables.
+2. **Verify Playwright E2E** — `npm run test:playwright` to confirm auth refresh still works.
+3. **Test shared-link password flow** — existing shared links now require password re-entry (base64→bcrypt migration).
+
+---
+
+## DEFERRED (monitoring only)
+
+| Item                                        | Effort  | Notes                                                       |
+| ------------------------------------------- | ------- | ----------------------------------------------------------- |
+| RoleController Permission scoping           | Trivial | Spatie permissions are global; not a true IDOR              |
+| ProjectController::projectLink tenant scope | N/A     | Public endpoint by design — encrypted URL is access control |
+
+## RECENTLY COMPLETED (2026-03-06)
+
+### Intelephense / VS Code Problems Panel — 14 fixes across 12 files
+
+| File                               | Fix                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| BillController.php                 | Added `as UC` alias to `UsersConstants` import (fixed 37 errors)         |
+| ProjectTaskController.php          | Added `as PJC` alias to `ProjectsConstants` import                       |
+| ExpenseController.php              | Changed `BillsConstants::COL_BIL_TMP` → `BC::COL_BIL_TMP`                |
+| CommissionController.php           | Fixed `$commissiontype` → `$commissionType` (3 locations)                |
+| ComissionControllerTest.php        | Fixed `$commissiontype` → `$commissionType`                              |
+| NotificationTemplateController.php | Removed wrong `use function` import (same namespace)                     |
+| Bill.php (model)                   | Added `public static array $statuses` property                           |
+| Job.php (model)                    | Added `public static array $status` property                             |
+| DashboardController.php            | Fixed return types for `handleLandingOrInstall` and `buildPipelineStats` |
+| XSS.php                            | Fixed `ConsoleOutput` → `SafeConsoleOutput` type hint                    |
+| AuthenticatedSessionController.php | Fixed 2 deprecated implicit nullable params                              |
+| ProjectStagesTest.php              | Added missing `$expectedCollection` variable + fixed class name          |
+
+---
