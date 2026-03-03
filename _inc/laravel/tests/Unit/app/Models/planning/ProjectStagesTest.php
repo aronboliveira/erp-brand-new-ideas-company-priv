@@ -57,6 +57,7 @@ class ProjectStagesTest extends TestCase
 			->andReturn(new Collection);
 
 		// Mock ProjectRequestService to return an empty collection
+		$expectedCollection = new EloquentCollection;
 		$serviceMock = Mockery::mock(ProjectRequestService::class);
 		$serviceMock->shouldReceive('stageTasksForProject')
 			->once()
@@ -89,7 +90,7 @@ class ProjectStagesTest extends TestCase
 			(object) ['id' => 1, 'name' => 'Todo', 'color' => '#ff0'],
 			(object) ['id' => 2, 'name' => 'Done', 'color' => '#0f0'],
 		]);
-		Mockery::mock('alias:' . ProjectStages::class)
+		Mockery::mock('alias:' . ProjectStage::class)
 			->shouldReceive('where')
 			->andReturnSelf()
 			->getMock()
