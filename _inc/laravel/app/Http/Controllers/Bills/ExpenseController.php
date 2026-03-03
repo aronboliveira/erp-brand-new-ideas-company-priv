@@ -756,7 +756,7 @@ final class ExpenseController extends Controller
                 $color = '#' . ($settings['bill_color'] ?? '000000');
                 $fontColor = Utility::getFontColor($color);
                 $this->logExecutionTime($colorStart, $action, 'resolveColors');
-                $viewPath = ViewsConstants::BIL . ".templates.{$settings[BillsConstants::COL_BIL_TMP]}";
+                $viewPath = ViewsConstants::BIL . ".templates.{$settings[BC::COL_BIL_TMP]}";
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::expense] missing view", ['view_path' => $viewPath]);
                     Log::debug("[{$base}::expense] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['expense', DC::TABLE_SETTINGS, 'img', 'fontColor']]);
