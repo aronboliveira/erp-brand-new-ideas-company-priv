@@ -7,7 +7,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Log};
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 final class RedirectIfAuthenticated
 {
@@ -30,7 +30,7 @@ final class RedirectIfAuthenticated
         $method = __METHOD__;
         return $this->measure($request, function (Request $request) use ($next, $guards, $method) {
             $class  = class_basename(static::class);
-            $output = new ConsoleOutput();
+            $output = SafeConsoleOutput::make();
             try {
                 if (!($request->isMethod('get') && $request->routeIs('login'))) {
                     Log::info("{$class}::{$method} skipping redirect check", [
@@ -43,7 +43,7 @@ final class RedirectIfAuthenticated
                         'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
                         'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
                         'next'   => $this->searchForNext($request),
-                        'bearer'    => $request->bearerToken(),
+                        'bearer_present' => (bool)$request->bearerToken(),
                     ]);
                     $output->writeln("[{$class}] Skipping guard checks");
                     return $next($request);
@@ -53,7 +53,7 @@ final class RedirectIfAuthenticated
                     'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                     'uri'    => $request->getRequestUri(),
                     'method' => $request->getMethod(),
-                    'bearer'    => $request->bearerToken(),
+                    'bearer_present' => (bool)$request->bearerToken(),
                     'referrer' => $request->header('Referer'),
                 ]);
                 $output->writeln("[{$class}] Checking host and referer for {$request->getRequestUri()}");

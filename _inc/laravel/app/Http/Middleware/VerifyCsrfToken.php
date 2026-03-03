@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Session\TokenMismatchException;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpFoundation\Response;
 
 final class VerifyCsrfToken extends Middleware
@@ -21,7 +21,7 @@ final class VerifyCsrfToken extends Middleware
 
     public function handle($request, Closure $next)
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         Log::debug('VerifyCsrfToken start', [
             'ip'           => $request->ip(),
             'method'       => $request->getMethod(),
@@ -87,7 +87,7 @@ final class VerifyCsrfToken extends Middleware
 
     protected function tokensMatch($request): bool
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         Log::debug('VerifyCsrfToken::tokensMatch start', [
             'uri'    => $request->getRequestUri(),
             'method' => $request->getMethod(),

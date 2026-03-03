@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use Illuminate\{
@@ -8,7 +9,7 @@ use Illuminate\{
     Http\Request,
     Support\Facades\Log
 };
-use Symfony\Component\{HttpFoundation\Response, Console\Output\ConsoleOutput};
+use Symfony\Component\HttpFoundation\Response;
 
 final class PreventRequestsDuringMaintenance extends Middleware
 {
@@ -32,7 +33,7 @@ final class PreventRequestsDuringMaintenance extends Middleware
     public function handle($request, Closure $next)
     {
         $start = microtime(true);
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class = class_basename(static::class);
         $method = __METHOD__;
         $ctx = [
@@ -45,6 +46,7 @@ final class PreventRequestsDuringMaintenance extends Middleware
         ];
         Log::debug("{$class}::{$method} start", $ctx);
         $output->writeln("[$class] Incoming {$ctx['method']} {$ctx['uri']}");
+        $response = null;
         try {
             $response = parent::handle($request, $next);
             $status = $response instanceof Response ? $response->getStatusCode() : 500;

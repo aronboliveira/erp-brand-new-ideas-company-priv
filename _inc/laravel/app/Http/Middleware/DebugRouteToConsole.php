@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 class DebugRouteToConsole
 {
@@ -12,7 +12,7 @@ class DebugRouteToConsole
 	{
 		$routeName  = Route::currentRouteName()   ?: '‹unnamed›';
 		$routeAction = Route::currentRouteAction() ?: '‹no action›';
-		$output = new ConsoleOutput();
+		$output = SafeConsoleOutput::make();
 		$output->writeln(
 			"[DEBUG ROUTE] name={$routeName} action={$routeAction}"
 		);

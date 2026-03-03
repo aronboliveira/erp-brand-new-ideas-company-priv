@@ -7,7 +7,7 @@ use App\Config\Constants\{DatabaseConstants, LangsConstants, SettingsConstants};
 use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class RevalidateBackHistory
@@ -25,14 +25,14 @@ final class RevalidateBackHistory
     {
         $class  = class_basename(static::class);
         $method = __FUNCTION__;
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
 
         Log::debug("{$class}::{$method} start", [
             'ip'       => $request->ip(),
             'referrer' => $request->headers->get('referer', '#UNIDENTIFIED'),
             'uri'      => $request->getRequestUri(),
             'method'   => $request->getMethod(),
-            'bearer'   => $request->bearerToken() ?? '#NO_TOKEN',
+            'bearer_present' => (bool)$request->bearerToken(),
             'next'     => $this->searchForNext($request),
         ]);
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use App\Config\Constants\SettingsConstants;
 use Illuminate\{
@@ -8,7 +9,7 @@ use Illuminate\{
     Http\Request,
     Support\Facades\Log
 };
-use Symfony\Component\{HttpFoundation\Response, Console\Output\ConsoleOutput};
+use Symfony\Component\HttpFoundation\Response;
 
 final class EncryptCookies extends Middleware
 {
@@ -32,7 +33,7 @@ final class EncryptCookies extends Middleware
     public function handle($request, $next)
     {
         $start = microtime(true);
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class = class_basename(static::class);
         $method = __METHOD__;
         Log::debug("{$class}::{$method} start", [
@@ -44,7 +45,7 @@ final class EncryptCookies extends Middleware
             'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
             'full_url'  => $request->fullUrl(),
             'params'    => $request->route()?->parameters() ?? [],
-            'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
+            'bearer_present' => (bool)$request->bearerToken(),
         ]);
         $output->writeln("[{$class}] Processing cookies for {$request->getRequestUri()}");
         try {

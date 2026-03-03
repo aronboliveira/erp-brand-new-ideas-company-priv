@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 
 use Closure;
@@ -9,10 +10,7 @@ use Illuminate\{
     Foundation\Http\Middleware\TrimStrings as Middleware,
     Support\Facades\Log
 };
-use Symfony\Component\{
-    Console\Output\ConsoleOutput,
-    HttpFoundation\Response
-};
+use Symfony\Component\HttpFoundation\Response;
 
 final class TrimStrings extends Middleware
 {
@@ -37,7 +35,7 @@ final class TrimStrings extends Middleware
         $method = __FUNCTION__;
         return $this->measure($request, function ($request) use ($next, $method) {
             $class  = class_basename(static::class);
-            $output = new ConsoleOutput();
+            $output = SafeConsoleOutput::make();
             Log::debug("{$class}::{$method} - Processing inputs", [
                 'ip'        => $request->ip(),
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
@@ -47,7 +45,7 @@ final class TrimStrings extends Middleware
                 'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
                 'full_url'  => $request->fullUrl(),
                 'params'    => $request->route()?->parameters() ?? [],
-                'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
+                'bearer_present' => (bool)$request->bearerToken(),
             ]);
             $output->writeln("[{$class}] Trimming inputs for {$request->getRequestUri()}");
             try {

@@ -1,16 +1,14 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use Illuminate\{
 	Http\Request,
 	Support\Facades\Log
 };
-use Symfony\Component\{
-	Console\Output\ConsoleOutput,
-	HttpFoundation\Response
-};
+use Symfony\Component\HttpFoundation\Response;
 
 final class SecureHeaders
 {
@@ -37,7 +35,7 @@ final class SecureHeaders
 		$method = __FUNCTION__;
 		return $this->measure($request, function (Request $request) use ($next, $method) {
 			$class  = class_basename(static::class);
-			$output = new ConsoleOutput();
+			$output = SafeConsoleOutput::make();
 			$whoIsNext = $this->searchForNext($request);
 			Log::debug("{$class}::{$method} start", [
 				'uri'     => $request->getRequestUri(),
@@ -47,7 +45,7 @@ final class SecureHeaders
 				'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
 				'candidate_headers' => self::HEADERS,
 				'next'   => $whoIsNext,
-				'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
+				'bearer_present' => (bool)$request->bearerToken(),
 			]);
 			$output->writeln("[{$class}] Applying secure headers to {$request->getRequestUri()}");
 			try {

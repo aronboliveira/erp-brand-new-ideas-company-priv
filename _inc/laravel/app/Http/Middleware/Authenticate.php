@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use App\Config\Constants\{SettingsConstants, UsersConstants};
@@ -12,7 +13,7 @@ use Illuminate\Auth\{
 use Illuminate\Http\{Request};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Session\TokenMismatchException;
-use Symfony\Component\{HttpFoundation\Response, Console\Output\ConsoleOutput};
+use Symfony\Component\HttpFoundation\Response;
 
 final class Authenticate extends Middleware
 {
@@ -84,7 +85,7 @@ final class Authenticate extends Middleware
     public function handle($request, $next, ...$guards)
     {
         $start = microtime(true);
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $base = class_basename(static::class);
         $sessionId = session()->getId();
         $ctx = [

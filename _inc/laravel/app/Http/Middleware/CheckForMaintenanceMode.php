@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use Illuminate\{
@@ -8,7 +9,7 @@ use Illuminate\{
     Http\Request,
     Support\Facades\Log
 };
-use Symfony\Component\{HttpFoundation\Response, Console\Output\ConsoleOutput};
+use Symfony\Component\HttpFoundation\Response;
 
 final class CheckForMaintenanceMode extends Middleware
 {
@@ -30,7 +31,7 @@ final class CheckForMaintenanceMode extends Middleware
     public function handle($request, Closure $next)
     {
         $start = microtime(true);
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $base = class_basename(static::class);
         Log::debug("{$base}::" . __FUNCTION__ . " start", [
             'ip'     => $request->ip(),

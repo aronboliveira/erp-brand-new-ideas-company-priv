@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use App\Config\Constants\SettingsConstants;
 use Illuminate\Http\{Middleware\TrustProxies as Middleware, Request};
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\{
-    Console\Output\ConsoleOutput,
     HttpFoundation\Response,
     HttpFoundation\Exception\SuspiciousOperationException
 };
@@ -46,7 +46,7 @@ final class TrustProxies extends Middleware
         $method = __FUNCTION__;
         return $this->measure($request, function (Request $request) use ($next, $method) {
             $class  = class_basename(static::class);
-            $output = new ConsoleOutput();
+            $output = SafeConsoleOutput::make();
             $ctx    = [
                 'ip'        => $request->ip(),
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
@@ -58,7 +58,7 @@ final class TrustProxies extends Middleware
                 'proxies'   => $this->proxies,
                 'headers'   => $this?->headers,
                 'params'    => $request->route()?->parameters() ?? [],
-                'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
+                'bearer_present' => (bool)$request->bearerToken(),
             ];
             Log::debug("{$class}::{$method} start", $ctx);
             $output->writeln("[{$class}] {$method}: Processing {$request->getMethod()} {$request->getRequestUri()}");
