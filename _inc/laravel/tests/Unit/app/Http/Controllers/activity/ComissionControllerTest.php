@@ -251,6 +251,7 @@ class CommissionControllerTest extends TestCase
 		$request = Request::create("/commission/create/{$employeeId}", 'GET');
 		$request->setUserResolver(fn () => $user);
 
+		/** @var CommissionController $controller */
 		$response = $controller->commissionCreate($request, $employeeId);
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
@@ -279,6 +280,7 @@ class CommissionControllerTest extends TestCase
 		// attach session for redirect()->back()
 		$request->setLaravelSession(session());
 
+		/** @var CommissionController $controller */
 		$response = $controller->commissionCreate($request, '999');
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
@@ -307,6 +309,7 @@ class CommissionControllerTest extends TestCase
 		$request = Request::create("/commission/create/{$employee->id}", 'GET');
 		$request->setUserResolver(fn () => $user);
 
+		/** @var CommissionController $controller */
 		$response = $controller->commissionCreate($request, $employee->id);
 
 		$this->assertInstanceOf(View::class, $response);
@@ -317,6 +320,6 @@ class CommissionControllerTest extends TestCase
 		$this->assertSame($employee->id, $data['employee']->id);
 
 		$this->assertArrayHasKey('types', $data);
-		$this->assertSame(Commission::$commissiontype, $data['types']);
+		$this->assertSame(Commission::$commissionType, $data['types']);
 	}
 }

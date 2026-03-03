@@ -12,8 +12,8 @@ use App\Models\{Commission, Employee};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
-use Illuminate\Support\Facades\{Auth, DB, Log, Route, Validator, View as ViewFacade};
+use Illuminate\Http\{Request, RedirectResponse};
+use Illuminate\Support\Facades\{Auth, DB, Log, Route, View as ViewFacade};
 
 class CommissionController extends Controller
 {
@@ -45,7 +45,7 @@ class CommissionController extends Controller
           Log::warning("[{$class}::{$action}] employee not found", [UsersConstants::COL_EMP_ID => $employeeId]);
           return redirect()->back()->with('error', __('Employee not found.'));
         }
-        $types = Commission::$commissiontype;
+        $types = Commission::$commissionType;
         Log::info("[{$class}::{$action}] ready", [UsersConstants::COL_EMP_ID => $employee->id, 'types_count' => count($types)]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('employee', 'types'));
@@ -107,7 +107,7 @@ class CommissionController extends Controller
           Log::warning("[{$class}::{$action}] employee not found", [UsersConstants::COL_EMP_ID => $employeeId]);
           return redirect()->back()->with('error', __('Employee not found.'));
         }
-        $types = Commission::$commissiontype;
+        $types = Commission::$commissionType;
         Log::info("[{$class}::{$action}] data ready", ['types' => count($types)]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('employee', 'types'));
@@ -182,7 +182,7 @@ class CommissionController extends Controller
         }
         $commission = Commission::findOrFail($id);
         if ($resp = $this->authorizeOwnership($req, $commission)) return $resp;
-        $types = Commission::$commissiontype;
+        $types = Commission::$commissionType;
         Log::info("[{$class}::{$action}] data ready", ['commission_id' => $commission->id, 'types' => count($types)]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('commission', 'types'));
