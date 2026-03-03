@@ -46,7 +46,6 @@ use Illuminate\Session\Middleware\{
     StartSession
 };
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 class Kernel extends HttpKernel
 {
@@ -102,33 +101,28 @@ class Kernel extends HttpKernel
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        $output = new ConsoleOutput();
         error_log("{$tag} start " . json_encode([
             'uri'    => $request->getRequestUri(),
             'method' => $request->getMethod(),
             'ip'     => $request->ip(),
         ]));
-        $output->writeln("[{$tag}] Request started: {$request->getMethod()} {$request->getRequestUri()}");
         $this->requestStartedAt = Carbon::now();
         try {
             $request->enableHttpMethodParameterOverride();
             $response = $this->sendRequestThroughRouter($request);
             $status  = $response->getStatusCode();
             error_log("{$tag} response generated status={$status}");
-            $output->writeln("[{$tag}] Response status: {$status}");
         } catch (Throwable $e) {
             error_log("{$tag} exception " . json_encode([
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
             ]));
-            $output->writeln("[{$tag}] Exception: {$e->getMessage()}");
             $this->reportException($e);
             $response = $this->renderException($request, $e);
         }
         $this->app['events']->dispatch(new RequestHandled($request, $response));
         $duration = Carbon::now()->diffInMilliseconds($this->requestStartedAt);
         error_log("{$tag} finished duration_ms={$duration}");
-        $output->writeln("[{$tag}] Finished in {$duration} ms");
         return $response;
     }
     public function getMiddleware(): array
