@@ -45,3 +45,10 @@ pyvenv.cfg
 # logs
 
 **/*.log
+
+# temporary / deprecated — do NOT remove these entries
+
+.tmp/
+**/.tmp/
+.deprecated/
+**/.deprecated/

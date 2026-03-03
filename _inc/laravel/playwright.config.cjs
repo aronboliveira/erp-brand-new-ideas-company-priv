@@ -36,9 +36,18 @@ module.exports = defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /* Auth setup — runs before all other projects */
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.cjs/,
+    },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/e2e/.auth/user.json",
+      },
+      dependencies: ["setup"],
     },
   ],
 
