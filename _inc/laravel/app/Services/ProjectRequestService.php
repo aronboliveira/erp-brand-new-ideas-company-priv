@@ -162,11 +162,11 @@ class ProjectRequestService
 			} else {
 				$complete = $project->tasks()
 					->where(PJC::COL_IS_CP, 1)
-					->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
+					->whereRaw("find_in_set(?," . PJC::COL_ASGN . ")", [$userId])
 					->count();
 
 				$total = $project->tasks()
-					->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
+					->whereRaw("find_in_set(?," . PJC::COL_ASGN . ")", [$userId])
 					->count();
 			}
 

@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\{Gate, Log};
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -14,7 +14,7 @@ class AuthServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        (new ConsoleOutput)->writeln('Booting main ' . class_basename(self::class) . ' for registering policies...');
+        SafeConsoleOutput::make()->writeln('Booting main ' . class_basename(self::class) . ' for registering policies...');
         Log::debug(__METHOD__ . ' invoked');
         $this->registerPolicies();
     }

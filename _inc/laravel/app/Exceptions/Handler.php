@@ -87,7 +87,7 @@ final class Handler extends ExceptionHandler
                     'user_agent'    => $request->userAgent(),
                     'route_name'    => optional($request->route())->getName(),
                     'action'        => optional($request->route())->getActionName(),
-                    'headers'       => $request->headers->all(),
+                    'headers' => collect($request->headers->all())->except(['authorization', 'cookie', 'php-auth-pw'])->toArray(),
                     'query_params'  => $request->query(),
                     'payload'       => $request->except(['password', 'password_confirmation']),
                     'user'          => optional($request->user()) ? [
@@ -165,7 +165,7 @@ final class Handler extends ExceptionHandler
                     'user_agent'    => $request->userAgent(),
                     'route_name'    => optional($request->route())->getName(),
                     'action'        => optional($request->route())->getActionName(),
-                    'headers'       => $request->headers->all(),
+                    'headers' => collect($request->headers->all())->except(['authorization', 'cookie', 'php-auth-pw'])->toArray(),
                     'query_params'  => $request->query(),
                     'payload'       => $request->except(['password', 'password_confirmation']),
                     'user'          => optional($request->user()) ? [

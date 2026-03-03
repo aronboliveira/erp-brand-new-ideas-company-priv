@@ -5,7 +5,7 @@ namespace App\Providers;
 use Throwable;
 use Illuminate\Support\Facades\{Broadcast, Log};
 use Illuminate\Support\ServiceProvider;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 final class BroadcastServiceProvider extends ServiceProvider
 {
@@ -13,14 +13,14 @@ final class BroadcastServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        (new ConsoleOutput)->writeln('Registering main ' . class_basename(self::class));
+        SafeConsoleOutput::make()->writeln('Registering main ' . class_basename(self::class));
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
     }
 
     public function boot(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         try {
             Broadcast::routes();
             Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' registered broadcast routes');

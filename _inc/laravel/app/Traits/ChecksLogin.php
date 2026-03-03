@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 trait ChecksLogin
 {
@@ -28,7 +28,7 @@ trait ChecksLogin
 	 */
 	protected static function _checkLogin(bool $haltRedirect = false): Response|RedirectResponse|JsonResponse|View|User|false
 	{
-		$output = new ConsoleOutput();
+		$output = SafeConsoleOutput::make();
 		$function = __FUNCTION__;
 		$msg = 'Checking authentication in ' . $function . ', called by ' . get_called_class() .
 			' using ' . (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'] ?? 'UNKNOWN_METHOD');

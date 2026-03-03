@@ -8,7 +8,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Log, RateLimiter, Route};
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use Throwable;
 
 final class RouteServiceProvider extends ServiceProvider
@@ -28,7 +28,7 @@ final class RouteServiceProvider extends ServiceProvider
     public function register(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $msg = 'Registering main ' . class_basename(RouteServiceProvider::class) . '...';
         app()->runningInConsole()
             ? $output->writeln('<question> ' . $msg . ' </question> ')
@@ -38,7 +38,7 @@ final class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $msg = 'Booting main ' . class_basename(RouteServiceProvider::class) . '...';
         app()->runningInConsole()
             ? $output->writeln('<question> ' . $msg . ' </question> ')
@@ -78,7 +78,7 @@ final class RouteServiceProvider extends ServiceProvider
     public function map(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $output->writeln('Mapping main application routes');
         try {
             $this->mapApiRoutes();
@@ -96,7 +96,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag = __CLASS__ . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         try {
             $msg = 'Mapping main API routes...';
             app()->runningInConsole()
@@ -143,7 +143,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag = __CLASS__ . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         try {
             $msg = 'Mapping main Web routes...';
             app()->runningInConsole()
@@ -187,7 +187,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag = __CLASS__ . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         try {
             $msg = 'Mapping main Fortify routes...';
             app()->runningInConsole()
@@ -236,7 +236,7 @@ final class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $msg = 'Configuring Rate Limit for the main ' . class_basename(RouteServiceProvider::class) . '...';
         app()->runningInConsole()
             ? $output->writeln('<question> ' . $msg . ' </question> ')

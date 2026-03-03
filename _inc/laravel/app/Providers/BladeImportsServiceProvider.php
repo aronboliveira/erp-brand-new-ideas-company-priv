@@ -118,7 +118,7 @@ class BladeImportsServiceProvider extends ServiceProvider
 		'UrlGenerationException'    => \Illuminate\Routing\Exceptions\UrlGenerationException::class,
 
 		// ── Symfony / third-party ───────────────────────────────────
-		'ConsoleOutput'             => \Symfony\Component\Console\Output\ConsoleOutput::class,
+		'ConsoleOutput'             => \App\Helpers\SafeConsoleOutput::class,
 		'RouteNotFoundException'    => \Symfony\Component\Routing\Exception\RouteNotFoundException::class,
 		'Form'                      => \Collective\Html\FormFacade::class,
 		'FormFacade'                => \Collective\Html\FormFacade::class,

@@ -86,10 +86,10 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB(self::BODY_FILL_OPACITY);
                 $sheet->getStyle("A1:{$lastCol}{$highest}")
-                    ->getBorders()->getInsideHorizontal()
+                    ->getBorders()->getHorizontal()
                     ->getColor()->setARGB(self::HORIZONTAL_BORDER_COLOR);
                 $sheet->getStyle("A1:{$lastCol}{$highest}")
-                    ->getBorders()->getInsideVertical()
+                    ->getBorders()->getVertical()
                     ->getColor()->setARGB(self::VERTICAL_BORDER_COLOR);
                 $sheet->getStyle("A1:{$lastCol}1")
                     ->getBorders()->getAllBorders()

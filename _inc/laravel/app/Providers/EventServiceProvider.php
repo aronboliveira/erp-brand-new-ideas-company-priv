@@ -6,7 +6,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\{Event, Log};
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -23,7 +23,7 @@ class EventServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        (new ConsoleOutput)->writeln('Booting main ' . class_basename(self::class));
+        SafeConsoleOutput::make()->writeln('Booting main ' . class_basename(self::class));
         Log::debug(__METHOD__ . ' invoked');
         parent::boot();
     }
@@ -35,7 +35,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function shouldDiscoverEvents(): bool
     {
-        (new ConsoleOutput)->writeln('Returning about discovering events in main ' . class_basename(self::class));
+        SafeConsoleOutput::make()->writeln('Returning about discovering events in main ' . class_basename(self::class));
         Log::debug(__METHOD__ . ' invoked');
         return false;
     }

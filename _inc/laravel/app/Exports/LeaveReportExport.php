@@ -130,13 +130,13 @@ final class LeaveReportExport implements FromCollection, WithHeadings, WithEvent
 
                 $sheet->getStyle("A1:{$lastCol}{$highest}")
                     ->getBorders()
-                    ->getInsideHorizontal()
+                    ->getHorizontal()
                     ->getColor()
                     ->setARGB(self::HORIZONTAL_BORDER_COLOR);
 
                 $sheet->getStyle("A1:{$lastCol}{$highest}")
                     ->getBorders()
-                    ->getInsideVertical()
+                    ->getVertical()
                     ->getColor()
                     ->setARGB(self::VERTICAL_BORDER_COLOR);
 
