@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Helpers\SafeConsoleOutput;
 
 use App\Config\Constants\{
     ActivitiesConstants,
@@ -14,7 +15,6 @@ use App\Config\Constants\{
 };
 use App\Models\{
     Announcement,
-    BalanceSheet,
     BankAccount,
     Bill,
     Bug,
@@ -29,13 +29,10 @@ use App\Models\{
     Goal,
     Invoice,
     Job,
-    LandingPageSection,
     Lead,
     LeadStage,
     Meeting,
     Order,
-    Payees,
-    Payer,
     Payment,
     Plan,
     Pos,
@@ -47,7 +44,6 @@ use App\Models\{
     Revenue,
     Stage,
     Tax,
-    Ticket,
     Timesheet,
     TimeTracker,
     Trainer,
@@ -76,10 +72,7 @@ use Modules\LandingPage\Config\Constants\{
     ExtendingLandingPageLayoutConstants as E,
     RoutesResourcesConstants as R
 };
-use Symfony\Component\{
-    Console\Output\ConsoleOutput,
-    HttpFoundation\Response as HttpResponse
-};
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DashboardController extends Controller
 {
@@ -102,7 +95,7 @@ class DashboardController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method) {
             try {
                 $startOverall = microtime(true);
-                $output = new ConsoleOutput();
+                $output = SafeConsoleOutput::make();
                 $ctx = ['ip' => $req->ip() ?? 'unknown_ip', 'referrer' => Utility::getReferrer($req) ?? 'no_referrer', 'uri' => $req->getRequestUri() ?? 'unknown_uri', 'route' => $req->route()?->getName() ?? '#UNIDENTIFIED', 'controller_method' => $method];
                 Log::info("[$action] called", $ctx);
                 $output->writeln("\n<question>Calling Dashboard::index</question>\n");
@@ -303,7 +296,7 @@ class DashboardController extends Controller
                 $sevenDays   = Utility::getLastSevenDays();
                 $homeData    = [];
                 $homeData['totalProject'] = ['total' => count($projectIds), 'percentage' => Utility::getPercentage($user?->projects()->where(ActivitiesConstants::COL_TSK_STT, ProjectsConstants::STT_CPT_K)->count(), count($projectIds))];
-                $homeData['totalTask']    = ['total' => $tasks->count(), 'percentage' => Utility::getPercentage($tasks->where(ProjectsConstants::COL_IS_CP, 1)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->count(), $tasks->count())];
+                $homeData['totalTask']    = ['total' => $tasks->count(), 'percentage' => Utility::getPercentage($tasks->where(ProjectsConstants::COL_IS_CP, 1)->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id])->count(), $tasks->count())];
                 $totalBudget = $user?->projects->sum('budget');
                 $totalExpense = $expenses->sum('amount');
                 $homeData['totalExpense'] = ['total' => $expenses->count(), 'percentage' => Utility::getPercentage($totalExpense, $totalBudget)];
@@ -813,9 +806,9 @@ class DashboardController extends Controller
             : SettingsConstants::MAX_SL_LIMIT_MB;
     }
 
-    private function handleLandingOrInstall(Request $req): RedirectResponse
+    private function handleLandingOrInstall(Request $req): RedirectResponse|View
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         if (!file_exists(storage_path('installed'))) {
             $output->writeln('');
             $output->writeln('<error>No installation detected. Killing process. </error>');
@@ -837,7 +830,7 @@ class DashboardController extends Controller
         return redirect('login');
     }
 
-    private function buildPipelineStats(string $model, string $key, int $total): array
+    private function buildPipelineStats(string $model, string $key, int $total): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
