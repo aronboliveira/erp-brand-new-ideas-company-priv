@@ -7,11 +7,6 @@ use App\Http\Controllers\{
     AnnouncementController,
     AppraisalController,
     AssetController,
-    Auth\AuthenticatedSessionController,
-    Auth\EmailVerificationNotificationController,
-    Auth\EmailVerificationPromptController,
-    Auth\RegisteredUserController,
-    Auth\VerifyEmailController,
     AwardController,
     AwardTypeController,
     BankAccountController,
@@ -122,41 +117,14 @@ use App\Http\Controllers\{
     WarehouseTransferController,
     WarningController,
     ZoomMeetingController,
-    // AamarpayController,
-    // CoingatePaymentController,
-    // FlutterwavePaymentController,
-    // IyziPayController,
-    // MercadoPaymentController,
-    // MidtransPaymentController,
-    // MolliePaymentController,
-    // PayFastController,
-    // PaymentWallPaymentController,
-    // PaypalController,
-    // PaystackPaymentController,
-    // PaytabController,
-    // PaytmPaymentController,
-    // PaytrController,
-    // RazorpayPaymentController,
-    // SkrillPaymentController,
-    // SspayController,
     StripePaymentController,
-    // ToyyibpayController,
-    // XenditPaymentController,
-    // YooKassaController,
 };
 use App\Config\Constants\{
-    BaseRoutesConstants,
     DatabaseConstants,
     MiddlewaresConstants as MWC,
-    PermissionsConstants,
     ViewsConstants as VW
 };
-use App\Models\Coupon;
-use Google\Service\OracleDatabase\CustomerContact;
-use Modules\LandingPage\{
-    Config\Constants\RoutesResourcesConstants as RRC,
-    Http\Controllers\HomeController
-};
+use Modules\LandingPage\Config\Constants\RoutesResourcesConstants as RRC;
 use Illuminate\Support\Facades\Route as R;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -1780,7 +1748,8 @@ R2::post('/paymentIPN', function (\Illuminate\Http\Request $request) {
                 return response()->json(['message' => 'Payment gateway not configured'], 503);
             }
         }
-        $controller = app(\Paytabscom\Laravel_paytabs\PaytabsLaravelListenerApi::class);
+        /** @var mixed $controller */
+        $controller = app('Paytabscom\\Laravel_paytabs\\PaytabsLaravelListenerApi');
         return $controller->paymentIPN($request);
     } catch (\Throwable $e) {
         RL::error('PayTabs IPN error: ' . get_class($e) . ' — ' . $e->getMessage(), [
