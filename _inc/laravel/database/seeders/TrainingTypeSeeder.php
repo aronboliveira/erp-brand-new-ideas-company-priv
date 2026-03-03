@@ -226,10 +226,10 @@ class TrainingTypeSeeder extends Seeder
 		$rules = [];
 
 		if (is_string($min) && trim($min) !== '') {
-			$rules['duration_min'] = $min;
+			$rules[PJC::COL_MIN_DR] = $min;
 		}
 		if (is_string($max) && trim($max) !== '') {
-			$rules['duration_max'] = $max;
+			$rules[PJC::COL_MAX_DR] = $max;
 		}
 
 		return $rules;

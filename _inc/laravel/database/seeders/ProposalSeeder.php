@@ -45,7 +45,7 @@ class ProposalSeeder extends Seeder
 		$unitIds      = DB::table(DC::TABLE_PROD_SERV_UNITS)->pluck('id')->all();
 		$employeeIds  = DB::table(DC::TABLE_EMPLOYEES)->pluck('id')->all();
 		$qualifiedRejectors = DB::table(DC::TABLE_USERS)
-			->where('type', [UserType::Admin->value, UserType::SuperAdmin->value, UserType::Company->value, UserType::Accountant->value])
+			->whereIn('type', [UserType::Admin->value, UserType::SuperAdmin->value, UserType::Company->value, UserType::Accountant->value])
 			->pluck('id')
 			->all();
 
