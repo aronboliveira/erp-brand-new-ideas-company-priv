@@ -3,7 +3,7 @@
     "description": "VSCode global search regexes for ERP Nova Prestech codebase auditing",
     "usage": "Open VSCode Search (Ctrl+Shift+F), enable 'Use Regular Expression' (Alt+R), paste the regex value",
     "format": "Each entry: { 'regex': string, 'files': glob or null, 'purpose': string, 'flag': 'AUDIT'|'BUG'|'DEBUG'|'SECURITY'|'STYLE' }",
-    "last_updated": "2026-03-01"
+    "last_updated": "2026-03-02"
   },
 
   "php_bugs": [
@@ -97,6 +97,46 @@
       "regex": "\\{!!\\s*\\$(?:request|input|data|post|get|query)",
       "files": "_inc/laravel/resources/views/**/*.blade.php",
       "note": "Use {{ }} unless content is explicitly sanitized"
+    },
+    {
+      "id": "PHP-SEC-06",
+      "flag": "SECURITY",
+      "purpose": "FIND_IN_SET with raw variable interpolation — SQL injection",
+      "regex": "FIND_IN_SET\\s*\\(\\s*['\"]?\\$",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Use FIND_IN_SET(?, col) with bindings. 31 sites found (2026-03-02)"
+    },
+    {
+      "id": "PHP-SEC-07",
+      "flag": "SECURITY",
+      "purpose": "Bearer token logged — credential leak in logs",
+      "regex": "bearerToken\\s*\\(\\)",
+      "files": "_inc/laravel/app/Http/Middleware/**/*.php",
+      "note": "Remove from log calls in 10 middleware files (K9)"
+    },
+    {
+      "id": "PHP-SEC-08",
+      "flag": "SECURITY",
+      "purpose": "mkdir with 0777 permissions — world-writable directories",
+      "regex": "mkdir\\s*\\([^)]*0777",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Change to 0755. Found in ApiController, LanguageController, uploads"
+    },
+    {
+      "id": "PHP-SEC-09",
+      "flag": "SECURITY",
+      "purpose": "getClientOriginalName() — predictable upload filenames",
+      "regex": "getClientOriginalName\\s*\\(\\)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Replace with hashed/UUID filenames for upload security"
+    },
+    {
+      "id": "PHP-SEC-10",
+      "flag": "SECURITY",
+      "purpose": "file_put_contents with user input — potential path traversal",
+      "regex": "file_put_contents\\s*\\(.*\\$(?:request|file|name|path|input)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Sanitize filename, validate path prefix. Found in ApiController (K7)"
     }
   ],
 
@@ -186,6 +226,22 @@
       "regex": "document\\.getElementById\\s*\\([^)]+\\)\\.",
       "files": "_inc/laravel/resources/js/**/*.{js,ts}",
       "note": "Add: const el = ...; if (el) { ... }"
+    },
+    {
+      "id": "JS-SEC-01",
+      "flag": "SECURITY",
+      "purpose": "javascript: URI allowed in regex or href — XSS vector",
+      "regex": "javascript\\s*:",
+      "files": "_inc/laravel/public/assets/js/**/*.js",
+      "note": "Ensure all URL validation explicitly blocks javascript: protocol"
+    },
+    {
+      "id": "JS-SEC-02",
+      "flag": "SECURITY",
+      "purpose": "innerHTML or setHTMLContent without sanitization",
+      "regex": "\\.innerHTML\\s*=",
+      "files": "_inc/laravel/public/assets/js/**/*.js",
+      "note": "Use safeSethtmlContent() or DOMPurify for user-supplied HTML"
     }
   ],
 
