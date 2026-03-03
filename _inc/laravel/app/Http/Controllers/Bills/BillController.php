@@ -9,7 +9,7 @@ use App\Config\Constants\{
     MiddlewaresConstants,
     PermissionsConstants,
     SettingsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants as VW
 };
 use App\Exports\BillExport;
@@ -25,7 +25,6 @@ use App\Models\{
     DebitNote,
     ProductService,
     ProductServiceCategory,
-    StockReport,
     Transaction,
     User,
     Utility,
@@ -36,7 +35,7 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Mail, Redirect, Route, Storage, View as ViewFacade};
+use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Mail, Redirect, Route, View as ViewFacade};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -861,7 +860,7 @@ final class BillController extends Controller
                             Log::error("[{$base}::{$action}] storage limit exceeded", [UC::COL_USER_ID => $user?->id]);
                             throw new \RuntimeException('storage');
                         }
-                        $fname = time() . '_' . $req->file('add_receipt')->getClientOriginalName();
+                        $fname = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->file('add_receipt')->getClientOriginalName());
                         $path = Utility::uploadFile($req, 'add_receipt', $fname, 'uploads/payment', []);
                         if (($path['flag'] ?? 0) == 0) {
                             Log::error("[{$base}::{$action}] receipt upload failed", ['message' => $path['msg'] ?? 'unknown']);
