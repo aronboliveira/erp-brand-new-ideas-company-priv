@@ -8,9 +8,9 @@ use App\Models\{User, Utility};
 use App\Traits\ChecksLogin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{App, Log};
-use Illuminate\Support\Str;
 use RachidLaasri\LaravelInstaller\Helpers\MigrationsHelper;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class XSS
 {
@@ -38,9 +38,9 @@ final class XSS
             'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
             'location' => $location,
             'params'   => $request->route()?->parameters() ?? [],
-            'bearer'   => $request->bearerToken() ?? '# NO TOKEN',
+            'bearer_present' => (bool)$request->bearerToken(),
         ]);
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $output->writeln("[{$class}] start {$location}");
         $authStart = microtime(true);
         $user = null;
@@ -128,7 +128,7 @@ final class XSS
         }
     }
 
-    private function writeConsole(ConsoleOutput $out, string $message): void
+    private function writeConsole(OutputInterface $out, string $message): void
     {
         app()->runningInConsole()
             ? $out->writeln("<comment> $message </comment>")

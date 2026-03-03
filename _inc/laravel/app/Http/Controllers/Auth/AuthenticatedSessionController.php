@@ -39,7 +39,6 @@ use Illuminate\Support\Facades\{
   Log,
   Mail,
   Route,
-  Validator,
   View as ViewFacade
 };
 use Illuminate\{
@@ -47,7 +46,7 @@ use Illuminate\{
   Validation\ValidationException,
   View\View
 };
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use function App\Http\Controllers\{
   defaultPermissionDenial,
   defaultUndefinedException
@@ -62,7 +61,7 @@ class AuthenticatedSessionController extends Controller
   {
     $msg = 'Constructing ' . __CLASS__ . '...';
     app()->runningInConsole() ?
-      (new ConsoleOutput)->writeln('<info> ' . $msg . ' </info>') : (new ConsoleOutput)->writeln("## CONTROLLER: {$msg}");
+      SafeConsoleOutput::make()->writeln('<info> ' . $msg . ' </info>') : SafeConsoleOutput::make()->writeln("## CONTROLLER: {$msg}");
     Log::debug($msg);
   }
 
@@ -71,7 +70,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $base   = class_basename(static::class);
       $msg    = 'Starting login form';
       app()->runningInConsole()
@@ -467,7 +466,7 @@ class AuthenticatedSessionController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     $function = __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action, $function) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $start  = 'Starting link request form';
       app()->runningInConsole()
         ? $output->writeln("<info> {$action}: {$start} </info>")
@@ -529,7 +528,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
-      $output   = new ConsoleOutput();
+      $output   = SafeConsoleOutput::make();
       $startMsg = 'Starting customer login form';
       app()->runningInConsole()
         ? $output->writeln("<info> {$action}: {$startMsg} </info>")
@@ -591,7 +590,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $lang) {
-      $output = new ConsoleOutput;
+      $output = SafeConsoleOutput::make();
       $startMsg = 'Starting vendor login form';
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
@@ -639,7 +638,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
-      $output   = new ConsoleOutput();
+      $output   = SafeConsoleOutput::make();
       $startMsg = 'Starting customer link request form';
       app()->runningInConsole()
         ? $output->writeln("<info> {$action}: {$startMsg} </info>")
@@ -701,7 +700,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
-      $output   = new ConsoleOutput();
+      $output   = SafeConsoleOutput::make();
       $startMsg = 'Starting vendor link request form';
       app()->runningInConsole()
         ? $output->writeln("<info> {$action}: {$startMsg} </info>")
@@ -827,11 +826,11 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_RST_FM = 'showResetForm';
-  public function showResetForm(Request $req, string $token = null): View|JsonResponse
+  public function showResetForm(Request $req, ?string $token = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $token, $action) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $tag = $action;
       $startMsg = 'Starting reset form';
       app()->runningInConsole() ? $output->writeln("<info> {$tag}: {$startMsg} </info>") : $output->writeln("## {$tag}: {$startMsg}");
@@ -867,7 +866,7 @@ class AuthenticatedSessionController extends Controller
     $function = __FUNCTION__;
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $token, $function) {
-      $output = new ConsoleOutput;
+      $output = SafeConsoleOutput::make();
       $startMsg = 'Starting ' . $function;
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
@@ -912,7 +911,7 @@ class AuthenticatedSessionController extends Controller
     $tag = class_basename(static::class) . '@' . __FUNCTION__;
     Log::debug($method . ' - start', ['token' => $token]);
     return $this->measureProfile($method, function () use ($token, $tag, $method, $function) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $startMsg = 'Starting ' . $function;
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
@@ -957,7 +956,7 @@ class AuthenticatedSessionController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $tag = class_basename(static::class) . '@' . __FUNCTION__;
       $startMsg = 'Starting ' . __FUNCTION__;
       app()->runningInConsole() ? $output->writeln("<info> {$tag}: {$startMsg} </info>") : $output->writeln("## {$tag}: {$startMsg}");
@@ -979,7 +978,7 @@ class AuthenticatedSessionController extends Controller
     $function = __FUNCTION__;
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $req, $function) {
-      $output = new ConsoleOutput;
+      $output = SafeConsoleOutput::make();
       $startMsg = 'Starting ' . $function;
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
@@ -1070,7 +1069,7 @@ class AuthenticatedSessionController extends Controller
     }, ['user_id' => $user?->id, 'ip' => $req->server('REMOTE_ADDR')]);
   }
 
-  private static function _setLocale(string $lang = null): string
+  private static function _setLocale(?string $lang = null): string
   {
     $lang ??= Utility::getValByName(SettingsConstants::DEF_LNG);
     App::setLocale($lang);
