@@ -27,7 +27,6 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class NotificationTemplateController extends Controller
 {
