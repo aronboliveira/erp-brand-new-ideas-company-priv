@@ -6,12 +6,10 @@ use App\Config\Constants\{
     BillsConstants as BC,
     DatabaseConstants as DC,
     ProjectsConstants as PJC,
-    SettingsConstants as SC,
     UsersConstants as UC
 };
 use App\Enums\{
     BillStatus,
-    ConsumableType,
     PaymentStatus,
     TransactionType,
     UserType
@@ -45,6 +43,17 @@ class Bill extends Model
     use DefinesDates;
 
     protected $table = DC::TABLE_BILLS;
+
+    /**
+     * Legacy numeric status map (mirrors BillStatus enum values).
+     */
+    public static array $statuses = [
+        'Draft',
+        'Sent',
+        'Unpaid',
+        'Partially Paid',
+        'Paid',
+    ];
 
     protected $fillable = [
         BC::COL_BL_ID,

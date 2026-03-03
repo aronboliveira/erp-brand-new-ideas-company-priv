@@ -22,6 +22,14 @@ class Job extends Model
 
     protected $table = DC::TABLE_JOBS;
 
+    /**
+     * Status options for dropdown selects (mirrors EvaluationStatus subset).
+     */
+    public static array $status = [
+        'active'    => 'Active',
+        'in_active' => 'In Active',
+    ];
+
     protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
