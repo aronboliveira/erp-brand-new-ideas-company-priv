@@ -20,7 +20,6 @@ use App\Models\{
 };
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{
-  JsonResponse,
   RedirectResponse,
   Request,
   Response,
@@ -375,7 +374,7 @@ final class BankTransferPaymentController extends Controller
           Log::info("[{$base}::{$action}] transfer found", ['transfer_id' => $transfer->id, 'invoice_id' => $transfer->invoice_id, 'order_id' => $transfer->order_id]);
           if ($status === 'Approval') {
             $prepStart = microtime(true);
-            $settings = DB::table('settings')->where('created_by', $transfer->created_by)->pluck('value', 'name');
+            $settings = DB::table('settings')->where('created_by', $transfer->created_by)->pluck('value', 'name')->toArray();
             $invoice = Invoice::findOrFail($transfer->invoice_id);
             $desc = __('Invoice') . ' ' . Utility::invoiceNumberFormat($settings, $invoice->invoice_id);
             $this->logExecutionTime($prepStart, $action, 'preparePayment');
@@ -435,7 +434,7 @@ final class BankTransferPaymentController extends Controller
       Log::info('No receipt file uploaded', ['user' => $request->user()?->id]);
       return null;
     }
-    $file = time() . '_' . $request->file('payment_receipt')->getClientOriginalName();
+    $file = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $request->file('payment_receipt')->getClientOriginalName());
     $path = Utility::uploadFile($request, 'payment_receipt', $file, self::DIR, []);
     Log::info('Receipt uploaded', ['file' => $file, 'path' => $path]);
     return ['file' => $file, 'path' => $path];
