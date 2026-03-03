@@ -7,7 +7,7 @@
       const text = msg || tr("calendar_data_unavailable");
       const hasBootstrap =
         Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-          l => /bootstrap/i.test(l.href)
+          l => /bootstrap/i.test(l.href),
         ) && window.bootstrap?.Toast;
       let box = document.getElementById(toastBoxId);
       if (!box) {
@@ -20,7 +20,12 @@
       if (hasBootstrap) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.innerHTML = `<div class="toast-body">${text}</div>`;
+        {
+          const _b = document.createElement("div");
+          _b.className = "toast-body";
+          _b.textContent = text;
+          t.replaceChildren(_b);
+        }
         box.appendChild(t);
         bootstrap.Toast.getOrCreateInstance(t).show();
       } else {

@@ -118,7 +118,7 @@
       document
         .querySelectorAll("[data-confirm-delete]")
         .forEach(el =>
-          scheduleInteractiveError(el, getMsg(el, "plugin_unavailable"))
+          scheduleInteractiveError(el, getMsg(el, "plugin_unavailable")),
         );
       return;
     }
@@ -147,7 +147,9 @@
                   try {
                     const yesCode = me.data("confirm-yes");
                     if (yesCode) {
-                      eval(yesCode);
+                      // SECURITY: Replace eval with safe handler dispatch
+                      window.__confirmHandlers?.[yesCode]?.() ||
+                        safeFormAction(yesCode, me);
                     }
                   } catch (_) {}
                   try {
@@ -173,7 +175,9 @@
                   try {
                     const noCode = me.data("confirm-no");
                     if (noCode) {
-                      eval(noCode);
+                      // SECURITY: Replace eval with safe handler dispatch
+                      window.__confirmHandlers?.[noCode]?.() ||
+                        safeFormAction(noCode, me);
                     }
                   } catch (_) {}
                 },
@@ -201,6 +205,28 @@
       }
     });
   };
+
+  // SECURITY: Safe fallback for confirm handlers instead of eval()
+  const safeFormAction = (actionStr, element) => {
+    if (!actionStr) return;
+    // If it looks like a form selector, submit that form
+    if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
+      const form = qs(actionStr);
+      if (form && form.tagName === "FORM") {
+        form.submit();
+      }
+      return;
+    }
+    // If it starts with a safe URL protocol, navigate to it
+    if (
+      /^(https?:\/\/|\/)/.test(actionStr) &&
+      !/^javascript:/i.test(actionStr)
+    ) {
+      window.location.href = actionStr;
+      return;
+    }
+  };
+
   const init = () => {
     bindConfirmModals();
   };

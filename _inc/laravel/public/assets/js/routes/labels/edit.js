@@ -25,7 +25,12 @@
         toastEl.setAttribute("aria-live", "assertive");
         toastEl.setAttribute("aria-atomic", "true");
         toastEl.style.minWidth = "280px";
-        toastEl.innerHTML = `<div class="toast-body">${message}</div>`;
+        {
+          const _b = document.createElement("div");
+          _b.className = "toast-body";
+          _b.textContent = message;
+          toastEl.replaceChildren(_b);
+        }
         container.appendChild(toastEl);
         setTimeout(() => toastEl.remove(), 4000);
       } else {

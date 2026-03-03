@@ -110,10 +110,16 @@
         const data = await res.json().catch(() => ({}));
         const detail = qs(detailSel);
         if (!detail) return;
-        detail.innerHTML = data?.html ?? "";
+        detail.replaceChildren();
+        const _serverMarkup = data?.html ?? "";
+        if (_serverMarkup) {
+          const _tmpl = document.createElement("template");
+          _tmpl.innerHTML = _serverMarkup;
+          detail.append(_tmpl.content);
+        }
         detail.classList.toggle(
           "d-none",
-          !(data?.html && String(data.html).trim().length)
+          !(data?.html && String(data.html).trim().length),
         );
       } catch (err) {}
     };
@@ -181,7 +187,7 @@
       });
       const acc = qs(
         ".accountAmount",
-        container.closest("tbody[data-repeater-item]")
+        container.closest("tbody[data-repeater-item]"),
       );
       if (acc) {
         acc.addEventListener("input", recalcTable);
@@ -222,7 +228,8 @@
             if (price && data?.price !== undefined)
               price.value = String(data.price ?? "");
             if (taxesBox && data?.taxesHtml !== undefined)
-              taxesBox.innerHTML = String(data.taxesHtml ?? "");
+              // SECURITY: Use safe HTML insertion instead of innerHTML
+              safeSethtmlContent(taxesBox, String(data.taxesHtml ?? ""));
             if (taxRate && data?.taxRate !== undefined)
               taxRate.value = String(data.taxRate ?? "");
             if (taxPrice && data?.taxPrice !== undefined)
@@ -247,19 +254,19 @@
     const venSel = document.getElementById("vendor");
     if (empSel && once(empSel, "data-bound"))
       empSel.addEventListener("change", () =>
-        fetchDetail(empSel, "#employee_detail")
+        fetchDetail(empSel, "#employee_detail"),
       );
     if (cusSel && once(cusSel, "data-bound"))
       cusSel.addEventListener("change", () =>
-        fetchDetail(cusSel, "#customer_detail")
+        fetchDetail(cusSel, "#customer_detail"),
       );
     if (venSel && once(venSel, "data-bound"))
       venSel.addEventListener("change", () =>
-        fetchDetail(venSel, "#vendor_detail")
+        fetchDetail(venSel, "#vendor_detail"),
       );
 
     qsa("tbody[data-repeater-item] tr:nth-child(1)").forEach(row =>
-      bindRow(row)
+      bindRow(row),
     );
     qsa("[data-repeater-create]").forEach(btn => {
       btn.addEventListener("click", () => {

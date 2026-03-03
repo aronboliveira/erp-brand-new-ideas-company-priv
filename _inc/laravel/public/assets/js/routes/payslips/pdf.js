@@ -49,26 +49,21 @@
   const printFn = () => {
     const el = document.getElementById(printableId);
     if (!el) return;
-    const w = window.open("", "_blank", "noopener,noreferrer");
+    const w = window.open("about:blank", "_blank", "noopener,noreferrer");
     if (!w) return;
-    w.document.open();
-    w.document.write(`
-      <html>
-        <head>
-          <title>Payslip</title>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="stylesheet" href="${
-            document.querySelector('link[href*="bootstrap"]')?.href || ""
-          }">
-          <style>body{padding:16px}</style>
-        </head>
-        <body>${el.innerHTML}</body>
-      </html>
-    `);
-    w.document.close();
+    const bootstrapHref =
+      document.querySelector('link[href*="bootstrap"]')?.href || "";
+    const newDoc = w.document;
+    newDoc.head.innerHTML = [
+      "<title>Payslip</title>",
+      '<meta charset="utf-8" />',
+      '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+      `<link rel="stylesheet" href="${bootstrapHref}">`,
+      "<style>body{padding:16px}</style>",
+    ].join("");
+    newDoc.body.innerHTML = el.innerHTML;
     w.focus();
-    w.onload = () => w.print();
+    setTimeout(() => w.print(), 300);
   };
   if (printBtn) {
     printBtn.addEventListener("click", e => {

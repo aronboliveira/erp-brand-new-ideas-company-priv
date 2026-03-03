@@ -68,7 +68,7 @@
       toast.setAttribute("role", "alert");
       toast.setAttribute("aria-live", "assertive");
       toast.setAttribute("aria-atomic", "true");
-      toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+      { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = msg; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
       toastContainer.append(toast);
       new window.bootstrap.Toast(toast).show();
     } else {

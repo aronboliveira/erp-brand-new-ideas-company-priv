@@ -22,7 +22,7 @@
   const showToast = msg => {
     const hasBs =
       Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l =>
-        /bootstrap/i.test(l.href)
+        /bootstrap/i.test(l.href),
       ) && window.bootstrap?.Toast;
     if (hasBs) {
       let box = document.getElementById(toastId);
@@ -35,7 +35,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast";
-      t.innerHTML = `<div class="toast-body">${msg}</div>`;
+      {
+        const _b = document.createElement("div");
+        _b.className = "toast-body";
+        _b.textContent = msg;
+        t.replaceChildren(_b);
+      }
       box.appendChild(t);
       bootstrap.Toast.getOrCreateInstance(t).show();
     } else {

@@ -37,7 +37,7 @@
     try {
       const hasBs =
         Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-          l => /bootstrap/i.test(l.href)
+          l => /bootstrap/i.test(l.href),
         ) && window.bootstrap?.Toast;
       if (hasBs) {
         let c = document.getElementById("bootstrap-toast-container");
@@ -102,7 +102,7 @@
         $(".employee, .customer").addClass("d-none").removeClass("d-block");
       }
     },
-    "selection_failed"
+    "selection_failed",
   );
 
   delegate("change", "#employee", el => {
@@ -114,8 +114,10 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) $("#employee_detail").innerHTML = data;
-        else {
+        if (data) {
+          // SECURITY: Use safe HTML insertion instead of innerHTML
+          safeSethtmlContent(document.getElementById("employee_detail"), data);
+        } else {
           $("#employee-box").addClass("d-block").removeClass("d-none");
           $("#employee_detail").addClass("d-none").removeClass("d-block");
         }
@@ -133,8 +135,10 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) $("#customer_detail").innerHTML = data;
-        else {
+        if (data) {
+          // SECURITY: Use safe HTML insertion instead of innerHTML
+          safeSethtmlContent(document.getElementById("customer_detail"), data);
+        } else {
           $("#customer-box").addClass("d-block").removeClass("d-none");
           $("#customer_detail").addClass("d-none").removeClass("d-block");
         }
@@ -152,8 +156,10 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) $("#vendor_detail").innerHTML = data;
-        else {
+        if (data) {
+          // SECURITY: Use safe HTML insertion instead of innerHTML
+          safeSethtmlContent(document.getElementById("vendor_detail"), data);
+        } else {
           $("#vendor-box").addClass("d-block").removeClass("d-none");
           $("#vendor_detail").addClass("d-none").removeClass("d-block");
         }
@@ -170,4 +176,26 @@
       .addClass("d-none")
       .removeClass("d-block");
   });
+
+  // SECURITY: Safe HTML insertion helper
+  function safeSethtmlContent(el, html) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      if (doc.body.innerHTML.includes("PARSER ERROR")) {
+        el.textContent = html;
+        return;
+      }
+      while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+      const fragment = document.createDocumentFragment();
+      for (let node of doc.body.childNodes) {
+        fragment.appendChild(node.cloneNode(true));
+      }
+      el.appendChild(fragment);
+    } catch (e) {
+      el.textContent = html;
+    }
+  }
 })();

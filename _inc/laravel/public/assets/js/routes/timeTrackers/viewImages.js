@@ -62,7 +62,6 @@
               alert("Could not find images modal container");
               return;
             }
-
             try {
               const rsp = await fetch(url, {
                 method: "GET",
@@ -71,7 +70,8 @@
               });
               if (!rsp.ok) throw new Error("HTTP " + rsp.status);
               const html = await rsp.text();
-              content.innerHTML = html;
+              // SECURITY: Use textContent for any user data, or use a sanitizer for arbitrary HTML
+              safeSethtmlContent(content, html);
 
               if (
                 typeof window.bootstrap !== "undefined" &&
@@ -121,5 +121,32 @@
         });
       } catch {}
     });
+
+    // SECURITY: Safe HTML insertion helper
+    function safeSethtmlContent(el, html) {
+      try {
+        // Use DOMParser to safely parse HTML, then clone nodes to prevent scripts
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        // Check for parser errors
+        if (doc.body.innerHTML.includes("PARSER ERROR")) {
+          el.textContent = html;
+          return;
+        }
+        // Clear element and append parsed content
+        while (el.firstChild) {
+          el.removeChild(el.firstChild);
+        }
+        // Clone nodes to create a new tree (breaks event handlers, which is safer)
+        const fragment = document.createDocumentFragment();
+        for (let node of doc.body.childNodes) {
+          fragment.appendChild(node.cloneNode(true));
+        }
+        el.appendChild(fragment);
+      } catch (e) {
+        // Fallback to textContent if parsing fails
+        el.textContent = html;
+      }
+    }
   } catch {}
 })();

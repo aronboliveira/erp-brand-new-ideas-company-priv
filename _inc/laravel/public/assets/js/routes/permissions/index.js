@@ -83,7 +83,9 @@
         const handler = function () {
           try {
             if (yes) {
-              new Function(yes)();
+              // SECURITY: Safe handler dispatch instead of new Function()
+              window.__confirmHandlers?.[yes]?.() ||
+                safeFormAction(yes, yesBtn);
             }
           } catch (_) {}
           inst.hide();
@@ -94,12 +96,32 @@
         if (confirm((title ? title + "\n\n" : "") + body)) {
           try {
             if (yes) {
-              new Function(yes)();
+              // SECURITY: Safe handler dispatch instead of new Function()
+              window.__confirmHandlers?.[yes]?.() ||
+                safeFormAction(yes, document.body);
             }
           } catch (_) {}
         }
       }
     });
+  }
+  // SECURITY: Safe fallback for confirm handlers instead of new Function()
+  function safeFormAction(actionStr, element) {
+    if (!actionStr) return;
+    if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
+      var form = document.querySelector(actionStr);
+      if (form && form.tagName === "FORM") {
+        form.submit();
+      }
+      return;
+    }
+    if (
+      /^(https?:\/\/|\/)/.test(actionStr) &&
+      !/^javascript:/i.test(actionStr)
+    ) {
+      window.location.href = actionStr;
+      return;
+    }
   }
   function init() {
     document

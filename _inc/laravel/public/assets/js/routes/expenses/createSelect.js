@@ -85,7 +85,7 @@
               r.removeEventListener("change", onTypeChange);
               o.disconnect();
             }
-          })
+          }),
         );
       }).observe(document.body, { childList: true, subtree: true });
     });
@@ -126,8 +126,10 @@
         data: { id },
       })
         .done(data => {
-          if (data && detail) detail.innerHTML = data;
-          else if (box && detail) {
+          if (data && detail) {
+            // SECURITY: Use safe HTML insertion instead of innerHTML
+            safeSethtmlContent(detail, data);
+          } else if (box && detail) {
             box.classList.replace("d-none", "d-block");
             detail.classList.replace("d-block", "d-none");
           }
@@ -143,7 +145,7 @@
             sel.removeEventListener("change", () => {});
             o.disconnect();
           }
-        })
+        }),
       );
     }).observe(document.body, { childList: true, subtree: true });
   };
@@ -160,4 +162,26 @@
         console.error("Initialization error");
     }
   });
+
+  // SECURITY: Safe HTML insertion helper
+  function safeSethtmlContent(el, html) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      if (doc.body.innerHTML.includes("PARSER ERROR")) {
+        el.textContent = html;
+        return;
+      }
+      while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+      const fragment = document.createDocumentFragment();
+      for (let node of doc.body.childNodes) {
+        fragment.appendChild(node.cloneNode(true));
+      }
+      el.appendChild(fragment);
+    } catch (e) {
+      el.textContent = html;
+    }
+  }
 })();
