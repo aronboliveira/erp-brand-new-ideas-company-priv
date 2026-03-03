@@ -1,0 +1,127 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]: ERP Prestech
+    - navigation [ref=e4]:
+      - link "Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "CRM" [ref=e6] [cursor=pointer]:
+        - /url: "#crm"
+      - link "HRM" [ref=e7] [cursor=pointer]:
+        - /url: "#hrm"
+      - link "POS" [ref=e8] [cursor=pointer]:
+        - /url: "#pos"
+      - link "Projects" [ref=e9] [cursor=pointer]:
+        - /url: "#projects"
+      - link "Finance" [ref=e10] [cursor=pointer]:
+        - /url: "#finance"
+      - link "Reports" [ref=e11] [cursor=pointer]:
+        - /url: "#reports"
+      - link "Settings" [ref=e12] [cursor=pointer]:
+        - /url: "#settings"
+      - link "Admin Panel" [ref=e13] [cursor=pointer]:
+        - /url: "#admin"
+    - generic [ref=e14]:
+      - generic [ref=e15]: Super Admin
+      - generic [ref=e16]: Super Admin
+      - button "Logout" [ref=e17] [cursor=pointer]
+  - main [ref=e18]:
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Admin Controls" [level=3] [ref=e21]
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "User Management" [ref=e24] [cursor=pointer]:
+              - /url: "#users"
+          - listitem [ref=e25]:
+            - link "Role Management" [ref=e26] [cursor=pointer]:
+              - /url: "#roles"
+          - listitem [ref=e27]:
+            - link "Permission Management" [ref=e28] [cursor=pointer]:
+              - /url: "#permissions"
+          - listitem [ref=e29]:
+            - link "Company Management" [ref=e30] [cursor=pointer]:
+              - /url: "#companies"
+          - listitem [ref=e31]:
+            - link "Plan Management" [ref=e32] [cursor=pointer]:
+              - /url: "#plans"
+          - listitem [ref=e33]:
+            - link "System Settings" [ref=e34] [cursor=pointer]:
+              - /url: "#system-settings"
+      - generic [ref=e35]:
+        - heading "HRM" [level=3] [ref=e36]
+        - list [ref=e37]:
+          - listitem [ref=e38]:
+            - link "Employees" [ref=e39] [cursor=pointer]:
+              - /url: "#employees"
+          - listitem [ref=e40]:
+            - link "Attendance" [ref=e41] [cursor=pointer]:
+              - /url: "#attendance"
+          - listitem [ref=e42]:
+            - link "Payroll" [ref=e43] [cursor=pointer]:
+              - /url: "#payroll"
+          - listitem [ref=e44]:
+            - link "Recruitment" [ref=e45] [cursor=pointer]:
+              - /url: "#recruitment"
+      - generic [ref=e46]:
+        - heading "Finance" [level=3] [ref=e47]
+        - list [ref=e48]:
+          - listitem [ref=e49]:
+            - link "Invoices" [ref=e50] [cursor=pointer]:
+              - /url: "#invoices"
+          - listitem [ref=e51]:
+            - link "Bills" [ref=e52] [cursor=pointer]:
+              - /url: "#bills"
+          - listitem [ref=e53]:
+            - link "Expenses" [ref=e54] [cursor=pointer]:
+              - /url: "#expenses"
+          - listitem [ref=e55]:
+            - link "Banking" [ref=e56] [cursor=pointer]:
+              - /url: "#banking"
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - heading "Dashboard" [level=1] [ref=e59]
+        - generic [ref=e60]:
+          - button "+ New User" [ref=e61] [cursor=pointer]
+          - button "Export Report" [ref=e62] [cursor=pointer]
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - heading "Total Revenue" [level=3] [ref=e65]
+          - generic [ref=e66]: $0.00
+          - generic [ref=e67]: +12.5%
+        - generic [ref=e68]:
+          - heading "Active Employees" [level=3] [ref=e69]
+          - generic [ref=e70]: "0"
+          - generic [ref=e71]: "+0"
+        - generic [ref=e72]:
+          - heading "Active Projects" [level=3] [ref=e73]
+          - generic [ref=e74]: "0"
+          - generic [ref=e75]: "+3"
+        - generic [ref=e76]:
+          - heading "New Leads" [level=3] [ref=e77]
+          - generic [ref=e78]: "0"
+          - generic [ref=e79]: "-5"
+        - generic [ref=e80]:
+          - heading "System Health" [level=3] [ref=e81]
+          - generic [ref=e82]: Healthy
+          - generic [ref=e83]: All services running
+      - generic [ref=e84]:
+        - heading "Recent Activities" [level=2] [ref=e85]
+        - table [ref=e86]:
+          - rowgroup [ref=e87]:
+            - row "Date User Action Resource Actions" [ref=e88]:
+              - columnheader "Date" [ref=e89]
+              - columnheader "User" [ref=e90]
+              - columnheader "Action" [ref=e91]
+              - columnheader "Resource" [ref=e92]
+              - columnheader "Actions" [ref=e93]
+          - rowgroup
+        - generic [ref=e94]:
+          - button "Previous" [disabled] [ref=e95]
+          - generic [ref=e96]: Page 1 of 1
+          - button "Next" [ref=e97] [cursor=pointer]
+  - contentinfo [ref=e98]:
+    - paragraph [ref=e99]: © 2026 ERP Prestech — RBAC Test Environment
+```

@@ -1,0 +1,39 @@
+# Playwright Test Runner Container
+# Uses Microsoft's official Playwright image with all browsers pre-installed
+# This avoids SIGSEGV and sandbox issues on host systems
+
+FROM mcr.microsoft.com/playwright:v1.52.0-noble
+
+# Set working directory
+WORKDIR /app
+
+# Install additional useful tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files first for better caching (as root to avoid permission issues)
+COPY package*.json ./
+
+# Install dependencies as root
+RUN npm install --only=production || npm install
+
+# Copy test configuration files
+COPY playwright.config.cjs playwright-frontend.config.cjs ./
+COPY tsconfig.json ./
+
+# Copy test files
+COPY tests/ ./tests/
+
+# Copy public assets needed for e2e tests
+COPY public/ ./public/
+
+# Fix permissions for pwuser
+RUN chown -R pwuser:pwuser /app
+
+# Switch to non-root user for running tests
+USER pwuser
+
+# Default command runs frontend mock tests
+CMD ["npx", "playwright", "test", "--config=playwright-frontend.config.cjs", "--reporter=list"]

@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Permission Revoked Scenario</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="admin" data-user-id="revoke-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show admin dashboard"
+          >Dashboard</a
+        >
+        <a href="#users" class="nav-link" data-permission="manage user"
+          >Users</a
+        >
+        <a href="#reports" class="nav-link" data-permission="manage report"
+          >Reports</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Admin User</span>
+        <span class="user-role badge role-admin" id="role-badge">Admin</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Permission Revocation Test</h1>
+          <p class="subtitle">
+            Tests real-time permission revocation while user is active on page
+          </p>
+        </div>
+
+        <!-- Control Panel -->
+        <section class="data-section" id="control-section">
+          <h2>Simulate Permission Changes</h2>
+          <p>
+            These buttons simulate server-side permission changes that would be
+            pushed via WebSocket or polling:
+          </p>
+          <div class="actions">
+            <button class="btn btn-danger" id="btn-revoke-users">
+              Revoke "manage user"
+            </button>
+            <button class="btn btn-danger" id="btn-revoke-reports">
+              Revoke "manage report"
+            </button>
+            <button class="btn btn-success" id="btn-restore-all">
+              Restore All Permissions
+            </button>
+          </div>
+        </section>
+
+        <!-- User Management Section -->
+        <section
+          class="data-section"
+          id="users-section"
+          data-permission="manage user"
+        >
+          <h2>User Management</h2>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              id="btn-add-user"
+              data-permission="manage user"
+            >
+              + Add User
+            </button>
+            <button
+              class="btn btn-secondary"
+              id="btn-edit-user"
+              data-permission="manage user"
+            >
+              Edit User
+            </button>
+            <button
+              class="btn btn-danger"
+              id="btn-delete-user"
+              data-permission="manage user"
+            >
+              Delete User
+            </button>
+          </div>
+          <div
+            class="revoked-notice"
+            id="users-revoked-notice"
+            style="display: none"
+          >
+            <span class="warning-icon">⚠️</span>
+            <strong>Permission Revoked:</strong> Your "manage user" permission
+            has been removed. Contact your administrator.
+          </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section
+          class="data-section"
+          id="reports-section"
+          data-permission="manage report"
+        >
+          <h2>Reports</h2>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              id="btn-generate-report"
+              data-permission="manage report"
+            >
+              Generate Report
+            </button>
+            <button
+              class="btn btn-secondary"
+              id="btn-export-report"
+              data-permission="manage report"
+            >
+              Export
+            </button>
+          </div>
+          <div
+            class="revoked-notice"
+            id="reports-revoked-notice"
+            style="display: none"
+          >
+            <span class="warning-icon">⚠️</span>
+            <strong>Permission Revoked:</strong> Your "manage report" permission
+            has been removed. Contact your administrator.
+          </div>
+        </section>
+
+        <!-- Event Log -->
+        <section class="data-section" id="log-section">
+          <h2>Permission Change Log</h2>
+          <div class="action-log" id="permission-log"></div>
+        </section>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .revoked-notice {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        color: #92400e;
+      }
+      .revoked-notice .warning-icon {
+        margin-right: 0.5rem;
+      }
+      .action-log {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+      .action-log .entry {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .action-log .entry.revoked {
+        color: #dc2626;
+      }
+      .action-log .entry.restored {
+        color: #16a34a;
+      }
+      .section-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        position: relative;
+      }
+      .section-disabled::after {
+        content: "Permission Required";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+      }
+    </style>
+
+    <script>
+      // Initial user permissions
+      let currentPermissions = new Set([
+        "show admin dashboard",
+        "manage user",
+        "manage report",
+      ]);
+
+      // Log helper
+      function log(message, type = "info") {
+        const logEl = document.getElementById("permission-log");
+        const entry = document.createElement("div");
+        entry.className = `entry ${type}`;
+        entry.textContent = `[${new Date().toISOString().split("T")[1].slice(0, 8)}] ${message}`;
+        logEl.insertBefore(entry, logEl.firstChild);
+      }
+
+      // Permission check
+      function userCan(permission) {
+        return currentPermissions.has(permission);
+      }
+
+      // Apply RBAC to specific elements
+      function updateElementVisibility(permission) {
+        document
+          .querySelectorAll(`[data-permission="${permission}"]`)
+          .forEach(el => {
+            if (userCan(permission)) {
+              el.style.display = "";
+              el.classList.remove("section-disabled");
+            } else {
+              // For buttons, hide them; for sections, disable them
+              if (el.tagName === "BUTTON" || el.tagName === "A") {
+                el.style.display = "none";
+              } else {
+                el.classList.add("section-disabled");
+              }
+            }
+          });
+      }
+
+      // Revoke permission
+      function revokePermission(permission) {
+        if (currentPermissions.has(permission)) {
+          currentPermissions.delete(permission);
+          log(`Permission "${permission}" has been REVOKED`, "revoked");
+          updateElementVisibility(permission);
+
+          // Show revocation notice
+          if (permission === "manage user") {
+            document.getElementById("users-revoked-notice").style.display =
+              "block";
+          } else if (permission === "manage report") {
+            document.getElementById("reports-revoked-notice").style.display =
+              "block";
+          }
+
+          // Dispatch custom event for test monitoring
+          window.dispatchEvent(
+            new CustomEvent("permissionRevoked", { detail: { permission } }),
+          );
+        }
+      }
+
+      // Restore permission
+      function restorePermission(permission) {
+        if (!currentPermissions.has(permission)) {
+          currentPermissions.add(permission);
+          log(`Permission "${permission}" has been RESTORED`, "restored");
+          updateElementVisibility(permission);
+
+          // Hide revocation notice
+          if (permission === "manage user") {
+            document.getElementById("users-revoked-notice").style.display =
+              "none";
+          } else if (permission === "manage report") {
+            document.getElementById("reports-revoked-notice").style.display =
+              "none";
+          }
+
+          // Dispatch custom event
+          window.dispatchEvent(
+            new CustomEvent("permissionRestored", { detail: { permission } }),
+          );
+        }
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        // Control buttons
+        document
+          .getElementById("btn-revoke-users")
+          .addEventListener("click", () => {
+            revokePermission("manage user");
+          });
+
+        document
+          .getElementById("btn-revoke-reports")
+          .addEventListener("click", () => {
+            revokePermission("manage report");
+          });
+
+        document
+          .getElementById("btn-restore-all")
+          .addEventListener("click", () => {
+            restorePermission("manage user");
+            restorePermission("manage report");
+          });
+
+        // Action buttons (will be blocked after revocation)
+        document
+          .querySelectorAll(
+            '[data-permission="manage user"], [data-permission="manage report"]',
+          )
+          .forEach(btn => {
+            if (btn.tagName === "BUTTON") {
+              btn.addEventListener("click", () => {
+                const permission = btn.getAttribute("data-permission");
+                if (!userCan(permission)) {
+                  log(
+                    `Action blocked: missing "${permission}" permission`,
+                    "revoked",
+                  );
+                } else {
+                  log(`Action executed: ${btn.textContent}`, "info");
+                }
+              });
+            }
+          });
+
+        log("Permission revocation test initialized", "info");
+      });
+
+      // Test runner
+      class TestRunner {
+        constructor(suiteName) {
+          this.suiteName = suiteName;
+          this.results = { passed: 0, failed: 0, tests: [] };
+        }
+
+        async test(name, fn) {
+          try {
+            await fn();
+            this.results.passed++;
+            this.results.tests.push({ name, status: "passed" });
+          } catch (e) {
+            this.results.failed++;
+            this.results.tests.push({
+              name,
+              status: "failed",
+              error: e.message,
+            });
+          }
+        }
+
+        assert(condition, message) {
+          if (!condition) throw new Error(message || "Assertion failed");
+        }
+
+        assertVisible(selector) {
+          const el = document.querySelector(selector);
+          if (!el || el.style.display === "none") {
+            throw new Error(`Expected ${selector} to be visible`);
+          }
+        }
+
+        assertHidden(selector) {
+          const el = document.querySelector(selector);
+          if (
+            el &&
+            el.style.display !== "none" &&
+            !el.classList.contains("section-disabled")
+          ) {
+            throw new Error(`Expected ${selector} to be hidden or disabled`);
+          }
+        }
+
+        getResults() {
+          return this.results;
+        }
+      }
+
+      // Expose for Playwright
+      window.runRbacTests = async function () {
+        const runner = new TestRunner("Permission Revoked");
+
+        // Test initial state
+        await runner.test("Initially has manage user permission", () => {
+          runner.assert(userCan("manage user"), "Should have manage user");
+        });
+
+        await runner.test("Initially has manage report permission", () => {
+          runner.assert(userCan("manage report"), "Should have manage report");
+        });
+
+        await runner.test("User buttons visible initially", () => {
+          runner.assertVisible("#btn-add-user");
+        });
+
+        // Revoke user management
+        revokePermission("manage user");
+
+        await runner.test("After revocation, manage user is false", () => {
+          runner.assert(!userCan("manage user"), "Should NOT have manage user");
+        });
+
+        await runner.test("User buttons hidden after revocation", () => {
+          runner.assertHidden("#btn-add-user");
+        });
+
+        await runner.test("Revocation notice visible", () => {
+          const notice = document.getElementById("users-revoked-notice");
+          runner.assert(
+            notice.style.display !== "none",
+            "Notice should be visible",
+          );
+        });
+
+        // Restore
+        restorePermission("manage user");
+
+        await runner.test(
+          "After restoration, manage user is true again",
+          () => {
+            runner.assert(userCan("manage user"), "Should have manage user");
+          },
+        );
+
+        await runner.test("User buttons visible after restoration", () => {
+          runner.assertVisible("#btn-add-user");
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Permission Revoked Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

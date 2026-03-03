@@ -104,6 +104,11 @@ async function getResourceTimings(page: Page): Promise<{
 // ============================================================================
 
 test.describe("Performance Optimization", () => {
+  test.skip(
+    !process.env.APP_URL,
+    "Requires APP_URL to probe a running Laravel frontend.",
+  );
+
   // ════════════════════════════════════════════════════════════════════════
   // SECTION 1: PAGE LOAD PERFORMANCE
   // ════════════════════════════════════════════════════════════════════════

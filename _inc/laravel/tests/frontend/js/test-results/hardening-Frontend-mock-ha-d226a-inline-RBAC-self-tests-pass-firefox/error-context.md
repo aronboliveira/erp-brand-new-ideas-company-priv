@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]: ERP Prestech
+    - navigation [ref=e4]:
+      - link "Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "CRM" [ref=e6] [cursor=pointer]:
+        - /url: "#crm"
+      - link "HRM" [ref=e7] [cursor=pointer]:
+        - /url: "#hrm"
+      - link "POS" [ref=e8] [cursor=pointer]:
+        - /url: "#pos"
+      - link "Projects" [ref=e9] [cursor=pointer]:
+        - /url: "#projects"
+      - link "Finance" [ref=e10] [cursor=pointer]:
+        - /url: "#finance"
+      - link "Reports" [ref=e11] [cursor=pointer]:
+        - /url: "#reports"
+      - link "Settings" [ref=e12] [cursor=pointer]:
+        - /url: "#settings"
+      - link "Admin Panel" [ref=e13] [cursor=pointer]:
+        - /url: "#admin"
+    - generic [ref=e14]:
+      - generic [ref=e15]: HR Manager
+      - generic [ref=e16]: HR
+      - button "Logout" [ref=e17] [cursor=pointer]
+  - main [ref=e18]:
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Admin Controls" [level=3] [ref=e21]
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "User Management" [ref=e24] [cursor=pointer]:
+              - /url: "#users"
+          - listitem [ref=e25]:
+            - link "Role Management" [ref=e26] [cursor=pointer]:
+              - /url: "#roles"
+      - generic [ref=e27]:
+        - heading "HRM" [level=3] [ref=e28]
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - link "Employees" [ref=e31] [cursor=pointer]:
+              - /url: "#employees"
+          - listitem [ref=e32]:
+            - link "Attendance" [ref=e33] [cursor=pointer]:
+              - /url: "#attendance"
+          - listitem [ref=e34]:
+            - link "Payroll" [ref=e35] [cursor=pointer]:
+              - /url: "#payroll"
+          - listitem [ref=e36]:
+            - link "Leave Management" [ref=e37] [cursor=pointer]:
+              - /url: "#leaves"
+          - listitem [ref=e38]:
+            - link "Recruitment" [ref=e39] [cursor=pointer]:
+              - /url: "#recruitment"
+          - listitem [ref=e40]:
+            - link "Training" [ref=e41] [cursor=pointer]:
+              - /url: "#training"
+      - generic [ref=e42]:
+        - heading "Finance" [level=3] [ref=e43]
+        - list [ref=e44]:
+          - listitem [ref=e45]:
+            - link "Invoices" [ref=e46] [cursor=pointer]:
+              - /url: "#invoices"
+          - listitem [ref=e47]:
+            - link "Bills" [ref=e48] [cursor=pointer]:
+              - /url: "#bills"
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - heading "HR Dashboard" [level=1] [ref=e51]
+        - generic [ref=e52]:
+          - button "+ Add Employee" [ref=e53] [cursor=pointer]
+          - button "Mark Attendance" [ref=e54] [cursor=pointer]
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - heading "Total Employees" [level=3] [ref=e57]
+          - generic [ref=e58]: "42"
+          - generic [ref=e59]: +3 this month
+        - generic [ref=e60]:
+          - heading "Today's Attendance" [level=3] [ref=e61]
+          - generic [ref=e62]: 38/42
+          - generic [ref=e63]: 90.5% Present
+        - generic [ref=e64]:
+          - heading "Pending Leave Requests" [level=3] [ref=e65]
+          - generic [ref=e66]: "5"
+          - generic [ref=e67]: Awaiting approval
+        - generic [ref=e68]:
+          - heading "Open Positions" [level=3] [ref=e69]
+          - generic [ref=e70]: "8"
+          - generic [ref=e71]: 23 applications
+        - generic [ref=e72]:
+          - heading "System Health" [level=3] [ref=e73]
+          - generic [ref=e74]: N/A
+        - generic [ref=e75]:
+          - heading "Total Revenue" [level=3] [ref=e76]
+          - generic [ref=e77]: N/A
+      - generic [ref=e78]:
+        - heading "Employee Directory" [level=2] [ref=e79]
+        - table [ref=e80]:
+          - rowgroup [ref=e81]:
+            - row "Name Department Position Status Actions" [ref=e82]:
+              - columnheader "Name" [ref=e83]
+              - columnheader "Department" [ref=e84]
+              - columnheader "Position" [ref=e85]
+              - columnheader "Status" [ref=e86]
+              - columnheader "Actions" [ref=e87]
+          - rowgroup
+      - generic [ref=e88]:
+        - heading "Pending Leave Requests" [level=2] [ref=e89]
+        - table [ref=e90]:
+          - rowgroup [ref=e91]:
+            - row "Employee Type From To Days Actions" [ref=e92]:
+              - columnheader "Employee" [ref=e93]
+              - columnheader "Type" [ref=e94]
+              - columnheader "From" [ref=e95]
+              - columnheader "To" [ref=e96]
+              - columnheader "Days" [ref=e97]
+              - columnheader "Actions" [ref=e98]
+          - rowgroup
+  - contentinfo [ref=e99]:
+    - paragraph [ref=e100]: © 2026 ERP Prestech — HR Role Test
+```

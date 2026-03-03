@@ -1,0 +1,129 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]: ERP Prestech
+    - navigation [ref=e4]:
+      - link "Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "CRM" [ref=e6] [cursor=pointer]:
+        - /url: "#crm"
+      - link "HRM" [ref=e7] [cursor=pointer]:
+        - /url: "#hrm"
+      - link "POS" [ref=e8] [cursor=pointer]:
+        - /url: "#pos"
+      - link "Projects" [ref=e9] [cursor=pointer]:
+        - /url: "#projects"
+      - link "Finance" [ref=e10] [cursor=pointer]:
+        - /url: "#finance"
+      - link "Reports" [ref=e11] [cursor=pointer]:
+        - /url: "#reports"
+      - link "Company Settings" [ref=e12] [cursor=pointer]:
+        - /url: "#settings"
+      - link "Super Admin" [ref=e13] [cursor=pointer]:
+        - /url: "#super-admin"
+    - generic [ref=e14]:
+      - generic [ref=e15]: Admin User
+      - generic [ref=e16]: Admin
+      - button "Logout" [ref=e17] [cursor=pointer]
+  - main [ref=e18]:
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Administration" [level=3] [ref=e21]
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "Users" [ref=e24] [cursor=pointer]:
+              - /url: "#users"
+          - listitem [ref=e25]:
+            - link "Roles" [ref=e26] [cursor=pointer]:
+              - /url: "#roles"
+          - listitem [ref=e27]:
+            - link "Company" [ref=e28] [cursor=pointer]:
+              - /url: "#company"
+          - listitem [ref=e29]:
+            - link "Activity Logs" [ref=e30] [cursor=pointer]:
+              - /url: "#logs"
+      - generic [ref=e31]:
+        - heading "Super Admin" [level=3] [ref=e32]
+        - list [ref=e33]:
+          - listitem [ref=e34]:
+            - link "System Config" [ref=e35] [cursor=pointer]:
+              - /url: "#system-config"
+          - listitem [ref=e36]:
+            - link "Modules" [ref=e37] [cursor=pointer]:
+              - /url: "#modules"
+      - generic [ref=e38]:
+        - heading "HRM" [level=3] [ref=e39]
+        - list [ref=e40]:
+          - listitem [ref=e41]:
+            - link "Employees" [ref=e42] [cursor=pointer]:
+              - /url: "#employees"
+          - listitem [ref=e43]:
+            - link "Attendance" [ref=e44] [cursor=pointer]:
+              - /url: "#attendance"
+      - generic [ref=e45]:
+        - heading "Finance" [level=3] [ref=e46]
+        - list [ref=e47]:
+          - listitem [ref=e48]:
+            - link "Invoices" [ref=e49] [cursor=pointer]:
+              - /url: "#invoices"
+          - listitem [ref=e50]:
+            - link "Reports" [ref=e51] [cursor=pointer]:
+              - /url: "#reports"
+    - generic [ref=e52]:
+      - generic [ref=e53]:
+        - heading "Admin Dashboard" [level=1] [ref=e54]
+        - generic [ref=e55]:
+          - button "+ Add User" [ref=e56] [cursor=pointer]
+          - button "Manage Roles" [ref=e57] [cursor=pointer]
+          - button "System Settings" [ref=e58] [cursor=pointer]
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - heading "Total Users" [level=3] [ref=e61]
+          - generic [ref=e62]: "156"
+          - generic [ref=e63]: +5 this week
+        - generic [ref=e64]:
+          - heading "Active Sessions" [level=3] [ref=e65]
+          - generic [ref=e66]: "42"
+          - generic [ref=e67]: Online now
+        - generic [ref=e68]:
+          - heading "Employees" [level=3] [ref=e69]
+          - generic [ref=e70]: "85"
+          - generic [ref=e71]: Across 6 departments
+        - generic [ref=e72]:
+          - heading "Monthly Revenue" [level=3] [ref=e73]
+          - generic [ref=e74]: $87,500
+          - generic [ref=e75]: +8.2%
+        - generic [ref=e76]:
+          - heading "System Health" [level=3] [ref=e77]
+          - generic [ref=e78]: 100%
+        - generic [ref=e79]:
+          - heading "Pending Configs" [level=3] [ref=e80]
+          - generic [ref=e81]: "3"
+      - generic [ref=e82]:
+        - heading "Recent Users" [level=2] [ref=e83]
+        - table [ref=e84]:
+          - rowgroup [ref=e85]:
+            - row "Name Email Role Status Last Login Actions" [ref=e86]:
+              - columnheader "Name" [ref=e87]
+              - columnheader "Email" [ref=e88]
+              - columnheader "Role" [ref=e89]
+              - columnheader "Status" [ref=e90]
+              - columnheader "Last Login" [ref=e91]
+              - columnheader "Actions" [ref=e92]
+          - rowgroup
+      - generic [ref=e93]:
+        - heading "Activity Log" [level=2] [ref=e94]
+        - table [ref=e95]:
+          - rowgroup [ref=e96]:
+            - row "Time User Action Resource Details" [ref=e97]:
+              - columnheader "Time" [ref=e98]
+              - columnheader "User" [ref=e99]
+              - columnheader "Action" [ref=e100]
+              - columnheader "Resource" [ref=e101]
+              - columnheader "Details" [ref=e102]
+          - rowgroup
+  - contentinfo [ref=e103]:
+    - paragraph [ref=e104]: © 2026 ERP Prestech — Admin Role Test
+```

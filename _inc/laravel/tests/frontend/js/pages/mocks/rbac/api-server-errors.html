@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test — Server Errors (5xx)</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+    <style>
+      .scenario-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .scenario-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      .scenario-card h3 {
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+      }
+      .scenario-card p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 1rem;
+      }
+      .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-danger:hover {
+        background: #b91c1c;
+      }
+      .response-display {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #1e293b;
+        color: #fca5a5;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+      }
+      .fallback-demo {
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .error-state {
+        color: #64748b;
+      }
+      .error-illustration {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .error-state h3 {
+        color: #dc2626;
+        margin-bottom: 0.5rem;
+      }
+      .normal-state {
+        color: #16a34a;
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body data-scenario="api-server-errors">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">← Back to Index</a>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>API Server Errors (5xx)</h1>
+          <p class="subtitle">
+            Tests handling of 500, 502, 503, 504 server errors
+          </p>
+        </div>
+
+        <section class="data-section" id="errors-section">
+          <h2>Server Error Scenarios</h2>
+          <div class="scenario-grid">
+            <div class="scenario-card">
+              <h3>500 Internal Server Error</h3>
+              <p>Unexpected server-side exception</p>
+              <button class="btn btn-danger" id="btn-test-500">Test 500</button>
+              <div class="response-display" id="response-500"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>502 Bad Gateway</h3>
+              <p>Upstream server returned invalid response</p>
+              <button class="btn btn-danger" id="btn-test-502">Test 502</button>
+              <div class="response-display" id="response-502"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>503 Service Unavailable</h3>
+              <p>Server temporarily unavailable (maintenance)</p>
+              <button class="btn btn-danger" id="btn-test-503">Test 503</button>
+              <div class="response-display" id="response-503"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>504 Gateway Timeout</h3>
+              <p>Upstream server timeout</p>
+              <button class="btn btn-danger" id="btn-test-504">Test 504</button>
+              <div class="response-display" id="response-504"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="data-section" id="retry-section">
+          <h2>Retry Behavior</h2>
+          <div class="widget-grid">
+            <div class="widget">
+              <h3>Retry Count</h3>
+              <div class="widget-value" id="retry-count">0</div>
+              <div class="widget-meta">max: 3</div>
+            </div>
+            <div class="widget">
+              <h3>Backoff Delay</h3>
+              <div class="widget-value" id="backoff-delay">0ms</div>
+              <div class="widget-meta">exponential</div>
+            </div>
+            <div class="widget">
+              <h3>Last Error</h3>
+              <div class="widget-value" id="last-error">None</div>
+            </div>
+          </div>
+          <div class="actions" style="margin-top: 1rem">
+            <button class="btn btn-primary" id="btn-retry-sim">
+              Simulate Retry Flow
+            </button>
+            <button class="btn btn-secondary" id="btn-reset-retry">
+              Reset
+            </button>
+          </div>
+        </section>
+
+        <section class="data-section" id="fallback-section">
+          <h2>Fallback UI</h2>
+          <div class="fallback-demo" id="fallback-demo">
+            <div class="normal-state" id="normal-state">
+              <p>✓ Data loaded successfully</p>
+            </div>
+            <div class="error-state" id="error-state" style="display: none">
+              <div class="error-illustration">🔌</div>
+              <h3>Something went wrong</h3>
+              <p id="fallback-message">
+                We're having trouble connecting to the server.
+              </p>
+              <button class="btn btn-primary" id="btn-retry-fallback">
+                Try Again
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      var mockResponses = {
+        500: {
+          status: 500,
+          ok: false,
+          statusText: "Internal Server Error",
+          json: function () {
+            return Promise.resolve({
+              error: "Internal Server Error",
+              message: "An unexpected error occurred. Please try again later.",
+              request_id: "req_abc123xyz",
+            });
+          },
+        },
+        502: {
+          status: 502,
+          ok: false,
+          statusText: "Bad Gateway",
+          json: function () {
+            return Promise.resolve({
+              error: "Bad Gateway",
+              message:
+                "The server received an invalid response from an upstream server.",
+            });
+          },
+        },
+        503: {
+          status: 503,
+          ok: false,
+          statusText: "Service Unavailable",
+          headers: { "Retry-After": "300" },
+          json: function () {
+            return Promise.resolve({
+              error: "Service Unavailable",
+              message:
+                "The service is temporarily unavailable for maintenance. Please try again in 5 minutes.",
+            });
+          },
+        },
+        504: {
+          status: 504,
+          ok: false,
+          statusText: "Gateway Timeout",
+          json: function () {
+            return Promise.resolve({
+              error: "Gateway Timeout",
+              message:
+                "The server did not receive a timely response from an upstream server.",
+            });
+          },
+        },
+      };
+
+      var retryState = {
+        count: 0,
+        maxRetries: 3,
+        baseDelay: 1000,
+        lastError: null,
+      };
+
+      function updateRetryUI() {
+        document.getElementById("retry-count").textContent = retryState.count;
+        var delay =
+          retryState.count > 0
+            ? retryState.baseDelay * Math.pow(2, retryState.count - 1)
+            : 0;
+        document.getElementById("backoff-delay").textContent = delay + "ms";
+        document.getElementById("last-error").textContent =
+          retryState.lastError || "None";
+      }
+
+      function resetRetry() {
+        retryState = {
+          count: 0,
+          maxRetries: 3,
+          baseDelay: 1000,
+          lastError: null,
+        };
+        updateRetryUI();
+        showNormalState();
+      }
+
+      function showErrorState(message) {
+        document.getElementById("normal-state").style.display = "none";
+        document.getElementById("error-state").style.display = "block";
+        document.getElementById("fallback-message").textContent = message;
+      }
+
+      function showNormalState() {
+        document.getElementById("normal-state").style.display = "block";
+        document.getElementById("error-state").style.display = "none";
+      }
+
+      function displayResponse(elementId, response, data) {
+        var el = document.getElementById(elementId);
+        el.textContent =
+          "Status: " +
+          response.status +
+          " " +
+          response.statusText +
+          "\n" +
+          JSON.stringify(data, null, 2);
+      }
+
+      function handleServerError(statusCode) {
+        var response = mockResponses[statusCode];
+        response.json().then(function (data) {
+          displayResponse("response-" + statusCode, response, data);
+          showErrorState(data.message);
+          retryState.lastError = response.status + " " + response.statusText;
+          updateRetryUI();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        [500, 502, 503, 504].forEach(function (code) {
+          document
+            .getElementById("btn-test-" + code)
+            .addEventListener("click", function () {
+              handleServerError(code);
+            });
+        });
+        document
+          .getElementById("btn-retry-sim")
+          .addEventListener("click", function () {
+            resetRetry();
+          });
+        document
+          .getElementById("btn-reset-retry")
+          .addEventListener("click", resetRetry);
+        document
+          .getElementById("btn-retry-fallback")
+          .addEventListener("click", showNormalState);
+        updateRetryUI();
+      });
+
+      function TestRunner(suiteName) {
+        this.suiteName = suiteName;
+        this.results = { passed: 0, failed: 0, tests: [] };
+      }
+      TestRunner.prototype.test = function (name, fn) {
+        var self = this;
+        return Promise.resolve()
+          .then(fn)
+          .then(function () {
+            self.results.passed++;
+            self.results.tests.push({ name: name, status: "passed" });
+          })
+          .catch(function (e) {
+            self.results.failed++;
+            self.results.tests.push({
+              name: name,
+              status: "failed",
+              error: e.message,
+            });
+          });
+      };
+      TestRunner.prototype.assert = function (condition, message) {
+        if (!condition) throw new Error(message || "Assertion failed");
+      };
+      TestRunner.prototype.getResults = function () {
+        return this.results;
+      };
+
+      window.runRbacTests = function () {
+        var runner = new TestRunner("API Server Errors");
+        return runner
+          .test("500 response indicates server failure", function () {
+            var r = mockResponses[500];
+            runner.assert(r.status === 500, "Should be 500");
+            runner.assert(!r.ok, "Should not be ok");
+          })
+          .then(function () {
+            return runner.test("500 response includes request ID", function () {
+              return mockResponses[500].json().then(function (data) {
+                runner.assert(data.request_id, "Should have request_id");
+              });
+            });
+          })
+          .then(function () {
+            return runner.test(
+              "502 response indicates upstream failure",
+              function () {
+                return mockResponses[502].json().then(function (data) {
+                  runner.assert(
+                    data.message.indexOf("upstream") !== -1,
+                    "Should mention upstream",
+                  );
+                });
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "503 response has Retry-After header",
+              function () {
+                runner.assert(
+                  mockResponses[503].headers["Retry-After"] === "300",
+                  "Should have Retry-After",
+                );
+              },
+            );
+          })
+          .then(function () {
+            return runner.test("504 response indicates timeout", function () {
+              return mockResponses[504].json().then(function (data) {
+                runner.assert(
+                  data.message.indexOf("time") !== -1,
+                  "Should mention timeout",
+                );
+              });
+            });
+          })
+          .then(function () {
+            return runner.getResults();
+          });
+      };
+
+      if (window.location.search.indexOf("autorun=true") !== -1) {
+        window.runRbacTests().then(function (results) {
+          console.log("API Server Errors Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

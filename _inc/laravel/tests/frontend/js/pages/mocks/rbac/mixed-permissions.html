@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Mixed Permissions Scenario</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-role="custom" data-user-id="mixed-001">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show admin dashboard"
+          >Dashboard</a
+        >
+        <a href="#projects" class="nav-link" data-permission="show project"
+          >Projects</a
+        >
+        <a href="#invoices" class="nav-link" data-permission="manage invoice"
+          >Invoices</a
+        >
+        <a href="#employees" class="nav-link" data-permission="show employee"
+          >Employees</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Mixed Permission User</span>
+        <span class="user-role badge">Custom Role</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <section class="sidebar-section" data-permission="show project">
+          <h3>Projects</h3>
+          <ul>
+            <li><a href="#view-projects">View Projects</a></li>
+            <li>
+              <a href="#create-project" data-permission="create project"
+                >Create Project</a
+              >
+            </li>
+            <li>
+              <a href="#edit-project" data-permission="edit project"
+                >Edit Project</a
+              >
+            </li>
+            <li>
+              <a href="#delete-project" data-permission="delete project"
+                >Delete Project</a
+              >
+            </li>
+          </ul>
+        </section>
+        <section class="sidebar-section" data-permission="show invoice">
+          <h3>Invoices</h3>
+          <ul>
+            <li><a href="#view-invoices">View Invoices</a></li>
+            <li>
+              <a href="#create-invoice" data-permission="create invoice"
+                >Create Invoice</a
+              >
+            </li>
+            <li>
+              <a href="#edit-invoice" data-permission="edit invoice"
+                >Edit Invoice</a
+              >
+            </li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Mixed Permissions Test</h1>
+          <p class="subtitle">
+            User has unusual permission combinations: can CREATE but cannot EDIT
+          </p>
+        </div>
+
+        <!-- Projects Section - Can Create, Cannot Edit -->
+        <section class="data-section" id="projects-section">
+          <h2>Projects (Create Only)</h2>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="create project"
+              id="btn-create-project"
+            >
+              + Create Project
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="edit project"
+              id="btn-edit-project"
+            >
+              Edit Project
+            </button>
+            <button
+              class="btn btn-danger"
+              data-permission="delete project"
+              id="btn-delete-project"
+            >
+              Delete Project
+            </button>
+          </div>
+          <table class="data-table" id="projects-table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Budget</th>
+                <th data-permission="edit project">Edit</th>
+                <th data-permission="delete project">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Website Redesign</td>
+                <td><span class="status active">Active</span></td>
+                <td>$15,000</td>
+                <td data-permission="edit project">
+                  <button class="btn-icon edit">✏️</button>
+                </td>
+                <td data-permission="delete project">
+                  <button class="btn-icon delete">🗑️</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Invoices Section - Can View, Cannot Create -->
+        <section class="data-section" id="invoices-section">
+          <h2>Invoices (View Only)</h2>
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              data-permission="create invoice"
+              id="btn-create-invoice"
+            >
+              + Create Invoice
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-permission="edit invoice"
+              id="btn-edit-invoice"
+            >
+              Edit Invoice
+            </button>
+          </div>
+          <table class="data-table" id="invoices-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#INV-2026-001</td>
+                <td>Acme Corp</td>
+                <td>$5,200</td>
+                <td><span class="status paid">Paid</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Mock user with mixed permissions: can create projects, cannot edit them
+      const user = {
+        id: "mixed-001",
+        name: "Mixed Permission User",
+        role: "custom",
+        permissions: [
+          "show admin dashboard",
+          "show project",
+          "create project", // Can create
+          // "edit project",      // Cannot edit
+          // "delete project",    // Cannot delete
+          "show invoice",
+          "manage invoice",
+          // "create invoice",    // Cannot create
+          // "edit invoice",      // Cannot edit
+        ],
+      };
+
+      // Permissions constants
+      const Permissions = {
+        CR_PRJ: "create project",
+        ED_PRJ: "edit project",
+        DL_PRJ: "delete project",
+        CR_INV: "create invoice",
+        ED_INV: "edit invoice",
+      };
+
+      // Permission check
+      function userCan(user, permission) {
+        return user.permissions.includes(permission);
+      }
+
+      // Apply RBAC to UI
+      function applyRbac() {
+        document.querySelectorAll("[data-permission]").forEach(el => {
+          const permission = el.getAttribute("data-permission");
+          if (!userCan(user, permission)) {
+            el.style.display = "none";
+            el.setAttribute("aria-hidden", "true");
+          }
+        });
+      }
+
+      // Test runner
+      class TestRunner {
+        constructor(suiteName) {
+          this.suiteName = suiteName;
+          this.results = { passed: 0, failed: 0, tests: [] };
+        }
+
+        async test(name, fn) {
+          try {
+            await fn();
+            this.results.passed++;
+            this.results.tests.push({ name, status: "passed" });
+          } catch (e) {
+            this.results.failed++;
+            this.results.tests.push({
+              name,
+              status: "failed",
+              error: e.message,
+            });
+          }
+        }
+
+        assert(condition, message) {
+          if (!condition) throw new Error(message || "Assertion failed");
+        }
+
+        assertVisible(selector) {
+          const el = document.querySelector(selector);
+          if (
+            !el ||
+            el.style.display === "none" ||
+            el.getAttribute("aria-hidden") === "true"
+          ) {
+            throw new Error(`Expected ${selector} to be visible`);
+          }
+        }
+
+        assertHidden(selector) {
+          const el = document.querySelector(selector);
+          if (
+            el &&
+            el.style.display !== "none" &&
+            el.getAttribute("aria-hidden") !== "true"
+          ) {
+            throw new Error(`Expected ${selector} to be hidden`);
+          }
+        }
+
+        getResults() {
+          return this.results;
+        }
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        applyRbac();
+        document.getElementById("user-name").textContent = user.name;
+      });
+
+      // Expose for Playwright
+      window.runRbacTests = async function () {
+        const runner = new TestRunner("Mixed Permissions");
+
+        // Test: Can create project but cannot edit/delete
+        await runner.test("Can create project", () => {
+          runner.assertVisible("#btn-create-project");
+        });
+
+        await runner.test("Cannot edit project", () => {
+          runner.assertHidden("#btn-edit-project");
+        });
+
+        await runner.test("Cannot delete project", () => {
+          runner.assertHidden("#btn-delete-project");
+        });
+
+        // Test: Can view invoices but cannot create/edit
+        await runner.test("Invoices section is visible", () => {
+          runner.assertVisible("#invoices-section");
+        });
+
+        await runner.test("Cannot create invoice", () => {
+          runner.assertHidden("#btn-create-invoice");
+        });
+
+        await runner.test("Cannot edit invoice", () => {
+          runner.assertHidden("#btn-edit-invoice");
+        });
+
+        // Test permission API
+        await runner.test("User has create project permission", () => {
+          runner.assert(
+            userCan(user, Permissions.CR_PRJ),
+            "Should have create project",
+          );
+        });
+
+        await runner.test("User does NOT have edit project permission", () => {
+          runner.assert(
+            !userCan(user, Permissions.ED_PRJ),
+            "Should NOT have edit project",
+          );
+        });
+
+        await runner.test(
+          "User does NOT have delete project permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.DL_PRJ),
+              "Should NOT have delete project",
+            );
+          },
+        );
+
+        await runner.test(
+          "User does NOT have create invoice permission",
+          () => {
+            runner.assert(
+              !userCan(user, Permissions.CR_INV),
+              "Should NOT have create invoice",
+            );
+          },
+        );
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Mixed Permissions Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

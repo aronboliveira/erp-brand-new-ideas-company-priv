@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic:
+    - img [ref=e3]
+    - img [ref=e4]
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - navigation [ref=e8]:
+        - generic [ref=e9]:
+          - link "Company Logo" [ref=e11] [cursor=pointer]:
+            - /url: "#"
+            - img "Company Logo" [ref=e12]
+          - list [ref=e14]:
+            - listitem [ref=e15]:
+              - link "Privacy Policy" [ref=e16] [cursor=pointer]:
+                - /url: http://localhost:8000/pages/privacy_policy
+            - listitem [ref=e17]:
+              - link "About Us" [ref=e18] [cursor=pointer]:
+                - /url: http://localhost:8000/pages/about_us
+            - listitem [ref=e19]:
+              - link "Terms and Conditions" [ref=e20] [cursor=pointer]:
+                - /url: http://localhost:8000/pages/terms_and_conditions
+            - listitem [ref=e22]:
+              - link "English" [ref=e23] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e24]: English
+    - main [ref=e25]:
+      - generic [ref=e28]:
+        - heading "Login" [level=2] [ref=e30]
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]: Email
+            - textbox "Email Address" [active] [ref=e35]:
+              - /placeholder: Enter Your Email
+          - generic [ref=e36]:
+            - generic [ref=e37]: Password
+            - generic [ref=e38]:
+              - textbox "Password" [ref=e39]:
+                - /placeholder: Enter Your Password
+              - button "Toggle password visibility" [ref=e40] [cursor=pointer]:
+                - img [ref=e41]
+          - link "Forgot your password?" [ref=e47] [cursor=pointer]:
+            - /url: http://localhost:8000/forgot-passwords
+          - button "Login" [ref=e49] [cursor=pointer]
+          - paragraph [ref=e50]:
+            - text: Don't have an account?
+            - link "Register" [ref=e51] [cursor=pointer]:
+              - /url: http://localhost:8000/registers
+    - contentinfo [ref=e52]:
+      - generic [ref=e56]: © 2026 ERP Nova Prestech
+```

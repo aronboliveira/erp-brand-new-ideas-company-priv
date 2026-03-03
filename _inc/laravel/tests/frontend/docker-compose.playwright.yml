@@ -1,0 +1,110 @@
+# Docker Compose for Playwright Frontend Tests
+# Provides isolated browser environment to avoid SIGSEGV and sandbox issues
+
+services:
+    playwright-tests:
+        build:
+            context: ../..
+            dockerfile: tests/frontend/Dockerfile.playwright
+        container_name: erp-playwright-tests
+
+        # Share test results with host
+        volumes:
+            - ../../tests/frontend/js/playwright-report:/app/tests/frontend/js/playwright-report
+            - ../../tests/frontend/js/test-results:/app/tests/frontend/js/test-results
+
+        # Environment variables
+        environment:
+            - CI=true
+            - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+            # Ensure headless mode
+            - DISPLAY=
+
+        # Resource limits
+        deploy:
+            resources:
+                limits:
+                    memory: 4G
+                    cpus: "2"
+
+        # Security options for browser sandbox
+        security_opt:
+            - seccomp:unconfined
+
+        # Allow shared memory for browser processes
+        shm_size: 2gb
+
+    # Alternative: Run specific test files
+    playwright-rbac:
+        build:
+            context: ../..
+            dockerfile: tests/frontend/Dockerfile.playwright
+        container_name: erp-playwright-rbac
+        volumes:
+            - ../../tests/frontend/js/playwright-report:/app/tests/frontend/js/playwright-report
+            - ../../tests/frontend/js/test-results:/app/tests/frontend/js/test-results
+        environment:
+            - CI=true
+            - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+        security_opt:
+            - seccomp:unconfined
+        shm_size: 2gb
+        command:
+            [
+                "npx",
+                "playwright",
+                "test",
+                "--config=playwright-frontend.config.cjs",
+                "rbac.spec.ts",
+                "--reporter=list",
+            ]
+        profiles:
+            - rbac
+
+    # Run hardening tests specifically
+    playwright-hardening:
+        build:
+            context: ../..
+            dockerfile: tests/frontend/Dockerfile.playwright
+        container_name: erp-playwright-hardening
+        volumes:
+            - ../../tests/frontend/js/playwright-report:/app/tests/frontend/js/playwright-report
+            - ../../tests/frontend/js/test-results:/app/tests/frontend/js/test-results
+        environment:
+            - CI=true
+            - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+        security_opt:
+            - seccomp:unconfined
+        shm_size: 2gb
+        command:
+            [
+                "npx",
+                "playwright",
+                "test",
+                "--config=playwright-frontend.config.cjs",
+                "hardening.spec.ts",
+                "--reporter=list",
+            ]
+        profiles:
+            - hardening
+
+    # Interactive shell for debugging
+    playwright-debug:
+        build:
+            context: ../..
+            dockerfile: tests/frontend/Dockerfile.playwright
+        container_name: erp-playwright-debug
+        volumes:
+            - ../../tests/frontend/js:/app/tests/frontend/js
+            - ../../public:/app/public
+        environment:
+            - CI=false
+            - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+        security_opt:
+            - seccomp:unconfined
+        shm_size: 2gb
+        command: ["/bin/bash"]
+        stdin_open: true
+        tty: true
+        profiles:
+            - debug

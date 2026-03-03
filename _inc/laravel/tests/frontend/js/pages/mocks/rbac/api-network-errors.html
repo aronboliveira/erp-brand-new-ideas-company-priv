@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test — Network Failures</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-scenario="api-network-errors">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">← Back to Index</a>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>API Network Failures</h1>
+          <p class="subtitle">
+            Tests handling of network timeouts, offline mode, and connection
+            interruptions
+          </p>
+        </div>
+
+        <!-- Network Failure Scenarios -->
+        <section class="data-section" id="failures-section">
+          <h2>Network Failure Scenarios</h2>
+          <div class="scenario-grid">
+            <div class="scenario-card">
+              <h3>Network Timeout</h3>
+              <p>Request takes too long and times out</p>
+              <button class="btn btn-danger" id="btn-test-timeout">
+                Test Timeout
+              </button>
+              <div class="response-display" id="response-timeout"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>Offline Mode</h3>
+              <p>Device has no network connection</p>
+              <button class="btn btn-danger" id="btn-test-offline">
+                Test Offline
+              </button>
+              <div class="response-display" id="response-offline"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>Connection Reset</h3>
+              <p>Connection interrupted mid-transfer</p>
+              <button class="btn btn-danger" id="btn-test-reset">
+                Test Reset
+              </button>
+              <div class="response-display" id="response-reset"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>DNS Failure</h3>
+              <p>Unable to resolve hostname</p>
+              <button class="btn btn-danger" id="btn-test-dns">
+                Test DNS Failure
+              </button>
+              <div class="response-display" id="response-dns"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Online/Offline Status -->
+        <section class="data-section" id="status-section">
+          <h2>Connection Status</h2>
+          <div class="widget-grid">
+            <div class="widget" id="widget-online">
+              <h3>Network Status</h3>
+              <div class="widget-value" id="online-status">Online</div>
+              <div class="widget-meta" id="online-meta">Connected</div>
+            </div>
+            <div class="widget">
+              <h3>Pending Requests</h3>
+              <div class="widget-value" id="pending-requests">0</div>
+              <div class="widget-meta">in queue</div>
+            </div>
+            <div class="widget">
+              <h3>Failed Requests</h3>
+              <div class="widget-value error" id="failed-requests">0</div>
+              <div class="widget-meta">will retry when online</div>
+            </div>
+          </div>
+          <div class="actions" style="margin-top: 1rem">
+            <button class="btn btn-warning" id="btn-go-offline">
+              Simulate Offline
+            </button>
+            <button class="btn btn-success" id="btn-go-online">
+              Simulate Online
+            </button>
+          </div>
+        </section>
+
+        <!-- Offline Queue Demo -->
+        <section class="data-section" id="queue-section">
+          <h2>Offline Request Queue</h2>
+          <p>
+            When offline, requests are queued and retried when connection is
+            restored:
+          </p>
+          <div class="queue-list" id="queue-list">
+            <div class="empty-queue">Queue is empty</div>
+          </div>
+        </section>
+
+        <!-- Offline Notice Banner -->
+        <div class="offline-banner" id="offline-banner" style="display: none">
+          <span class="offline-icon">📡</span>
+          <span>You're offline. Some features may be unavailable.</span>
+          <button class="btn-dismiss" id="dismiss-banner">×</button>
+        </div>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .scenario-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .scenario-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      .scenario-card h3 {
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+      }
+      .scenario-card p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 1rem;
+      }
+      .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-success {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .response-display {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #fef2f2;
+        border-radius: 4px;
+        border-left: 3px solid #dc2626;
+        font-family: monospace;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+      }
+      .widget-value.error {
+        color: #dc2626;
+      }
+      .queue-list {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        min-height: 100px;
+      }
+      .queue-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+      }
+      .queue-item:last-child {
+        border-bottom: none;
+      }
+      .empty-queue {
+        color: #94a3b8;
+        text-align: center;
+        padding: 1rem;
+      }
+      .offline-banner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fef3c7;
+        border-top: 2px solid #f59e0b;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 1000;
+      }
+      .offline-icon {
+        font-size: 1.5rem;
+      }
+      .btn-dismiss {
+        margin-left: auto;
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+      }
+      #widget-online.offline .widget-value {
+        color: #dc2626;
+      }
+      #widget-online.offline .widget-meta {
+        color: #dc2626;
+      }
+    </style>
+
+    <script>
+      // Network state
+      let networkState = {
+        online: true,
+        pendingRequests: 0,
+        failedRequests: 0,
+        requestQueue: [],
+      };
+
+      // Mock network errors
+      const mockErrors = {
+        timeout: {
+          name: "TimeoutError",
+          message: "The request timed out after 30000ms",
+        },
+        offline: {
+          name: "NetworkError",
+          message: "Failed to fetch: net::ERR_INTERNET_DISCONNECTED",
+        },
+        reset: {
+          name: "NetworkError",
+          message: "Connection reset by peer: net::ERR_CONNECTION_RESET",
+        },
+        dns: {
+          name: "NetworkError",
+          message: "DNS lookup failed: net::ERR_NAME_NOT_RESOLVED",
+        },
+      };
+
+      function updateUI() {
+        document.getElementById("online-status").textContent =
+          networkState.online ? "Online" : "Offline";
+        document.getElementById("online-meta").textContent = networkState.online
+          ? "Connected"
+          : "No connection";
+        document.getElementById("pending-requests").textContent =
+          networkState.pendingRequests;
+        document.getElementById("failed-requests").textContent =
+          networkState.failedRequests;
+
+        const widget = document.getElementById("widget-online");
+        widget.classList.toggle("offline", !networkState.online);
+
+        const banner = document.getElementById("offline-banner");
+        banner.style.display = networkState.online ? "none" : "flex";
+
+        renderQueue();
+      }
+
+      function renderQueue() {
+        const queueEl = document.getElementById("queue-list");
+        if (networkState.requestQueue.length === 0) {
+          queueEl.innerHTML = '<div class="empty-queue">Queue is empty</div>';
+        } else {
+          queueEl.innerHTML = networkState.requestQueue
+            .map(
+              (req, i) => `
+            <div class="queue-item">
+              <span>${req.method} ${req.url}</span>
+              <span class="status">${req.status}</span>
+            </div>
+          `,
+            )
+            .join("");
+        }
+      }
+
+      // Simulate network error
+      function simulateNetworkError(type) {
+        const error = mockErrors[type];
+        const el = document.getElementById(`response-${type}`);
+        el.textContent = `Error: ${error.name}\n${error.message}\n\nStack:\n  at fetch (native)\n  at apiClient.request (:1:1)`;
+
+        networkState.failedRequests++;
+        updateUI();
+
+        // Add to queue if offline
+        if (!networkState.online || type === "offline") {
+          networkState.requestQueue.push({
+            method: "GET",
+            url: `/api/${type}-test`,
+            status: "pending",
+            error: error.name,
+          });
+          updateUI();
+        }
+      }
+
+      // Go offline/online
+      function goOffline() {
+        networkState.online = false;
+        updateUI();
+      }
+
+      function goOnline() {
+        networkState.online = true;
+        // Process queue
+        if (networkState.requestQueue.length > 0) {
+          networkState.requestQueue.forEach(req => {
+            req.status = "retrying...";
+          });
+          updateUI();
+          setTimeout(() => {
+            networkState.requestQueue = [];
+            networkState.pendingRequests = 0;
+            updateUI();
+          }, 1500);
+        }
+        updateUI();
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("btn-test-timeout")
+          .addEventListener("click", () => simulateNetworkError("timeout"));
+        document
+          .getElementById("btn-test-offline")
+          .addEventListener("click", () => {
+            goOffline();
+            simulateNetworkError("offline");
+          });
+        document
+          .getElementById("btn-test-reset")
+          .addEventListener("click", () => simulateNetworkError("reset"));
+        document
+          .getElementById("btn-test-dns")
+          .addEventListener("click", () => simulateNetworkError("dns"));
+
+        document
+          .getElementById("btn-go-offline")
+          .addEventListener("click", goOffline);
+        document
+          .getElementById("btn-go-online")
+          .addEventListener("click", goOnline);
+        document
+          .getElementById("dismiss-banner")
+          .addEventListener("click", () => {
+            document.getElementById("offline-banner").style.display = "none";
+          });
+
+        // Listen for real online/offline events
+        window.addEventListener("online", goOnline);
+        window.addEventListener("offline", goOffline);
+
+        updateUI();
+      });
+
+      // Test runner
+      class TestRunner {
+        constructor(suiteName) {
+          this.suiteName = suiteName;
+          this.results = { passed: 0, failed: 0, tests: [] };
+        }
+
+        async test(name, fn) {
+          try {
+            await fn();
+            this.results.passed++;
+            this.results.tests.push({ name, status: "passed" });
+          } catch (e) {
+            this.results.failed++;
+            this.results.tests.push({
+              name,
+              status: "failed",
+              error: e.message,
+            });
+          }
+        }
+
+        assert(condition, message) {
+          if (!condition) throw new Error(message || "Assertion failed");
+        }
+
+        getResults() {
+          return this.results;
+        }
+      }
+
+      // Expose for Playwright
+      window.runRbacTests = async function () {
+        const runner = new TestRunner("API Network Errors");
+
+        // Reset state
+        networkState = {
+          online: true,
+          pendingRequests: 0,
+          failedRequests: 0,
+          requestQueue: [],
+        };
+        updateUI();
+
+        // Test timeout error
+        await runner.test("Timeout error has descriptive message", () => {
+          runner.assert(
+            mockErrors.timeout.name === "TimeoutError",
+            "Should be TimeoutError",
+          );
+          runner.assert(
+            mockErrors.timeout.message.includes("timed out"),
+            "Should mention timeout",
+          );
+        });
+
+        // Test offline error
+        await runner.test("Offline error indicates no connection", () => {
+          runner.assert(
+            mockErrors.offline.message.includes("DISCONNECTED"),
+            "Should indicate disconnected",
+          );
+        });
+
+        // Test going offline
+        goOffline();
+        await runner.test("Going offline updates network state", () => {
+          runner.assert(networkState.online === false, "Should be offline");
+        });
+
+        await runner.test("Offline banner appears", () => {
+          const banner = document.getElementById("offline-banner");
+          runner.assert(
+            banner.style.display !== "none",
+            "Banner should be visible",
+          );
+        });
+
+        // Test queue
+        simulateNetworkError("offline");
+        await runner.test("Failed requests are queued when offline", () => {
+          runner.assert(
+            networkState.requestQueue.length > 0,
+            "Queue should have items",
+          );
+        });
+
+        // Test going online
+        goOnline();
+        await runner.test("Going online clears queue", async () => {
+          // Wait for queue processing
+          await new Promise(r => setTimeout(r, 2000));
+          runner.assert(
+            networkState.requestQueue.length === 0,
+            "Queue should be empty",
+          );
+        });
+
+        await runner.test("Online status restored", () => {
+          runner.assert(networkState.online === true, "Should be online");
+        });
+
+        // Test DNS failure
+        await runner.test("DNS error indicates resolution failure", () => {
+          runner.assert(
+            mockErrors.dns.message.includes("NAME_NOT_RESOLVED"),
+            "Should indicate DNS failure",
+          );
+        });
+
+        // Test connection reset
+        await runner.test("Connection reset error is identifiable", () => {
+          runner.assert(
+            mockErrors.reset.message.includes("CONNECTION_RESET"),
+            "Should indicate reset",
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("API Network Errors Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]: ERP Prestech
+    - navigation [ref=e4]:
+      - link "Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "CRM" [ref=e6] [cursor=pointer]:
+        - /url: "#crm"
+      - link "HRM" [ref=e7] [cursor=pointer]:
+        - /url: "#hrm"
+      - link "POS" [ref=e8] [cursor=pointer]:
+        - /url: "#pos"
+      - link "Projects" [ref=e9] [cursor=pointer]:
+        - /url: "#projects"
+      - link "Finance" [ref=e10] [cursor=pointer]:
+        - /url: "#finance"
+      - link "Reports" [ref=e11] [cursor=pointer]:
+        - /url: "#reports"
+      - link "Settings" [ref=e12] [cursor=pointer]:
+        - /url: "#settings"
+      - link "Admin Panel" [ref=e13] [cursor=pointer]:
+        - /url: "#admin"
+    - generic [ref=e14]:
+      - generic [ref=e15]: Account Manager
+      - generic [ref=e16]: Accountant
+      - button "Logout" [ref=e17] [cursor=pointer]
+  - main [ref=e18]:
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Admin Controls" [level=3] [ref=e21]
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "User Management" [ref=e24] [cursor=pointer]:
+              - /url: "#users"
+          - listitem [ref=e25]:
+            - link "Role Management" [ref=e26] [cursor=pointer]:
+              - /url: "#roles"
+      - generic [ref=e27]:
+        - heading "HRM" [level=3] [ref=e28]
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - link "Employees" [ref=e31] [cursor=pointer]:
+              - /url: "#employees"
+      - generic [ref=e32]:
+        - heading "Accounting" [level=3] [ref=e33]
+        - list [ref=e34]:
+          - listitem [ref=e35]:
+            - link "Invoices" [ref=e36] [cursor=pointer]:
+              - /url: "#invoices"
+          - listitem [ref=e37]:
+            - link "Bills" [ref=e38] [cursor=pointer]:
+              - /url: "#bills"
+          - listitem [ref=e39]:
+            - link "Payments" [ref=e40] [cursor=pointer]:
+              - /url: "#payments"
+          - listitem [ref=e41]:
+            - link "Expenses" [ref=e42] [cursor=pointer]:
+              - /url: "#expenses"
+          - listitem [ref=e43]:
+            - link "Taxes" [ref=e44] [cursor=pointer]:
+              - /url: "#taxes"
+      - generic [ref=e45]:
+        - heading "Banking" [level=3] [ref=e46]
+        - list [ref=e47]:
+          - listitem [ref=e48]:
+            - link "Bank Accounts" [ref=e49] [cursor=pointer]:
+              - /url: "#accounts"
+          - listitem [ref=e50]:
+            - link "Transfers" [ref=e51] [cursor=pointer]:
+              - /url: "#transfers"
+          - listitem [ref=e52]:
+            - link "Reconciliation" [ref=e53] [cursor=pointer]:
+              - /url: "#reconciliation"
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - heading "Accounting Dashboard" [level=1] [ref=e56]
+        - generic [ref=e57]:
+          - button "+ New Invoice" [ref=e58] [cursor=pointer]
+          - button "+ New Bill" [ref=e59] [cursor=pointer]
+          - button "+ New Expense" [ref=e60] [cursor=pointer]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - heading "Total Revenue" [level=3] [ref=e63]
+          - generic [ref=e64]: $125,430
+          - generic [ref=e65]: +12.5% vs last month
+        - generic [ref=e66]:
+          - heading "Accounts Receivable" [level=3] [ref=e67]
+          - generic [ref=e68]: $32,100
+          - generic [ref=e69]: 15 pending invoices
+        - generic [ref=e70]:
+          - heading "Accounts Payable" [level=3] [ref=e71]
+          - generic [ref=e72]: $18,750
+          - generic [ref=e73]: 8 pending bills
+        - generic [ref=e74]:
+          - heading "Monthly Expenses" [level=3] [ref=e75]
+          - generic [ref=e76]: $45,200
+          - generic [ref=e77]: On track with budget
+        - generic [ref=e78]:
+          - heading "System Health" [level=3] [ref=e79]
+          - generic [ref=e80]: N/A
+        - generic [ref=e81]:
+          - heading "Employee Count" [level=3] [ref=e82]
+          - generic [ref=e83]: N/A
+      - generic [ref=e84]:
+        - heading "Recent Invoices" [level=2] [ref=e85]
+        - table [ref=e86]:
+          - rowgroup [ref=e87]:
+            - 'row "Invoice # Client Amount Status Due Date Actions" [ref=e88]':
+              - 'columnheader "Invoice #" [ref=e89]'
+              - columnheader "Client" [ref=e90]
+              - columnheader "Amount" [ref=e91]
+              - columnheader "Status" [ref=e92]
+              - columnheader "Due Date" [ref=e93]
+              - columnheader "Actions" [ref=e94]
+          - rowgroup
+      - generic [ref=e95]:
+        - heading "Pending Bills" [level=2] [ref=e96]
+        - table [ref=e97]:
+          - rowgroup [ref=e98]:
+            - 'row "Bill # Vendor Amount Status Due Date Actions" [ref=e99]':
+              - 'columnheader "Bill #" [ref=e100]'
+              - columnheader "Vendor" [ref=e101]
+              - columnheader "Amount" [ref=e102]
+              - columnheader "Status" [ref=e103]
+              - columnheader "Due Date" [ref=e104]
+              - columnheader "Actions" [ref=e105]
+          - rowgroup
+  - contentinfo [ref=e106]:
+    - paragraph [ref=e107]: © 2026 ERP Prestech — Accountant Role Test
+```

@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Multi-Tenant Access</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+    <style>
+      .tenant-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #e0f2fe;
+        color: #0369a1;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+      .tenant-badge.tenant-b {
+        background: #fef3c7;
+        color: #b45309;
+      }
+      .tenant-badge.tenant-c {
+        background: #f0fdf4;
+        color: #15803d;
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      .data-table th,
+      .data-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .data-table th {
+        background: #f8fafc;
+        font-weight: 600;
+      }
+      .switch-btn {
+        padding: 0.5rem 1rem;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 0.5rem;
+      }
+      .switch-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+      .isolation-indicator {
+        padding: 1rem;
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+      .isolation-indicator.warning {
+        background: #fef2f2;
+        border-color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body data-role="admin" data-user-id="tenant-001" data-company-id="company-A">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <div class="tenant-selector">
+        <span>Company: </span>
+        <span class="tenant-badge" id="current-tenant">Company A</span>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">← Back to Index</a>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Multi-Tenant Access Control</h1>
+          <p class="subtitle">Tests data isolation between companies/tenants</p>
+        </div>
+
+        <section class="data-section" id="tenant-switch">
+          <h2>Switch Tenant</h2>
+          <div class="actions">
+            <button
+              class="switch-btn active"
+              data-tenant="company-A"
+              id="btn-tenant-a"
+            >
+              Company A
+            </button>
+            <button
+              class="switch-btn"
+              data-tenant="company-B"
+              id="btn-tenant-b"
+            >
+              Company B
+            </button>
+            <button
+              class="switch-btn"
+              data-tenant="company-C"
+              id="btn-tenant-c"
+            >
+              Company C
+            </button>
+          </div>
+        </section>
+
+        <section class="data-section" id="data-section">
+          <h2>Tenant Data</h2>
+          <div class="isolation-indicator" id="isolation-status">
+            ✓ Data isolated to current tenant
+          </div>
+          <table class="data-table" id="tenant-data">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Tenant</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="data-body"></tbody>
+          </table>
+        </section>
+
+        <section class="data-section" id="access-log">
+          <h2>Access Log</h2>
+          <ul
+            id="log-list"
+            style="font-family: monospace; font-size: 0.85rem"
+          ></ul>
+        </section>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      var tenantData = {
+        "company-A": [
+          { id: 1, name: "Project Alpha", status: "active" },
+          { id: 2, name: "Project Beta", status: "completed" },
+        ],
+        "company-B": [
+          { id: 101, name: "Initiative X", status: "active" },
+          { id: 102, name: "Initiative Y", status: "planning" },
+        ],
+        "company-C": [{ id: 201, name: "Campaign One", status: "active" }],
+      };
+
+      var currentTenant = "company-A";
+      var accessLog = [];
+
+      function getTenantLabel(id) {
+        return (
+          {
+            "company-A": "Company A",
+            "company-B": "Company B",
+            "company-C": "Company C",
+          }[id] || id
+        );
+      }
+
+      function switchTenant(tenantId) {
+        currentTenant = tenantId;
+        document.body.setAttribute("data-company-id", tenantId);
+        document.getElementById("current-tenant").textContent =
+          getTenantLabel(tenantId);
+        document.getElementById("current-tenant").className =
+          "tenant-badge " +
+          (tenantId !== "company-A"
+            ? tenantId.replace("company-", "tenant-").toLowerCase()
+            : "");
+        document.querySelectorAll(".switch-btn").forEach(function (btn) {
+          btn.classList.toggle("active", btn.dataset.tenant === tenantId);
+        });
+        logAccess("Switched to " + getTenantLabel(tenantId));
+        renderData();
+      }
+
+      function renderData() {
+        var tbody = document.getElementById("data-body");
+        var data = tenantData[currentTenant] || [];
+        tbody.innerHTML = data
+          .map(function (row) {
+            return (
+              "<tr><td>" +
+              row.id +
+              "</td><td>" +
+              row.name +
+              "</td><td>" +
+              getTenantLabel(currentTenant) +
+              "</td><td>" +
+              row.status +
+              "</td></tr>"
+            );
+          })
+          .join("");
+        updateIsolationStatus(true);
+      }
+
+      function updateIsolationStatus(isolated) {
+        var el = document.getElementById("isolation-status");
+        if (isolated) {
+          el.className = "isolation-indicator";
+          el.textContent =
+            "✓ Data isolated to " + getTenantLabel(currentTenant);
+        } else {
+          el.className = "isolation-indicator warning";
+          el.textContent = "⚠ Cross-tenant data leak detected!";
+        }
+      }
+
+      function logAccess(message) {
+        accessLog.push({
+          time: new Date().toISOString(),
+          message: message,
+          tenant: currentTenant,
+        });
+        var list = document.getElementById("log-list");
+        var li = document.createElement("li");
+        li.textContent = new Date().toLocaleTimeString() + " - " + message;
+        list.insertBefore(li, list.firstChild);
+        if (list.children.length > 10) list.removeChild(list.lastChild);
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".switch-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            switchTenant(btn.dataset.tenant);
+          });
+        });
+        renderData();
+        logAccess("Page loaded");
+      });
+
+      function TestRunner(suiteName) {
+        this.suiteName = suiteName;
+        this.results = { passed: 0, failed: 0, tests: [] };
+      }
+      TestRunner.prototype.test = function (name, fn) {
+        var self = this;
+        return Promise.resolve()
+          .then(fn)
+          .then(function () {
+            self.results.passed++;
+            self.results.tests.push({ name: name, status: "passed" });
+          })
+          .catch(function (e) {
+            self.results.failed++;
+            self.results.tests.push({
+              name: name,
+              status: "failed",
+              error: e.message,
+            });
+          });
+      };
+      TestRunner.prototype.assert = function (condition, message) {
+        if (!condition) throw new Error(message || "Assertion failed");
+      };
+      TestRunner.prototype.getResults = function () {
+        return this.results;
+      };
+
+      window.runRbacTests = function () {
+        var runner = new TestRunner("Multi-Tenant Access");
+        return runner
+          .test("Default tenant is company-A", function () {
+            runner.assert(
+              currentTenant === "company-A",
+              "Should start with company-A",
+            );
+          })
+          .then(function () {
+            return runner.test("Company-A has own data only", function () {
+              var data = tenantData["company-A"];
+              data.forEach(function (item) {
+                runner.assert(item.id < 100, "Company-A IDs should be < 100");
+              });
+            });
+          })
+          .then(function () {
+            return runner.test(
+              "Switching tenant changes current tenant",
+              function () {
+                switchTenant("company-B");
+                runner.assert(
+                  currentTenant === "company-B",
+                  "Should be company-B",
+                );
+                switchTenant("company-A");
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "Data body shows current tenant data",
+              function () {
+                switchTenant("company-C");
+                var rows = document
+                  .getElementById("data-body")
+                  .querySelectorAll("tr");
+                runner.assert(
+                  rows.length === tenantData["company-C"].length,
+                  "Should show company-C data",
+                );
+                switchTenant("company-A");
+              },
+            );
+          })
+          .then(function () {
+            return runner.test(
+              "Access log tracks tenant switches",
+              function () {
+                runner.assert(accessLog.length > 0, "Should have log entries");
+              },
+            );
+          })
+          .then(function () {
+            return runner.getResults();
+          });
+      };
+
+      if (window.location.search.indexOf("autorun=true") !== -1) {
+        window.runRbacTests().then(function (results) {
+          console.log("Multi-Tenant Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

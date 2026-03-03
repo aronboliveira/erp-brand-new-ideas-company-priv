@@ -1747,7 +1747,7 @@ class ProjectControllerTest extends TestCase
 		$this->assertEquals('on', $settings['basic_details']);
 		$this->assertEquals('on', $settings['member']);
 		$this->assertEquals('on', $settings['password_protected']);
-		$this->assertEquals(base64_encode('secret123'), $this->project->password);
+		$this->assertTrue(\Illuminate\Support\Facades\Hash::check('secret123', $this->project->password));
 	}
 
 	/**

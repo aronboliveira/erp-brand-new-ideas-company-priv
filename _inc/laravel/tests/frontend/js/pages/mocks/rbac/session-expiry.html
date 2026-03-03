@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC Test — Session Expiry Scenario</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body
+    data-role="admin"
+    data-user-id="session-001"
+    data-session-expires="5000"
+  >
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav" id="main-nav">
+        <a
+          href="#dashboard"
+          class="nav-link active"
+          data-permission="show admin dashboard"
+          >Dashboard</a
+        >
+      </nav>
+      <div class="user-menu">
+        <span class="user-name" id="user-name">Session Test User</span>
+        <span class="user-role badge role-admin">Admin</span>
+        <span class="session-timer" id="session-timer">Session: 5s</span>
+        <button id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>Session Expiry Test</h1>
+          <p class="subtitle">
+            Tests behavior when session expires mid-operation
+          </p>
+        </div>
+
+        <!-- Session Status Panel -->
+        <div class="widget-grid">
+          <div class="widget" id="widget-session">
+            <h3>Session Status</h3>
+            <div class="widget-value" id="session-status">Active</div>
+            <div class="widget-meta" id="session-countdown">
+              Expires in: <span id="countdown">5</span>s
+            </div>
+          </div>
+          <div class="widget" id="widget-actions">
+            <h3>Actions Attempted</h3>
+            <div class="widget-value" id="action-count">0</div>
+            <div class="widget-meta" id="blocked-count">Blocked: 0</div>
+          </div>
+        </div>
+
+        <!-- Test Actions -->
+        <section class="data-section" id="actions-section">
+          <h2>Test Actions</h2>
+          <p>
+            Click these buttons before and after session expires to test
+            handling:
+          </p>
+          <div class="actions">
+            <button class="btn btn-primary" id="btn-save-data">
+              Save Data
+            </button>
+            <button class="btn btn-secondary" id="btn-fetch-data">
+              Fetch Data
+            </button>
+            <button class="btn btn-secondary" id="btn-delete-item">
+              Delete Item
+            </button>
+          </div>
+        </section>
+
+        <!-- Action Log -->
+        <section class="data-section" id="log-section">
+          <h2>Action Log</h2>
+          <div class="action-log" id="action-log"></div>
+        </section>
+
+        <!-- Session Expired Modal -->
+        <div class="modal-overlay" id="session-modal" style="display: none">
+          <div class="modal">
+            <h2>Session Expired</h2>
+            <p>Your session has expired. Please log in again to continue.</p>
+            <div class="modal-actions">
+              <button class="btn btn-primary" id="btn-relogin">Log In</button>
+              <button class="btn btn-secondary" id="btn-dismiss">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .session-timer {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+      .session-timer.expired {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .action-log {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+      .action-log .entry {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .action-log .entry.success {
+        color: #16a34a;
+      }
+      .action-log .entry.blocked {
+        color: #dc2626;
+      }
+      .action-log .entry.warning {
+        color: #d97706;
+      }
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 400px;
+        text-align: center;
+      }
+      .modal h2 {
+        margin-bottom: 1rem;
+        color: #dc2626;
+      }
+      .modal p {
+        margin-bottom: 1.5rem;
+        color: #64748b;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+      }
+    </style>
+
+    <script>
+      // Session state
+      let sessionValid = true;
+      let actionCount = 0;
+      let blockedCount = 0;
+      let countdownValue = 5;
+
+      // Log helper
+      function log(message, type = "info") {
+        const logEl = document.getElementById("action-log");
+        const entry = document.createElement("div");
+        entry.className = `entry ${type}`;
+        entry.textContent = `[${new Date().toISOString().split("T")[1].slice(0, 8)}] ${message}`;
+        logEl.insertBefore(entry, logEl.firstChild);
+      }
+
+      // Session check wrapper
+      function withSessionCheck(action, actionName) {
+        return function () {
+          actionCount++;
+          document.getElementById("action-count").textContent = actionCount;
+
+          if (!sessionValid) {
+            blockedCount++;
+            document.getElementById("blocked-count").textContent =
+              `Blocked: ${blockedCount}`;
+            log(`${actionName} BLOCKED - session expired`, "blocked");
+            showSessionModal();
+            return false;
+          }
+
+          log(`${actionName} executed successfully`, "success");
+          return true;
+        };
+      }
+
+      // Show session expired modal
+      function showSessionModal() {
+        document.getElementById("session-modal").style.display = "flex";
+      }
+
+      // Hide modal
+      function hideSessionModal() {
+        document.getElementById("session-modal").style.display = "none";
+      }
+
+      // Expire session
+      function expireSession() {
+        sessionValid = false;
+        document.getElementById("session-status").textContent = "Expired";
+        document.getElementById("session-status").style.color = "#dc2626";
+        document.getElementById("session-timer").textContent =
+          "Session: Expired";
+        document.getElementById("session-timer").classList.add("expired");
+        log("Session expired!", "warning");
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        // Set up action buttons with session check
+        document.getElementById("btn-save-data").addEventListener(
+          "click",
+          withSessionCheck(() => {}, "Save Data"),
+        );
+        document.getElementById("btn-fetch-data").addEventListener(
+          "click",
+          withSessionCheck(() => {}, "Fetch Data"),
+        );
+        document.getElementById("btn-delete-item").addEventListener(
+          "click",
+          withSessionCheck(() => {}, "Delete Item"),
+        );
+
+        // Modal buttons
+        document.getElementById("btn-relogin").addEventListener("click", () => {
+          log("Redirect to login page", "info");
+          hideSessionModal();
+        });
+        document
+          .getElementById("btn-dismiss")
+          .addEventListener("click", hideSessionModal);
+
+        // Start countdown
+        const countdownInterval = setInterval(() => {
+          countdownValue--;
+          document.getElementById("countdown").textContent = countdownValue;
+          document.getElementById("session-timer").textContent =
+            `Session: ${countdownValue}s`;
+
+          if (countdownValue <= 0) {
+            clearInterval(countdownInterval);
+            expireSession();
+          }
+        }, 1000);
+
+        log("Session test initialized", "info");
+      });
+
+      // Test runner
+      class TestRunner {
+        constructor(suiteName) {
+          this.suiteName = suiteName;
+          this.results = { passed: 0, failed: 0, tests: [] };
+        }
+
+        async test(name, fn) {
+          try {
+            await fn();
+            this.results.passed++;
+            this.results.tests.push({ name, status: "passed" });
+          } catch (e) {
+            this.results.failed++;
+            this.results.tests.push({
+              name,
+              status: "failed",
+              error: e.message,
+            });
+          }
+        }
+
+        assert(condition, message) {
+          if (!condition) throw new Error(message || "Assertion failed");
+        }
+
+        assertVisible(selector) {
+          const el = document.querySelector(selector);
+          if (!el || el.style.display === "none") {
+            throw new Error(`Expected ${selector} to be visible`);
+          }
+        }
+
+        getResults() {
+          return this.results;
+        }
+      }
+
+      // Expose for Playwright
+      window.runRbacTests = async function () {
+        const runner = new TestRunner("Session Expiry");
+
+        // Test initial state
+        await runner.test("Session starts valid", () => {
+          runner.assert(
+            sessionValid === true,
+            "Session should be valid initially",
+          );
+        });
+
+        await runner.test("Action buttons are visible", () => {
+          runner.assertVisible("#btn-save-data");
+          runner.assertVisible("#btn-fetch-data");
+          runner.assertVisible("#btn-delete-item");
+        });
+
+        // Test action before expiry
+        await runner.test("Actions succeed before expiry", () => {
+          const result = withSessionCheck(() => {}, "Test Action")();
+          runner.assert(result === true, "Action should succeed");
+        });
+
+        // Force expire session for testing
+        expireSession();
+
+        // Test action after expiry
+        await runner.test("Actions blocked after expiry", () => {
+          const result = withSessionCheck(() => {}, "Post-Expiry Action")();
+          runner.assert(result === false, "Action should be blocked");
+        });
+
+        await runner.test("Session modal appears on blocked action", () => {
+          runner.assert(
+            document.getElementById("session-modal").style.display === "flex",
+            "Modal should be visible",
+          );
+        });
+
+        await runner.test("Blocked count incremented", () => {
+          runner.assert(blockedCount > 0, "Blocked count should be > 0");
+        });
+
+        // Reset for subsequent tests
+        hideSessionModal();
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("Session Expiry Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>

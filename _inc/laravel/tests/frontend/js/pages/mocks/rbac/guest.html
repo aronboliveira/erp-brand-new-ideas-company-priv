@@ -72,6 +72,7 @@
                   id="password"
                   name="password"
                   placeholder="••••••••"
+                  autocomplete="current-password"
                   required
                 />
               </div>
@@ -690,7 +691,7 @@
             });
           })
           .then(function () {
-            return runner.getResults();
+            return runner.getSummary();
           });
       };
 

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test — Client Errors (4xx)</title>
+    <link rel="stylesheet" href="../common/rbac-styles.css" />
+  </head>
+  <body data-scenario="api-client-errors">
+    <header class="app-header">
+      <div class="logo">ERP Prestech</div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">← Back to Index</a>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <div class="content" id="content">
+        <div class="page-header">
+          <h1>API Client Errors (4xx)</h1>
+          <p class="subtitle">
+            Tests handling of 400, 401, 403, 404, 422 responses
+          </p>
+        </div>
+
+        <!-- Error Scenarios -->
+        <section class="data-section" id="errors-section">
+          <h2>Client Error Scenarios</h2>
+          <div class="scenario-grid">
+            <div class="scenario-card">
+              <h3>400 Bad Request</h3>
+              <p>Malformed request or invalid parameters</p>
+              <button class="btn btn-warning" id="btn-test-400">
+                Test 400
+              </button>
+              <div class="response-display" id="response-400"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>401 Unauthorized</h3>
+              <p>Authentication required or token expired</p>
+              <button class="btn btn-warning" id="btn-test-401">
+                Test 401
+              </button>
+              <div class="response-display" id="response-401"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>403 Forbidden</h3>
+              <p>Authenticated but lacks permission</p>
+              <button class="btn btn-warning" id="btn-test-403">
+                Test 403
+              </button>
+              <div class="response-display" id="response-403"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>404 Not Found</h3>
+              <p>Resource does not exist</p>
+              <button class="btn btn-warning" id="btn-test-404">
+                Test 404
+              </button>
+              <div class="response-display" id="response-404"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>422 Validation Error</h3>
+              <p>Request data fails validation rules</p>
+              <button class="btn btn-warning" id="btn-test-422">
+                Test 422
+              </button>
+              <div class="response-display" id="response-422"></div>
+            </div>
+            <div class="scenario-card">
+              <h3>429 Too Many Requests</h3>
+              <p>Rate limit exceeded</p>
+              <button class="btn btn-warning" id="btn-test-429">
+                Test 429
+              </button>
+              <div class="response-display" id="response-429"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Error UI Handling -->
+        <section class="data-section" id="ui-section">
+          <h2>Error UI Patterns</h2>
+          <div class="error-test-area">
+            <div class="toast-container" id="toast-container"></div>
+            <div class="inline-error" id="inline-error" style="display: none">
+              <span class="error-icon">⚠️</span>
+              <span class="error-message" id="error-message"></span>
+              <button class="dismiss" id="dismiss-error">×</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="data-section" id="summary-section">
+          <h2>Test Summary</h2>
+          <div class="widget-grid">
+            <div class="widget">
+              <h3>Errors Handled</h3>
+              <div class="widget-value" id="errors-handled">0</div>
+            </div>
+            <div class="widget">
+              <h3>Correct Behavior</h3>
+              <div class="widget-value success" id="correct-behavior">0</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="test-output" id="test-output">
+          <h3>Test Results</h3>
+          <pre id="test-results"></pre>
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .scenario-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .scenario-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      .scenario-card h3 {
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+      }
+      .scenario-card p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 1rem;
+      }
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .response-display {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #fef2f2;
+        border-radius: 4px;
+        border-left: 3px solid #dc2626;
+        font-family: monospace;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+      }
+      .toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+      }
+      .toast {
+        background: #fee2e2;
+        border: 1px solid #dc2626;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        max-width: 350px;
+        animation: slideIn 0.3s ease;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .inline-error {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .inline-error .dismiss {
+        margin-left: auto;
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+      }
+      .widget-value.success {
+        color: #16a34a;
+      }
+    </style>
+
+    <script>
+      // Mock error responses
+      const mockResponses = {
+        400: {
+          status: 400,
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              error: "Bad Request",
+              message:
+                "The request body is malformed or missing required fields.",
+            }),
+        },
+        401: {
+          status: 401,
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              error: "Unauthorized",
+              message:
+                "Authentication token is missing or expired. Please log in again.",
+            }),
+        },
+        403: {
+          status: 403,
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              error: "Forbidden",
+              message: "You do not have permission to access this resource.",
+            }),
+        },
+        404: {
+          status: 404,
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              error: "Not Found",
+              message: "The requested resource could not be found.",
+            }),
+        },
+        422: {
+          status: 422,
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              error: "Validation Error",
+              message: "The given data was invalid.",
+              errors: {
+                email: ["The email field must be a valid email address."],
+                password: [
+                  "The password must be at least 8 characters.",
+                  "The password must contain a number.",
+                ],
+              },
+            }),
+        },
+        429: {
+          status: 429,
+          ok: false,
+          headers: { "Retry-After": "60" },
+          json: () =>
+            Promise.resolve({
+              error: "Too Many Requests",
+              message:
+                "Rate limit exceeded. Please wait 60 seconds before retrying.",
+            }),
+        },
+      };
+
+      let errorsHandled = 0;
+      let correctBehavior = 0;
+
+      function updateCounts() {
+        document.getElementById("errors-handled").textContent = errorsHandled;
+        document.getElementById("correct-behavior").textContent =
+          correctBehavior;
+      }
+
+      // Error handler
+      function handleApiError(response, data) {
+        errorsHandled++;
+
+        // Check correct behavior based on status
+        let handledCorrectly = false;
+
+        switch (response.status) {
+          case 401:
+            // Should redirect to login
+            handledCorrectly = true;
+            showToast("Session expired. Redirecting to login...");
+            break;
+          case 403:
+            // Should show access denied
+            handledCorrectly = true;
+            showInlineError("Access Denied: " + data.message);
+            break;
+          case 404:
+            // Should show not found
+            handledCorrectly = true;
+            showToast("Resource not found: " + data.message);
+            break;
+          case 422:
+            // Should display field errors
+            handledCorrectly = data.errors !== undefined;
+            break;
+          case 429:
+            // Should back off
+            handledCorrectly = true;
+            showToast("Rate limited. Backing off...");
+            break;
+          default:
+            // Should show generic error
+            handledCorrectly = true;
+            showToast(data.message || "An error occurred");
+        }
+
+        if (handledCorrectly) correctBehavior++;
+        updateCounts();
+
+        return handledCorrectly;
+      }
+
+      function showToast(message) {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+
+      function showInlineError(message) {
+        const el = document.getElementById("inline-error");
+        document.getElementById("error-message").textContent = message;
+        el.style.display = "flex";
+      }
+
+      function displayResponse(elementId, response, data) {
+        const el = document.getElementById(elementId);
+        el.textContent = `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+      }
+
+      // Test handlers
+      async function testError(statusCode) {
+        const response = mockResponses[statusCode];
+        const data = await response.json();
+        displayResponse(`response-${statusCode}`, response, data);
+        handleApiError(response, data);
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        [400, 401, 403, 404, 422, 429].forEach(code => {
+          document
+            .getElementById(`btn-test-${code}`)
+            .addEventListener("click", () => testError(code));
+        });
+
+        document
+          .getElementById("dismiss-error")
+          .addEventListener("click", () => {
+            document.getElementById("inline-error").style.display = "none";
+          });
+      });
+
+      // Test runner
+      class TestRunner {
+        constructor(suiteName) {
+          this.suiteName = suiteName;
+          this.results = { passed: 0, failed: 0, tests: [] };
+        }
+
+        async test(name, fn) {
+          try {
+            await fn();
+            this.results.passed++;
+            this.results.tests.push({ name, status: "passed" });
+          } catch (e) {
+            this.results.failed++;
+            this.results.tests.push({
+              name,
+              status: "failed",
+              error: e.message,
+            });
+          }
+        }
+
+        assert(condition, message) {
+          if (!condition) throw new Error(message || "Assertion failed");
+        }
+
+        getResults() {
+          return this.results;
+        }
+      }
+
+      // Expose for Playwright
+      window.runRbacTests = async function () {
+        const runner = new TestRunner("API Client Errors");
+
+        // Test 400 Bad Request
+        await runner.test("400 response has error message", async () => {
+          const data = await mockResponses[400].json();
+          runner.assert(data.message, "Should have message");
+        });
+
+        // Test 401 Unauthorized
+        await runner.test("401 response indicates auth failure", async () => {
+          const r = mockResponses[401];
+          runner.assert(r.status === 401, "Should be 401");
+          const data = await r.json();
+          runner.assert(
+            data.message.includes("token") || data.message.includes("log in"),
+            "Should mention auth",
+          );
+        });
+
+        // Test 403 Forbidden
+        await runner.test(
+          "403 response indicates permission denied",
+          async () => {
+            const data = await mockResponses[403].json();
+            runner.assert(
+              data.message.includes("permission"),
+              "Should mention permission",
+            );
+          },
+        );
+
+        // Test 404 Not Found
+        await runner.test(
+          "404 response indicates resource missing",
+          async () => {
+            const r = mockResponses[404];
+            runner.assert(r.ok === false, "Should not be ok");
+            runner.assert(r.status === 404, "Should be 404");
+          },
+        );
+
+        // Test 422 Validation
+        await runner.test("422 response has field-level errors", async () => {
+          const data = await mockResponses[422].json();
+          runner.assert(data.errors, "Should have errors object");
+          runner.assert(
+            Array.isArray(data.errors.email),
+            "Should have email errors",
+          );
+          runner.assert(
+            data.errors.password.length === 2,
+            "Should have 2 password errors",
+          );
+        });
+
+        // Test 429 Rate Limit
+        await runner.test("429 response includes retry info", async () => {
+          const r = mockResponses[429];
+          runner.assert(
+            r.headers["Retry-After"],
+            "Should have Retry-After header",
+          );
+          const data = await r.json();
+          runner.assert(
+            data.message.includes("60"),
+            "Should mention wait time",
+          );
+        });
+
+        return runner.getResults();
+      };
+
+      if (window.location.search.includes("autorun=true")) {
+        window.runRbacTests().then(results => {
+          console.log("API Client Errors Test Results:", results);
+          window.__testResults = results;
+        });
+      }
+    </script>
+  </body>
+</html>
