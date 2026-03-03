@@ -114,7 +114,7 @@ final class ProductServiceController extends Controller
                 $size = $req->file('pro_image')->getSize();
                 $result = Utility::updateStorageLimit($user?->creatorId(), $size);
                 if ($result === 1) {
-                    $imageName = $req->pro_image->getClientOriginalName();
+                    $imageName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->pro_image->getClientOriginalName());
                     Utility::uploadFile($req, 'pro_image', $imageName, 'uploads/pro_image', []);
                 }
             }
@@ -197,7 +197,7 @@ final class ProductServiceController extends Controller
                     if ($imageName) {
                         Utility::changeStorageLimit($user?->creatorId(), '/uploads/pro_image/' . $imageName);
                     }
-                    $imageName = $req->pro_image->getClientOriginalName();
+                    $imageName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->pro_image->getClientOriginalName());
                     Utility::uploadFile($req, 'pro_image', $imageName, 'uploads/pro_image', []);
                 }
             }

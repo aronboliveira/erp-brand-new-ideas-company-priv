@@ -938,9 +938,9 @@ class SystemController extends Controller
                 ]);
                 $settings['google_calendar_enable'] = 'on';
                 $dir = storage_path('google_calendar') . '/' . md5(now());
-                if (!File::isDirectory($dir)) File::makeDirectory($dir, 0777, true, true);
+                if (!File::isDirectory($dir)) File::makeDirectory($dir, 0755, true, true);
                 $file = $request->file('google_calendar_json_file');
-                $path = $file->storeAs($dir, $file->getClientOriginalName());
+                $path = $file->storeAs($dir, preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName()));
                 $settings['google_calendar_json_file'] = $path;
                 $settings['google_clender_id'] = $data['google_clender_id'];
             } else {
@@ -972,9 +972,9 @@ class SystemController extends Controller
                 SettingsConstants::MT_IMG_K => 'required|file'
             ]);
             $dir = storage_path('uploads/meta');
-            if (!File::isDirectory($dir)) File::makeDirectory($dir, 0777, true, true);
+            if (!File::isDirectory($dir)) File::makeDirectory($dir, 0755, true, true);
             $image = $request->file(SettingsConstants::MT_IMG_K);
-            $filename = $image->getClientOriginalName();
+            $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $image->getClientOriginalName());
             $image->move($dir, $filename);
             $settings = [
                 SettingsConstants::MT_TTL_K => $data[SettingsConstants::MT_TTL_K],

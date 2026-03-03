@@ -141,7 +141,7 @@ class JobCategoryController extends Controller
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'category_id' => $id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
-                $jobCategory = JobCategory::findOrFail($id);
+                $jobCategory = JobCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
                 $this->logExecutionTime($qStart, $action, 'fetchCategory');
                 $viewPath = ViewsConstants::JB_CAT . '.' . $action;
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -173,7 +173,7 @@ class JobCategoryController extends Controller
             }
             try {
                 $qStart = microtime(true);
-                $jobCategory = JobCategory::findOrFail($id);
+                $jobCategory = JobCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
                 $this->logExecutionTime($qStart, $action, 'fetchCategory');
                 $updStart = microtime(true);
                 $jobCategory->title = $request->title;

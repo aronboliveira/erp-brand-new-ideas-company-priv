@@ -1263,9 +1263,9 @@ final class InvoiceController extends Controller
             Log::warning('receipt exceeds limit', ['size' => $size]);
             return null;
         }
-        $fileName = time() . '_' . $req
+        $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req
             ->file('add_receipt')
-            ->getClientOriginalName();
+            ->getClientOriginalName());
         $req->file('add_receipt')
             ->storeAs('uploads/payment', $fileName);
         Log::info('receipt stored', ['file' => $fileName]);

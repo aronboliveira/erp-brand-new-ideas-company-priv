@@ -185,7 +185,7 @@ class EmployeeController extends Controller
                 $id = Crypt::decrypt($encId);
                 Log::debug("[$base::$action] load employee", ['id' => $id]);
                 $t = microtime(true);
-                $employee = Employee::findOrFail($id);
+                $employee = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->findOrFail($id);
                 $documents = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
                 $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
@@ -230,7 +230,7 @@ class EmployeeController extends Controller
             try {
                 Log::debug("[$base::$action] updating", ['id' => $id]);
                 $t = microtime(true);
-                $employee = Employee::findOrFail($id);
+                $employee = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->findOrFail($id);
                 $employee->fill($r->all())->save();
                 self::syncDocs($r, $employee->employee_id);
                 $employee->user()->update([UsersConstants::COL_NM => $employee->name, UsersConstants::COL_EM => $employee->email]);
@@ -255,7 +255,7 @@ class EmployeeController extends Controller
             try {
                 Log::debug("[$base::$action] deleting", ['id' => $id]);
                 $t = microtime(true);
-                $employee = Employee::findOrFail($id);
+                $employee = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->findOrFail($id);
                 $employee->documents()->each(function ($doc) {
                     File::delete('uploads/document/' . $doc->document_value);
                     $doc->delete();

@@ -39,6 +39,7 @@ use Illuminate\Support\Facades\{
     Auth,
     DB,
     File,
+    Hash,
     Redirect,
     Crypt,
     Validator,
@@ -250,12 +251,18 @@ class ProjectController extends Controller
                     return Redirect::back()->with('error', __('Permission Denied.'));
                 }
 
+                // Eager-load relations to prevent N+1 queries
+                $t = microtime(true);
+                $project->load(['expense', 'tasks', 'milestones']);
+                $this->logExecutionTime($t, $action . '::eagerLoad', 'completed');
+
                 $pd = [];
 
-                // Task count
+                // Task count — use eager-loaded tasks instead of 2 separate queries
                 $t = microtime(true);
-                $tot  = ProjectTask::where(ActivitiesConstants::COL_PJ, $project->id)->count();
-                $done = ProjectTask::where(ActivitiesConstants::COL_PJ, $project->id)->where(ProjectsConstants::COL_IS_CP, 1)->count();
+                $allTasks = $project->tasks;
+                $tot  = $allTasks->count();
+                $done = $allTasks->where(ProjectsConstants::COL_IS_CP, 1)->count();
                 $pd['task'] = ['total' => $tot, 'done' => $done, 'percentage' => Utility::getPercentage($done, $tot)];
                 $this->logExecutionTime($t, $action . '::taskCounts', 'completed');
 
@@ -278,19 +285,19 @@ class ProjectController extends Controller
                 $pd['day_left'] = ['day' => "$remDays/$totDays", 'percentage' => Utility::getPercentage($remDays, $totDays)];
                 $this->logExecutionTime($t, $action . '::daysLeft', 'completed');
 
-                // open task
+                // open task — use eager-loaded tasks collection
                 $t = microtime(true);
-                $open = ProjectTask::where(ActivitiesConstants::COL_PJ, $project->id)
-                    ->where(ProjectsConstants::COL_IS_CP, 0)
+                $open = $allTasks->where(ProjectsConstants::COL_IS_CP, 0)
                     ->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->count();
-                $pd['open_task'] = [DatabaseConstants::TABLE_TASKS => "$open/{$project->tasks->count()}", 'percentage' => Utility::getPercentage($open, $project->tasks->count())];
+                $pd['open_task'] = [DatabaseConstants::TABLE_TASKS => "$open/{$tot}", 'percentage' => Utility::getPercentage($open, $tot)];
                 $this->logExecutionTime($t, $action . '::openTasks', 'completed');
 
-                // milestone
+                // milestone — use eager-loaded milestones collection
                 $t = microtime(true);
-                $totMs  = $project->milestones()->count();
-                $doneMs = $project->milestones()->where(ActivitiesConstants::COL_TSK_STT, ProjectsConstants::STT_CPT_K)->count();
+                $loadedMs = $project->milestones;
+                $totMs  = $loadedMs->count();
+                $doneMs = $loadedMs->where(ActivitiesConstants::COL_TSK_STT, ProjectsConstants::STT_CPT_K)->count();
                 $pd['milestone'] = ['total' => "$doneMs/$totMs", 'percentage' => Utility::getPercentage($doneMs, $totMs)];
                 $this->logExecutionTime($t, $action . '::milestones', 'completed');
 
@@ -307,21 +314,38 @@ class ProjectController extends Controller
                 $pd['task_allocated_hrs'] = ['hrs' => "{$ah['allocated']}/{$ah['allocated']}", 'percentage' => Utility::getPercentage($ah['allocated'], $ah['allocated'])];
                 $this->logExecutionTime($t, $action . '::allocatedHrs', 'completed');
 
-                // charts
+                // charts — 2 batch queries instead of 14 per-day queries
                 $t = microtime(true);
                 $days = Utility::getLastSevenDays();
+                $dateKeys = array_keys($days);
                 $ct = [];
                 $ts = [];
                 $cntT = 0;
                 $cntTs = 0;
-                foreach (array_keys($days) as $date) {
-                    $c = $project->tasks()
-                        ->where(ProjectsConstants::COL_IS_CP, 1)
-                        ->whereRaw("find_in_set('{$usr->id}'," . ProjectsConstants::COL_ASGN . ")")
-                        ->where(ProjectsConstants::COL_M_AT, 'LIKE', $date)
-                        ->count();
+
+                $completedByDate = $project->tasks()
+                    ->where(ProjectsConstants::COL_IS_CP, 1)
+                    ->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usr->id])
+                    ->where(function ($q) use ($dateKeys) {
+                        foreach ($dateKeys as $d) $q->orWhere(ProjectsConstants::COL_M_AT, 'LIKE', $d . '%');
+                    })
+                    ->selectRaw("DATE(" . ProjectsConstants::COL_M_AT . ") as chart_date, COUNT(*) as cnt")
+                    ->groupBy('chart_date')
+                    ->pluck('cnt', 'chart_date');
+
+                $timesheetsByDate = $project->timesheets()
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)
+                    ->where(function ($q) use ($dateKeys) {
+                        foreach ($dateKeys as $d) $q->orWhere('date', 'LIKE', $d . '%');
+                    })
+                    ->selectRaw("DATE(date) as chart_date, GROUP_CONCAT(time) as times")
+                    ->groupBy('chart_date')
+                    ->pluck('times', 'chart_date');
+
+                foreach ($dateKeys as $date) {
+                    $c = $completedByDate[$date] ?? 0;
                     $tHrs = str_replace(':', '.', Utility::timeToHr(
-                        $project->timesheets()->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)->where('date', 'LIKE', $date)->pluck('time')->toArray()
+                        isset($timesheetsByDate[$date]) ? explode(',', $timesheetsByDate[$date]) : []
                     ));
                     $ct[] = $c;
                     $ts[] = $tHrs;
@@ -885,11 +909,11 @@ class ProjectController extends Controller
                 if ($kw = $request->keyword) {
                     $query->where(function ($q) use ($kw) {
                         $q->where(ProjectsConstants::COL_NM, 'LIKE', "$kw%")
-                            ->orWhereRaw("FIND_IN_SET('{$kw}', tags)");
+                            ->orWhereRaw("FIND_IN_SET(?, tags)", [$kw]);
                     });
                 }
                 if ($status = $request->status) $query->whereIn(ActivitiesConstants::COL_TSK_STT, $status);
-                $projects = $query->get();
+                $projects = $query->with(['tasks', 'milestones', 'expense'])->get();
                 $lastTask = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'DESC')->first();
                 $this->logExecutionTime($t, $action . '::buildAndRunQuery', 'completed');
@@ -1013,7 +1037,7 @@ class ProjectController extends Controller
                 $bugs = match ($user?->type) {
                     PermissionsConstants::CPN => $matchedBug->get(),
                     PermissionsConstants::CL  => $matchedBug->get(),
-                    default => $matchedBug->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->get(),
+                    default => $matchedBug->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id])->get(),
                 };
                 $this->logExecutionTime($t, $action . '::fetchData', 'completed');
 
@@ -1397,7 +1421,7 @@ class ProjectController extends Controller
             $t = microtime(true);
             $request->validate(['file' => 'required|file']);
             $file = $request->file('file');
-            $name = $bugId . time() . '_' . $file->getClientOriginalName();
+            $name = $bugId . time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
             $file->storeAs(DatabaseConstants::TABLE_BUGS, $name);
             $bf = BugFile::create([
                 'bug_id'     => $bugId,
@@ -1483,15 +1507,25 @@ class ProjectController extends Controller
 
             $result = ['label' => [], 'color' => [], 'stages' => $stages];
 
+            // Single batch query instead of N per-date queries
             $t = microtime(true);
-            foreach ($dates as $date => $label) {
-                $query = ProjectTask::select(ProjectsConstants::COL_STAGE_ID, DB::raw('count(*) as total'))
-                    ->whereDate('updated_at', $date);
+            $dateKeys = array_keys($dates);
+            $allData = collect();
+            if (!empty($dateKeys)) {
+                $batchQuery = ProjectTask::select(
+                    DB::raw("DATE(updated_at) as chart_date"),
+                    ProjectsConstants::COL_STAGE_ID,
+                    DB::raw('count(*) as total')
+                )->whereIn(DB::raw("DATE(updated_at)"), $dateKeys);
                 if (!empty($params[ActivitiesConstants::COL_PJ]))
-                    $query->where(ActivitiesConstants::COL_PJ, $params[ActivitiesConstants::COL_PJ]);
-                $data = $query->groupBy(ProjectsConstants::COL_STAGE_ID)->pluck('total', ProjectsConstants::COL_STAGE_ID)->all();
-                foreach ($stages as $id => $_)
-                    $result[$id][] = $data[$id] ?? 0;
+                    $batchQuery->where(ActivitiesConstants::COL_PJ, $params[ActivitiesConstants::COL_PJ]);
+                $allData = $batchQuery->groupBy('chart_date', ProjectsConstants::COL_STAGE_ID)->get();
+            }
+            foreach ($dates as $date => $label) {
+                foreach ($stages as $id => $_) {
+                    $row = $allData->where('chart_date', $date)->where(ProjectsConstants::COL_STAGE_ID, $id)->first();
+                    $result[$id][] = $row ? $row->total : 0;
+                }
                 $result['label'][] = __($label);
             }
             $this->logExecutionTime($t, $action . '::aggregate', 'completed');
@@ -1733,8 +1767,11 @@ class ProjectController extends Controller
             ];
             $data = [];
             foreach ($fields as $f) $data[$f] = $request->has($f) ? 'on' : 'off';
-            if ($data['password_protected'] === 'on') $project->password = base64_encode($request->password);
-            else $project->password = null;
+            if ($data['password_protected'] === 'on') {
+                if (!empty($request->password)) $project->password = Hash::make($request->password);
+            } else {
+                $project->password = null;
+            }
             $project->copylinksetting = json_encode($data);
             $project->save();
             $this->logExecutionTime($t, $action . '::persist', 'completed');
@@ -1765,7 +1802,7 @@ class ProjectController extends Controller
             // password gate
             $viewPwd = VW::PRJ . '.copylink_password';
             if (($settings['password_protected'] ?? '') === 'on'
-                && $request->password !== base64_decode($project->password)
+                && !Hash::check($request->password ?? '', $project->password ?? '')
                 && session("copy_pass_true{$id}") !== "{$project->password}-{$id}"
             ) {
                 $t = microtime(true);
@@ -1811,7 +1848,7 @@ class ProjectController extends Controller
 
             $openQuery = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)->where(ProjectsConstants::COL_IS_CP, 0);
             if ($usr->checkProject($id) !== 'Owner')
-                $openQuery->whereRaw("find_in_set('{$usr->id}'," . ProjectsConstants::COL_ASGN . ")");
+                $openQuery->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usr->id]);
             $openCount  = $openQuery->count();
             $totalCount = $project->tasks->count();
             $project_data['open_task'] = [
@@ -1846,17 +1883,34 @@ class ProjectController extends Controller
             $sevenDays = Utility::getLastSevenDays();
             $chartTask = $chartTs = [];
             $sumTask = $sumTs = 0;
-            foreach (array_keys($sevenDays) as $date) {
-                $taskCnt = $project->tasks()
-                    ->where(ProjectsConstants::COL_IS_CP, 1)
-                    ->where(ProjectsConstants::COL_M_AT, 'LIKE', $date)
-                    ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->whereRaw("find_in_set('{$usr->id}'," . ProjectsConstants::COL_ASGN . ")"))
-                    ->count();
-                $tsArr = $project->timesheets()
-                    ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id))
-                    ->where('date', 'LIKE', $date)
-                    ->pluck('time')->toArray();
-                $tsCnt = str_replace(':', '.', $tsArr ? Utility::timeToHr($tsArr) : 0);
+            $dateKeys = array_keys($sevenDays);
+            $isOwner = $usr->checkProject($id) === 'Owner';
+
+            // Batch chart queries (2 instead of 14)
+            $completedByDate = $project->tasks()
+                ->where(ProjectsConstants::COL_IS_CP, 1)
+                ->when(!$isOwner, fn($q) => $q->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usr->id]))
+                ->where(function ($q) use ($dateKeys) {
+                    foreach ($dateKeys as $d) $q->orWhere(ProjectsConstants::COL_M_AT, 'LIKE', $d . '%');
+                })
+                ->selectRaw("DATE(" . ProjectsConstants::COL_M_AT . ") as chart_date, COUNT(*) as cnt")
+                ->groupBy('chart_date')
+                ->pluck('cnt', 'chart_date');
+
+            $timesheetsByDate = $project->timesheets()
+                ->when(!$isOwner, fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id))
+                ->where(function ($q) use ($dateKeys) {
+                    foreach ($dateKeys as $d) $q->orWhere('date', 'LIKE', $d . '%');
+                })
+                ->selectRaw("DATE(date) as chart_date, GROUP_CONCAT(time) as times")
+                ->groupBy('chart_date')
+                ->pluck('times', 'chart_date');
+
+            foreach ($dateKeys as $date) {
+                $taskCnt = $completedByDate[$date] ?? 0;
+                $tsCnt = str_replace(':', '.', Utility::timeToHr(
+                    isset($timesheetsByDate[$date]) ? explode(',', $timesheetsByDate[$date]) : []
+                ));
                 $chartTask[] = $taskCnt;
                 $sumTask += $taskCnt;
                 $chartTs[]   = $tsCnt;
@@ -1865,16 +1919,21 @@ class ProjectController extends Controller
             $project_data['task_chart']      = ['chart' => $chartTask, 'total' => $sumTask];
             $project_data['timesheet_chart'] = ['chart' => $chartTs,   'total' => $sumTs];
 
+            // Batch all tasks for this project (1 query instead of N per stage)
+            $allProjectTasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)
+                ->when(!$isOwner, fn($q) => $q->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usr->id]))
+                ->orderBy(ActivitiesConstants::COL_OD)
+                ->get();
+
             $stages = TaskStage::orderBy(ActivitiesConstants::COL_OD)
                 ->where(DatabaseConstants::COL_TABLE_CREATOR, $project->created_by)
                 ->get()
-                ->map(function ($s) use ($usr, $id) {
-                    $tasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)
-                        ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->whereRaw("find_in_set('{$usr->id}'," . ProjectsConstants::COL_ASGN . ")"))
-                        ->where(ProjectsConstants::COL_STAGE_ID, $s->id)
-                        ->orderBy(ActivitiesConstants::COL_OD)
-                        ->get();
-                    return ['id' => $s->id, ProjectsConstants::COL_NM => $s[ProjectsConstants::COL_NM], DatabaseConstants::TABLE_TASKS => $tasks];
+                ->map(function ($s) use ($allProjectTasks) {
+                    return [
+                        'id' => $s->id,
+                        ProjectsConstants::COL_NM => $s[ProjectsConstants::COL_NM],
+                        DatabaseConstants::TABLE_TASKS => $allProjectTasks->where(ProjectsConstants::COL_STAGE_ID, $s->id)->values(),
+                    ];
                 });
 
             $trackers = TimeTracker::where(ActivitiesConstants::COL_PJ, $id)

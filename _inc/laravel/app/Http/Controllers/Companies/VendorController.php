@@ -369,10 +369,12 @@ class VendorController extends Controller
                 'email' => 'required|email|unique:users,email,' . $user?->id
             ]);
             if ($file = $request->file('profile')) {
-                [$name, $ext] = explode('.', $file->getClientOriginalName(), 2);
+                $info = pathinfo($file->getClientOriginalName());
+                $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $info['filename'] ?? 'file');
+                $ext  = preg_replace('/[^A-Za-z0-9]/', '', $info['extension'] ?? '');
                 $fileName = "{$name}_" . time() . ".{$ext}";
                 $dir = storage_path('uploads/avatar/');
-                if (!file_exists($dir)) mkdir($dir, 0777, true);
+                if (!file_exists($dir)) mkdir($dir, 0755, true);
                 if ($user?->avatar && file_exists($dir . $user?->avatar)) unlink($dir . $user?->avatar);
                 $file->storeAs('uploads/avatar/', $fileName);
                 $vendor->avatar = $fileName;

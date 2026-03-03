@@ -795,7 +795,7 @@ class PurchaseController extends Controller
                     $pp->description = $request->description;
                     if ($request->hasFile('add_receipt')) {
                         $receiptStart = microtime(true);
-                        $fileName = time() . '_' . $request->add_receipt->getClientOriginalName();
+                        $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $request->add_receipt->getClientOriginalName());
                         $request->add_receipt->storeAs('uploads/payment', $fileName);
                         $this->logExecutionTime($receiptStart, $action, 'storeReceipt');
                         $pp->add_receipt = $fileName;

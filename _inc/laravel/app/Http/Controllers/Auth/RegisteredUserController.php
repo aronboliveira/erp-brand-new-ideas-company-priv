@@ -37,14 +37,14 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use function App\Http\Controllers\defaultUndefinedException;
 
 class RegisteredUserController extends Controller
 {
   public function __construct()
   {
-    (new ConsoleOutput)->writeln('Constructing ' . __CLASS__);
+    SafeConsoleOutput::make()->writeln('Constructing ' . __CLASS__);
   }
 
   public function store(Request $req): RedirectResponse|View

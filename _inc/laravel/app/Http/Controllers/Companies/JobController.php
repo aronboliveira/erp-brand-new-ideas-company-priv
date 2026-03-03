@@ -349,9 +349,14 @@ final class JobController extends Controller
         $class = static::class;
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $code, $action, $method, $class, $base) {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            $v = Validator::make($req->all(), ['name' => 'required', 'email' => 'required|email', 'phone' => 'required']);
+            $user = Auth::user(); // Public form — auth optional
+            $v = Validator::make($req->all(), [
+                'name'  => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:50',
+                'question' => 'nullable|array',
+                'question.*' => 'nullable|string|max:1000',
+            ]);
             if ($v->fails()) return back()->with('error', $v->errors()->first());
             $job = Job::where('code', $code)->firstOrFail();
             try {
@@ -360,7 +365,7 @@ final class JobController extends Controller
                     if ($req->hasFile($f)) {
                         $size = $req->file($f)->getSize();
                         $limStart = microtime(true);
-                        $limit = Utility::updateStorageLimit($user?->creatorId(), $size);
+                        $limit = Utility::updateStorageLimit($job->created_by, $size);
                         $this->logExecutionTime($limStart, $action, "checkStorage:$f");
                         if ($limit !== 1) continue;
                         $orig = $req->file($f)->getClientOriginalName();

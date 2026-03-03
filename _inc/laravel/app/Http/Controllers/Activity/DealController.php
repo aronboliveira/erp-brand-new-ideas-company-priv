@@ -862,7 +862,7 @@ class DealController extends Controller
         $limitStart = microtime(true);
         $lim = Utility::updateStorageLimit($request->user()->creatorId(), $size);
         $this->logExecutionTime($limitStart, $action, 'updateStorageLimit');
-        $orig = $request->file('file')->getClientOriginalName();
+        $orig = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $request->file('file')->getClientOriginalName());
         $path = "{$id}_" . md5(time()) . "_{$orig}";
         $createStart = microtime(true);
         $file = DealFile::create(['deal_id' => $id, 'file_name' => $orig, 'file_path' => $path]);

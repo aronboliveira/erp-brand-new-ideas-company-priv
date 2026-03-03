@@ -450,7 +450,7 @@ class ClientController extends Controller
                 $this->logExecutionTime($t, $action . '::validate', 'completed');
 
                 $t = microtime(true);
-                User::findOrFail($id)->update(['password' => Hash::make($request->password)]);
+                User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id)->update(['password' => Hash::make($request->password)]);
                 $this->logExecutionTime($t, $action . '::persistPassword', 'completed');
 
                 return redirect()->route(ViewsConstants::CLT . '.index')

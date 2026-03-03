@@ -130,7 +130,7 @@ class PlanController extends Controller
                     $file = $request->file(PLC::COL_IMG);
                     $fileName = self::SINGULAR . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/' . self::SINGULAR . '/');
-                    if (!file_exists($dir)) mkdir($dir, 0777, true);
+                    if (!file_exists($dir)) mkdir($dir, 0755, true);
                     $file->storeAs('uploads/' . self::SINGULAR . '/', $fileName);
                     $post[PLC::COL_IMG] = $fileName;
                 }
@@ -204,7 +204,7 @@ class PlanController extends Controller
                     $file = $request->file(PLC::COL_IMG);
                     $fileName = self::SINGULAR . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/' . self::SINGULAR . '/');
-                    if (!file_exists($dir)) mkdir($dir, 0777, true);
+                    if (!file_exists($dir)) mkdir($dir, 0755, true);
                     $oldPath = $dir . $plan->image;
                     if (File::exists($oldPath)) File::delete($oldPath);
                     $file->storeAs('uploads/' . self::SINGULAR . '/', $fileName);

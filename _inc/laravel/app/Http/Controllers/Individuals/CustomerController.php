@@ -442,7 +442,7 @@ class CustomerController extends Controller
                     $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)
                         . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/avatar/');
-                    if (!is_dir($dir)) mkdir($dir, 0777, true);
+                    if (!is_dir($dir)) mkdir($dir, 0755, true);
                     if ($user->avatar && file_exists($dir . $user->avatar)) @unlink($dir . $user->avatar);
                     // store on local disk under storage/app/uploads/avatar
                     $file->storeAs('uploads/avatar/', $name);

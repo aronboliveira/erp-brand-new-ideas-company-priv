@@ -23,7 +23,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log, Validator};
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use function App\Http\Controllers\defaultUndefinedException;
 
 class ApiController extends Controller
@@ -34,7 +34,7 @@ class ApiController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($request, $action) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       $output->writeln("{$action} Starting login");
       try {
         Log::debug("{$action} start", [
@@ -105,7 +105,7 @@ class ApiController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $request) {
-      $output = new ConsoleOutput;
+      $output = SafeConsoleOutput::make();
       $startMsg = 'Starting ' . $action;
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
@@ -142,7 +142,7 @@ class ApiController extends Controller
   public function getProjects(Request $request): JsonResponse
   {
     $method = __METHOD__;
-    $output = new ConsoleOutput();
+    $output = SafeConsoleOutput::make();
     Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
     return $this->measureProfile($method, function () use ($request, $output, $method) {
       $stepStart = microtime(true);
@@ -188,7 +188,7 @@ class ApiController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($request, $action) {
-      $output = new ConsoleOutput();
+      $output = SafeConsoleOutput::make();
       Log::debug("{$action} start", [
         'uri'    => $request->getRequestUri(),
         'method' => $request->getMethod(),
@@ -277,7 +277,7 @@ class ApiController extends Controller
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $request) {
-      $output = new ConsoleOutput;
+      $output = SafeConsoleOutput::make();
       app()->runningInConsole()
         ? $output->writeln('<info> Uploading image </info>')
         : $output->writeln("## {$action}: Uploading image");
@@ -292,7 +292,14 @@ class ApiController extends Controller
           return $this->error('Not authenticated', 401);
         }
         $user = $userOrRedirect;
-        $fileName  = basename($request->input('imgName', 'image.png'));
+        $rawName   = basename($request->input('imgName', 'image.png'));
+        $fileName  = preg_replace('/[^a-zA-Z0-9._-]/', '_', $rawName);
+        $allowedExt = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'];
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowedExt, true)) {
+          Log::warning("[$action] rejected file extension", ['ext' => $ext, 'fileName' => $fileName]);
+          return $this->error('Invalid image file type.', 422);
+        }
         $trackerId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->input('trackerId', ''));
         if ($trackerId === '') {
           Log::warning("[$action] invalid trackerId", ['uri' => $request->getRequestUri()]);
@@ -301,13 +308,19 @@ class ApiController extends Controller
         $dir = storage_path("uploads/trackerImages/{$trackerId}/");
         $dirStart = microtime(true);
         if (!is_dir($dir)) {
-          mkdir($dir, 0777, true);
+          mkdir($dir, 0755, true);
           Log::debug("[$action] directory created", ['dir' => $dir]);
         }
         $this->logExecutionTime($dirStart, $action . '::mkdir', 'completed');
         $fileStart = microtime(true);
+        $decoded = base64_decode($request->input('img'), true);
+        if ($decoded === false || strlen($decoded) === 0) {
+          Log::warning("[$action] invalid base64 image data");
+          return $this->error('Invalid image data.', 422);
+        }
         $filePath = $dir . $fileName;
-        file_put_contents($filePath, base64_decode($request->input('img')));
+        file_put_contents($filePath, $decoded);
+        chmod($filePath, 0644);
         $this->logExecutionTime($fileStart, $action . '::fileSave', 'completed');
         Log::info("[$action] file saved", ['path' => $filePath, 'user_id' => $user?->id]);
         Log::debug("[$action] saved size", ['size' => @filesize($filePath) ?: 0]);
@@ -332,7 +345,7 @@ class ApiController extends Controller
 
   private static function validateInput(Request $req, array $rules): ?string
   {
-    $output = new ConsoleOutput();
+    $output = SafeConsoleOutput::make();
     $class  = class_basename(self::class);
     $method = __FUNCTION__;
     $tag    = "{$class}::{$method}";

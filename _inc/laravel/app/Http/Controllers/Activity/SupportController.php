@@ -186,7 +186,7 @@ class SupportController extends Controller
                         $uStart = microtime(true);
                         $size = $req->file(SC::COL_ATC)->getSize();
                         if (Utility::updateStorageLimit($user?->creatorId(), $size) !== 1) throw new \RuntimeException('Storage limit exceeded');
-                        $name = time() . '_' . $req->file(SC::COL_ATC)->getClientOriginalName();
+                        $name = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->file(SC::COL_ATC)->getClientOriginalName());
                         $support[SC::COL_ATC] = $name;
                         Utility::uploadFile($req, SC::COL_ATC, $name, 'uploads/supports', []);
                         $this->logExecutionTime($uStart, $action, 'uploadAttachment');
@@ -329,7 +329,7 @@ class SupportController extends Controller
                         $uStart = microtime(true);
                         $size = $req->file(SC::COL_ATC)->getSize();
                         if (Utility::updateStorageLimit($support->creatorId(), $size) !== 1) throw new \RuntimeException('Storage limit exceeded');
-                        $name = time() . '_' . $req->file(SC::COL_ATC)->getClientOriginalName();
+                        $name = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->file(SC::COL_ATC)->getClientOriginalName());
                         $support->attachment = $name;
                         Utility::uploadFile($req, SC::COL_ATC, $name, 'uploads/supports', []);
                         $this->logExecutionTime($uStart, $action, 'uploadAttachment');

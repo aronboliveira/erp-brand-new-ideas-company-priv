@@ -425,7 +425,7 @@ class LeadController extends Controller
                 $quotaStart = microtime(true);
                 $limitOk = Utility::updateStorageLimit($req->user()->creatorId(), $size) == 1;
                 $this->logExecutionTime($quotaStart, $action, 'updateStorageLimit');
-                $name = $req->file->getClientOriginalName();
+                $name = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $req->file->getClientOriginalName());
                 $path = "{$id}_" . md5(time()) . "_{$name}";
                 $fileCreateStart = microtime(true);
                 $file = LeadFile::create(['lead_id' => $id, 'file_name' => $name, 'file_path' => $path]);

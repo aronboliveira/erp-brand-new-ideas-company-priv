@@ -158,21 +158,24 @@ class LanguageController extends Controller
                 Log::info("[$action] start", ['lang' => $currentLang, 'input' => $request->all()]);
                 $startDir = microtime(true);
                 $baseDir = base_path('resources/lang');
-                !is_dir($baseDir) && mkdir($baseDir, 0777, true);
+                !is_dir($baseDir) && mkdir($baseDir, 0755, true);
                 $this->logExecutionTime($startDir, "{$action} ensureBaseDir", 'completed');
-                $jsonPath = "{$baseDir}/{$currentLang}.json";
+                $safeLang = preg_replace('/[^a-zA-Z0-9_-]/', '', $currentLang);
+                $jsonPath = "{$baseDir}/{$safeLang}.json";
                 if (!empty($request->label)) file_put_contents($jsonPath, json_encode($request->label));
                 $startJson = microtime(true);
                 $this->logExecutionTime($startJson, "{$action} writeJson", 'completed');
-                $langDir = "{$baseDir}/{$currentLang}";
+                $langDir = "{$baseDir}/{$safeLang}";
                 $startLangDir = microtime(true);
-                !is_dir($langDir) && mkdir($langDir, 0777, true);
+                !is_dir($langDir) && mkdir($langDir, 0755, true);
                 $this->logExecutionTime($startLangDir, "{$action} ensureLangDir", 'completed');
                 if (!empty($request->message)) {
                     foreach ($request->message as $fileName => $fileData) {
                         $startFile = microtime(true);
+                        $safeFileName = preg_replace('/[^a-zA-Z0-9_-]/', '', basename($fileName));
+                        if ($safeFileName === '') continue;
                         $content = "<?php return [" . $this->buildArray($fileData) . "];";
-                        file_put_contents("{$langDir}/{$fileName}.php", $content);
+                        file_put_contents("{$langDir}/{$safeFileName}.php", $content);
                         $this->logExecutionTime($startFile, "{$action} writeMessageFile", 'completed');
                     }
                 }
@@ -246,14 +249,15 @@ class LanguageController extends Controller
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
                 Log::info("[{$action}] start", ['input' => $request->all()]);
                 $startProcess = microtime(true);
-                $code = strtolower($request->input('code'));
+                $code = preg_replace('/[^a-z0-9_-]/', '', strtolower($request->input('code')));
+                if ($code === '') return Redirect::route(self::ROUTE_INDEX)->with('error', __('Invalid language code.'));
                 $fullName = $request->input('full_name');
                 $baseDir = base_path('resources/lang');
-                !is_dir($baseDir) && mkdir($baseDir, 0777, true);
+                !is_dir($baseDir) && mkdir($baseDir, 0755, true);
                 File::copy("{$baseDir}/en.json", "{$baseDir}/{$code}.json");
                 $langDir = "{$baseDir}/{$code}";
-                !is_dir($langDir) && mkdir($langDir, 0777, true);
-                if (!Language::where('code', $code)->orWhere('full_name', $fullName)->exists()) Language::create(['code' => $code, 'full_name' => $fullName]);
+                !is_dir($langDir) && mkdir($langDir, 0755, true);
+                if (!Language::where('code', $code)->orWhere('full_name', $fullName)->exists()) Language::create(['code' => $code, 'full_name' => $fullName, DatabaseConstants::COL_TABLE_CREATOR => $request->user()?->creatorId()]);
                 File::copyDirectory("{$baseDir}/en", $langDir);
                 $this->logExecutionTime($startProcess, "{$action} processFiles", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');

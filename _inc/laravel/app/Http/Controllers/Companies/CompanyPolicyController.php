@@ -102,7 +102,7 @@ final class CompanyPolicyController extends Controller
                 $this->logExecutionTime($crtStart, $action, 'createPolicy');
                 try {
                     $settings = Utility::settings($u->creatorId());
-                    $branch = Branch::find($r->branch);
+                    $branch = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->find($r->branch);
                     $payload = [
                         'company_policy_name' => $policy->title,
                         'branch_name' => $branch?->name ?? ''

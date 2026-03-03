@@ -193,7 +193,7 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
-                $userDetail   = User::findOrFail($id);
+                $userDetail   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
                 $customFields = CustomField::getData($userDetail, self::SINGULAR);
                 $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
                 $view = ViewsConstants::USR . '.' . $action;
@@ -220,7 +220,7 @@ class UserController extends AppController
                 $validator = Validator::make($request->all(), $rules);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
 
-                $userDetail = User::findOrFail($id);
+                $userDetail = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
                 $input = $request->only(['name', 'email']);
                 if ($request->user()[UsersConstants::COL_TP] !== PermissionsConstants::SA) {
                     $role = Role::findById($request->input('role'));
@@ -250,7 +250,7 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 self::guard($request, PermissionsConstants::DEL_USER, ViewsConstants::USR . '.index');
-                $user = User::findOrFail($id);
+                $user = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
                 if ($request->user()[UsersConstants::COL_TP] === PermissionsConstants::SA) {
                     $user->delete_status = $user?->delete_status ? 0 : 1;
                     $user?->save();

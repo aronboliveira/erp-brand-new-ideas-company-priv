@@ -452,7 +452,7 @@ class ContractController extends Controller
                 Utility::updateStorageLimit($user?->creatorId(), $size);
                 $this->logExecutionTime($stepStart, 'updateStorageLimit', 'completed');
                 $stepStart = microtime(true);
-                $name = $id . $request->file('file')->getClientOriginalName();
+                $name = $id . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $request->file('file')->getClientOriginalName());
                 $dir = 'contract_attachment/';
                 $path = Utility::uploadFile($request, 'file', $name, $dir, []);
                 $this->logExecutionTime($stepStart, 'fileUpload', 'completed');

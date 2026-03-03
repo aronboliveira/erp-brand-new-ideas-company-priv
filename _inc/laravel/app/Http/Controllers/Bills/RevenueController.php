@@ -148,7 +148,7 @@ class RevenueController extends Controller
                     $size = $file->getSize();
                     $limit = Utility::updateStorageLimit($creatorId, $size);
                     if ($limit === 1) {
-                        $name = time() . '_' . $file->getClientOriginalName();
+                        $name = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
                         $upload = Utility::uploadFile($request, 'add_receipt', $name, 'uploads/revenue', []);
                         if (($upload['flag'] ?? 0) === 0) {
                             Log::debug($action . ' upload failed', ['msg' => $upload['msg'] ?? null]);
