@@ -55,7 +55,7 @@ use Illuminate\Support\Facades\{
     Validator
 };
 use Spatie\GoogleCalendar\Event as GoogleEvent;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Twilio\Rest\Client;
@@ -921,7 +921,7 @@ class Utility extends Model
 
     public static function settings(): array
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
@@ -976,7 +976,7 @@ class Utility extends Model
 
     public static function getSettings(): array
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
@@ -1019,7 +1019,7 @@ class Utility extends Model
 
     public static function settingsById(string|int $userId): array
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
@@ -1053,7 +1053,7 @@ class Utility extends Model
 
     public static function getSettingsById(string|int $id): array
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class = class_basename(self::class);
         $method = __FUNCTION__;
         $tag   = "{$class}::{$method}";
@@ -1174,7 +1174,7 @@ class Utility extends Model
 
     public static function languages(): Collection
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $tag   = class_basename(self::class) . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
         $output->writeln("## [{$tag}] Loading languages…");
@@ -3141,7 +3141,7 @@ class Utility extends Model
 
     public static function getFile(string $path = 'uploads/logo', mixed $settings = null): string
     {
-        $output = new ConsoleOutput();
+        $output = SafeConsoleOutput::make();
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
@@ -3788,7 +3788,7 @@ class Utility extends Model
     public static function languageCreate(?string $createdBy = DC::DEFAULT_UUID): void
     {
         foreach (self::langList() as $code => $fullName) {
-            $output = new ConsoleOutput();
+            $output = SafeConsoleOutput::make();
             $output->writeln("Creating or finding language: {$code} - {$fullName}");
             try {
                 Language::firstOrCreate(

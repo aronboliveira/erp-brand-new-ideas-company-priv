@@ -750,7 +750,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $user = Auth::check() ? Auth::user() : self::find($this->id);
         if ($user[UC::COL_TP] === PMC::CPN)
             return ProjectTask::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
-        return ProjectTask::whereRaw("find_in_set('{$this->id}'," . PJC::COL_ASGN . ")")->get();
+        return ProjectTask::whereRaw("find_in_set(?," . PJC::COL_ASGN . ")", [$this->id])->get();
     }
 
     public function bugNumberFormat(int $number): string

@@ -16,12 +16,14 @@ class ContractNote extends Model
 
     protected $guarded = ['id', DC::COL_TABLE_CREATOR, DC::COL_TABLE_UPDATER];
 
-    protected $fillable = [
+    public const FILLABLE = [
         'code',
         PJC::COL_CTC_ID,
         UC::COL_USER_ID,
         'notes',
     ];
+
+    protected $fillable = self::FILLABLE;
 
     protected $with = ['user', 'contract'];
 

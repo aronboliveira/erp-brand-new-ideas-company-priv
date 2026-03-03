@@ -9,7 +9,7 @@ trait EvaluatesMemory
 	protected function checkMemoryUsage(): void
 	{
 		try {
-			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
+			$output = \App\Helpers\SafeConsoleOutput::make();
 			$memoryLimit = $this->getMemoryLimit();
 			if (!function_exists('memory_get_usage') || (!is_int($memoryLimit) && !is_float($memoryLimit)) || $memoryLimit <= 0) {
 				return;

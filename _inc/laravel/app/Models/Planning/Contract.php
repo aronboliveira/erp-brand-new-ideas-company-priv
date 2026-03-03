@@ -257,7 +257,7 @@ class Contract extends Model
 
     public function notes(): HasMany
     {
-        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
+        return $this->hasMany(ContractNote::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function comment(): HasMany
@@ -267,7 +267,7 @@ class Contract extends Model
 
     public function note(): HasMany
     {
-        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
+        return $this->hasMany(ContractNote::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function contractAttachment(): HasOne
@@ -288,7 +288,7 @@ class Contract extends Model
 
     public function notesRows(): HasMany
     {
-        return $this->hasMany(ContractNotes::class, PJC::COL_CTC_ID, 'id');
+        return $this->hasMany(ContractNote::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function contractComment(): BelongsTo
@@ -298,7 +298,7 @@ class Contract extends Model
 
     public function contractNote(): BelongsTo
     {
-        return $this->belongsTo(ContractNotes::class, 'id', PJC::COL_CTC_ID);
+        return $this->belongsTo(ContractNote::class, 'id', PJC::COL_CTC_ID);
     }
 
     public function getIsFullySignedAttribute(): bool
