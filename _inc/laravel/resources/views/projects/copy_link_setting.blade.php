@@ -11,15 +11,6 @@
 @if(isset($project) && is_object($project))
     @php
         $projectPassword = '';
-        $rawPassword = data_get($project, 'password', '');
-        if (!empty($rawPassword)) {
-            try {
-                $projectPassword = base64_decode($rawPassword);
-                if (!$projectPassword) $projectPassword = '';
-            } catch (Exception $e) {
-                $projectPassword = '';
-            }
-        }
         $projectId = data_get($project, 'id');
         $encryptedProjectId = '';
         if (!empty($projectId)) {

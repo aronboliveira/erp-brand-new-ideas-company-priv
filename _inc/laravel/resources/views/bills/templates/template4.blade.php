@@ -323,7 +323,7 @@ try {
                                                 try {
                                                     $enc = data_get($bill, 'bill_id') ? Crypt::encrypt($bill->bill_id) : null;
                                                     $route = $enc ? route(ViewsConstants::BIL . '.link.copy', $enc) : '#';
-                                                    echo DNS2D::getBarcodeHTML($route, 'QRCODE', 2, 2);
+                                                    echo (new \Milon\Barcode\DNS2D)->getBarcodeHTML($route, 'QRCODE', 2, 2);
                                                 } catch (\Throwable $e) {
                                                     Log::error('QR: ' . $e->getMessage());
                                                     echo '<div></div>';

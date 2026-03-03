@@ -523,7 +523,7 @@ Object.keys(t).forEach(
                                                 class="{{ VC::DBL }}"
                                                 data-url="{{ $proposalLinkCopyUrl }}"
                                                 data-guard-msg="{{ $proposalLinkCopyGuardMsg }}">
-                                                {!! DNS2D::getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
+                                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
                                             </div>
                                             @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>

@@ -305,7 +305,7 @@ if (isset($proposal) && !empty($proposal)) {
                                 <div class="view-qrcode" style="margin-left:0;margin-bottom:15px;">
                                     <?php
                                     try {
-                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                        $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                         echo $qrHtml;
                                     } catch (\Throwable $e) {
                                         Log::error('QR HTML Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);

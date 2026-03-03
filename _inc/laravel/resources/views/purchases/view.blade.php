@@ -422,7 +422,7 @@
                                             $qrElId                 = 'purchase-copy-link-qrcode';
                                         @endphp
                                         <div id="{{ $qrElId }}" data-url="{{ $purchaseCopyLinkUrl }}" data-guard-msg="{{ $purchaseCopyLinkMsg }}" data-sv-localized="true">
-                                            {!! DNS2D::getBarcodeHTML($purchaseCopyLinkUrl, 'QRCODE', 2, 2) !!}
+                                            {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($purchaseCopyLinkUrl, 'QRCODE', 2, 2) !!}
                                         </div>
                                         @push(StacksConstants::ADM_SCR_PG)
                                             <script defer>

@@ -85,7 +85,7 @@
                         <td>
                             <h3 style=" display: inline-block; text-transform: uppercase; font-size: 40px; font-weight: bold; border-top: 5px solid var(--theme-color); padding-top: 5px;">{{ __('INVOICE') }}</h3>
                             <div class="view-qrcode" style="margin-top: 5px; margin-left: 0; margin-right: 0;">
-                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', Crypt::encrypt($invoice->invoice_id ?? '')), "QRCODE",2,2) !!}
+                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', Crypt::encrypt($invoice->invoice_id ?? '')), "QRCODE",2,2) !!}
                             </div>
                         </td>
                         <td class="text-right">

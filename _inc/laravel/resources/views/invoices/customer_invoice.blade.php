@@ -282,7 +282,7 @@
                                                         data-guard-msg="{{ $guardMsg }}"
                                                         data-listener-alias="qrcode-copy-link"
                                                     >
-                                                        {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML($copyLinkRoute, 'QRCODE', 2, 2) : __('Failed to generate QRCode') !!}
+                                                        {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML($copyLinkRoute, 'QRCODE', 2, 2) : __('Failed to generate QRCode') !!}
                                                     </div>
                                                 </div>
                                                 @push(StacksConstants::ADM_SCR_PG)

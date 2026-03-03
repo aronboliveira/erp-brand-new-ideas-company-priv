@@ -327,7 +327,7 @@ try {
                             <div class="view-qrcode" style="margin-top:5px;margin-left:0;margin-right:0;">
                                 <?php
                                 try {
-                                    echo DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                    echo (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                 } catch (\Throwable $e) {
                                     Log::error('QR HTML Throwable: ' . $e->getMessage());
                                     echo '<div></div>';

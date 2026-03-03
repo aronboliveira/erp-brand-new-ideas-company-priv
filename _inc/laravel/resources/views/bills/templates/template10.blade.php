@@ -242,7 +242,7 @@ try {
                             <h3 style="display:inline-block;text-transform:uppercase;font-size:40px;font-weight:bold;border-top:5px solid var(--theme-color);padding-top:5px;"><?= e(__('BILL')) ?></h3>
                             <div class="view-qrcode" style="margin-top:5px;margin-left:0;margin-right:0;">
                                 <?php try {
-                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
+                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
                                 } catch (\Throwable $e) {
                                 } ?>
                             </div>

@@ -135,7 +135,7 @@
                                     <tr>
                                         <td colspan="2">
                                             <div class="view-qrcode">
-                                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', \Crypt::encrypt($invoice->invoice_id ?? '')), "QRCODE",2,2) !!}
+                                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', \Crypt::encrypt($invoice->invoice_id ?? '')), "QRCODE",2,2) !!}
                                             </div>
                                         </td>
                                     </tr>

@@ -994,7 +994,7 @@
                                                 data-guard-msg="{{ $copyGuardMsg }}"
                                                 {{ $copyUrl === '#' ? 'aria-disabled="true"' : '' }}
                                             >
-                                                {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? DNS2D::getBarcodeHTML($copyUrl, "QRCODE", 2, 2) : __('Failed to generate QR code') !!}
+                                                {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML($copyUrl, "QRCODE", 2, 2) : __('Failed to generate QR code') !!}
                                             </a>
                                         </div>
                                         @push(StacksConstants::ADM_SCR_PG)

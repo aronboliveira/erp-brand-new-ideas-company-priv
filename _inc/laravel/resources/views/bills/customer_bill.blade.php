@@ -259,7 +259,7 @@
                                                 $qrId = 'bill-qr-copy-' . $bill->id;
                                             @endphp
                                             <div id="{{ $qrId }}" class="{{ VC::FEND }} {{ VC::MT3 }}" data-url="{{ $qrRoute }}" style="cursor: pointer;">
-                                                {!! DNS2D::getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
+                                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
                                             </div>
                                             @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>

@@ -83,7 +83,7 @@
         $canQR = class_exists(\DNS2D::class) && method_exists(\DNS2D::class, 'getBarcodeHTML');
         $encId = class_exists(\Crypt::class) && method_exists(\Crypt::class, 'encrypt') && isset($invoice->invoice_id) ? \Crypt::encrypt($invoice->invoice_id) : null;
         $routeUrl = function_exists('route') && $encId ? route(ViewsConstants::INV.'.link.copy', $encId) : (isset($invoice->invoice_id) ? (string)$invoice->invoice_id : '');
-        $qrHtml = ($canQR && $routeUrl !== '') ? \DNS2D::getBarcodeHTML($routeUrl, "QRCODE", 2, 2) : '';
+        $qrHtml = ($canQR && $routeUrl !== '') ? \(new \Milon\Barcode\DNS2D)->getBarcodeHTML($routeUrl, "QRCODE", 2, 2) : '';
     } catch (\Throwable $e) {
         Log::error('qr_generate_failed', ['file'=>$e->getFile(),'line'=>$e->getLine(),'code'=>$e->getCode(),'error_class'=>get_class($e),'message'=>$e->getMessage()]);
         $qrHtml = '';

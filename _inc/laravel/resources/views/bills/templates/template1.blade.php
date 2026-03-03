@@ -89,7 +89,7 @@ try {
     $enc = $rid ? Crypt::encrypt($rid) : null;
     $routeName = ViewsConstants::BIL . '.link.copy';
     $url = ($enc && Route::has($routeName)) ? route($routeName, $enc) : '#';
-    $qrHtml = DNS2D::getBarcodeHTML($url, 'QRCODE', 2, 2);
+    $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($url, 'QRCODE', 2, 2);
 } catch (\Throwable $e) {
     Log::error('QR: ' . get_class($e) . ' | ' . $e->getMessage());
     $qrHtml = '<div></div>';

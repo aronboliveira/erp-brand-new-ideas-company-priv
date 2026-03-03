@@ -214,7 +214,7 @@
                                                     $qrElId              = 'bill-copy-link-qrcode';
                                                 @endphp
                                                 <div id="{{ $qrElId }}" data-url="{{ $billCopyLinkUrl }}" data-guard-msg="{{ $billCopyLinkMsg }}" data-sv-localized="true">
-                                                    {!! DNS2D::getBarcodeHTML($billCopyLinkUrl, 'QRCODE', 2, 2) !!}
+                                                    {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($billCopyLinkUrl, 'QRCODE', 2, 2) !!}
                                                 </div>
                                                 @push(StacksConstants::ADM_SCR_PG)
                                                     <script>
