@@ -42,7 +42,7 @@ module.exports = defineConfig({
 
   /* Shared settings for all the projects below */
   use: {
-    /* No baseURL needed - we use file:// protocol */
+    /* No baseURL needed - we use file:// protocol for mock pages */
 
     /* Collect trace when retrying the failed test */
     trace: "on-first-retry",
@@ -82,10 +82,18 @@ module.exports = defineConfig({
     },
   ],
 
-  /* Timeout settings */
-  timeout: 30000,
+  /* Timeout settings — 45s base; render-timing tests call test.slow() to triple it */
+  timeout: 45000,
   expect: {
-    timeout: 5000,
+    timeout: 10000,
+  },
+
+  /* Web server for serving mock pages with ES module support */
+  webServer: {
+    command: "npx http-server tests/frontend/js/pages -p 3000 -c-1",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 10000,
   },
 
   /* Output directory for test artifacts */

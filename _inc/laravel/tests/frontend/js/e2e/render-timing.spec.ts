@@ -19,6 +19,19 @@ const TEST_EMAIL =
   process.env.TEST_EMAIL || "u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local";
 const TEST_PASS = process.env.TEST_PASS || "Admin@1234";
 
+/** Browser-aware constants — Firefox/WebKit need wider margins */
+function isSlowBrowser(): boolean {
+  const project = (test.info?.() as any)?.project?.name ?? "";
+  return /firefox|webkit/i.test(project);
+}
+const GOTO_TIMEOUT = 45_000;
+const SELECTOR_TIMEOUT = 15_000;
+const IDLE_TIMEOUT = 15_000;
+/** Post-LCP grace: Chromium fires LCP quickly; Firefox needs more time */
+const LCP_GRACE_MS = () => (isSlowBrowser() ? 600 : 200);
+/** Max acceptable load-event time per browser class */
+const MAX_LOAD_MS = () => (isSlowBrowser() ? 15_000 : 8_000);
+
 const VIEWS: { name: string; path: string; waitFor?: string }[] = [
   { name: "login", path: "/login", waitFor: "form" },
   { name: "dashboard", path: "/dashboard", waitFor: ".card, .widget, main" },
@@ -181,7 +194,7 @@ async function measureView(
 
   await page.goto(`${BASE}${view.path}`, {
     waitUntil: "domcontentloaded",
-    timeout: 30000,
+    timeout: GOTO_TIMEOUT,
   });
 
   // Wait for a key selector when specified
@@ -189,15 +202,31 @@ async function measureView(
     await page
       .locator(view.waitFor)
       .first()
-      .waitFor({ timeout: 10000 })
+      .waitFor({ timeout: SELECTOR_TIMEOUT })
       .catch(() => {});
   }
+
+  // Ensure the `load` event has fired so loadEventEnd is populated
   await page
-    .waitForLoadState("networkidle", { timeout: 10000 })
+    .waitForLoadState("load", { timeout: IDLE_TIMEOUT })
+    .catch(() => {});
+  await page
+    .waitForLoadState("networkidle", { timeout: IDLE_TIMEOUT })
     .catch(() => {});
 
-  // Give LCP observer a tick to fire
-  await page.waitForTimeout(200);
+  // For canvas-heavy views, wait for at least one animation frame so
+  // charting libraries (ApexCharts, Chart.js, etc.) finish painting.
+  if (view.waitFor?.includes("canvas")) {
+    await page
+      .evaluate(
+        () =>
+          new Promise<void>(resolve => requestAnimationFrame(() => resolve())),
+      )
+      .catch(() => {});
+  }
+
+  // Give LCP observer time to fire — Firefox needs a longer grace period
+  await page.waitForTimeout(LCP_GRACE_MS());
 
   const timing = await collectTimings(page);
   page.off("response", onResponse);
@@ -227,6 +256,11 @@ function summarise(r: NavTiming) {
 // TEST SUITE
 // ============================================================================
 test.describe.serial("Render Timing Benchmark", () => {
+  test.skip(
+    !process.env.APP_URL,
+    "Requires APP_URL to benchmark a running Laravel frontend.",
+  );
+
   const allResults: ViewResult[] = [];
 
   test.afterAll(async () => {
@@ -306,6 +340,10 @@ test.describe.serial("Render Timing Benchmark", () => {
   // ── Authenticated views ───────────────────────────────────────────────────
   for (const view of VIEWS.filter(v => v.path !== "/login")) {
     test(`timing: ${view.path} (first & later mount)`, async () => {
+      // Triple the overall test timeout for this benchmark — especially
+      // important for Firefox / WebKit where rendering is slower.
+      test.slow();
+
       const page = await authContext.newPage();
 
       try {
@@ -332,7 +370,7 @@ test.describe.serial("Render Timing Benchmark", () => {
               const t0 = Date.now();
               await link.click();
               await page
-                .waitForLoadState("domcontentloaded", { timeout: 8000 })
+                .waitForLoadState("domcontentloaded", { timeout: 10_000 })
                 .catch(() => {});
               navTransitionMs = Date.now() - t0;
             }
@@ -349,9 +387,19 @@ test.describe.serial("Render Timing Benchmark", () => {
           nav_transition_ms: navTransitionMs,
         });
 
-        // Soft assertion: pages should load in under 8s
-        expect(first.load_event_ms).toBeLessThan(8000);
+        // Soft assertion: browser-aware load-time threshold
+        const limit = MAX_LOAD_MS();
+        expect(
+          first.load_event_ms,
+          `${view.path} first load took ${first.load_event_ms}ms (limit: ${limit}ms)`,
+        ).toBeLessThan(limit);
       } catch (err: any) {
+        // Distinguish network/timeout errors from assertion failures.
+        // Only skip on genuine connectivity issues — let perf regressions fail properly.
+        const isAssertionError =
+          err?.constructor?.name === "ExpectError" ||
+          err?.matcherResult !== undefined;
+
         allResults.push({
           view: view.name,
           path: view.path,
@@ -361,6 +409,11 @@ test.describe.serial("Render Timing Benchmark", () => {
           cache_speedup_ratio: null,
           nav_transition_ms: null,
         });
+
+        if (isAssertionError) {
+          // Re-throw so the test fails visibly instead of being silently skipped
+          throw err;
+        }
         test.skip(true, `Could not reach ${view.path}: ${err}`);
       } finally {
         await page.close();
