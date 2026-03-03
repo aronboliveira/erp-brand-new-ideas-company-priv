@@ -20,7 +20,6 @@ use App\Models\{
     TaskChecklist,
     TaskFile,
     TaskStage,
-    User,
     Utility
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -159,7 +158,7 @@ class ProjectTaskController extends Controller
                 $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects);
                 if (($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN && $user->{UsersConstants::COL_TP} != PermissionsConstants::SA))
-                    $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                    $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id]);
                 else
                     $tasks = $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 $tasks = $tasks->get();
@@ -195,7 +194,7 @@ class ProjectTaskController extends Controller
                 $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 [$col, $dir] = explode('-', $req->sort);
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects)->orderBy($col, $dir);
-                if ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                if ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id]);
                 else $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 if ($keyword = $req->keyword) $tasks->where(ProjectsConstants::COL_NM, 'LIKE', "$keyword%");
                 if ($statuses = (array)$req[ActivitiesConstants::COL_TSK_ID]) {
@@ -237,7 +236,7 @@ class ProjectTaskController extends Controller
                 elseif ($user->{UsersConstants::COL_TP} == PermissionsConstants::CL) {
                     $ids = Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray();
                     $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $ids)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR])->get();
-                } else $bugs = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR])->get();
+                } else $bugs = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id])->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR])->get();
                 Log::info("[{$class}::{$action}] fetched bugs", ['count' => $bugs->count()]);
                 $tpl = $view === 'list' ? 'projects.allBugListView' : 'projects.allBugGridView';
                 if (!ViewFacade::exists($tpl)) return redirect()->back()->with('error', "HTTP 404: Page {$tpl} not found!");
@@ -384,7 +383,7 @@ class ProjectTaskController extends Controller
             if (self::guard($req, 'view project task', self::REDIRECT_INDEX)) return response()->json(['error' => __('Permission denied.')], 401);
             Log::info("[{$class}::{$action}] start", ['stage_id' => $stageId]);
             try {
-                $count = ProjectTask::where(PJC::COL_STAGE_ID, $stageId)->count();
+                $count = ProjectTask::where(ProjectsConstants::COL_STAGE_ID, $stageId)->count();
                 return response()->json(['count' => $count]);
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
@@ -781,9 +780,9 @@ class ProjectTaskController extends Controller
                 $userProjects = $type === PermissionsConstants::CL ? Project::where('client_id', $usrId)->pluck('id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID)->toArray();
                 if ($projectId) $userProjects = [$projectId];
                 $tasksQuery = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects);
-                if ($type !== PermissionsConstants::CPN && $type !== PermissionsConstants::CL) $tasksQuery->whereRaw("find_in_set('{$usrId}'," . ProjectsConstants::COL_ASGN . ")");
+                if ($type !== PermissionsConstants::CPN && $type !== PermissionsConstants::CL) $tasksQuery->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usrId]);
                 if ($type === PermissionsConstants::CL && $taskBy === 'all') $tasksQuery->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
-                elseif ($type !== PermissionsConstants::CL && $taskBy === 'my') $tasksQuery->whereRaw("find_in_set('{$usrId}'," . ProjectsConstants::COL_ASGN . ")");
+                elseif ($type !== PermissionsConstants::CL && $taskBy === 'my') $tasksQuery->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$usrId]);
                 $tasks = $tasksQuery->get();
                 $transdate = date('Y-m-d');
                 $arrTasks = Utility::getTaskCalendarArray($tasks);
@@ -868,7 +867,7 @@ class ProjectTaskController extends Controller
                         $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj);
                     } elseif ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) {
                         $proj = $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID);
-                        $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                        $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set(?," . ProjectsConstants::COL_ASGN . ")", [$user?->id]);
                     } else $q->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                     $data = $q->get();
                     $arrayJson = $data->map(function ($val) {
