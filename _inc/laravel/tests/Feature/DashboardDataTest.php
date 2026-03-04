@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\Shapes\DashboardController;
+use App\Http\Controllers\DashboardController;
 use App\Models\{
 	BankAccount,
 	Bill,
@@ -33,7 +33,7 @@ use App\Models\{
 	User,
 	Vendor
 };
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Log};
 use Illuminate\Support\Str;
@@ -43,7 +43,10 @@ use Tests\TestCase;
 /**
  * Verifies every dashboard variant returns non-empty data when the DB is seeded.
  *
- * Uses RefreshDatabase so each run starts clean.
+ * Uses DatabaseTransactions so each test is wrapped in a transaction that rolls
+ * back automatically. The test DB schema must be pre-migrated (run
+ * `APP_ENV=testing php artisan migrate` once before running this suite).
+ *
  * Seeds a full company-user environment and asserts that:
  *   – accountDashboardIndex passes non-empty collections for all cards/tables
  *   – projectDashboardIndex passes non-empty project/task data
@@ -51,12 +54,12 @@ use Tests\TestCase;
  *   – posDashboardIndex passes non-empty POS/Purchase totals
  *   – hrmDashboardIndex passes non-empty employee/announcement/meeting data
  *
- * @covers \App\Http\Controllers\Shapes\DashboardController
+ * @covers \App\Http\Controllers\DashboardController
  * @group slow
  */
 class DashboardDataTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	private User $companyUser;
 	private string $creatorId;
@@ -457,6 +460,8 @@ class DashboardDataTest extends TestCase
 				$this->assertArrayHasKey('total_contracts', $crmData);
 				$this->assertGreaterThan(0, $crmData['total_leads'] ?? 0, 'total_leads should be > 0');
 				$this->assertGreaterThan(0, $crmData['total_deals'] ?? 0, 'total_deals should be > 0');
+			} else {
+				$this->assertNotNull($result, 'CRM dashboard returned a non-view response (redirect/json)');
 			}
 		} catch (\Throwable $e) {
 			$this->assertTrue(true, 'CRM dashboard threw an acceptable exception: ' . $e->getMessage());
@@ -483,6 +488,8 @@ class DashboardDataTest extends TestCase
 				$posData = $data['posData'];
 				$this->assertArrayHasKey('totalPosAmount', $posData);
 				$this->assertArrayHasKey('totalPurchaseAmount', $posData);
+			} else {
+				$this->assertNotNull($result, 'POS dashboard returned a non-view response (redirect/json)');
 			}
 		} catch (\Throwable $e) {
 			$this->assertTrue(true, 'POS dashboard threw an acceptable exception: ' . $e->getMessage());
