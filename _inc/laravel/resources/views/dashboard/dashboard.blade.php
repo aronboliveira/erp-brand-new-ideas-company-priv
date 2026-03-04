@@ -405,7 +405,7 @@
                                     </div>
                                     <div class="col-lg-6">
                                         @if (!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
-                                        <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
+                                        <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;">
                                             <option value="google_calendar">{{__('Google calendar')}}</option>
                                             <option value="local_calendar" selected="true">{{__('Local calendar')}}</option>
                                         </select>
@@ -479,7 +479,9 @@
                                                     <td>{{ $user?->dateFormat($meeting->date) }}</td>
                                                     <td>{{ $user?->timeFormat($meeting->time) }}</td>
                                                 </tr>
-                                                @endforeach
+                                            @empty
+                                                <tr><td colspan="3" class="text-center">{{ __('No meetings found') }}</td></tr>
+                                            @endforelse
                                             </tbody>
                                         </table>
                                     </div>
@@ -528,7 +530,7 @@
                                     </div>
                                     <div class="col-lg-6">
                                         @if(!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
-                                            <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
+                                            <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;">
                                                 <option value="google_calendar">{{__('Google calendar')}}</option>
                                                 <option value="local_calendar" selected="true">{{__('Local calendar')}}</option>
                                             </select>
@@ -550,9 +552,9 @@
                                 ['bg'=>'bg-danger','icon'=>'ti ti-user','label'=>__('Total Client'),'value'=>$countClient,'textClass'=>'text-danger']
                             ]],
                             ['title'=>__('Job'),'metrics'=>[
-                                ['bg'=>'bg-primary','icon'=>'ti ti-award','label'=>__('Total Jobs'),'value'=>$activeJob+$inActiveJOb,'textClass'=>'text-success'],
+                                ['bg'=>'bg-primary','icon'=>'ti ti-award','label'=>__('Total Jobs'),'value'=>$activeJob+$inActiveJob,'textClass'=>'text-success'],
                                 ['bg'=>'bg-info','icon'=>'ti ti-check','label'=>__('Active Jobs'),'value'=>$activeJob,'textClass'=>'text-primary'],
-                                ['bg'=>'bg-danger','icon'=>'ti ti-x','label'=>__('Inactive Jobs'),'value'=>$inActiveJOb,'textClass'=>'text-danger']
+                                ['bg'=>'bg-danger','icon'=>'ti ti-x','label'=>__('Inactive Jobs'),'value'=>$inActiveJob,'textClass'=>'text-danger']
                             ]],
                             ['title'=>__('Training'),'metrics'=>[
                                 ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Total Training'),'value'=>$onGoingTraining+$doneTraining,'textClass'=>'text-success'],

@@ -149,7 +149,7 @@
                                                                     $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
                                                                 @endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                                    {!! Form::Sopen([
+                                                                    {!! Form::open([
                                                                         'method'            => 'DELETE',
                                                                         'url'               => $destroyUrl,
                                                                         'id'                => $delFormId,
@@ -165,7 +165,7 @@
                                                                            data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();">
                                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                         </a>
-                                                                    {!! Form::Sclose() !!}
+                                                                    {!! Form::close() !!}
                                                                 </div>
                                                             @endcan
                                                         </span>

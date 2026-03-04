@@ -108,7 +108,7 @@
                                 $submitGuardKey
                             ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
                         @endphp
-                        {{ Form:::open([
+                        {{ Form::open([
                             'route'           => $submitUrl,
                             'method'        => 'GET',
                             'id'            => $formId,
@@ -118,20 +118,20 @@
                             <div class="{{ VC::R_FLX_ALC_JCE }}">
                                 <div class="{{ VC::CL_POS3 }}">
                                     <div class="btn-box">
-                                        {{ Form:::label('issue_date', __('Issue Date'),['class'=>'form-label'])}}
-                                        {{ Form:::date('issue_date', isset($_GET['issue_date'])?$_GET['issue_date']:'', array('class' => 'form-control month-btn','id'=>'pc-daterangepicker-1')) }}
+                                        {{ Form::label('issue_date', __('Issue Date'),['class'=>'form-label'])}}
+                                        {{ Form::date('issue_date', isset($_GET['issue_date'])?$_GET['issue_date']:'', array('class' => 'form-control month-btn','id'=>'pc-daterangepicker-1')) }}
                                     </div>
                                 </div>
                                 <div class="{{ VC::CL_POS3 }}">
                                         <div class="btn-box">
-                                            {{ Form:::label('customer', __('Customer'),['class'=>'form-label'])}}
-                                            {{ Form:::select('customer', Utility::isFilled($customer) ? $customer : [__('No customer available')], isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select'] ?? []) }}
+                                            {{ Form::label('customer', __('Customer'),['class'=>'form-label'])}}
+                                            {{ Form::select('customer', Utility::isFilled($customer) ? $customer : [__('No customer available')], isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select'] ?? []) }}
                                         </div>
                                     </div>
                                 <div class="{{ VC::CL_XLG4 }}">
                                     <div class="btn-box">
-                                        {{ Form:::label('status', __('Status'),['class'=>'form-label'])}}
-                                        {{ Form:::select('status', [''=>'Select Status'] + (Utility::isFilled($customer) ? $status : [__('No status available')]),isset($_GET['status'])?$_GET['status']:'', array('class' => 'form-control select') ?? []) }}
+                                        {{ Form::label('status', __('Status'),['class'=>'form-label'])}}
+                                        {{ Form::select('status', [''=>'Select Status'] + (Utility::isFilled($customer) ? $status : [__('No status available')]),isset($_GET['status'])?$_GET['status']:'', array('class' => 'form-control select') ?? []) }}
                                     </div>
                                 </div>
                                 <div class="{{ VC::C_AT_FEND }}">
@@ -213,7 +213,7 @@
                                     @endif
                                 </div>
                             </div>
-                        {{ Form:::close() }}
+                        {{ Form::close() }}
                         @push(StacksConstants::ADM_SCR_PG)
                             <script defer src="{{asset('assets/js/routes/invoices/customers/submit.js')}}"></script>
                         @endpush
@@ -391,7 +391,7 @@
                                                                     $dupFormId    = 'duplicate-form-'.$invoice->id;
                                                                 @endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                                    {!! Form:::open([
+                                                                    {!! Form::open([
                                                                         'method' => 'get',
                                                                         'url'    => $dupUrl,
                                                                         'id'     => $dupFormId
@@ -411,7 +411,7 @@
                                                                         >
                                                                             <i class="ti ti-copy text-white"></i>
                                                                         </a>
-                                                                    {!! Form:::close() !!}
+                                                                    {!! Form::close() !!}
                                                                 </div>
                                                             @endcan
                                                             @can('show invoice')
@@ -480,7 +480,7 @@
                                                                     $deleteFormId = 'delete-form-'.$invoice->id;
                                                                 @endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                                    {!! Form:::open([
+                                                                    {!! Form::open([
                                                                         'method' => 'DELETE',
                                                                         'url'    => $deleteUrl,
                                                                         'id'     => $deleteFormId
@@ -500,7 +500,7 @@
                                                                         >
                                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                         </a>
-                                                                    {!! Form:::close() !!}
+                                                                    {!! Form::close() !!}
                                                                 </div>
                                                             @endcan
                                                     </span>

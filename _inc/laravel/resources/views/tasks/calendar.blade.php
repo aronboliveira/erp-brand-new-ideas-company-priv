@@ -43,7 +43,7 @@
                             	$gcEnabled = (string) data_get($settings ?? [], 'google_calendar_enable', '') === 'on';
                             @endphp
                             @if($gcEnabled)
-                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
+                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float: right;width: 150px;">
                                     <option value="google_calendar">{{ __('Google calendar') }}</option>
                                     <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                 </select>

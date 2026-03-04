@@ -606,12 +606,12 @@
             <script defer src="{{ asset('js/jscolor.js') }}"></script>
             @if($message = Session::get('success'))
                 <script>
-                    show_toastr('success', '{!! $message !!}');
+                    show_toastr('success', @json($message));
                 </script>
             @endif
             @if($message = Session::get('error'))
                 <script>
-                    show_toastr('error', '{!! $message !!}');
+                    show_toastr('error', @json($message));
                 </script>
             @endif
             @if($get_cookie['enable_cookie'] == 'on')

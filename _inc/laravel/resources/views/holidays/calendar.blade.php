@@ -31,7 +31,8 @@
 @endpush
 
 @push(ST::ADM_SCR_PG)
-    <script defer src="{{ asset('assets/js/routes/holidays/index.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/holidays/lang/calendar.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/holidays/calendar.js') }}"></script>
 @endpush
 
 @section(YW::ADM_BDC)
@@ -160,7 +161,7 @@
                             </div>
                             <div class="col-lg-6">
                                 @if (!empty($settings) && !empty($settings['google_calendar_enable']) && $settings['google_calendar_enable'] === 'on')
-                                    <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
+                                    <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;">
                                         <option value="google_calendar">{{ __('Google calendar') }}</option>
                                         <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                     </select>

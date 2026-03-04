@@ -69,7 +69,7 @@
                         </div>
                         <div class="col-lg-6">
                             @if (!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
-                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;" onchange="get_data()">
+                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;">
                                     <option value="google_calendar">{{ __('Google calendar') }}</option>
                                     <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                 </select>
@@ -315,6 +315,8 @@
               queuedError = getTr('calendar_data_unavailable');
             }
           };
+          window.get_data = getData;
+          document.getElementById('calendar_type')?.addEventListener('change', getData);
         
           const getDepartment = bid => {
             try {

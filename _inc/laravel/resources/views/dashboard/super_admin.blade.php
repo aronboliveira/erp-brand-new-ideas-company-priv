@@ -142,18 +142,18 @@
 @php
     $admin_payment_setting = Utility::getAdminPaymentSetting();
     $cards=[
-        ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user?->total_user,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user']],
-        ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user?->totalOrders,'sub'=>__('Total Order Amount'),'subValue'=>(isset($admin_payment_setting['currency_symbol'])?$admin_payment_setting['currency_symbol']:'$').$user['totalOrders_price']],
-        ['bg'=>'bg-info','icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user?->total_plan,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan']]
+        ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user['total_user'] ?? 0,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user'] ?? 0],
+        ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user['totalOrders'] ?? 0,'sub'=>__('Total Order Amount'),'subValue'=>(isset($admin_payment_setting['currency_symbol'])?$admin_payment_setting['currency_symbol']:'$').($user['totalOrders_price'] ?? 0)],
+        ['bg'=>'bg-info','icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user['total_plan'] ?? 0,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan'] ?? '']
     ];
 @endphp
 @section('content')
     <div class="row">
         @php
             $cards=[
-                ['bg'=>ViewClassNamesConstants::BG_P,'icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user?->total_user,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user']],
-                ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user?->totalOrders,'sub'=>__('Total Order Amount'),'subValue'=>($admin_payment_setting['currency_symbol'] ?? '$').$user['totalOrders_price']],
-                ['bg'=>ViewClassNamesConstants::BG_TPR,'icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user?->total_plan,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan']]
+                ['bg'=>ViewClassNamesConstants::BG_P,'icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user['total_user'] ?? 0,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user'] ?? 0],
+                ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user['totalOrders'] ?? 0,'sub'=>__('Total Order Amount'),'subValue'=>($admin_payment_setting['currency_symbol'] ?? '$').($user['totalOrders_price'] ?? 0)],
+                ['bg'=>ViewClassNamesConstants::BG_TPR,'icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user['total_plan'] ?? 0,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan'] ?? '']
             ];
         @endphp
         @foreach($cards as $c)
