@@ -13,7 +13,8 @@ _None — all audited issues resolved or documented as deferred._
 ### PHPUnit Feature Tests — 26/26 passing (88 assertions, 0 failures)
 
 **Changes made:**
-- Fixed factory column mismatches: `CustomerFactory`, `VendorFactory` (billing_* columns), `BillFactory` (unique bill_id via UUID)
+
+- Fixed factory column mismatches: `CustomerFactory`, `VendorFactory` (billing\_\* columns), `BillFactory` (unique bill_id via UUID)
 - Fixed DashboardController namespace import in `DashboardDataTest.php` (`App\Http\Controllers\DashboardController`)
 - Added `createdBy()` relationship to `Revenue` model (was missing despite `$with` referencing it)
 - Fixed risky CRM/POS tests with fallback assertions
@@ -24,6 +25,7 @@ _None — all audited issues resolved or documented as deferred._
 
 **Root cause:** 80 "Access to an undefined property" errors across 8 Eloquent models  
 **Fix:** Added `@property` PHPDoc annotations to all 8 models:
+
 - `Bill` (35 properties), `BillProduct` (15), `BillAccount` (13), `Payment` (16), `BillPayment` (18)
 - `Vendor` (14), `ProductService` (16), `User` (+2 properties: `$vendor_id`, `$created_by`)
 
@@ -34,6 +36,7 @@ _None — all audited issues resolved or documented as deferred._
 - Added PHPStan/PHPUnit/pytest scripts to `composer.json` and `package.json`
 
 ### Test infrastructure verified:
+
 - PHPUnit: 422 files (414 Unit + 8 Feature) — `phpunit.xml` with MySQL test DB
 - Jest: 4 test files (3 unit + 1 core TS) — `jest.config.cjs`
 - Playwright E2E: 9 specs — `playwright.config.cjs`
@@ -59,16 +62,16 @@ _None — all audited issues resolved or documented as deferred._
 
 ### Phase 3: Security Hotfixes (LAR-001 through LAR-008)
 
-| LAR | Issue | Fix |
-|-----|-------|-----|
-| 001 | .env tracked in git | Uncommented .gitignore rules, `git rm --cached` |
-| 002 | BankTransfer missing auth | Added guard() + tenant-scoped Order query |
-| 003 | Cross-tenant password reset | Scoped User::findOrFail with COL_TABLE_CREATOR |
-| 004 | Cashfree trusting caller amount | Replaced $req->amount with $info->payment_amount |
-| 005 | Plaintext password in logs | Removed db_pw/input_pw from log context |
-| 006 | Appraisal IDOR | Added COL_TABLE_CREATOR check to show/edit/update |
-| 007 | Todo IDOR | Scoped UserToDo with where('user_id') |
-| 008 | HSTS disabled | Uncommented Strict-Transport-Security header |
+| LAR | Issue                           | Fix                                               |
+| --- | ------------------------------- | ------------------------------------------------- |
+| 001 | .env tracked in git             | Uncommented .gitignore rules, `git rm --cached`   |
+| 002 | BankTransfer missing auth       | Added guard() + tenant-scoped Order query         |
+| 003 | Cross-tenant password reset     | Scoped User::findOrFail with COL_TABLE_CREATOR    |
+| 004 | Cashfree trusting caller amount | Replaced $req->amount with $info->payment_amount  |
+| 005 | Plaintext password in logs      | Removed db_pw/input_pw from log context           |
+| 006 | Appraisal IDOR                  | Added COL_TABLE_CREATOR check to show/edit/update |
+| 007 | Todo IDOR                       | Scoped UserToDo with where('user_id')             |
+| 008 | HSTS disabled                   | Uncommented Strict-Transport-Security header      |
 
 ### Phase 4: Blade & JS Fixes
 
@@ -103,8 +106,8 @@ Browser-aware timeouts, `test.slow()`, separated skip vs fail logic. See `.notes
 
 ## REMINDERS
 
-⛔ NEVER run `php artisan test`            — wipes production DB
-⛔ NEVER run `php artisan migrate:fresh`   — same
-⛔ NEVER cast $user->id to (int)           — UUID always returns 0
-⛔ NEVER push to comp remote               — push only to origin
+⛔ NEVER run `php artisan test` — wipes production DB
+⛔ NEVER run `php artisan migrate:fresh` — same
+⛔ NEVER cast $user->id to (int) — UUID always returns 0
+⛔ NEVER push to comp remote — push only to origin
 ⛔ Always use MWC::, VW::, PMC:: constants — no raw strings in routes

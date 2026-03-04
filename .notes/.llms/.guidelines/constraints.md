@@ -88,13 +88,13 @@
 
 ## Test Commands Quick Reference
 
-| Runner     | Safe Command                                                    |
-| ---------- | --------------------------------------------------------------- |
-| PHPUnit    | `composer run test:feature` or `composer run test:unit`         |
-| PHPStan    | `composer run phpstan` or `composer run phpstan:modules`        |
-| Jest       | `npx jest --config jest.config.cjs --verbose`                  |
-| Playwright | `npm run test:playwright` (server must be running)             |
-| Pytest     | `npm run test:pytest`                                          |
-| curl       | `bash tests/curl_timing.sh` (server must be running)           |
-| All JS     | `npm run test:all`                                             |
-| Full stack | `npm run test:fullstack`                                       |
+| Runner     | Safe Command                                             |
+| ---------- | -------------------------------------------------------- |
+| PHPUnit    | `composer run test:feature` or `composer run test:unit`  |
+| PHPStan    | `composer run phpstan` or `composer run phpstan:modules` |
+| Jest       | `npx jest --config jest.config.cjs --verbose`            |
+| Playwright | `npm run test:playwright` (server must be running)       |
+| Pytest     | `npm run test:pytest`                                    |
+| curl       | `bash tests/curl_timing.sh` (server must be running)     |
+| All JS     | `npm run test:all`                                       |
+| Full stack | `npm run test:fullstack`                                 |
