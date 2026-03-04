@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\Log;
 
 /**
  * @property string $id

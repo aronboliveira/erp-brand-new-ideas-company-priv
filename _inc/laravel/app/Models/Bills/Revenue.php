@@ -4,14 +4,12 @@ namespace App\Models;
 
 use App\Config\Constants\{
     BillsConstants as BC,
-    DatabaseConstants as DC,
-    UsersConstants as UC
+    DatabaseConstants as DC
 };
 use App\Enums\{
     PaymentMethod,
     PaymentStatus,
-    TransferType,
-    UserType
+    TransferType
 };
 use App\Traits\{
     DefinesDates,
@@ -24,7 +22,7 @@ use Illuminate\Database\Eloquent\{
     Model
 };
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\{DB, Log, Schema};
+
 
 class Revenue extends Model
 {

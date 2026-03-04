@@ -36,6 +36,6 @@ if (form && form.getAttribute("data-listener-active") !== "true") {
         showToast(form.getAttribute("data-guard-msg") || "#");
       }
     },
-    { passive: false }
+    { passive: false },
   );
 }

@@ -14,7 +14,7 @@
           event.preventDefault();
           const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
           const bootstrapLink = document.querySelector(
-            'link[href*="bootstrap"]'
+            'link[href*="bootstrap"]',
           );
           let container = document.getElementById("toast-container");
           if (!container) {

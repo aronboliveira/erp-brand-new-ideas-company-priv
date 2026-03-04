@@ -11,10 +11,8 @@ use App\Config\Constants\{
 use App\Enums\{
     PaymentMethod,
     PaymentStatus,
-    TransferType,
-    UserType
+    TransferType
 };
-use App\Helpers\ErrorHandler;
 use App\Traits\{
     DefinesDates,
     HasAuditFields,
@@ -29,7 +27,7 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\BelongsTo
 };
-use Illuminate\Support\Facades\{DB, Log, Schema};
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @property string $id

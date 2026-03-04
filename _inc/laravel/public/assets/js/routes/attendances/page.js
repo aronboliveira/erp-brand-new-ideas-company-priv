@@ -86,10 +86,17 @@
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true")
+    if (
+      el?.getAttribute("data-sv-localized") === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
-      let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
+      let lang = (
+        window.sessionStorage.getItem("erp-np-lang") ||
+        document.documentElement.lang ||
+        "en"
+      )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
@@ -106,7 +113,9 @@
     }
     const bs = document.querySelector(BS_LINK);
     if (bs && window.bootstrap?.Toast) {
-      const existingToast = toastContainer.querySelector('.toast[data-error-key="' + key + '"]');
+      const existingToast = toastContainer.querySelector(
+        '.toast[data-error-key="' + key + '"]',
+      );
       if (existingToast) return;
 
       const toast = document.createElement("div");
@@ -115,7 +124,21 @@
       toast.setAttribute("role", "alert");
       toast.setAttribute("aria-live", "assertive");
       toast.setAttribute("aria-atomic", "true");
-      { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = msg; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+      {
+        toast.replaceChildren();
+        const _d = document.createElement("div");
+        _d.className = "d-flex";
+        const _b = document.createElement("div");
+        _b.className = "toast-body";
+        _b.textContent = msg;
+        const _c = document.createElement("button");
+        _c.type = "button";
+        _c.className = "btn-close btn-close-white me-2 m-auto";
+        _c.dataset.bsDismiss = "toast";
+        _c.setAttribute("aria-label", "Close");
+        _d.append(_b, _c);
+        toast.append(_d);
+      }
       toastContainer.append(toast);
       new window.bootstrap.Toast(toast).show();
     } else {
@@ -123,16 +146,16 @@
     }
   };
 
-  const handleToggle = (target) => {
+  const handleToggle = target => {
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
       const type = target.value ?? "";
       const showMonth = type === "monthly";
-      document.querySelectorAll(`.${MONTH_CLASS}`).forEach((el) => {
+      document.querySelectorAll(`.${MONTH_CLASS}`).forEach(el => {
         el.classList.toggle("d-block", showMonth);
         el.classList.toggle("d-none", !showMonth);
       });
-      document.querySelectorAll(`.${DATE_CLASS}`).forEach((el) => {
+      document.querySelectorAll(`.${DATE_CLASS}`).forEach(el => {
         el.classList.toggle("d-block", !showMonth);
         el.classList.toggle("d-none", showMonth);
       });
@@ -141,9 +164,9 @@
     }
   };
 
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.removedNodes.forEach((node) => {
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.removedNodes.forEach(node => {
         if (node.nodeType === 1 && node.matches(TYPE_RADIO)) {
           node.removeEventListener("change", handleToggle);
         }
@@ -157,7 +180,7 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    radios.forEach((radio) => {
+    radios.forEach(radio => {
       if (radio.getAttribute(TOGGLER_ATTR)) return;
       radio.setAttribute(TOGGLER_ATTR, "true");
       radio.addEventListener("change", ({ target }) => handleToggle(target));

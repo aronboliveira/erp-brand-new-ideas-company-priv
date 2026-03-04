@@ -9,7 +9,7 @@
     function hasBootstrapCss() {
       try {
         return !!document.querySelector(
-          'link[rel~="stylesheet"][href*="bootstrap"]'
+          'link[rel~="stylesheet"][href*="bootstrap"]',
         );
       } catch (_) {
         return false;
@@ -152,7 +152,7 @@
   function hasBootstrapCss() {
     try {
       return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]'
+        'link[rel~="stylesheet"][href*="bootstrap"]',
       );
     } catch (_) {
       return false;

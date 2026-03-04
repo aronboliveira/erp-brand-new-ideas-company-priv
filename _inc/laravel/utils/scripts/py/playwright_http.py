@@ -21,7 +21,7 @@ import time
 from dataclasses import dataclass, field
 
 try:
-    from playwright.sync_api import sync_playwright, TimeoutError as PwTimeout
+    from playwright.sync_api import sync_playwright, TimeoutError as PwTimeout  # type: ignore[import-untyped]
     HAS_PLAYWRIGHT = True
 except ImportError:
     HAS_PLAYWRIGHT = False

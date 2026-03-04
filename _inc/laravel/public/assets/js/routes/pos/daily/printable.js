@@ -83,10 +83,17 @@
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true")
+    if (
+      el?.getAttribute("data-sv-localized") === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
-      let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
+      let lang = (
+        window.sessionStorage.getItem("erp-np-lang") ||
+        document.documentElement.lang ||
+        "en"
+      )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
@@ -108,7 +115,21 @@
       toast.setAttribute("role", "alert");
       toast.setAttribute("aria-live", "assertive");
       toast.setAttribute("aria-atomic", "true");
-      { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = msg; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+      {
+        toast.replaceChildren();
+        const _d = document.createElement("div");
+        _d.className = "d-flex";
+        const _b = document.createElement("div");
+        _b.className = "toast-body";
+        _b.textContent = msg;
+        const _c = document.createElement("button");
+        _c.type = "button";
+        _c.className = "btn-close btn-close-white me-2 m-auto";
+        _c.dataset.bsDismiss = "toast";
+        _c.setAttribute("aria-label", "Close");
+        _d.append(_b, _c);
+        toast.append(_d);
+      }
       toastContainer.append(toast);
       new window.bootstrap.Toast(toast).show();
     } else {

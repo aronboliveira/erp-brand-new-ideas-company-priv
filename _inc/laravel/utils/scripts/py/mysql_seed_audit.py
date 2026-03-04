@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 try:
-    import mysql.connector as mc
+    import mysql.connector as mc  # type: ignore[import-untyped]
 except ImportError:
     mc = None
 

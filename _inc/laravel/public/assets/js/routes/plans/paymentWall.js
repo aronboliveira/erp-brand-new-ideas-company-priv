@@ -118,7 +118,7 @@
       const ctn = qs("#" + containerId);
       if (!ctn) {
         schedulePointerupError(
-          localize(document.body, "payment_init_unavailable")
+          localize(document.body, "payment_init_unavailable"),
         );
         return;
       }
@@ -141,8 +141,7 @@
         return;
       }
       const brick = new BrickCtor({
-        public_key:
-          "{{ $admin_payment_setting[paymentwall_public_key'] }}",
+        public_key: "{{ $admin_payment_setting[paymentwall_public_key'] }}",
         amount: "{{$plan->price }}",
         currency: "{{AppModelsUtility::getValByName('site_currency')}}",
         container: containerId,
@@ -160,7 +159,7 @@
       const go = target => {
         if (!verifyRoute(target)) {
           schedulePointerupError(
-            localize(document.body, "payment_redirect_unavailable")
+            localize(document.body, "payment_redirect_unavailable"),
           );
           return;
         }
@@ -173,7 +172,7 @@
             go(f === 1 ? toErr : toOk);
           } catch (_) {
             schedulePointerupError(
-              localize(document.body, "payment_redirect_unavailable")
+              localize(document.body, "payment_redirect_unavailable"),
             );
           }
         },
@@ -183,10 +182,10 @@
             go(f === 1 ? toErr : toOk);
           } catch (_) {
             schedulePointerupError(
-              localize(document.body, "payment_redirect_unavailable")
+              localize(document.body, "payment_redirect_unavailable"),
             );
           }
-        }
+        },
       );
       const mo = new MutationObserver(function () {
         if (!document.body.contains(ctn)) {
@@ -196,7 +195,7 @@
       mo.observe(document.documentElement, { childList: true, subtree: true });
     } catch (_) {
       schedulePointerupError(
-        localize(document.body, "payment_init_unavailable")
+        localize(document.body, "payment_init_unavailable"),
       );
     }
   };

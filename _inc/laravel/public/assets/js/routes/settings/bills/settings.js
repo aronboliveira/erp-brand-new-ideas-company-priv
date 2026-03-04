@@ -1,7 +1,7 @@
 (() => {
   try {
     const billTemplateSettingsForm = document.getElementById(
-      "bill-template-settings-form"
+      "bill-template-settings-form",
     );
     if (!billTemplateSettingsForm) {
       return;

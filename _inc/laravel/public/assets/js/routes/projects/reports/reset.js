@@ -16,7 +16,7 @@
             s =>
               (s.src ?? "").includes("bootstrap.min.js") &&
               window.bootstrap &&
-              typeof window.bootstrap.Toast === "function"
+              typeof window.bootstrap.Toast === "function",
           );
           if (hasBS) {
             const container =
@@ -67,7 +67,7 @@
                 s =>
                   (s.src ?? "").includes("bootstrap.min.js") &&
                   window.bootstrap &&
-                  typeof window.bootstrap.Toast === "function"
+                  typeof window.bootstrap.Toast === "function",
               );
               if (hasBS) {
                 const container =
