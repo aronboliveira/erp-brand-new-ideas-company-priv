@@ -132,7 +132,7 @@
         if (el.getAttribute("data-choices-init") === "true") return;
 
         try {
-          // eslint-disable-next-line no-new
+           
           new Choices(`#${id}`, { removeItemButton: true });
           el.setAttribute("data-choices-init", "true");
         } catch {
@@ -183,7 +183,7 @@
               !$sel[0].getAttribute("data-choices-init")
             ) {
               try {
-                // eslint-disable-next-line no-new
+                 
                 new Choices("#project_id", { removeItemButton: true });
                 $sel[0].setAttribute("data-choices-init", "true");
               } catch {

@@ -117,7 +117,7 @@
         if (!id) return;
         if (element.getAttribute("data-choices-init") === "true") return;
         try {
-          // eslint-disable-next-line no-new
+           
           new Choices(`#${id}`, { removeItemButton: true });
           element.setAttribute("data-choices-init", "true");
         } catch {
@@ -171,7 +171,7 @@
               !$select[0].getAttribute("data-choices-init")
             ) {
               try {
-                // eslint-disable-next-line no-new
+                 
                 new Choices("#project_id", { removeItemButton: true });
                 $select[0].setAttribute("data-choices-init", "true");
               } catch {

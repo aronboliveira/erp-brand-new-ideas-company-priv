@@ -16,6 +16,9 @@ const domTypes = {
   Event: "readonly",
   CustomEvent: "readonly",
   Response: "readonly",
+  DOMParser: "readonly",
+  Range: "readonly",
+  DocumentFragment: "readonly",
 };
 
 /** Standard browser globals shared by the IIFE route files. */
@@ -86,6 +89,7 @@ const browserGlobals = {
   taskCheckbox: "readonly",
   common_bind: "readonly",
   commonLoader: "readonly",
+  safeSethtmlContent: "readonly",
 };
 
 /**

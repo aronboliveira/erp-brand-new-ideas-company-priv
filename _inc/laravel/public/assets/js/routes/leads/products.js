@@ -16,15 +16,15 @@
   function toast(msg) {
     try {
       if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        var c = document.getElementById("toast-container");
+        let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        var t = document.createElement("div");
+        let t = document.createElement("div");
         t.className = "toast";
-        var b = document.createElement("div");
+        let b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -68,7 +68,7 @@
   }
   function bindSubmitGuard() {
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -79,8 +79,8 @@
         } catch (_) {}
         return;
       }
-      var form = document.getElementById("lead-products-update-form");
-      var btn = document.getElementById("lead-products-update-submit");
+      let form = document.getElementById("lead-products-update-form");
+      let btn = document.getElementById("lead-products-update-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L) === "true") return;
       form.setAttribute(L, "true");
@@ -111,7 +111,7 @@
     } catch (_) {}
   }
   try {
-    var $ = window.jQuery;
+    let $ = window.jQuery;
     if (!$) {
       try {
         if (

@@ -1,14 +1,14 @@
 (function () {
   function toast(msg) {
     if (window.bootstrap?.Toast) {
-      var box =
+      let box =
         document.getElementById("toast-container") ||
         document.body.appendChild(
           Object.assign(document.createElement("div"), {
             id: "toast-container",
           })
         );
-      var t = document.createElement("div");
+      let t = document.createElement("div");
       t.className = "toast";
       t.setAttribute("role", "alert");
       t.innerHTML = '<div class="toast-body"></div>';

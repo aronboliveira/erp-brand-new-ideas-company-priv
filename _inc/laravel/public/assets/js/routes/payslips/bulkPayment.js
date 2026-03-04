@@ -1,19 +1,19 @@
 (function () {
   function toast(msg) {
     try {
-      var c = document.getElementById("toast-container");
+      let c = document.getElementById("toast-container");
       if (!c) {
         c = document.createElement("div");
         c.id = "toast-container";
         document.body.appendChild(c);
       }
       if (window.bootstrap && window.bootstrap.Toast) {
-        var t = document.createElement("div");
+        let t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        var b = document.createElement("div");
+        let b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -28,11 +28,11 @@
   }
 
   try {
-    var f = document.getElementById("bulk_payment_form");
+    let f = document.getElementById("bulk_payment_form");
     if (!f || f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
 
-    var resolved = f.getAttribute("data-resolved-action") || "#";
+    let resolved = f.getAttribute("data-resolved-action") || "#";
     if (
       (f.getAttribute("action") === "" || f.getAttribute("action") === "#") &&
       resolved !== "#"
@@ -42,10 +42,10 @@
 
     f.addEventListener("submit", function (e) {
       try {
-        var action = f.getAttribute("action") || "#";
+        let action = f.getAttribute("action") || "#";
         if (action && action !== "#") return;
         e.preventDefault();
-        var msg =
+        let msg =
           f.getAttribute("data-guard-msg") ||
           "Requested route is unavailable. Please contact technical support or your domain administrator.";
         toast(msg);

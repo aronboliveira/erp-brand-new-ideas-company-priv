@@ -17,18 +17,18 @@
   function toast(msg) {
     try {
       if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        var c = document.getElementById("toast-container");
+        let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        var t = document.createElement("div");
+        let t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        var b = document.createElement("div");
+        let b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -72,10 +72,10 @@
   }
   function toggleBlocks(isExist) {
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) return;
-      var $exist = $(".exist_client");
-      var $new = $(".new_client");
+      let $exist = $(".exist_client");
+      let $new = $(".new_client");
       if (isExist) {
         $exist.removeClass("d-none");
         $new.addClass("d-none");
@@ -89,14 +89,14 @@
   }
   function bindToggle() {
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) return;
-      var $radios = $('input[name="client_check"]');
+      let $radios = $('input[name="client_check"]');
       if (!$radios.length) return;
-      var el = $radios.get(0);
+      let el = $radios.get(0);
       if (el.getAttribute(L1) === "true") return;
       el.setAttribute(L1, "true");
-      var initVal = $radios.filter(":checked").val();
+      let initVal = $radios.filter(":checked").val();
       toggleBlocks(initVal === "exist");
       $radios.off("click.convertDeal").on("click.convertDeal", function () {
         try {
@@ -116,7 +116,7 @@
   }
   function bindSubmitGuard() {
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -127,8 +127,8 @@
         } catch (_) {}
         return;
       }
-      var form = document.getElementById("lead-convert-form");
-      var btn = document.getElementById("lead-convert-submit");
+      let form = document.getElementById("lead-convert-form");
+      let btn = document.getElementById("lead-convert-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L2) === "true") return;
       form.setAttribute(L2, "true");
@@ -159,7 +159,7 @@
     } catch (_) {}
   }
   try {
-    var $ = window.jQuery;
+    let $ = window.jQuery;
     if (!$) {
       try {
         if (

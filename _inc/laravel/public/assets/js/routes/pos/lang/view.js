@@ -104,7 +104,7 @@
     window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
   });
   (function () {
-    var t = {
+    let t = {
       ar: {
         action_unavailable: "الإجراء غير متاح.",
         dashboard_unavailable: "لوحة التحكم غير متاحة.",

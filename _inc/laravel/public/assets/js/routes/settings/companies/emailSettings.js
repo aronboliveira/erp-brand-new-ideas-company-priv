@@ -8,11 +8,11 @@
         if (url !== "#") return;
         e.preventDefault();
         el.checked = !el.checked;
-        var msg = el.getAttribute("data-guard-msg") || "";
-        var hasBootstrap = !!(
+        let msg = el.getAttribute("data-guard-msg") || "";
+        let hasBootstrap = !!(
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
-        var container = document.getElementById("toast-container");
+        let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
@@ -22,12 +22,12 @@
           document.body.appendChild(container);
         }
         if (hasBootstrap) {
-          var toast = document.createElement("div");
+          let toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
           toast.setAttribute("aria-live", "assertive");
           toast.setAttribute("aria-atomic", "true");
-          var body = document.createElement("div");
+          let body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
           toast.appendChild(body);

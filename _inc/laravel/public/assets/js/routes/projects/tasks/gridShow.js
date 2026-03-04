@@ -1,13 +1,13 @@
 (function () {
   function toast(msg) {
-    var m =
+    let m =
       msg ||
       "Requested route is unavailable. Please contact technical support or your domain administrator.";
-    var hasBootstrap =
+    let hasBootstrap =
       typeof window.bootstrap !== "undefined" &&
       typeof window.bootstrap.Toast !== "undefined";
     if (hasBootstrap) {
-      var box = document.getElementById("toast-container");
+      let box = document.getElementById("toast-container");
       if (!box) {
         box = document.createElement("div");
         box.id = "toast-container";
@@ -17,7 +17,7 @@
         box.style.bottom = "1rem";
         document.body.appendChild(box);
       }
-      var t = document.createElement("div");
+      let t = document.createElement("div");
       t.className = "toast";
       t.setAttribute("role", "alert");
       t.setAttribute("aria-live", "assertive");
@@ -32,8 +32,8 @@
   }
 
   function disabledUrl(a) {
-    var href = (a.getAttribute("href") || "").trim();
-    var url = (a.getAttribute("data-url") || href || "").trim();
+    let href = (a.getAttribute("href") || "").trim();
+    let url = (a.getAttribute("data-url") || href || "").trim();
     if (!url || url === "#" || href === "#") return true;
     try {
       new URL(url, window.location.origin);
@@ -66,21 +66,21 @@
       if (card.dataset.cardBound === "1") return;
       card.dataset.cardBound = "1";
       card.addEventListener("click", function (e) {
-        var target = e.target;
+        let target = e.target;
         if (
           target.closest(
             'a,button,input,textarea,select,[role="button"],[data-ajax-popup]'
           )
         )
           return;
-        var link = card.querySelector("a.project-task-index-link");
+        let link = card.querySelector("a.project-task-index-link");
         if (!link) return;
         if (disabledUrl(link)) {
           e.preventDefault();
           toast(link.getAttribute("data-guard-msg"));
           return;
         }
-        var url = (
+        let url = (
           link.getAttribute("data-url") ||
           link.getAttribute("href") ||
           "#"
@@ -102,8 +102,8 @@
 
   function observe() {
     if (!("MutationObserver" in window)) return;
-    var mo = new MutationObserver(function (muts) {
-      for (var i = 0; i < muts.length; i++) {
+    let mo = new MutationObserver(function (muts) {
+      for (let i = 0; i < muts.length; i++) {
         if (muts[i].addedNodes && muts[i].addedNodes.length) {
           bind();
           break;

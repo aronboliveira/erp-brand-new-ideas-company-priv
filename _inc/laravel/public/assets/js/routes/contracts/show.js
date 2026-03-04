@@ -3,12 +3,12 @@
     if (!window.svToastOrAlert) {
       window.svToastOrAlert = function (msg) {
         try {
-          var ok = !!(window.bootstrap && window.bootstrap.Toast);
+          let ok = !!(window.bootstrap && window.bootstrap.Toast);
           if (!ok) {
             alert(msg);
             return;
           }
-          var t = document.getElementById("route-guard-toast");
+          let t = document.getElementById("route-guard-toast");
           if (!t) {
             t = document.createElement("div");
             t.id = "route-guard-toast";
@@ -21,7 +21,7 @@
               '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
             document.body.appendChild(t);
           }
-          var body = t.querySelector(".toast-body");
+          let body = t.querySelector(".toast-body");
           if (body) body.textContent = msg;
           new window.bootstrap.Toast(t, { delay: 4000 }).show();
         } catch (e) {

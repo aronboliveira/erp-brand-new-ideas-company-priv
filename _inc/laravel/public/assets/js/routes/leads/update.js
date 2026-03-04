@@ -18,18 +18,18 @@
     function toast(msg) {
       try {
         if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-          var c = document.getElementById("toast-container");
+          let c = document.getElementById("toast-container");
           if (!c) {
             c = document.createElement("div");
             c.id = "toast-container";
             document.body.appendChild(c);
           }
-          var t = document.createElement("div");
+          let t = document.createElement("div");
           t.className = "toast";
           t.setAttribute("role", "alert");
           t.setAttribute("aria-live", "assertive");
           t.setAttribute("aria-atomic", "true");
-          var b = document.createElement("div");
+          let b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
           t.appendChild(b);
@@ -73,7 +73,7 @@
     }
     function bindSubmitGuard() {
       try {
-        var $ = window.jQuery;
+        let $ = window.jQuery;
         if (!$) {
           try {
             if (
@@ -84,8 +84,8 @@
           } catch (_) {}
           return;
         }
-        var form = document.getElementById("lead-update-form");
-        var btn = document.getElementById("lead-update-submit");
+        let form = document.getElementById("lead-update-form");
+        let btn = document.getElementById("lead-update-submit");
         if (!form || !btn) return;
         if (form.getAttribute(L) === "true") return;
         form.setAttribute(L, "true");
@@ -116,7 +116,7 @@
       } catch (_) {}
     }
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -161,18 +161,18 @@
   function toast(msg) {
     try {
       if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        var c = document.getElementById("toast-container");
+        let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        var t = document.createElement("div");
+        let t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        var b = document.createElement("div");
+        let b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -216,7 +216,7 @@
   }
   function bindAiGuard() {
     try {
-      var $ = window.jQuery;
+      let $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -227,7 +227,7 @@
         } catch (_) {}
         return;
       }
-      var a = document.getElementById("lead-ai-generate");
+      let a = document.getElementById("lead-ai-generate");
       if (!a || a.getAttribute(L) === "true") return;
       a.setAttribute(L, "true");
       $(a)
@@ -257,7 +257,7 @@
     } catch (_) {}
   }
   try {
-    var $ = window.jQuery;
+    let $ = window.jQuery;
     if (!$) {
       try {
         if (

@@ -49,19 +49,19 @@
 (function () {
   function toast(msg) {
     try {
-      var c = document.getElementById("toast-container");
+      let c = document.getElementById("toast-container");
       if (!c) {
         c = document.createElement("div");
         c.id = "toast-container";
         document.body.appendChild(c);
       }
       if (window.bootstrap && window.bootstrap.Toast) {
-        var t = document.createElement("div");
+        let t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        var b = document.createElement("div");
+        let b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -76,16 +76,16 @@
   }
 
   try {
-    var links = document.querySelectorAll(
+    let links = document.querySelectorAll(
       'a[data-guard-msg]:not([data-listener-active="true"])'
     );
     links.forEach(function (a) {
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", function (e) {
-        var url = a.getAttribute("href") || a.getAttribute("data-url") || "#";
+        let url = a.getAttribute("href") || a.getAttribute("data-url") || "#";
         if (!url || url === "#") {
           e.preventDefault();
-          var msg = a.getAttribute("data-guard-msg") || "Action unavailable.";
+          let msg = a.getAttribute("data-guard-msg") || "Action unavailable.";
           toast(msg);
         }
       });

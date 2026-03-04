@@ -109,7 +109,7 @@
   function safeFormAction(actionStr, element) {
     if (!actionStr) return;
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
-      var form = document.querySelector(actionStr);
+      let form = document.querySelector(actionStr);
       if (form && form.tagName === "FORM") {
         form.submit();
       }
