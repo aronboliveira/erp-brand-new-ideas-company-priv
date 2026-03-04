@@ -42,7 +42,21 @@
     "test:frontend:eslint": "npx eslint --config tests/frontend/eslint.frontend.config.mjs tests/frontend/js --ext .cjs,.ts --max-warnings=0",
     "test:frontend:all": "npm run test:frontend:eslint && npm run test:frontend:jest && npm run test:frontend",
     "test:eslint": "npx eslint public/assets/js/ --ext .js --max-warnings=50 || true",
-    "test:all": "npm run test:jest:core && npm run test && npm run test:playwright && npm run test:frontend"
+    "test:all": "npm run test:jest:core && npm run test && npm run test:playwright && npm run test:frontend",
+    "__ PYTHON TESTS __": "--- section marker ---",
+    "test:pytest": "cd tests/python && source .venv/bin/activate && pytest -v --tb=short",
+    "test:pytest:quick": "cd tests/python && source .venv/bin/activate && pytest -x -q",
+    "test:pytest:setup": "cd tests/python && bash bootstrap-venv.sh",
+    "__ CURL / HTTP BENCHMARKS __": "--- section marker ---",
+    "test:curl:timing": "bash tests/curl_timing.sh",
+    "test:postman": "cd tests/postman && bash run-postman.sh",
+    "__ CROSS-STACK RUNNERS __": "--- section marker ---",
+    "test:backend": "composer run test:phpunit && npm run test:pytest",
+    "test:fullstack": "npm run test:jest:core && npm run test:playwright && npm run test:pytest && npm run test:frontend",
+    "__ STATIC ANALYSIS __": "--- section marker ---",
+    "phpstan": "composer run phpstan",
+    "phpstan:modules": "composer run phpstan:modules",
+    "phpstan:clear": "composer run phpstan:clear"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
