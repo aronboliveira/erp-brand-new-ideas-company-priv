@@ -28,8 +28,8 @@ build/
 
 # environment
 
-#.env
-#**/.env
+.env
+**/.env
 
 !env/
 !env/**
@@ -45,3 +45,22 @@ pyvenv.cfg
 /.idea
 /vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
 /vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf
+# PHPUnit config (contains test DB credentials)
+phpunit.xml
+.phpunit.result.cache
+.env.testing
+
+# caches & generated files
+
+**/__pycache__/
+**/*.pyc
+storage/framework/sessions/
+storage/framework/views/
+storage/phpstan/
+storage/debugbar/
+storage/logs/
+tests/playwright-report/
+tests/e2e/test-results/
+tests/auth-error.png
+.notes/
+utils/caches/
