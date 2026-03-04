@@ -12,6 +12,7 @@ use App\Config\Constants\{
 };
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
     Model,
     Relations\HasOne
 };
@@ -19,7 +20,7 @@ use Illuminate\Support\Str;
 
 class BankAccount extends Model
 {
-    use UsesUuids, HasAuditFields;
+    use UsesUuids, HasFactory, HasAuditFields;
 
     public const TABLE = DC::TABLE_BANK_ACC;
 

@@ -12,6 +12,25 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Str;
 
+/**
+ * @property string $id
+ * @property string|null $code
+ * @property string|null $bill_id
+ * @property float $amount
+ * @property float|null $discount
+ * @property string|null $account_id
+ * @property string|null $category_id
+ * @property string|null $status
+ * @property string|null $date
+ * @property string|null $add_receipt
+ * @property string|null $receipt_metadata
+ * @property string|null $payment_method
+ * @property string|null $reference
+ * @property string|null $description
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class BillPayment extends Model
 {
     use UsesUuids;

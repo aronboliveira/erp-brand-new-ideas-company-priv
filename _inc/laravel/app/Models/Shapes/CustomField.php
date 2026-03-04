@@ -6,8 +6,13 @@ use App\Config\Constants\DatabaseConstants as DC;
 use App\Enums\{AppModuleType, FieldType};
 use App\Traits\{DescribesClientField, DescribesHtmlLinkedEntity, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * @method static void saveData(Model $model, array $customFieldData)
+ * @method static Collection getData(Model $model, string $module)
+ */
 class CustomField extends Model
 {
     use HasAuditFields, UsesUuids, DescribesClientField, DescribesHtmlLinkedEntity;

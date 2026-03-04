@@ -14,6 +14,20 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+/**
+ * @property string $id
+ * @property string|null $chart_account_id
+ * @property string|null $ref_id
+ * @property string|null $type
+ * @property float|null $price
+ * @property string|null $description
+ * @property string|null $notes
+ * @property array|null $attachments
+ * @property array|null $metadata
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class BillAccount extends Model
 {
     use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;

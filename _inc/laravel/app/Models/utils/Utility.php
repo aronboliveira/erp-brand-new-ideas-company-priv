@@ -59,6 +59,49 @@ use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Twilio\Rest\Client;
+use Illuminate\Filesystem\FilesystemAdapter;
+
+// Same-namespace explicit imports (silences PHP Namespace Resolver)
+use App\Models\BankAccount;
+use App\Models\BillAccount;
+use App\Models\BillPayment;
+use App\Models\BillProduct;
+use App\Models\BugStatus;
+use App\Models\ChartOfAccount;
+use App\Models\ChartOfAccountSubType;
+use App\Models\ChartOfAccountType;
+use App\Models\Customer;
+use App\Models\EmailTemplate;
+use App\Models\EmailTemplateLang;
+use App\Models\Indicator;
+use App\Models\InvoicePayment;
+use App\Models\InvoiceProduct;
+use App\Models\JobStage;
+use App\Models\JournalItem;
+use App\Models\Label;
+use App\Models\Language;
+use App\Models\LeadStage;
+use App\Models\NotificationTemplate;
+use App\Models\NotificationTemplateLang;
+use App\Models\Payment;
+use App\Models\Payslip;
+use App\Models\PayslipType;
+use App\Models\Pipeline;
+use App\Models\Plan;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\ProductService;
+use App\Models\ProductServiceCategory;
+use App\Models\Project;
+use App\Models\Revenue;
+use App\Models\Source;
+use App\Models\Stage;
+use App\Models\StockReport;
+use App\Models\TaskStage;
+use App\Models\UserEmailTemplate;
+use App\Models\Vendor;
+use App\Models\WarehouseProduct;
+use App\Models\WebhookSettings;
 
 class Utility extends Model
 {
@@ -1395,6 +1438,65 @@ class Utility extends Model
     public static function vendorBillNumberFormat(int|string $number): string
     {
         return self::formatNumber(SC::BL_PFX, $number);
+    }
+
+    /**
+     * Compute aggregated item stats for a bill's PDF / template view.
+     *
+     * Returns a list: [$items, $taxesData, $totalTaxPrice, $totalQuantity, $totalRate, $totalDiscount]
+     *
+     * @param  Bill               $bill     Bill with items eagerly loaded.
+     * @param  array<string,mixed> $settings Creator-level settings.
+     * @return array{0: list<object>, 1: array<string,float>, 2: float, 3: float, 4: float, 5: float}
+     */
+    public static function billItemStats(Bill $bill, array $settings): array
+    {
+        $totalTaxPrice = 0.0;
+        $totalQuantity = 0.0;
+        $totalRate     = 0.0;
+        $totalDiscount = 0.0;
+        $taxesData     = [];
+        $items         = [];
+
+        foreach ($bill->items as $it) {
+            $name     = $it->productService?->name ?? '';
+            $qty      = (float) ($it->quantity ?? 0);
+            $price    = (float) ($it->price ?? 0);
+            $discount = (float) ($it->discount ?? 0);
+            $taxRate  = (string) ($it->tax ?? '');
+
+            $totalQuantity += $qty;
+            $totalRate     += $price;
+            $totalDiscount += $discount;
+
+            $itemTaxes = [];
+            if ($taxRate !== '') {
+                foreach (self::tax($taxRate) as $tax) {
+                    $taxPrice       = self::taxRate((float) ($tax->rate ?? 0), $price, $qty, $discount);
+                    $totalTaxPrice += $taxPrice;
+                    $itemTaxes[]    = [
+                        'name'      => $tax->name ?? '',
+                        'rate'      => ($tax->rate ?? 0) . '%',
+                        'price'     => self::priceFormat($settings, $taxPrice),
+                        'tax_price' => $taxPrice,
+                    ];
+                    $taxesData[$tax->name ?? ''] = ($taxesData[$tax->name ?? ''] ?? 0) + $taxPrice;
+                }
+            }
+
+            $items[] = (object) [
+                'name'        => $name,
+                'quantity'    => $qty,
+                'tax'         => $taxRate,
+                'discount'    => $discount,
+                'price'       => $price,
+                'unit'        => $it->productService?->unit_id ?? 0,
+                'description' => $it->description ?? '',
+                'itemTax'     => $itemTaxes,
+            ];
+        }
+
+        return [$items, $taxesData, $totalTaxPrice, $totalQuantity, $totalRate, $totalDiscount];
     }
 
     public static function getTax(string|int $taxId): ?Tax

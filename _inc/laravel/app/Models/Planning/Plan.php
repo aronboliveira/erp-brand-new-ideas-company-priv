@@ -13,6 +13,17 @@ use Illuminate\Database\{Eloquent\Model, Eloquent\ModelNotFoundException, QueryE
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @property int|string $id
+ * @property string|null $name
+ * @property float|null $price
+ * @property float|null $storage_limit
+ * @property string|null $duration
+ * @property string|null $description
+ * @property int|string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Plan extends Model
 {
     use UsesUuids, HasAuditFields;

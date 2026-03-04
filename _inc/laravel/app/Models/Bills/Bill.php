@@ -32,6 +32,52 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Collection;
 
+// Same-namespace explicit imports (silences PHP Namespace Resolver)
+use App\Models\BillAccount;
+use App\Models\BillPayment;
+use App\Models\BillProduct;
+use App\Models\DebitNote;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\ProductCategory;
+use App\Models\ProductServiceCategory;
+use App\Models\Tax;
+use App\Models\Transaction;
+use App\Models\Utility;
+
+/**
+ * @property string $id
+ * @property string $bill_id
+ * @property string|null $bill_date
+ * @property string|null $send_date
+ * @property string|null $due_date
+ * @property string|null $vendor_id
+ * @property string|null $category_id
+ * @property string|null $order_id
+ * @property int $status
+ * @property string|null $status_label
+ * @property string|null $payment_status
+ * @property string|null $type
+ * @property string|null $user_type
+ * @property string|null $price_currency
+ * @property string|null $currency_id
+ * @property int $shipping_display
+ * @property float $amount
+ * @property float|null $discount
+ * @property float|null $service_fee
+ * @property float|null $taxes_fee
+ * @property string|null $reference
+ * @property string|null $description
+ * @property string|null $notes
+ * @property array|null $attachments
+ * @property string|null $name
+ * @property string|null $bill
+ * @property string|null $url
+ * @property mixed $customField
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Bill extends Model
 {
     use UsesUuids;
@@ -440,7 +486,7 @@ class Bill extends Model
         return (float) $this->debitNotes()->sum('amount');
     }
 
-    public function vendor(): ?BelongsTo
+    public function vendor(): BelongsTo
     {
         return Utility::getVendor($this);
     }
@@ -465,7 +511,7 @@ class Bill extends Model
         return $this->belongsTo(ProductCategory::class, BC::COL_CAT_ID, 'id');
     }
 
-    public function category(): ?BelongsTo
+    public function category(): BelongsTo
     {
         return Utility::getCategory($this);
     }
@@ -473,6 +519,11 @@ class Bill extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, BC::COL_OD_ID, 'id');
+    }
+
+    public function debitNote(): HasMany
+    {
+        return $this->debitNotes();
     }
 
     public function debitNotes(): HasMany
@@ -844,6 +895,16 @@ class Bill extends Model
 
             return collect([]);
         }
+    }
+
+    /**
+     * Bill line-item products (bill_products table).
+     *
+     * @return HasMany<BillProduct, $this>
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(BillProduct::class, BC::COL_BL_ID, 'id');
     }
 
     public function accounts(): HasMany

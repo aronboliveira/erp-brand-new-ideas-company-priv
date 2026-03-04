@@ -25,6 +25,23 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{DB, Log};
 
+/**
+ * @property string $id
+ * @property string|null $name
+ * @property string|null $sku
+ * @property float|null $sale_price
+ * @property float|null $purchase_price
+ * @property string|null $description
+ * @property float|null $quantity
+ * @property string|null $tax_id
+ * @property string|null $category_id
+ * @property string|null $unit_id
+ * @property string|null $type
+ * @property bool $is_active
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class ProductService extends Model
 {
     use HasAuditFields, HasFactory, NormalizesArrays, UsesUuids;

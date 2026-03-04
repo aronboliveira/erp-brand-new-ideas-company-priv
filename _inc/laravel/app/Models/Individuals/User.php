@@ -21,6 +21,7 @@ use App\Traits\{
     StoresManyRefJson,
     UsesUuids,
 };
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 use Illuminate\{
     Contracts\Auth\MustVerifyEmail,
@@ -37,11 +38,20 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int|string $id
+ * @property string|null $name
+ * @property string|null $email
+ * @property float|null $storage_limit
+ * @property string|null $type
+ * @property string|null $vendor_id
+ * @property string|null $created_by
+ * @property \\Illuminate\\Support\\Carbon|null $created_at
+ * @property \\Illuminate\\Support\\Carbon|null $updated_at
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use UsesUuids,
         ChecksLogin,
+        HasFactory,
         HasApiTokens,
         HasProfilePhoto,
         HasRoles,

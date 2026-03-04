@@ -22,6 +22,7 @@ use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{
     Collection,
+    Factories\HasFactory,
     Model,
     Relations\BelongsTo,
     Relations\HasMany,
@@ -32,7 +33,7 @@ use Illuminate\Support\Facades\Log;
 
 class Employee extends Model
 {
-    use HasAuditFields, NormalizesAddresses, UsesUuids;
+    use HasAuditFields, HasFactory, NormalizesAddresses, UsesUuids;
 
     protected $table = DC::TABLE_EMPLOYEES;
     protected $guarded = ['id', DC::COL_TABLE_CREATOR];

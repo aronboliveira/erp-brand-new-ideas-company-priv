@@ -8,6 +8,19 @@ use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, Uses
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Facades\Log, Str};
 
+/**
+ * @property int|string $id
+ * @property string|null $name
+ * @property string|null $date
+ * @property string|null $time
+ * @property string|null $description
+ * @property int|string|null $deal_id
+ * @property int|string|null $status
+ * @property int|string|null $priority
+ * @property int|string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class DealTask extends Model
 {
     use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;

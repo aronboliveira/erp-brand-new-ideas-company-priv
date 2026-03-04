@@ -148,6 +148,11 @@ class Revenue extends Model
         return $this->belongsTo(Payslip::class, 'payslip', 'id');
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
+    }
+
     public function contract(): BelongsTo
     {
         return $this->belongsTo(Contract::class, 'contract', 'id');

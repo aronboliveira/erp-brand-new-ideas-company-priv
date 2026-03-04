@@ -18,15 +18,13 @@ class Pipeline extends Model
 
     private const CREATED_BY     = DC::COL_TABLE_CREATOR;
     private const ORDER          = AC::COL_OD;
-    // protected $guarded = [ //! UNCOMMENT AFTER TESTS
-    //     'id',
-    //     DC::COL_TABLE_CREATOR,
-    // ];
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+    ];
 
     protected $fillable = [
-        'id', //! REMOVE AFTER TESTS
         PJC::COL_PPL_NM,
-        self::CREATED_BY //! REMOVE AFTER TESTS
     ];
 
     /**

@@ -15,6 +15,17 @@ use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * @property int|string $id
+ * @property string|null $name
+ * @property string|null $phone
+ * @property float|null $price
+ * @property int|string|null $pipeline_id
+ * @property int|string|null $stage_id
+ * @property int|string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Deal extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields, NormalizesAddresses;

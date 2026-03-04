@@ -25,14 +25,31 @@ use App\Traits\{
     UsesUuids,
 };
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\{Auth, Log};
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property string $id
+ * @property string|null $vendor_id
+ * @property string|null $name
+ * @property string|null $user_id
+ * @property string|null $email
+ * @property string|null $password
+ * @property string|null $contact
+ * @property string|null $avatar
+ * @property bool $is_active
+ * @property string|null $lang
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Vendor extends Authenticatable
 {
     use UsesUuids;
+    use HasFactory;
     use HasRoles;
     use Notifiable;
     use HasAuditFields;

@@ -24,6 +24,16 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * @property int|string $id
+ * @property string|null $name
+ * @property string|null $type
+ * @property string|null $color
+ * @property int|string|null $chart_account_id
+ * @property int|string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class ProductServiceCategory extends Model
 {
     use HasAuditFields, NormalizesArrays, UsesUuids;

@@ -23,6 +23,28 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 
+// Same-namespace explicit imports (silences PHP Namespace Resolver)
+use App\Models\Bill;
+use App\Models\ChartOfAccount;
+use App\Models\ProductService;
+use App\Models\Tax;
+
+/**
+ * @property string $id
+ * @property string $bill_id
+ * @property string|null $product_id
+ * @property string|null $chart_account_id
+ * @property float|null $quantity
+ * @property float|null $discount
+ * @property float|null $total
+ * @property float|null $tax
+ * @property string|null $tax_id
+ * @property float|null $price
+ * @property string|null $description
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 final class BillProduct extends Model
 {
     use UsesUuids;
@@ -192,6 +214,14 @@ final class BillProduct extends Model
     public function productService(): BelongsTo
     {
         return $this->belongsTo(ProductService::class, BC::COL_PRD_ID, 'id');
+    }
+
+    /**
+     * Alias for {@see productService()} – used by Bill::with('items.product').
+     */
+    public function product(): BelongsTo
+    {
+        return $this->productService();
     }
 
     public function chartOfAccount(): BelongsTo

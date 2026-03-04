@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\{
 abstract class Describable extends Model
 {
   use HasFactory, UsesUuids;
+  protected $guarded = ['id'];
   protected $fillable = [
-    'id',
     'title',
     'description',
     'notes',
