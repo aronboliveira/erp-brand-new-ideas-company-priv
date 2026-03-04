@@ -1,0 +1,16 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # paths: overridden by --paths-file or CLI arg
+    paths: []
+    level: 3
+    tmpDir: storage/phpstan
+    parallel:
+        maximumNumberOfProcesses: 1
+        processTimeout: 1800.0
+    ignoreErrors:
+        -
+            identifier: missingType.iterableValue
+        -
+            identifier: missingType.generics
