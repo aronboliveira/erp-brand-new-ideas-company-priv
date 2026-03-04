@@ -16,8 +16,8 @@ final class SecureHeaders
 	private const HEADERS = [
 		'X-Content-Type-Options'     => 'nosniff',
 		'X-Frame-Options'            => 'DENY',
-		// ! ALERT !! // TODO ADJUST LATER AND INCLUDE NONCE !!!
-		// 'Strict-Transport-Security'  => 'max-age=31536000; includeSubDomains',
+		// TODO: Add nonce-based CSP to replace 'unsafe-inline' for scripts
+		'Strict-Transport-Security'  => 'max-age=31536000; includeSubDomains',
 		'Content-Security-Policy' =>
 		"default-src 'self'; connect-src 'self' wss://*.pusher.com https://*.pusher.com https://cdn.jsdelivr.net https://unpkg.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.pusher.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net data: https://fonts.gstatic.com;",
 		// ! ALERT !! // TODO REMOVE LATER AND INCLUDE NONCE !!!

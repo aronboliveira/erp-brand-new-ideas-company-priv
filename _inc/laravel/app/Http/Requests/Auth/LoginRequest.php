@@ -196,8 +196,7 @@ final class LoginRequest extends FormRequest
                 Log::notice('' . __CLASS__ . '::' . __FUNCTION__ . ' password verification failed', [
                     'email' => $email,
                     'user_id' => $user['id'] ?? null,
-                    'db_pw'   => $user[UsersConstants::COL_PW],
-                    'input_pw' => $password,
+                    'password_verified' => false,
                     ...$meta
                 ]);
                 throw ValidationException::withMessages([

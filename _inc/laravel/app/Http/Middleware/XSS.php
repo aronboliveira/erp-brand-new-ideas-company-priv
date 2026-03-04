@@ -31,13 +31,15 @@ final class XSS
     {
         $class    = class_basename(static::class);
         $location = "{$request->getMethod()} {$request->getPathInfo()}";
+        /** @var \Illuminate\Routing\Route|null $route */
+        $route = $request->route();
         Log::debug("{$class}::handle start", [
             'ip'       => $request->ip(),
             'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
-            'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
-            'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
+            'route' => $route?->getName() ?? '# UNIDENTIFIED',
+            'action_method' => $route?->getActionMethod() ?? '# UNIDENTIFIED',
             'location' => $location,
-            'params'   => $request->route()?->parameters() ?? [],
+            'params'   => $route?->parameters() ?? [],
             'bearer_present' => (bool)$request->bearerToken(),
         ]);
         $output = SafeConsoleOutput::make();
@@ -100,7 +102,11 @@ final class XSS
             $raw = $request->all();
             $count = count($raw, COUNT_RECURSIVE);
             Log::debug("{$class} sanitization start", ['fields' => $count]);
-            array_walk_recursive($raw, fn(&$v) => is_string($v) ? $v = strip_tags($v) : null);
+            array_walk_recursive($raw, function (&$v) {
+                if (is_string($v)) {
+                    $v = htmlspecialchars(strip_tags($v), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                }
+            });
             $request->merge($raw);
             Log::debug("{$class} sanitization complete", ['url' => $request->fullUrl()]);
             Log::debug("{$class} sanitization done", [
