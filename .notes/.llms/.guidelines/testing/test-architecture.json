@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "title": "Test Architecture Configuration",
+    "project": "erp-prestech",
+    "lastUpdated": "2026-03-04"
+  },
+  "phpunit": {
+    "configFile": "phpunit.xml",
+    "envFile": ".env.testing",
+    "database": "mysql (erp_prestech_test)",
+    "databaseDriver": "mysql",
+    "databaseName": "erp_prestech_test",
+    "databaseHost": "127.0.0.1",
+    "databasePort": 3306,
+    "trait": "DatabaseTransactions (auto-rollback, no data pollution)",
+    "totalFiles": 422,
+    "suites": {
+      "Unit": {
+        "directory": "tests/Unit",
+        "fileCount": 414,
+        "subdirs": [
+          "app/Models/planning",
+          "app/Models/Apr",
+          "app/Models/Aug",
+          "app/Models/Charts"
+        ],
+        "notes": "Each subdir uses distinct namespace to avoid class collisions. Most are stubs."
+      },
+      "Feature": {
+        "directory": "tests/Feature",
+        "fileCount": 8,
+        "notes": "DashboardDataTest — 26 tests, 88 assertions, all passing (2026-03-04)"
+      }
+    },
+    "safeInvocation": "composer run test:feature or APP_ENV=testing php vendor/bin/phpunit --filter=ClassName --no-coverage",
+    "dangerousCommand": "php artisan test (uses .env DB — NEVER use)",
+    "lastResult": {
+      "passed": 26,
+      "failed": 0,
+      "assertions": 88,
+      "date": "2026-03-04"
+    }
+  },
+  "phpstan": {
+    "masterConfig": "phpstan.neon",
+    "moduleConfig": "phpstan-module.neon",
+    "moduleRunner": "scripts/phpstan-modules.sh",
+    "version": "2.1.17",
+    "larastanVersion": "3.9.3",
+    "currentLevel": 3,
+    "level2Errors": 0,
+    "level3Status": "module-by-module in progress (25 modules)",
+    "modules": ["Activity","Auth","Bills","Bugs","Charts","Companies","Configs","Contact","Individuals","Info","Planning","Products","Shapes","Ssr","Helpers","Abstracts","Traits","Services","Exports","Imports","Jobs","Mail","Providers","Console","Middleware"],
+    "note": "BillController (1582 lines) requires single-process mode (phpstan-module.neon)"
+  },
+  "jest": {
+    "configFile": "jest.config.cjs",
+    "totalTests": 10,
+    "suites": {
+      "frontend-risk-audit": {
+        "file": "tests/frontend/js/unit/frontend-risk-audit.test.cjs",
+        "tests": 5,
+        "checks": [
+          "eval/Function usage",
+          "document.write",
+          "innerHTML with variables",
+          "javascript: URIs",
+          "autocomplete on passwords"
+        ],
+        "commentSkipRegex": "Skips lines matching /^\\s*(\\/\\/|\\*|\\/*)/",
+        "scanDirs": ["public/assets/js/routes/"]
+      },
+      "frontend-performance": {
+        "file": "tests/frontend/js/unit/frontend-performance.test.cjs",
+        "tests": 3,
+        "checks": ["page size < 200KB", "no console errors", "render timing"],
+        "mockDir": "tests/frontend/js/pages/mocks/",
+        "budgetLimit": "200KB per mock HTML file"
+      },
+      "frontend-integrity": {
+        "file": "tests/frontend/js/unit/frontend-integrity.test.cjs",
+        "tests": 2,
+        "checks": ["mix-manifest.json integrity", "asset references valid"]
+      }
+    },
+    "invocation": "npx jest --no-cache"
+  },
+  "playwright": {
+    "e2e": {
+      "authSetup": "tests/frontend/playwright/auth.setup.cjs",
+      "pattern": "Setup project runs first → stores cookies → browser projects depend on it",
+      "browsers": [
+        "chromium",
+        "firefox",
+        "webkit",
+        "Mobile Chrome",
+        "Mobile Safari"
+      ],
+      "baseURL": "http://127.0.0.1:8000",
+      "knownFlaky": [
+        "Firefox render-timing on /reports/balance-sheet (cold-start variance)"
+      ]
+    },
+    "frontend": {
+      "testDir": "tests/frontend/playwright/",
+      "totalPassed": 837,
+      "totalFailed": 10,
+      "failureCategory": "RBAC hardening pre-existing (not regressions)"
+    }
+  },
+  "filePatternMap": {
+    "app/Models/**/*.php": "tests/Unit/app/Models/**/*Test.php",
+    "app/Exports/*.php": "Manual — no dedicated test files yet",
+    "public/assets/js/routes/**/*.js": "tests/frontend/js/unit/frontend-risk-audit.test.cjs (scanned)",
+    "resources/views/**/*.blade.php": "tests/frontend/playwright/ (E2E coverage)"
+  }
+}

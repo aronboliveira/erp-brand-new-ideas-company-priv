@@ -1,0 +1,58 @@
+# ERP Prestech — Naming & Route Conventions
+# Format: YAML (simple key-value / list config)
+
+# ─── Route Constant Prefixes ────────────────────────────
+route_constants:
+    MWC: "Middleware constant class — middleware group names"
+    VW: "View constant class — blade view paths"
+    PMC: "Permission constant class — permission keys"
+    PJC: "Project constant class — column/config constants"
+    UC: "User constant class — user-related column names"
+    SC: "Settings constant class — config keys"
+
+# ─── Key Column Constants ────────────────────────────────
+column_constants:
+    PJC::COL_MIN_DR: "minimum_duration"
+    PJC::COL_MAX_DR: "maximum_duration"
+    PJC::COL_CTC_ID: "contract_id"
+    UC::COL_USER_ID: "user_id"
+
+# ─── PHP Naming Rules ───────────────────────────────────
+php_naming:
+    methods: "camelCase only (no snake_case, no run-together)"
+    models: "PascalCase singular (ContractNote, not ContractNotes)"
+    controllers: "PascalCase + Controller suffix"
+    migrations: "snake_case with timestamp prefix"
+    seeders: "PascalCase + Seeder suffix"
+    constants: "UPPER_SNAKE_CASE (COL_USER_ID, FILLABLE)"
+    traits: "PascalCase (ZoomMeetingTrait, not ZoomMeetingTraits)"
+
+# ─── JS Naming Rules ────────────────────────────────────
+js_naming:
+    functions: "camelCase"
+    constants: "UPPER_SNAKE_CASE or camelCase"
+    files: "kebab-case or camelCase (match existing route structure)"
+    helpers: "Prefix with safe* for security helpers (safeFormAction)"
+
+# ─── Database Table Naming ───────────────────────────────
+db_naming:
+    tables: "snake_case plural (document_uploads, not ducument_uploads)"
+    columns: "snake_case (user_id, minimum_duration)"
+    foreign_keys: "referenced_table_singular_id (user_id, contract_id)"
+    uuid_columns: "char(36) — never cast to int"
+
+# ─── File Organization ───────────────────────────────────
+file_structure:
+    models: "app/Models/ (subdirs: Planning/, etc.)"
+    controllers: "app/Http/Controllers/"
+    middleware: "app/Http/Middleware/"
+    helpers: "app/Helpers/"
+    exports: "app/Exports/"
+    services: "app/Services/"
+    seeders: "database/seeders/"
+    factories: "database/factories/"
+    blade_views: "resources/views/"
+    route_js: "public/assets/js/routes/{module}/"
+    test_unit_php: "tests/Unit/"
+    test_jest: "tests/frontend/js/"
+    test_playwright: "tests/frontend/playwright/"

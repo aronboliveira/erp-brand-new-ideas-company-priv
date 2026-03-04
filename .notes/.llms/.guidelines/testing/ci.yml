@@ -1,0 +1,112 @@
+# ci.yml
+# Format: YAML (simple configuration / key-value sets)
+# Purpose: CI/CD and test run configuration reference for ERP Nova Prestech
+# Last updated: 2026-03-04
+
+# IMPORTANT: NEVER use `php artisan test` — it uses the .env database (production).
+# Always use composer scripts or vendor/bin/phpunit directly.
+
+test_commands:
+  phpunit:
+    all:             "cd _inc/laravel && composer run test:phpunit"
+    unit_only:       "cd _inc/laravel && composer run test:unit"
+    feature_only:    "cd _inc/laravel && composer run test:feature"
+    feature_filter:  "cd _inc/laravel && composer run test:feature:filter -- ClassName"
+    safe_single:     "cd _inc/laravel && APP_ENV=testing php vendor/bin/phpunit --filter=TestName --no-coverage"
+    note:            "Uses MySQL test DB (erp_prestech_test) via phpunit.xml/.env.testing"
+
+  phpstan:
+    base:            "cd _inc/laravel && composer run phpstan"
+    level2:          "cd _inc/laravel && composer run phpstan:l2"
+    level3:          "cd _inc/laravel && composer run phpstan:l3"
+    modules:         "cd _inc/laravel && composer run phpstan:modules"
+    clear:           "cd _inc/laravel && composer run phpstan:clear"
+
+  jest:
+    all:             "cd _inc/laravel && npx jest --config jest.config.cjs --verbose"
+    watch:           "cd _inc/laravel && npx jest --config jest.config.cjs --watch"
+    coverage:        "cd _inc/laravel && npx jest --config jest.config.cjs --coverage"
+
+  playwright:
+    e2e:             "cd _inc/laravel && npx playwright test --config=playwright.config.cjs"
+    frontend:        "cd _inc/laravel && npx playwright test --config=playwright-frontend.config.cjs"
+    headed:          "npx playwright test --headed"
+    ui_mode:         "npx playwright test --ui"
+    chromium_only:   "npx playwright test --project=chromium"
+    install:         "npx playwright install"
+
+  pytest:
+    all:             "cd _inc/laravel && npm run test:pytest"
+    quick:           "cd _inc/laravel && npm run test:pytest:quick"
+    setup:           "cd _inc/laravel && npm run test:pytest:setup"
+
+  curl:
+    timing:          "cd _inc/laravel && bash tests/curl_timing.sh"
+
+  postman:
+    run:             "cd _inc/laravel && npm run test:postman"
+
+  cross_stack:
+    backend:         "cd _inc/laravel && npm run test:backend"
+    fullstack:       "cd _inc/laravel && npm run test:fullstack"
+
+browsers:
+  - chromium
+  - firefox
+  - webkit
+  - mobile-chrome   # Pixel 5
+  - mobile-safari   # iPhone 12
+
+worker_counts:
+  playwright_default: 1
+  playwright_ci:      4
+
+timeouts:
+  playwright_action_ms:     10000
+  playwright_navigation_ms: 30000
+  playwright_test_ms:       60000
+  phpunit_per_test_s:       30
+  phpstan_single_process_s: 1800
+
+skip_patterns:
+  playwright:
+    - "**/calendar-sync*"    # Google credentials absent in test env
+  phpunit:
+    - "PaytabsWebhookTest"   # Paytabs namespace fix pending
+  jest:
+    - "**/QrCode*"           # DNS2D not available in Node env
+
+seed_before_e2e:
+  command:  "cd _inc/laravel && php artisan migrate --database=mysql_test --seed"
+  sa_user:
+    uuid:     "a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7"
+    email:    "suporte@prestech.com.br"
+    password: "test1234"
+
+server_for_e2e:
+  command:     "cd _inc/laravel && php artisan serve --port=8000"
+  base_url:    "http://localhost:8000"
+  wait_for_ms: 3000          # wait before starting playwright
+
+last_known_results:
+  phpunit:
+    passed: 26
+    failed: 0
+    skipped: 0
+    assertions: 88
+    date: "2026-03-04"
+    note: "DashboardDataTest — 26/26 all green, MySQL test DB"
+  phpstan:
+    level2_errors: 0
+    level3_status: "Module-by-module run in progress (25 modules)"
+    date: "2026-03-04"
+  playwright:
+    passed: 1909
+    failed: 0
+    skipped: 1
+    date: "2026-02"
+    browsers_run: 5
+  jest:
+    note: "10 tests (3 suites) — run to update"
+  pytest:
+    note: "6 test files — run to update"

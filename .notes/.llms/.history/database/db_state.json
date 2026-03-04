@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "description": "Database state snapshot — queryable reference data for agent sessions",
+    "format": "JSON (complex data sets for querying and organizing key:values)",
+    "last_updated": "2026-03-04",
+    "version": "2026-03-04"
+  },
+
+  "connection": {
+    "driver": "mysql",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "erp_prestech",
+    "username": "admin_prestech",
+    "password": "76562f3A*@prestech"
+  },
+
+  "test_connection": {
+    "driver": "mysql",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "erp_prestech_test",
+    "username": "admin_prestech",
+    "password": "76562f3A*@prestech",
+    "tables": 210,
+    "rows": 0,
+    "note": "Always empty — PHPUnit uses DatabaseTransactions (auto-rollback)"
+  },
+
+  "schema": {
+    "total_tables": 210,
+    "total_migrations_run": 215,
+    "primary_key_type": "uuid_char36",
+    "multi_tenancy_column": "created_by",
+    "soft_deletes": "most_models (check deleted_at in queries)",
+    "assigned_to_format": "comma_separated_uuid_strings",
+    "settings_table_format": "name/value pairs — NOT normalized"
+  },
+
+  "sa_user": {
+    "id": "a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7",
+    "name": "Suporte Prestech",
+    "email": "suporte@prestech.com.br",
+    "password_plain": "test1234",
+    "type": "super admin",
+    "lang": "pt-br",
+    "created_by": "a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7",
+    "note": "Self-referential: owns itself. Previous SA was lucia@prestech.com.br — no longer exists."
+  },
+
+  "current_state": {
+    "as_of": "2026-03-04",
+    "status": "sparse — needs re-seeding",
+    "tables": {
+      "users":                  { "count": 2,   "status": "ok — SA + 1 test user" },
+      "settings":               { "count": "?", "status": "verify: SELECT COUNT(*) FROM settings" },
+      "languages":              { "count": "?", "status": "verify created_by = SA UUID" },
+      "migrations":             { "count": 215, "status": "all 215 run" },
+      "employees":              { "count": 0,   "status": "empty" },
+      "customers":              { "count": 0,   "status": "empty" },
+      "leads":                  { "count": 0,   "status": "empty" },
+      "deals":                  { "count": 0,   "status": "empty" },
+      "projects":               { "count": 0,   "status": "empty" },
+      "invoices":               { "count": 0,   "status": "empty" },
+      "notification_templates": { "count": "?", "status": "may have been repopulated" }
+    }
+  },
+
+  "uuid_pitfalls": [
+    {
+      "pattern": "(int)$user->id",
+      "result": "always 0",
+      "why": "UUID string cast to int returns 0",
+      "fix": "keep as string — $userId = $user->id"
+    },
+    {
+      "pattern": "find_in_set(0, assigned_to)",
+      "result": "matches nothing",
+      "why": "0 from int-cast UUID never appears in comma-separated UUIDs",
+      "fix": "pass UUID string: find_in_set($user->id, assigned_to)"
+    }
+  ],
+
+  "priority_sql": {
+    "verify_sa_user": "SELECT id, name, email, type FROM users WHERE type = 'super admin';",
+    "fix_languages":  "UPDATE languages SET created_by = 'a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7';",
+    "count_settings": "SELECT COUNT(*) FROM settings;",
+    "check_templates":"SELECT COUNT(*) FROM notification_templates;"
+  },
+
+  "seeder_dependency_chains": {
+    "users_chain":      ["users", "employees", "branches", "departments"],
+    "jobs_chain":       ["job_categories[32]", "jobs[11]", "job_applications[2]", "interview_schedules[2]"],
+    "training_chain":   ["trainers[85]", "training_types[40]", "trainings[3]"],
+    "awards_chain":     ["award_types[15]", "awards[2]", "termination_types[29]", "terminations[21]"],
+    "goals_chain":      ["goal_types[9]", "goal_trackings[3]", "loan_options[8]", "loans[2]"],
+    "crm_chain":        ["pipelines[30]", "stages[63]", "leads[104]", "deals[60]"],
+    "misc":             ["tasks[2]", "task_stages[12]", "settings[2]", "warehouses[4]", "languages[25]"]
+  },
+
+  "reseed_commands": {
+    "minimal":  "php artisan db:seed --class=ContentValidationSeeder",
+    "soft":     "composer serve-sh-soft",
+    "medium":   "composer serve-sh-mixed",
+    "full":     "composer serve-sh-hard"
+  },
+
+  "history": [
+    { "date": "2026-02-09", "event": "Wiped by rogue seeder (ProjectDataFixSeeder from stash)" },
+    { "date": "2026-02-18", "event": "Fully re-seeded: 612 users, 107 employees, 160 customers" },
+    { "date": "2026-02-28", "event": "Rebuilt — now sparse with only 2 users" }
+  ]
+}
