@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# scripts/phpstan-modules.sh — Run PHPStan level 3 per-module
+# scripts/phpstan-modules.sh — Run PHPStan level N per-module
 # Usage: bash scripts/phpstan-modules.sh [level] [module ...]
 # Examples:
 #   bash scripts/phpstan-modules.sh                    # all modules, level 3
 #   bash scripts/phpstan-modules.sh 2                  # all modules, level 2
 #   bash scripts/phpstan-modules.sh 3 Bills Planning   # only Bills & Planning
-#   bash scripts/phpstan-modules.sh 3 Models/Bills     # Models subdir
+#   bash scripts/phpstan-modules.sh 3 Activity-Ctrl    # Activity small controllers
+# Env: TIMEOUT=<secs>  per-module timeout (default 600)
 set -euo pipefail
 
 LARAVEL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,11 +15,71 @@ cd "$LARAVEL_DIR"
 LEVEL="${1:-3}"
 shift 2>/dev/null || true
 
-# Module definitions: controllers + their models (analysed together per domain)
+# Per-module timeout in seconds (override with: TIMEOUT=900 bash scripts/...)
+TIMEOUT_SECS="${TIMEOUT:-600}"
+
+# ── Module definitions ──────────────────────────────────────────────────────
+# Activity and Bills are split into sub-modules because their controllers
+# exceed 1 000 lines each and cause PHPStan workers to spin for hours when
+# analysed as a single batch.
+# ───────────────────────────────────────────────────────────────────────────
 declare -A MODULES=(
-  [Activity]="app/Http/Controllers/Activity app/Models/Activity"
+  # ── Activity (split) ──────────────────────────────────────────────────────
+  [Activity-Models]="app/Models/Activity"
+  [Activity-Ctrl]="app/Http/Controllers/Activity/ActivityController.php
+    app/Http/Controllers/Activity/AppraisalController.php
+    app/Http/Controllers/Activity/AwardController.php
+    app/Http/Controllers/Activity/AwardTypeController.php
+    app/Http/Controllers/Activity/CommissionController.php
+    app/Http/Controllers/Activity/ComplaintController.php
+    app/Http/Controllers/Activity/EventController.php
+    app/Http/Controllers/Activity/LeadStageController.php
+    app/Http/Controllers/Activity/MeetingController.php
+    app/Http/Controllers/Activity/OvertimeController.php
+    app/Http/Controllers/Activity/PerformanceTypeController.php
+    app/Http/Controllers/Activity/SourceController.php
+    app/Http/Controllers/Activity/StageController.php
+    app/Http/Controllers/Activity/SupportController.php
+    app/Http/Controllers/Activity/TaskStageController.php
+    app/Http/Controllers/Activity/TrainingController.php
+    app/Http/Controllers/Activity/TrainingTypeController.php
+    app/Http/Controllers/Activity/TransferController.php
+    app/Http/Controllers/Activity/WarehouseTransferController.php"
+  [Activity-DealCtrl]="app/Http/Controllers/Activity/DealController.php"
+  [Activity-LeadCtrl]="app/Http/Controllers/Activity/LeadController.php"
+  [Activity-PosCtrl]="app/Http/Controllers/Activity/PosController.php"
+  [Activity-PurchaseCtrl]="app/Http/Controllers/Activity/PurchaseController.php"
+  [Activity-ReportCtrl]="app/Http/Controllers/Activity/ReportController.php"
+  # ── Auth ──────────────────────────────────────────────────────────────────
   [Auth]="app/Http/Controllers/Auth"
-  [Bills]="app/Http/Controllers/Bills app/Models/Bills"
+  # ── Bills (split) ─────────────────────────────────────────────────────────
+  [Bills-Models]="app/Models/Bills"
+  [Bills-Ctrl]="app/Http/Controllers/Bills/AllowanceController.php
+    app/Http/Controllers/Bills/AllowanceOptionController.php
+    app/Http/Controllers/Bills/BankTransferController.php
+    app/Http/Controllers/Bills/BankTransferPaymentController.php
+    app/Http/Controllers/Bills/BenefitPaymentController.php
+    app/Http/Controllers/Bills/BudgetController.php
+    app/Http/Controllers/Bills/CashfreeController.php
+    app/Http/Controllers/Bills/CouponController.php
+    app/Http/Controllers/Bills/CreditNoteController.php
+    app/Http/Controllers/Bills/DebitNoteController.php
+    app/Http/Controllers/Bills/DeductionOptionController.php
+    app/Http/Controllers/Bills/LoanController.php
+    app/Http/Controllers/Bills/LoanOptionController.php
+    app/Http/Controllers/Bills/OtherPaymentController.php
+    app/Http/Controllers/Bills/PaymentController.php
+    app/Http/Controllers/Bills/PayslipTypeController.php
+    app/Http/Controllers/Bills/RevenueController.php
+    app/Http/Controllers/Bills/SaturationDeductionController.php
+    app/Http/Controllers/Bills/StripePaymentController.php
+    app/Http/Controllers/Bills/TaxController.php
+    app/Http/Controllers/Bills/TransactionController.php"
+  [Bills-BillCtrl]="app/Http/Controllers/Bills/BillController.php"
+  [Bills-ExpenseCtrl]="app/Http/Controllers/Bills/ExpenseController.php"
+  [Bills-InvoiceCtrl]="app/Http/Controllers/Bills/InvoiceController.php"
+  [Bills-PayslipCtrl]="app/Http/Controllers/Bills/PayslipController.php"
+  # ── Other domains ─────────────────────────────────────────────────────────
   [Bugs]="app/Http/Controllers/Bugs app/Models/Bugs"
   [Charts]="app/Http/Controllers/Charts app/Models/Charts"
   [Companies]="app/Http/Controllers/Companies app/Models/Companies"
@@ -58,6 +119,7 @@ TOTAL_PASS=0
 TOTAL_FAIL=0
 TOTAL_ERRORS=0
 TOTAL_SKIP=0
+TOTAL_TIMEOUT=0
 declare -A MODULE_RESULTS
 
 echo "================================================================="
@@ -86,7 +148,9 @@ for MODULE in "${SORTED_MODULES[@]}"; do
   # Verify at least one path exists
   VALID_PATHS=""
   for P in $PATHS; do
-    [[ -d "$P" ]] && VALID_PATHS="$VALID_PATHS $P"
+    P="$(echo "$P" | xargs)"   # trim whitespace/newlines from heredoc-style values
+    [[ -z "$P" ]] && continue
+    [[ -d "$P" || -f "$P" ]] && VALID_PATHS="$VALID_PATHS $P"
   done
   VALID_PATHS="$(echo "$VALID_PATHS" | xargs)"
 
@@ -97,19 +161,24 @@ for MODULE in "${SORTED_MODULES[@]}"; do
     continue
   fi
 
-  printf "  ▸ %-15s " "$MODULE"
+  printf "  ▸ %-20s " "$MODULE"
 
   # Build PHPStan command — pass paths as arguments
-  # Use the single-process config to avoid worker timeouts
-  RESULT=$(php vendor/bin/phpstan analyse \
+  # Use the single-process config; wrap with timeout to guard against hung workers
+  PHPSTAN_EXIT=0
+  RESULT=$(timeout "$TIMEOUT_SECS" php vendor/bin/phpstan analyse \
     --configuration=phpstan-module.neon \
     --level="$LEVEL" \
     --memory-limit=4G \
     --no-progress \
-    $VALID_PATHS 2>&1) || true
+    $VALID_PATHS 2>&1) || PHPSTAN_EXIT=$?
 
   # Parse result
-  if echo "$RESULT" | grep -q '\[OK\] No errors'; then
+  if [[ $PHPSTAN_EXIT -eq 124 ]]; then
+    echo "⏱ TIMEOUT (>${TIMEOUT_SECS}s)"
+    MODULE_RESULTS[$MODULE]="TIMEOUT"
+    TOTAL_TIMEOUT=$((TOTAL_TIMEOUT + 1))
+  elif echo "$RESULT" | grep -q '\[OK\] No errors'; then
     echo "✓ PASS (0 errors)"
     MODULE_RESULTS[$MODULE]="PASS:0"
     TOTAL_PASS=$((TOTAL_PASS + 1))
@@ -140,8 +209,10 @@ echo "================================================================="
 echo "  Level:   $LEVEL"
 echo "  Passed:  $TOTAL_PASS"
 echo "  Failed:  $TOTAL_FAIL"
+echo "  Timeout: $TOTAL_TIMEOUT"
 echo "  Skipped: $TOTAL_SKIP"
 echo "  Total errors: $TOTAL_ERRORS"
+echo "  Per-module timeout: ${TIMEOUT_SECS}s (override: TIMEOUT=<secs>)"
 echo ""
 
 # Write summary file
@@ -149,23 +220,24 @@ echo ""
   echo "# PHPStan Module Analysis — Level $LEVEL"
   echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
   echo ""
-  printf "| %-15s | %-8s | %-8s |\n" "Module" "Status" "Errors"
-  printf "| %-15s | %-8s | %-8s |\n" "---------------" "--------" "--------"
+  printf "| %-22s | %-8s | %-8s |\n" "Module" "Status" "Errors"
+  printf "| %-22s | %-8s | %-8s |\n" "----------------------" "--------" "--------"
   for MODULE in "${SORTED_MODULES[@]}"; do
     RES="${MODULE_RESULTS[$MODULE]:-N/A}"
     STATUS="${RES%%:*}"
     ERRS="${RES##*:}"
-    [[ "$STATUS" == "PASS" ]] && ERRS="0"
-    [[ "$STATUS" == "SKIP" ]] && ERRS="-"
-    printf "| %-15s | %-8s | %-8s |\n" "$MODULE" "$STATUS" "$ERRS"
+    [[ "$STATUS" == "PASS" ]]    && ERRS="0"
+    [[ "$STATUS" == "SKIP" ]]    && ERRS="-"
+    [[ "$STATUS" == "TIMEOUT" ]] && ERRS="-"
+    printf "| %-22s | %-8s | %-8s |\n" "$MODULE" "$STATUS" "$ERRS"
   done
   echo ""
-  echo "Passed: $TOTAL_PASS | Failed: $TOTAL_FAIL | Skipped: $TOTAL_SKIP | Total errors: $TOTAL_ERRORS"
+  echo "Passed: $TOTAL_PASS | Failed: $TOTAL_FAIL | Timeout: $TOTAL_TIMEOUT | Skipped: $TOTAL_SKIP | Total errors: $TOTAL_ERRORS"
 } >> "$SUMMARY_FILE"
 
 echo "  Full report:    $REPORT_FILE"
 echo "  Summary:        $SUMMARY_FILE"
 echo ""
 
-# Exit with failure if any module failed
-[[ $TOTAL_FAIL -gt 0 ]] && exit 1 || exit 0
+# Exit with failure if any module failed or timed out
+[[ $((TOTAL_FAIL + TOTAL_TIMEOUT)) -gt 0 ]] && exit 1 || exit 0
