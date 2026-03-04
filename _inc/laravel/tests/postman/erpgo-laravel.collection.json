@@ -1,0 +1,517 @@
+{
+  "info": {
+    "_postman_id": "dd76f248-4d0f-4a1d-a2d9-6b154918e6ba",
+    "name": "ERPGo Laravel System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Anonymous security probes plus token-authenticated API checks for the routed Laravel surface."
+  },
+  "item": [
+    {
+      "name": "00 Anonymous Security",
+      "item": [
+        {
+          "name": "Login Page Is Reachable",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"login route responds without a server error\", function () {",
+                  "  pm.expect([200, 301, 302]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "const xsrf = pm.cookies.get(\"XSRF-TOKEN\");",
+                  "if (xsrf) {",
+                  "  pm.collectionVariables.set(\"xsrfToken\", xsrf);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Sensitive Finance Routes Stay Protected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.variables.get(\"baseUrl\").replace(/\\/$/, \"\");",
+                  "const paths = [",
+                  "  \"/vendors/purchases/1\",",
+                  "  \"/customers/proposals/1\",",
+                  "  \"/invoices\",",
+                  "  \"/bills\",",
+                  "  \"/payments\",",
+                  "  \"/bank_transfers\",",
+                  "  \"/payslips\"",
+                  "];",
+                  "const allowed = [301, 302, 303, 307, 308, 401, 403];",
+                  "",
+                  "pm.test(\"sensitive finance routes stay protected\", function (done) {",
+                  "  let pending = paths.length;",
+                  "  const violations = [];",
+                  "",
+                  "  paths.forEach((path) => {",
+                  "    pm.sendRequest({",
+                  "      url: `${baseUrl}${path}`,",
+                  "      method: \"GET\",",
+                  "      followRedirects: false",
+                  "    }, (err, res) => {",
+                  "      if (err) {",
+                  "        violations.push({ path, error: err.message });",
+                  "      } else if (!allowed.includes(res.code)) {",
+                  "        violations.push({ path, status: res.code });",
+                  "      }",
+                  "",
+                  "      pending -= 1;",
+                  "      if (pending === 0) {",
+                  "        pm.expect(violations, JSON.stringify(violations)).to.eql([]);",
+                  "        done();",
+                  "      }",
+                  "    });",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Debug And Ignition Endpoints Stay Blocked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.variables.get(\"baseUrl\").replace(/\\/$/, \"\");",
+                  "const paths = [",
+                  "  \"/_debugbars/open\",",
+                  "  \"/_debugbars/assets/javascript\",",
+                  "  \"/_ignitions/health-check\",",
+                  "  \"/_ignitions/update-config\"",
+                  "];",
+                  "const allowed = [401, 403, 404, 405];",
+                  "",
+                  "pm.test(\"debug and ignition endpoints stay blocked\", function (done) {",
+                  "  let pending = paths.length;",
+                  "  const violations = [];",
+                  "",
+                  "  paths.forEach((path) => {",
+                  "    const method = path.includes(\"update-config\") ? \"POST\" : \"GET\";",
+                  "    const request = {",
+                  "      url: `${baseUrl}${path}`,",
+                  "      method,",
+                  "      followRedirects: false",
+                  "    };",
+                  "",
+                  "    if (method === \"POST\") {",
+                  "      request.header = { \"Content-Type\": \"application/json\" };",
+                  "      request.body = {",
+                  "        mode: \"raw\",",
+                  "        raw: JSON.stringify({ key: \"x\", value: \"y\" })",
+                  "      };",
+                  "    }",
+                  "",
+                  "    pm.sendRequest(request, (err, res) => {",
+                  "      if (err) {",
+                  "        violations.push({ path, error: err.message });",
+                  "      } else if (!allowed.includes(res.code)) {",
+                  "        violations.push({ path, status: res.code });",
+                  "      }",
+                  "",
+                  "      pending -= 1;",
+                  "      if (pending === 0) {",
+                  "        pm.expect(violations, JSON.stringify(violations)).to.eql([]);",
+                  "        done();",
+                  "      }",
+                  "    });",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Mutating Endpoints Reject Missing Auth And CSRF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.variables.get(\"baseUrl\").replace(/\\/$/, \"\");",
+                  "const paths = [",
+                  "  \"/payment-i-p-n\",",
+                  "  \"/apis/stop-tracker\",",
+                  "  \"/apis/add-tracker\",",
+                  "  \"/vendors/imports/index\"",
+                  "];",
+                  "const allowed = [301, 302, 303, 307, 308, 401, 403, 419, 422, 429];",
+                  "",
+                  "pm.test(\"mutating endpoints reject missing auth and csrf\", function (done) {",
+                  "  let pending = paths.length;",
+                  "  const violations = [];",
+                  "",
+                  "  paths.forEach((path) => {",
+                  "    pm.sendRequest({",
+                  "      url: `${baseUrl}${path}`,",
+                  "      method: \"POST\",",
+                  "      followRedirects: false,",
+                  "      header: { \"Content-Type\": \"application/x-www-form-urlencoded\" },",
+                  "      body: {",
+                  "        mode: \"urlencoded\",",
+                  "        urlencoded: [",
+                  "          { key: \"id\", value: \"1\" },",
+                  "          { key: \"_token\", value: \"invalid\" }",
+                  "        ]",
+                  "      }",
+                  "    }, (err, res) => {",
+                  "      if (err) {",
+                  "        violations.push({ path, error: err.message });",
+                  "      } else if (!allowed.includes(res.code)) {",
+                  "        violations.push({ path, status: res.code });",
+                  "      }",
+                  "",
+                  "      pending -= 1;",
+                  "      if (pending === 0) {",
+                  "        pm.expect(violations, JSON.stringify(violations)).to.eql([]);",
+                  "        done();",
+                  "      }",
+                  "    });",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "_token",
+                  "value": "invalid",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/vendors/imports/index"
+          }
+        },
+        {
+          "name": "API Projects Require Authentication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"projects endpoint does not allow anonymous access\", function () {",
+                  "  pm.expect([301, 302, 303, 307, 308, 401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{apiBase}}/get-projects"
+          }
+        },
+        {
+          "name": "API Login Rejects Invalid Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"invalid credentials are rejected\", function () {",
+                  "  pm.expect([401, 422, 429]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid@example.test\",\n  \"password\": \"wrong-pass\"\n}"
+            },
+            "url": "{{apiBase}}/auth-login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Authenticated API",
+      "item": [
+        {
+          "name": "API Login With Environment Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = pm.variables.get(\"apiEmail\");",
+                  "const password = pm.variables.get(\"apiPassword\");",
+                  "",
+                  "pm.test(\"api credentials are configured\", function () {",
+                  "  pm.expect(email, \"Set apiEmail in the environment\").to.be.ok;",
+                  "  pm.expect(password, \"Set apiPassword in the environment\").to.be.ok;",
+                  "});",
+                  "",
+                  "pm.test(\"api login succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "",
+                  "const payload = pm.response.json();",
+                  "pm.expect(payload).to.have.property(\"data\");",
+                  "pm.expect(payload.data.token).to.be.a(\"string\").and.not.empty;",
+                  "pm.collectionVariables.set(\"bearerToken\", payload.data.token);",
+                  "pm.environment.set(\"bearerToken\", payload.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{apiEmail}}\",\n  \"password\": \"{{apiPassword}}\"\n}"
+            },
+            "url": "{{apiBase}}/auth-login"
+          }
+        },
+        {
+          "name": "Projects List Returns Authenticated Payload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"bearer token is present\", function () {",
+                  "  pm.expect(pm.variables.get(\"bearerToken\")).to.be.ok;",
+                  "});",
+                  "",
+                  "pm.test(\"projects endpoint succeeds\", function () {",
+                  "  pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "  const payload = pm.response.json();",
+                  "  pm.expect(payload).to.be.an(\"object\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{apiBase}}/get-projects"
+          }
+        },
+        {
+          "name": "Add Tracker Validates Invalid Payload After Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"authenticated invalid tracker payload is rejected with validation\", function () {",
+                  "  pm.expect(pm.response.code).to.eql(422);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"start\",\n  \"taskId\": \"not-a-uuid\"\n}"
+            },
+            "url": "{{apiBase}}/add-tracker"
+          }
+        },
+        {
+          "name": "Upload Photos Validates Invalid Payload After Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"invalid upload payload is rejected after auth\", function () {",
+                  "  pm.expect(pm.response.code).to.eql(422);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imgName\": \"payload.exe\",\n  \"trackerId\": \"bad tracker id\",\n  \"img\": \"%%%not-base64%%%\"\n}"
+            },
+            "url": "{{apiBase}}/upload-photos"
+          }
+        },
+        {
+          "name": "Logout Revokes API Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"logout succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.unset(\"bearerToken\");",
+                  "pm.environment.unset(\"bearerToken\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{apiBase}}/logout"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:18081"
+    },
+    {
+      "key": "apiBase",
+      "value": "http://127.0.0.1:18081/apis"
+    },
+    {
+      "key": "apiEmail",
+      "value": ""
+    },
+    {
+      "key": "apiPassword",
+      "value": ""
+    },
+    {
+      "key": "bearerToken",
+      "value": ""
+    },
+    {
+      "key": "xsrfToken",
+      "value": ""
+    }
+  ]
+}
+

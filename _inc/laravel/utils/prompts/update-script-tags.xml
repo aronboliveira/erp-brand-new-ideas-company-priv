@@ -1,0 +1,62 @@
+<instructions>
+	- Rewrite this script using ES6+ syntax;
+	- Use defensive programming techniques for preventing UI crashes caused by the script, such as proper nullish coalescence, falsish guard clauses and try/catches. IF the procedure executes a critical change in the page: -> query for bootstrap's UI link existence in the page is sucessful and mount a boostrap toast alerting the user the procedure has failed; if the query fails, just use javascript's native alert call;
+	- Do not include comments on more than one newline between lines;
+	- Do not include console.[log method] in the procedures for route checking, ONLY for broad loading failures (like library loading failures);
+	- The toast/alert of error should only be shown to the user if he interacts with it (in a click trigger for common events or pointerup for throttle-sensitive procedures, such as those that trigger stateful http methods or fetch large amounts of data from get | head, DO NOT add both types of listeners, this means to pick only one according to the context). Remember to include dataset-[check alias] (using getAttribute and setAttribute in association with reusable variables to represent repeatead strings) to prevent rerendering from adding multiple times the same listener;
+	- Remember to include checks to cleanup the listeners if the element is removed from the DOM, such as using MutationObserver or similar techniques;
+	- Remember to include checks to prevent appending of new DOM nodes if they already exist, such as using querySelector or similar techniques;
+	- The message shown in the toast/alert should be localized through th creation and usage of a dictionary called "translations", that has the structure translations[...{ar, da, de, en, es, fr, he, it, ja, nl, pl, pt, pt-br, ru, tr, zh}][{...'[context alias]_unavailable'}] using something like this example:
+			const lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en").toLowerCase();
+		  const msg = window.translations[lang]?.[argumented key] ?? '# ERROR';
+	- The translations should be stored in a separate synchronous script declaring the complete dict for window.translations of that page;
+	- The procedure for the translation fetch is always the same, besides the key usages. If more than one script is using the same pattern, you can declare the procedure as a reusable function in the lexical scope:
+		```
+						const errFb = "# ERROR";
+						const dataClientLocalized = "data-client-localized";
+						const dataGuardMsg = "data-guard-msg";
+						let msg = errFb;
+						if (
+							el.getAttribute("data-sv-localized") === "true" ||
+							el.getAttribute(dataClientLocalized) === "true"
+						)
+							msg = el.getAttribute(dataGuardMsg) || errFb;
+						else {
+							let lang = (
+								window.sessionStorage.getItem("erp-np-lang") ||
+								document.documentElement.lang ||
+								"en"
+							)
+								.toLowerCase()
+								.replace(/_/g, "-");
+							lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+							const msgKey = /* HERE THE KEY VALUE */;
+							msg =
+								window.translations?.[lang]?.[msgKey] ||
+								el.getAttribute(dataGuardMsg) ||
+								window.translations?.["en"]?.[msgKey] ||
+								errFb;
+							if (msg !== errFb) {
+								el.setAttribute(dataGuardMsg, msg);
+								el.setAttribute(dataClientLocalized, "true");
+							}
+						}
+		```
+	- Don't try to circunvent jquerys usage, even though it's surely a legacy approach;
+	- For route verification: 
+		```
+		const url = [element-var-name].getAttribute('data-url');
+		const href = [element-var-name].[ /* action if a form, or href if an anchor */];
+		if ((!url || url === "#") && (!href || href === "#")) /* procedure */
+		```
+	- Wrap the whole block in a IIFE;
+	- Don't write use strict header;
+	- Always defer the script if suitable;
+	- Always script a separate script tag for window.translations which should verify if window.translations is already defined. If not, then create the property and assign directly; else, the new translation keys to window.translations;
+	- If the main procedural script is defered (DO NOT DO THIS BLINDLY, evaluate if it won't break the UI), then async the translations, else keep all synchronous;
+	- Always indent the iife in the script tag so it can be folded.
+	- DO NOT ADD COMMENTS;
+</instructions>
+<block>
+
+</block>

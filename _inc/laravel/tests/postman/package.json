@@ -1,0 +1,14 @@
+{
+  "name": "erpgo-laravel-postman-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local Newman toolchain for Laravel HTTP tests",
+  "scripts": {
+    "test": "./run-postman.sh",
+    "test:anonymous": "./run-postman.sh --folder '00 Anonymous Security'",
+    "test:auth": "./run-postman.sh --folder '10 Authenticated API'"
+  },
+  "dependencies": {
+    "newman": "^6.2.1"
+  }
+}
