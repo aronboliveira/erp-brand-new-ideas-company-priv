@@ -22,8 +22,7 @@ Route::group([
     ]
 ], function () {
     Route::post(ViewsConstants::AUT . '-login', [ApiController::class, 'login'])
-        // TODO REACTIVATE IN PRODUCTION
-        // ->middleware(MiddlewaresConstants::GT . ':sanctum')
+        ->middleware(MiddlewaresConstants::GT . ':sanctum')
         ->name(ViewsConstants::AUT . '.login');
     Route::group([
         'middleware' => [MiddlewaresConstants::AUTH . ':sanctum']

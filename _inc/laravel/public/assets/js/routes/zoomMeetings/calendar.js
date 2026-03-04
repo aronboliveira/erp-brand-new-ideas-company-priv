@@ -242,4 +242,6 @@
   } else {
     bind();
   }
+  window.get_data = getData;
+  document.getElementById("calendar_type")?.addEventListener("change", getData);
 })();
