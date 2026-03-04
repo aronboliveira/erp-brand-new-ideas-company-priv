@@ -1,9 +1,9 @@
 (function () {
   function toast(msg) {
-    let m =
+    const m =
       msg ||
       "Requested route is unavailable. Please contact technical support or your domain administrator.";
-    let hasBootstrap =
+    const hasBootstrap =
       typeof window.bootstrap !== "undefined" &&
       typeof window.bootstrap.Toast !== "undefined";
     if (hasBootstrap) {
@@ -17,7 +17,7 @@
         box.style.bottom = "1rem";
         document.body.appendChild(box);
       }
-      let t = document.createElement("div");
+      const t = document.createElement("div");
       t.className = "toast";
       t.setAttribute("role", "alert");
       t.setAttribute("aria-live", "assertive");
@@ -32,8 +32,8 @@
   }
 
   function disabledUrl(a) {
-    let href = (a.getAttribute("href") || "").trim();
-    let url = (a.getAttribute("data-url") || href || "").trim();
+    const href = (a.getAttribute("href") || "").trim();
+    const url = (a.getAttribute("data-url") || href || "").trim();
     if (!url || url === "#" || href === "#") return true;
     try {
       new URL(url, window.location.origin);
@@ -66,21 +66,21 @@
       if (card.dataset.cardBound === "1") return;
       card.dataset.cardBound = "1";
       card.addEventListener("click", function (e) {
-        let target = e.target;
+        const target = e.target;
         if (
           target.closest(
             'a,button,input,textarea,select,[role="button"],[data-ajax-popup]'
           )
         )
           return;
-        let link = card.querySelector("a.project-task-index-link");
+        const link = card.querySelector("a.project-task-index-link");
         if (!link) return;
         if (disabledUrl(link)) {
           e.preventDefault();
           toast(link.getAttribute("data-guard-msg"));
           return;
         }
-        let url = (
+        const url = (
           link.getAttribute("data-url") ||
           link.getAttribute("href") ||
           "#"
@@ -102,7 +102,7 @@
 
   function observe() {
     if (!("MutationObserver" in window)) return;
-    let mo = new MutationObserver(function (muts) {
+    const mo = new MutationObserver(function (muts) {
       for (let i = 0; i < muts.length; i++) {
         if (muts[i].addedNodes && muts[i].addedNodes.length) {
           bind();

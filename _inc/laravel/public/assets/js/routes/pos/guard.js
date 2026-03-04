@@ -56,12 +56,12 @@
         document.body.appendChild(c);
       }
       if (window.bootstrap && window.bootstrap.Toast) {
-        let t = document.createElement("div");
+        const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        let b = document.createElement("div");
+        const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -76,16 +76,16 @@
   }
 
   try {
-    let links = document.querySelectorAll(
+    const links = document.querySelectorAll(
       'a[data-guard-msg]:not([data-listener-active="true"])'
     );
     links.forEach(function (a) {
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", function (e) {
-        let url = a.getAttribute("href") || a.getAttribute("data-url") || "#";
+        const url = a.getAttribute("href") || a.getAttribute("data-url") || "#";
         if (!url || url === "#") {
           e.preventDefault();
-          let msg = a.getAttribute("data-guard-msg") || "Action unavailable.";
+          const msg = a.getAttribute("data-guard-msg") || "Action unavailable.";
           toast(msg);
         }
       });

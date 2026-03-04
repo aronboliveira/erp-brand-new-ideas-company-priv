@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "description": "Laravel-specific regexes for ERP Prestech codebase auditing",
+    "usage": "Use with grep -P or VSCode regex search (Ctrl+Shift+F, Alt+R)",
+    "scope": "_inc/laravel/ directory tree",
+    "last_updated": "2025-06-01"
+  },
+
+  "blade_template_patterns": [
+    {
+      "id": "BLADE-01",
+      "flag": "SECURITY",
+      "purpose": "Unescaped Blade output (XSS risk)",
+      "regex": "\\{!!\\s*\\$(?!.*\\|\\s*e\\b)",
+      "files": "resources/views/**/*.blade.php",
+      "fix": "Use {{ $var }} instead of {!! $var !!}, or apply |e filter"
+    },
+    {
+      "id": "BLADE-02",
+      "flag": "BUG",
+      "purpose": "Blade directive with missing closing tag",
+      "regex": "@(if|foreach|for|while|unless)\\b(?!.*@end)",
+      "files": "resources/views/**/*.blade.php",
+      "note": "Check multi-line: each @if must have @endif in the same file"
+    },
+    {
+      "id": "BLADE-03",
+      "flag": "STYLE",
+      "purpose": "Inline PHP in Blade (anti-pattern)",
+      "regex": "@php\\b|<\\?php",
+      "files": "resources/views/**/*.blade.php",
+      "note": "Move logic to Controllers or View Composers"
+    },
+    {
+      "id": "BLADE-04",
+      "flag": "AUDIT",
+      "purpose": "Route references in Blade templates",
+      "regex": "route\\(['\"]([\\w.]+)['\"]",
+      "files": "resources/views/**/*.blade.php",
+      "note": "Cross-reference with routes/web.php named routes"
+    },
+    {
+      "id": "BLADE-05",
+      "flag": "STYLE",
+      "purpose": "Hardcoded URLs in Blade (should use route() or url())",
+      "regex": "href=['\"]/((?!#|javascript:|mailto:)\\w)",
+      "files": "resources/views/**/*.blade.php"
+    }
+  ],
+
+  "eloquent_patterns": [
+    {
+      "id": "ELQ-01",
+      "flag": "BUG",
+      "purpose": "find() without null check (potential 500 error)",
+      "regex": "->find\\(\\s*\\$[^)]+\\)(?!\\s*[?;]\\s*->|\\s*\\?\\?|\\s*;\\s*if)",
+      "files": "app/**/*.php"
+    },
+    {
+      "id": "ELQ-02",
+      "flag": "AUDIT",
+      "purpose": "Raw DB queries (SQL injection if unparameterized)",
+      "regex": "DB::(?:raw|select|insert|update|delete|statement)\\s*\\(",
+      "files": "app/**/*.php"
+    },
+    {
+      "id": "ELQ-03",
+      "flag": "BUG",
+      "purpose": "Direct property access on potentially null relationship",
+      "regex": "->\\w+->\\w+(?!\\s*\\?)",
+      "files": "app/**/*.php",
+      "note": "E.g. $user->company->name without null check"
+    },
+    {
+      "id": "ELQ-04",
+      "flag": "AUDIT",
+      "purpose": "Mass assignment (create/update without explicit fields)",
+      "regex": "::(create|update)\\(\\s*\\$request->all\\(\\)",
+      "files": "app/**/*.php",
+      "note": "Use $request->only([...]) or $request->validated()"
+    },
+    {
+      "id": "ELQ-05",
+      "flag": "AUDIT",
+      "purpose": "Missing eager loading (N+1 query risk)",
+      "regex": "@foreach.*->\\w+\\b(?!\\s*\\().*\\n.*->\\w+Relation",
+      "files": "resources/views/**/*.blade.php",
+      "note": "Load relationships in controller with ->with()"
+    }
+  ],
+
+  "route_patterns": [
+    {
+      "id": "RT-01",
+      "flag": "SECURITY",
+      "purpose": "Route without middleware",
+      "regex": "Route::(get|post|put|patch|delete)\\([^)]+\\)(?!.*->middleware)",
+      "files": "routes/*.php"
+    },
+    {
+      "id": "RT-02",
+      "flag": "AUDIT",
+      "purpose": "API routes without rate limiting",
+      "regex": "Route::(get|post)\\(",
+      "files": "routes/api.php",
+      "note": "Check that throttle middleware is applied"
+    },
+    {
+      "id": "RT-03",
+      "flag": "BUG",
+      "purpose": "Duplicate route names",
+      "regex": "->name\\(['\"]([\\w.]+)['\"]\\)",
+      "files": "routes/*.php",
+      "note": "Extract all names and check for duplicates: grep -ohP \"->name\\('[^']+\" routes/*.php | sort | uniq -d"
+    }
+  ],
+
+  "config_patterns": [
+    {
+      "id": "CFG-01",
+      "flag": "SECURITY",
+      "purpose": "env() called outside config/ (anti-pattern)",
+      "regex": "\\benv\\s*\\(",
+      "files": "app/**/*.php",
+      "note": "env() should only be in config/*.php; use config() elsewhere"
+    },
+    {
+      "id": "CFG-02",
+      "flag": "SECURITY",
+      "purpose": "Debug mode check",
+      "regex": "APP_DEBUG.*true|'debug'\\s*=>\\s*true",
+      "files": "config/app.php,.env*"
+    },
+    {
+      "id": "CFG-03",
+      "flag": "AUDIT",
+      "purpose": "Session driver set to file (not scalable)",
+      "regex": "SESSION_DRIVER.*file|'driver'\\s*=>\\s*'file'",
+      "files": "config/session.php,.env*"
+    }
+  ],
+
+  "javascript_route_patterns": [
+    {
+      "id": "JS-01",
+      "flag": "BUG",
+      "purpose": "Accessing el/form/link without declaration (no-undef pattern)",
+      "regex": "\\b(el|form|link)\\.(getAttribute|setAttribute|href|action)\\b",
+      "files": "public/assets/js/routes/**/*.js",
+      "note": "Ensure the variable is in scope — check forEach loop var or function param"
+    },
+    {
+      "id": "JS-02",
+      "flag": "BUG",
+      "purpose": "Missing null check on querySelector result",
+      "regex": "document\\.querySelector\\([^)]+\\)\\.(\\w)",
+      "files": "public/assets/js/routes/**/*.js",
+      "note": "querySelector can return null; use ?. or null check"
+    },
+    {
+      "id": "JS-03",
+      "flag": "AUDIT",
+      "purpose": "Blade template variable in JS (Blade → JS injection risk)",
+      "regex": "\\{\\{\\s*\\$\\w+",
+      "files": "public/assets/js/routes/**/*.js",
+      "note": "Server-rendered JS — sanitize output or use data attributes"
+    },
+    {
+      "id": "JS-04",
+      "flag": "STYLE",
+      "purpose": "var instead of let/const",
+      "regex": "\\bvar\\s+\\w+",
+      "files": "public/assets/js/routes/**/*.js"
+    },
+    {
+      "id": "JS-05",
+      "flag": "DEBUG",
+      "purpose": "Console statements left in production code",
+      "regex": "console\\.(log|error|warn|debug|info|table|dir)\\s*\\(",
+      "files": "public/assets/js/routes/**/*.js"
+    }
+  ],
+
+  "testing_patterns": [
+    {
+      "id": "TEST-01",
+      "flag": "AUDIT",
+      "purpose": "Test methods without assertions",
+      "regex": "function\\s+test\\w+\\([^)]*\\)\\s*\\{[^}]*\\}",
+      "files": "tests/**/*.php",
+      "note": "Check that assert* is called inside test methods"
+    },
+    {
+      "id": "TEST-02",
+      "flag": "AUDIT",
+      "purpose": "Tests using real database (should use RefreshDatabase or DatabaseTransactions)",
+      "regex": "class\\s+\\w+Test\\s+extends\\s+TestCase(?!.*RefreshDatabase|.*DatabaseTransactions)",
+      "files": "tests/**/*.php"
+    }
+  ]
+}

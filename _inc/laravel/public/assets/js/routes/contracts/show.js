@@ -3,7 +3,7 @@
     if (!window.svToastOrAlert) {
       window.svToastOrAlert = function (msg) {
         try {
-          let ok = !!(window.bootstrap && window.bootstrap.Toast);
+          const ok = !!(window.bootstrap && window.bootstrap.Toast);
           if (!ok) {
             alert(msg);
             return;
@@ -21,7 +21,7 @@
               '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
             document.body.appendChild(t);
           }
-          let body = t.querySelector(".toast-body");
+          const body = t.querySelector(".toast-body");
           if (body) body.textContent = msg;
           new window.bootstrap.Toast(t, { delay: 4000 }).show();
         } catch (e) {

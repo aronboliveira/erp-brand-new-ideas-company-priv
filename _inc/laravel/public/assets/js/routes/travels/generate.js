@@ -1,11 +1,11 @@
 (function () {
   try {
-    let a = document.getElementById("travel-generate-link");
+    const a = document.getElementById("travel-generate-link");
     if (!a) return;
     if (a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
 
-    let url = a.getAttribute("data-url") || "#";
+    const url = a.getAttribute("data-url") || "#";
     if (
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
@@ -14,10 +14,10 @@
 
     a.addEventListener("click", function (e) {
       try {
-        let href = a.getAttribute("href") || "#";
+        const href = a.getAttribute("href") || "#";
         if (href !== "#") return;
         e.preventDefault();
-        let msg =
+        const msg =
           a.getAttribute("data-guard-msg") ||
           "Generate content route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
@@ -29,15 +29,15 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        let bs =
+        const bs =
           typeof window.bootstrap !== "undefined" ? window.bootstrap : null;
         if (bs && bs.Toast) {
-          let t = document.createElement("div");
+          const t = document.createElement("div");
           t.className = "toast";
           t.setAttribute("role", "alert");
           t.setAttribute("aria-live", "assertive");
           t.setAttribute("aria-atomic", "true");
-          let b = document.createElement("div");
+          const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
           t.appendChild(b);

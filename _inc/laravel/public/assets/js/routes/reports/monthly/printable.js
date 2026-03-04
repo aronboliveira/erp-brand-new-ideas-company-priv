@@ -95,12 +95,12 @@
     return toastContainer;
   };
 
-  const showError = (key) => {
+  const showError = (key, el = null) => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(dataClientLocalized) === "true")
+    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true")
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
@@ -110,10 +110,10 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el.getAttribute(dataGuardMsg) ||
+        el?.getAttribute(dataGuardMsg) ||
         window.translations?.["en"]?.[msgKey] ||
         errFb;
-      if (msg !== errFb) {
+      if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
       }

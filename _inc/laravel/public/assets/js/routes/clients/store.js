@@ -1,10 +1,10 @@
 (function () {
   try {
-    let f = document.getElementById("store_client");
+    const f = document.getElementById("store_client");
     if (!f) return;
 
-    let guardMsg = f.getAttribute("data-guard-msg") || "Route unavailable";
-    let actionHref = f.getAttribute("data-action-href") || "";
+    const guardMsg = f.getAttribute("data-guard-msg") || "Route unavailable";
+    const actionHref = f.getAttribute("data-action-href") || "";
 
     if (!f.getAttribute("action") && actionHref && actionHref !== "#") {
       f.setAttribute("action", actionHref);
@@ -12,7 +12,7 @@
 
     function toastOrAlert(msg) {
       try {
-        let hasBootstrap = !!(window.bootstrap && window.bootstrap.Toast);
+        const hasBootstrap = !!(window.bootstrap && window.bootstrap.Toast);
         if (!hasBootstrap) {
           alert(msg);
           return;
@@ -30,7 +30,7 @@
             '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
           document.body.appendChild(t);
         }
-        let body = t.querySelector(".toast-body");
+        const body = t.querySelector(".toast-body");
         if (body) body.textContent = msg;
         new window.bootstrap.Toast(t, { delay: 4000 }).show();
       } catch (e) {
@@ -40,7 +40,7 @@
 
     f.addEventListener("submit", function (e) {
       try {
-        let a = f.getAttribute("action") || actionHref || "";
+        const a = f.getAttribute("action") || actionHref || "";
         if (!a || a === "#") {
           e.preventDefault();
           toastOrAlert(guardMsg);

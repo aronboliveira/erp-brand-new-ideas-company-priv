@@ -91,7 +91,7 @@
       .replace(/_/g, "-");
     lang = lang === "pt-br" ? lang : lang.slice(0, 2);
     const msgKey = key;
-    let msg =
+    const msg =
       window.translations?.[lang]?.[msgKey] ||
       el?.getAttribute?.(dataGuardMsg) ||
       window.translations?.en?.[msgKey] ||

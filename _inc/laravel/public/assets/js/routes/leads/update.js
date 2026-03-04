@@ -24,12 +24,12 @@
             c.id = "toast-container";
             document.body.appendChild(c);
           }
-          let t = document.createElement("div");
+          const t = document.createElement("div");
           t.className = "toast";
           t.setAttribute("role", "alert");
           t.setAttribute("aria-live", "assertive");
           t.setAttribute("aria-atomic", "true");
-          let b = document.createElement("div");
+          const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
           t.appendChild(b);
@@ -73,7 +73,7 @@
     }
     function bindSubmitGuard() {
       try {
-        let $ = window.jQuery;
+        const $ = window.jQuery;
         if (!$) {
           try {
             if (
@@ -84,8 +84,8 @@
           } catch (_) {}
           return;
         }
-        let form = document.getElementById("lead-update-form");
-        let btn = document.getElementById("lead-update-submit");
+        const form = document.getElementById("lead-update-form");
+        const btn = document.getElementById("lead-update-submit");
         if (!form || !btn) return;
         if (form.getAttribute(L) === "true") return;
         form.setAttribute(L, "true");
@@ -104,7 +104,7 @@
               toast(getMsg(form, "action_unavailable"));
             }
           });
-        var obs = new MutationObserver(function () {
+        const obs = new MutationObserver(function () {
           if (!document.body.contains(form) || !document.body.contains(btn)) {
             try {
               $(btn).off("click.leadsUpdateGuard");
@@ -116,7 +116,7 @@
       } catch (_) {}
     }
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -167,12 +167,12 @@
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        let t = document.createElement("div");
+        const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        let b = document.createElement("div");
+        const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -216,7 +216,7 @@
   }
   function bindAiGuard() {
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -227,7 +227,7 @@
         } catch (_) {}
         return;
       }
-      let a = document.getElementById("lead-ai-generate");
+      const a = document.getElementById("lead-ai-generate");
       if (!a || a.getAttribute(L) === "true") return;
       a.setAttribute(L, "true");
       $(a)
@@ -245,19 +245,19 @@
             toast(getMsg(a, "ai_generate_unavailable"));
           }
         });
-      var obs = new MutationObserver(function () {
+      const obs2 = new MutationObserver(function () {
         if (!document.body.contains(a)) {
           try {
             $(a).off("click.aiGuard");
           } catch (_) {}
-          obs.disconnect();
+          obs2.disconnect();
         }
       });
-      obs.observe(document.body, { childList: true, subtree: true });
+      obs2.observe(document.body, { childList: true, subtree: true });
     } catch (_) {}
   }
   try {
-    let $ = window.jQuery;
+    const $ = window.jQuery;
     if (!$) {
       try {
         if (

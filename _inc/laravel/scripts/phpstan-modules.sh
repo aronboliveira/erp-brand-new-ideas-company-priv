@@ -165,8 +165,9 @@ for MODULE in "${SORTED_MODULES[@]}"; do
 
   # Build PHPStan command — pass paths as arguments
   # Use the single-process config; wrap with timeout to guard against hung workers
+  # --kill-after=10: send SIGKILL 10s after SIGTERM to also cleanup child processes
   PHPSTAN_EXIT=0
-  RESULT=$(timeout "$TIMEOUT_SECS" php vendor/bin/phpstan analyse \
+  RESULT=$(timeout --kill-after=10 "$TIMEOUT_SECS" php vendor/bin/phpstan analyse \
     --configuration=phpstan-module.neon \
     --level="$LEVEL" \
     --memory-limit=4G \

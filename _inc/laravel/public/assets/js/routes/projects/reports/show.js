@@ -8,7 +8,7 @@
         el.addEventListener("click", event => {
           try {
             const url = el.getAttribute("data-url");
-            if (url !== "#" || link.href !== "#") return;
+            if (url !== "#" || el.href !== "#") return;
             event.preventDefault();
             const msg =
               el.getAttribute("data-guard-msg") ??

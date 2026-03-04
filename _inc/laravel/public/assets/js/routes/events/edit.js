@@ -1,4 +1,4 @@
-const toast = m => {
+const showToast = m => {
   try {
     if (window.bootstrap && window.bootstrap.Toast) {
       let c = document.getElementById("toast-container");
@@ -33,7 +33,7 @@ if (form && form.getAttribute("data-listener-active") !== "true") {
         form.getAttribute("action") || form.getAttribute("data-action-url");
       if (!a || a === "#") {
         e.preventDefault();
-        toast(form.getAttribute("data-guard-msg") || "#");
+        showToast(form.getAttribute("data-guard-msg") || "#");
       }
     },
     { passive: false }

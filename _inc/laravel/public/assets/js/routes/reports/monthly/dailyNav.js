@@ -6,8 +6,8 @@
       homeTab.setAttribute(listenerAttr, "true");
       homeTab.addEventListener("click", e => {
         e.preventDefault();
-        const url = el.getAttribute("data-url");
-        const href = el.getAttribute("href");
+        const url = homeTab.getAttribute("data-url");
+        const href = homeTab.getAttribute("href");
         if ((!url || url === "#") && (!href || href === "#")) return;
         const msg = "{{ $dailyPurchaseNavMsg }}";
         const toastEl = document.querySelector(".toast");

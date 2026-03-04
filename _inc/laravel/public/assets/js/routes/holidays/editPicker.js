@@ -77,7 +77,6 @@
         const locale = window.date_picker_locale || {};
         jQuery(el).daterangepicker({
           singleDatePicker: true,
-          locale,
           locale: { ...locale, format: "YYYY-MM-DD" },
         });
       });

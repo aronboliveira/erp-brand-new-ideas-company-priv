@@ -8,8 +8,8 @@
         if (url !== "#") return;
         e.preventDefault();
         el.checked = !el.checked;
-        let msg = el.getAttribute("data-guard-msg") || "";
-        let hasBootstrap = !!(
+        const msg = el.getAttribute("data-guard-msg") || "";
+        const hasBootstrap = !!(
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");
@@ -22,12 +22,12 @@
           document.body.appendChild(container);
         }
         if (hasBootstrap) {
-          let toast = document.createElement("div");
+          const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
           toast.setAttribute("aria-live", "assertive");
           toast.setAttribute("aria-atomic", "true");
-          let body = document.createElement("div");
+          const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
           toast.appendChild(body);

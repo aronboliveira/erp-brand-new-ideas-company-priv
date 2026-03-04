@@ -176,7 +176,7 @@
         el.removeChild(el.firstChild);
       }
       const fragment = document.createDocumentFragment();
-      for (let node of doc.body.childNodes) {
+      for (const node of doc.body.childNodes) {
         fragment.appendChild(node.cloneNode(true));
       }
       el.appendChild(fragment);

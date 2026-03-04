@@ -89,7 +89,7 @@
       .replace(/_/g, "-");
     lang = lang === "pt-br" ? lang : lang.slice(0, 2);
     const msgKey = key;
-    let msg =
+    const msg =
       window.translations?.[lang]?.[msgKey] ||
       el?.getAttribute?.(dataGuard) ||
       window.translations?.en?.[msgKey] ||
@@ -135,22 +135,21 @@
         return;
       }
       const action =
-        '{{route(ViewsConstants::PLN.".pay.with.paymentwall",[$data["plan_id"],$data["coupon"]])}}' ??
-        "";
+        '{{route(ViewsConstants::PLN.".pay.with.paymentwall",[$data["plan_id"],$data["coupon"]])}}';
       if (!verifyRoute(action)) {
         schedulePointerupError(localize(document.body, "route_unavailable"));
         return;
       }
       const brick = new BrickCtor({
         public_key:
-          "{{ $admin_payment_setting[paymentwall_public_key'] }}" ?? "",
-        amount: "{{$plan->price }}" ?? "",
-        currency: "{{AppModelsUtility::getValByName('site_currency')}}" ?? "",
+          "{{ $admin_payment_setting[paymentwall_public_key'] }}",
+        amount: "{{$plan->price }}",
+        currency: "{{AppModelsUtility::getValByName('site_currency')}}",
         container: containerId,
         action: action,
         form: {
           merchant: "Paymentwall",
-          product: "{{$plan->name}}" ?? "",
+          product: "{{$plan->name}}",
           pay_button: "Pay",
           show_zip: true,
           show_cardholder: true,

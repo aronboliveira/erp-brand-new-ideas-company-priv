@@ -48,7 +48,7 @@
           container.setAttribute("aria-atomic", "true");
           document.body.appendChild(container);
         }
-        let toast =
+        const toast =
           container.querySelector(".toast") ||
           (() => {
             const t = document.createElement("div");

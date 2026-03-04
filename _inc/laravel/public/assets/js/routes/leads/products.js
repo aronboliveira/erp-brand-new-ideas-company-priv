@@ -22,9 +22,9 @@
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        let t = document.createElement("div");
+        const t = document.createElement("div");
         t.className = "toast";
-        let b = document.createElement("div");
+        const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -68,7 +68,7 @@
   }
   function bindSubmitGuard() {
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -79,8 +79,8 @@
         } catch (_) {}
         return;
       }
-      let form = document.getElementById("lead-products-update-form");
-      let btn = document.getElementById("lead-products-update-submit");
+      const form = document.getElementById("lead-products-update-form");
+      const btn = document.getElementById("lead-products-update-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L) === "true") return;
       form.setAttribute(L, "true");
@@ -99,7 +99,7 @@
             toast(getMsg(form, "action_unavailable"));
           }
         });
-      var obs = new MutationObserver(function () {
+      const obs = new MutationObserver(function () {
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.leadsProductsUpdate");
@@ -111,7 +111,7 @@
     } catch (_) {}
   }
   try {
-    let $ = window.jQuery;
+    const $ = window.jQuery;
     if (!$) {
       try {
         if (

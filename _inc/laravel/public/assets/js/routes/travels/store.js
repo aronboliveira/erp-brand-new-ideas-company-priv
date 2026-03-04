@@ -1,16 +1,16 @@
 (function () {
   try {
-    let form = document.getElementById("create_travel");
+    const form = document.getElementById("create_travel");
     if (!form) return;
     if (form.getAttribute("data-listener-active") === "true") return;
     form.setAttribute("data-listener-active", "true");
 
     form.addEventListener("submit", function (e) {
       try {
-        let action = form.getAttribute("action") || "#";
+        const action = form.getAttribute("action") || "#";
         if (!action || action === "#") {
           e.preventDefault();
-          let msg =
+          const msg =
             form.getAttribute("data-guard-msg") ||
             "Store travel route is unavailable. Please contact technical support or your domain administrator.";
           let container = document.getElementById("toast-container");
@@ -22,15 +22,15 @@
             container.style.zIndex = "1080";
             document.body.appendChild(container);
           }
-          let bs =
+          const bs =
             typeof window.bootstrap !== "undefined" ? window.bootstrap : null;
           if (bs && bs.Toast) {
-            let t = document.createElement("div");
+            const t = document.createElement("div");
             t.className = "toast";
             t.setAttribute("role", "alert");
             t.setAttribute("aria-live", "assertive");
             t.setAttribute("aria-atomic", "true");
-            let b = document.createElement("div");
+            const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
             t.appendChild(b);
@@ -41,29 +41,29 @@
           }
           return;
         }
-        let sd = form.querySelector('input[name="start_date"]');
-        let ed = form.querySelector('input[name="end_date"]');
+        const sd = form.querySelector('input[name="start_date"]');
+        const ed = form.querySelector('input[name="end_date"]');
         if (sd && ed && sd.value && ed.value) {
-          let s = new Date(sd.value);
-          let en = new Date(ed.value);
+          const s = new Date(sd.value);
+          const en = new Date(ed.value);
           if (en < s) {
             e.preventDefault();
-            let m = "End Date cannot be earlier than Start Date.";
+            const m = "End Date cannot be earlier than Start Date.";
             let c = document.getElementById("toast-container");
             if (!c) {
               c = document.createElement("div");
               c.id = "toast-container";
               document.body.appendChild(c);
             }
-            let bs2 =
+            const bs2 =
               typeof window.bootstrap !== "undefined" ? window.bootstrap : null;
             if (bs2 && bs2.Toast) {
-              let t2 = document.createElement("div");
+              const t2 = document.createElement("div");
               t2.className = "toast";
               t2.setAttribute("role", "alert");
               t2.setAttribute("aria-live", "assertive");
               t2.setAttribute("aria-atomic", "true");
-              let b2 = document.createElement("div");
+              const b2 = document.createElement("div");
               b2.className = "toast-body";
               b2.textContent = m;
               t2.appendChild(b2);

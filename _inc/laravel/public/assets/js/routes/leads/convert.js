@@ -23,12 +23,12 @@
           c.id = "toast-container";
           document.body.appendChild(c);
         }
-        let t = document.createElement("div");
+        const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        let b = document.createElement("div");
+        const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
         t.appendChild(b);
@@ -72,10 +72,10 @@
   }
   function toggleBlocks(isExist) {
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) return;
-      let $exist = $(".exist_client");
-      let $new = $(".new_client");
+      const $exist = $(".exist_client");
+      const $new = $(".new_client");
       if (isExist) {
         $exist.removeClass("d-none");
         $new.addClass("d-none");
@@ -89,21 +89,21 @@
   }
   function bindToggle() {
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) return;
-      let $radios = $('input[name="client_check"]');
+      const $radios = $('input[name="client_check"]');
       if (!$radios.length) return;
-      let el = $radios.get(0);
+      const el = $radios.get(0);
       if (el.getAttribute(L1) === "true") return;
       el.setAttribute(L1, "true");
-      let initVal = $radios.filter(":checked").val();
+      const initVal = $radios.filter(":checked").val();
       toggleBlocks(initVal === "exist");
       $radios.off("click.convertDeal").on("click.convertDeal", function () {
         try {
           toggleBlocks(this.value === "exist");
         } catch (_) {}
       });
-      var obs = new MutationObserver(function () {
+      const obs = new MutationObserver(function () {
         if (!document.body.contains(el)) {
           try {
             $radios.off("click.convertDeal");
@@ -116,7 +116,7 @@
   }
   function bindSubmitGuard() {
     try {
-      let $ = window.jQuery;
+      const $ = window.jQuery;
       if (!$) {
         try {
           if (
@@ -127,8 +127,8 @@
         } catch (_) {}
         return;
       }
-      let form = document.getElementById("lead-convert-form");
-      let btn = document.getElementById("lead-convert-submit");
+      const form = document.getElementById("lead-convert-form");
+      const btn = document.getElementById("lead-convert-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L2) === "true") return;
       form.setAttribute(L2, "true");
@@ -147,19 +147,19 @@
             toast(getMsg(form, "action_unavailable"));
           }
         });
-      var obs = new MutationObserver(function () {
+      const obs2 = new MutationObserver(function () {
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.convertDealGuard");
           } catch (_) {}
-          obs.disconnect();
+          obs2.disconnect();
         }
       });
-      obs.observe(document.body, { childList: true, subtree: true });
+      obs2.observe(document.body, { childList: true, subtree: true });
     } catch (_) {}
   }
   try {
-    let $ = window.jQuery;
+    const $ = window.jQuery;
     if (!$) {
       try {
         if (
