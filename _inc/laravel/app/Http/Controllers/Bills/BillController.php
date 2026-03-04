@@ -40,6 +40,9 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+// Same-namespace explicit import (silences PHP Namespace Resolver)
+use App\Http\Controllers\Controller;
+
 final class BillController extends Controller
 {
     private const CACHE_TTL = 120;
@@ -259,7 +262,7 @@ final class BillController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($encrypted, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($encrypted, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             $req = request();
@@ -391,8 +394,8 @@ final class BillController extends Controller
             $valStart = microtime(true);
             $request->validate(['vendor_id' => 'required|exists:vendors,id', 'bill_date' => 'required|date', 'due_date' => 'required|date']);
             $this->logExecutionTime($valStart, $action, 'validateInput');
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $updStart = microtime(true);
                 $bill->update(['vendor_id' => $request->vendor_id, 'bill_date' => $request->bill_date, 'due_date' => $request->due_date, 'order_id' => $request->order_id, 'category_id' => $request->category_id]);
@@ -526,8 +529,8 @@ final class BillController extends Controller
                 return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
             }
             Log::info("[{$base}::{$action}] destroying bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'method' => $method]);
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $payLoopStart = microtime(true);
                 foreach ($bill->payments as $p) {
@@ -582,7 +585,7 @@ final class BillController extends Controller
         $class = static::class;
         $base = class_basename($class);
         $request = $req;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             try {
                 $findStart = microtime(true);
                 $prod = ProductService::findOrFail($request->product_id);
@@ -997,7 +1000,7 @@ final class BillController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::BIL . '.index';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             $guard = self::guard($req, 'manage vendor bill');
             if ($guard !== true) {
                 Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $req->user()?->id]);
@@ -1106,7 +1109,7 @@ final class BillController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::VND . '.bill_send';
-        return $this->measureProfile($action, function () use ($billId, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($billId, $action, $method, $base, $viewPath) {
             Log::info("[{$base}::{$action}] start", ['bill_id' => $billId, 'method' => $method]);
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -1127,7 +1130,7 @@ final class BillController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $billId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $billId, $action, $method, $base) {
             $userOrRedirect = self::_checkLogin();
             if ($userOrRedirect instanceof RedirectResponse) {
                 Log::warning("[{$base}::{$action}] unauthenticated access");
@@ -1238,7 +1241,7 @@ final class BillController extends Controller
         // ! Validate template to avoid traversal
         if (!preg_match('/^[a-z0-9_\-]+$/i', $template)) return back()->with('error', 'Invalid template.');
         $viewPath = VW::BIL_TMP . "{$template}";
-        return $this->measureProfile($action, function () use ($req, $template, $color, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $template, $color, $action, $class, $base, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             try {
@@ -1255,10 +1258,11 @@ final class BillController extends Controller
                 $bill = new Bill(['bill_id' => 1, 'issue_date' => now(), 'due_date' => now(), 'itemData' => $items, 'totalTaxPrice' => 60, 'totalQuantity' => 3, 'totalRate' => 300, 'totalDiscount' => 10, 'taxesData' => [], DC::COL_TABLE_CREATOR => $user?->creatorId()]);
                 $this->logExecutionTime($billStart, $action, 'buildBill');
                 $logoStart = microtime(true);
-                $img = Utility::getLogo('bill_logo', SettingsConstants::CPN_LG_DK);
+                $img = Utility::getLogo();
                 $this->logExecutionTime($logoStart, $action, 'getLogo');
                 $fontStart = microtime(true);
-                $fontColor = Utility::getFontColor('#' . ($color ?? 'ffffff'));
+                $colorHex = '#' . ($color !== '' ? $color : 'ffffff');
+                $fontColor = Utility::getFontColor($colorHex);
                 $this->logExecutionTime($fontStart, $action, 'getFontColor');
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -1266,7 +1270,7 @@ final class BillController extends Controller
                     return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
                 $renderStart = microtime(true);
-                $resp = view($viewPath, ['bill' => $bill, 'preview' => 1, 'color' => '#' . ($color ?? 'ffffff'), 'img' => $img, 'settings' => $settings, 'vendor' => $vendor, 'font_color' => $fontColor, 'customFields' => []]);
+                $resp = view($viewPath, ['bill' => $bill, 'preview' => 1, 'color' => $colorHex, 'img' => $img, 'settings' => $settings, 'vendor' => $vendor, 'font_color' => $fontColor, 'customFields' => []]);
                 $this->logExecutionTime($renderStart, $action, 'renderPreview');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1284,7 +1288,7 @@ final class BillController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = request();
-        return $this->measureProfile($action, function () use ($req, $enc, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $enc, $action, $class, $base) {
             $decStart = microtime(true);
             try {
                 $id = Crypt::decrypt($enc);
@@ -1307,7 +1311,7 @@ final class BillController extends Controller
                 $bill->fill(['itemData' => $items, 'taxesData' => $taxesData, 'totalTaxPrice' => $totTax, 'totalQuantity' => $totQty, 'totalRate' => $totRate, 'totalDiscount' => $totDisc, 'customField' => CustomField::getData($bill, 'bill')]);
                 $this->logExecutionTime($statsStart, $action, 'computeStats');
                 $logoStart = microtime(true);
-                $img = Utility::getLogo('bill_logo', SettingsConstants::CPN_LG_DK, $bill[DC::COL_TABLE_CREATOR]);
+                $img = Utility::getLogo();
                 $this->logExecutionTime($logoStart, $action, 'getLogo');
                 $billColor = '#' . (($settings['bill_color'] ?? 'ffffff'));
                 $templateSlug = ($settings[BC::COL_BIL_TMP] ?? 'template1');
@@ -1397,7 +1401,7 @@ final class BillController extends Controller
         $base   = class_basename($class);
         $req    = request();
         $viewPath = VW::BIL . '.customer_bill';
-        return $this->measureProfile($action, function () use ($req, $enc, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $enc, $action, $class, $base, $viewPath) {
             $decStart = microtime(true);
             try {
                 $id = Crypt::decrypt($enc);
@@ -1409,7 +1413,8 @@ final class BillController extends Controller
             }
             try {
                 $fetchStart = microtime(true);
-                $bill = Bill::with('items', 'vendor')->findOrFail($id);
+                /** @var Bill $bill */
+                $bill = Bill::with('vendor')->findOrFail($id);
                 $this->logExecutionTime($fetchStart, $action, 'fetchBill');
                 $cfStart = microtime(true);
                 $bill->customField = CustomField::getData($bill, 'bill');
@@ -1443,7 +1448,7 @@ final class BillController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($action, $method, $base) {
             try {
                 Log::info("[{$base}::{$action}] start", ['method' => $method]);
                 $nameStart = microtime(true);
@@ -1529,5 +1534,48 @@ final class BillController extends Controller
         $next = is_numeric($last) ? ((int)$last + 1) : $last;
         Log::info('Next Bill Identifier', [UC::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
         return $next;
+    }
+
+    /**
+     * Merge BillProduct rows with their paired BillAccount rows into a
+     * single Collection the show / edit views can iterate.
+     *
+     * Each resulting BillProduct carries its product-side fields
+     * (quantity, price, discount, tax, product_id, description)
+     * AND the account-side fields (chart_account_id, amount).
+     *
+     * @return Collection<int, BillProduct>
+     */
+    private function _mergeItemsAccounts(Bill $bill): Collection
+    {
+        $products = BillProduct::where(BC::COL_BL_ID, $bill->id)->get();
+        $accounts = BillAccount::where(BC::COL_REF_ID, $bill->id)
+            ->get()
+            ->keyBy(BKC::COL_COA);
+
+        foreach ($products as $bp) {
+            $coaId = $bp->{BKC::COL_COA};
+            /** @var BillAccount|null $ba */
+            $ba = $coaId ? $accounts->pull($coaId) : null;
+            $bp->setAttribute('amount', $ba ? (float) $ba->price : 0);
+            $bp->setAttribute('account_id', $ba?->id);
+        }
+
+        // Remaining standalone BillAccounts → wrap as pseudo-items
+        $standalone = $accounts->map(function (BillAccount $ba): BillProduct {
+            $obj = new BillProduct();
+            $obj->id = $ba->id;
+            $obj->quantity = 0;
+            $obj->price = 0;
+            $obj->discount = 0;
+            $obj->tax = null;
+            $obj->description = $ba->description;
+            $obj->{BKC::COL_COA} = $ba->{BKC::COL_COA};
+            $obj->setAttribute('amount', (float) $ba->price);
+            $obj->setAttribute('account_id', $ba->id);
+            return $obj;
+        });
+
+        return $products->concat($standalone->values());
     }
 }

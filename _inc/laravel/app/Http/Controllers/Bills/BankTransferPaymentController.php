@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
+  DatabaseConstants,
   MiddlewaresConstants,
+  PermissionsConstants,
   UsersConstants,
   ViewsConstants
 };
@@ -18,7 +20,7 @@ use App\Models\{
   UserCoupon,
   Utility
 };
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{
   RedirectResponse,
   Request,
@@ -28,6 +30,7 @@ use Illuminate\Support\Facades\{
   Crypt,
   DB,
   Log,
+  Redirect,
   Route,
   Validator,
   View as ViewFacade
@@ -36,7 +39,7 @@ use Illuminate\View\View;
 
 final class BankTransferPaymentController extends Controller
 {
-  use ChecksLogin;
+  use ChecksLogin, ChecksPermissions;
 
   public function __construct()
   {
@@ -215,12 +218,13 @@ final class BankTransferPaymentController extends Controller
     $status = $request->input('status');
     return $this->measureProfile($action, function () use ($req, $orderId, $status, $action, $method, $class, $base) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      if ($r = self::guard($req, PermissionsConstants::MNG_OD, Redirect::back())) return $r;
       Log::info("[{$base}::{$action}] start", ['order_id_param' => $orderId, 'order_id_input' => $req->input('order_id'), 'new_status' => $status, 'method' => $method]);
       try {
         $txnStart = microtime(true);
-        DB::transaction(function () use ($req, $action, $base) {
+        DB::transaction(function () use ($req, $action, $base, $userOrRedirect) {
           $findStart = microtime(true);
-          $order = Order::findOrFail($req->input('order_id'));
+          $order = Order::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->findOrFail($req->input('order_id'));
           $this->logExecutionTime($findStart, $action, 'findOrder');
           Log::info("[{$base}::{$action}] found order", ['order_id' => $order->order_id]);
           if ($req->input('status') === 'Approval') {

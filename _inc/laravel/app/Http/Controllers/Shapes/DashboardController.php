@@ -96,7 +96,7 @@ class DashboardController extends Controller
             try {
                 $startOverall = microtime(true);
                 $output = SafeConsoleOutput::make();
-                $ctx = ['ip' => $req->ip() ?? 'unknown_ip', 'referrer' => Utility::getReferrer($req) ?? 'no_referrer', 'uri' => $req->getRequestUri() ?? 'unknown_uri', 'route' => $req->route()?->getName() ?? '#UNIDENTIFIED', 'controller_method' => $method];
+                $ctx = ['ip' => $req->ip() ?? 'unknown_ip', 'referrer' => Utility::getReferrer($req) ?? 'no_referrer', 'uri' => $req->getRequestUri() ?? 'unknown_uri', 'route' => ($req->route() instanceof \Illuminate\Routing\Route ? $req->route()->getName() : null) ?? '#UNIDENTIFIED', 'controller_method' => $method];
                 Log::info("[$action] called", $ctx);
                 $output->writeln("\n<question>Calling Dashboard::index</question>\n");
                 try {
@@ -117,7 +117,10 @@ class DashboardController extends Controller
                 $startGuard = microtime(true);
                 if (!self::guard($req, PermissionsConstants::SHW_ACC_DSB, self::REDIRECT_INDEX) && $user[UsersConstants::COL_TP] === PermissionsConstants::SA) Log::notice("[$action] super admin bypass", ['user_id' => $user->id ?? 'undefined']);
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-                if (in_array($user[UsersConstants::COL_TP] ?? '', [PermissionsConstants::CL], true)) return Log::info("[$action] Client user – redirecting", ['user_id' => $user->id ?? 'undefined']) or redirect()->route(self::CLIENT_DASHBOARD_ROUTE);
+                if (in_array($user[UsersConstants::COL_TP] ?? '', [PermissionsConstants::CL], true)) {
+                    Log::info("[$action] Client user – redirecting", ['user_id' => $user->id ?? 'undefined']);
+                    return redirect()->route(self::CLIENT_DASHBOARD_ROUTE);
+                }
                 $data = ['latestIncome' => collect(), 'latestExpense' => collect(), 'incomeCategoryColor' => [], 'incomeCategory' => [], 'incomeCatAmount' => [], 'expenseCategoryColor' => [], 'expenseCategory' => [], 'expenseCatAmount' => [], 'incExpBarChartData' => [], 'incExpLineChartData' => [], 'currentYear' => now()->year, 'currentMonth' => now()->format('M'), 'constant' => [], 'bankAccountDetail' => collect(), 'recentInvoice' => collect(), 'weeklyInvoice' => [], 'monthlyInvoice' => [], 'recentBill' => collect(), 'weeklyBill' => [], 'monthlyBill' => [], 'goals' => collect(), DatabaseConstants::TABLE_USERS => null, 'plan' => null, 'storage_limit' => SettingsConstants::MAX_SL_LIMIT_MB];
                 $creatorId = 0;
                 $startCreator = microtime(true);
@@ -266,7 +269,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -284,7 +287,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startGuard = microtime(true);
-                if ($r = self::guard($req, PermissionsConstants::SHW_PRJ_DSB, Redirect::back())) return $this->projectDashboardIndex($req);
+                if ($r = self::guard($req, PermissionsConstants::SHW_PRJ_DSB, Redirect::back())) return $r;
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
                 $startRole = microtime(true);
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::ADM || $user[UsersConstants::COL_TP] === PermissionsConstants::SA) return view(PermissionsConstants::ADM . '.' . self::ENTITY);
@@ -344,7 +347,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startGuard = microtime(true);
-                if (self::guard($req, PermissionsConstants::SHW_HRM_DSB, Redirect::back())) return $this->projectDashboardIndex($req);
+                if ($r = self::guard($req, PermissionsConstants::SHW_HRM_DSB, Redirect::back())) return $r;
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
                 $startType = microtime(true);
                 if (!in_array($user[UsersConstants::COL_TP], [PermissionsConstants::CL, PermissionsConstants::CPN], true)) {
@@ -367,7 +370,7 @@ class DashboardController extends Controller
                         $this->logExecutionTime($startBuild, "{$action} buildArrEvents", 'completed');
                         $startAtt = microtime(true);
                         $today = now()->toDateString();
-                        $attendance = EmployeeAttendance::where(UsersConstants::COL_EMP_ID, $emp->id)->where('date', $today)->latest()->first();
+                        $employeeAttendance = EmployeeAttendance::where(UsersConstants::COL_EMP_ID, $emp->id)->where('date', $today)->latest()->first();
                         $this->logExecutionTime($startAtt, "{$action} fetchAttendance", 'completed');
                         $startOffice = microtime(true);
                         $officeTime = ['startTime' => Utility::getValByName('company_start_time'), 'endTime' => Utility::getValByName('company_end_time')];
@@ -376,7 +379,7 @@ class DashboardController extends Controller
                         if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                         Log::info("[$action] rendering view");
                         $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
-                        return view($viewName, compact('arrEvents', 'announcements', DatabaseConstants::TABLE_MEETINGS, 'attendance', 'officeTime'));
+                        return view($viewName, compact('arrEvents', 'announcements', DatabaseConstants::TABLE_MEETINGS, 'employeeAttendance', 'officeTime'));
                     } catch (\Throwable $e) {
                         Log::error("[$action] error", ['err' => $e->getMessage()]);
                         return defaultUndefinedException($req, $e, "{$method}");
@@ -385,14 +388,14 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startType, "{$action} typeCheck", 'completed');
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::SA) {
                     $startSA = microtime(true);
-                    $userMetrics = ['total_user' => $user->countCompany(), 'total_paid_user' => $user->countPaidCompany(), 'totalOrders' => Order::totalOrders(), 'totalOrders_price' => Order::totalOrdersPrice(), 'total_plan' => Plan::totalPlan(), 'most_purchase_plan' => optional(Plan::mostPurchasePlan())->name];
+                    $user = ['total_user' => $user->countCompany(), 'total_paid_user' => $user->countPaidCompany(), 'totalOrders' => Order::totalOrders(), 'totalOrders_price' => Order::totalOrdersPrice(), 'total_plan' => Plan::totalPlan(), 'mostPurchasedPlan' => optional(Plan::mostPurchasedPlan())->name];
                     $chartData = $this->getOrderChart(['duration' => 'week']);
                     $this->logExecutionTime($startSA, "{$action} superAdminData", 'completed');
                     $viewName = ViewsConstants::DSB . '.super_admin';
                     if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                     Log::info("[$action] rendering super admin view");
                     $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
-                    return view($viewName, compact('userMetrics', 'chartData'));
+                    return view($viewName, compact('user', 'chartData'));
                 }
                 try {
                     $startCreator = microtime(true);
@@ -450,7 +453,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -468,7 +471,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startGuard = microtime(true);
-                if ($r = self::guard($req, PermissionsConstants::SHW_CRM_DSB, Redirect::back())) return $this->accountDashboardIndex($req);
+                if ($r = self::guard($req, PermissionsConstants::SHW_CRM_DSB, Redirect::back())) return $r;
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::ADM || $user[UsersConstants::COL_TP] === PermissionsConstants::SA) {
                     $viewName = PermissionsConstants::ADM . '.' . self::ENTITY;
@@ -482,26 +485,26 @@ class DashboardController extends Controller
                     $creatorId = $user->creatorId();
                     $leads = Lead::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                     $deals = Deal::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
-                    $crmData = [
+                    $crm_data = [
                         'total_' . DatabaseConstants::TABLE_LEADS    => $leads->count(),
                         'total_' . DatabaseConstants::TABLE_DEALS    => $deals->count(),
                         'total_' . DatabaseConstants::TABLE_CONTRACTS => Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count(),
                     ];
                     $this->logExecutionTime($startFetch, "{$action} fetchCounts", 'completed');
                     $startBuild = microtime(true);
-                    $crmData['lead_status'] = $this->buildPipelineStats(LeadStage::class, 'lead', $crmData['total_' . DatabaseConstants::TABLE_LEADS]);
-                    $crmData['deal_status'] = $this->buildPipelineStats(Stage::class, 'deal', $crmData['total_' . DatabaseConstants::TABLE_DEALS]);
+                    $crm_data['lead_status'] = $this->buildPipelineStats(LeadStage::class, 'lead', $crm_data['total_' . DatabaseConstants::TABLE_LEADS]);
+                    $crm_data['deal_status'] = $this->buildPipelineStats(Stage::class, 'deal', $crm_data['total_' . DatabaseConstants::TABLE_DEALS]);
                     $this->logExecutionTime($startBuild, "{$action} buildStats", 'completed');
                     $startLatest = microtime(true);
-                    $crmData['latestContract'] = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                    $crm_data['latestContract'] = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                         ->with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
                         ->latest()->limit(5)->get();
                     $this->logExecutionTime($startLatest, "{$action} fetchLatestContracts", 'completed');
                     $viewName = ViewsConstants::DSB . '.crm_dashboard';
                     if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
-                    Log::info("[$action] rendering view", ['data_keys' => array_keys($crmData)]);
+                    Log::info("[$action] rendering view", ['data_keys' => array_keys($crm_data)]);
                     $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
-                    return view($viewName, compact('crmData'));
+                    return view($viewName, compact('crm_data'));
                 } catch (\Throwable $e) {
                     Log::error("[$action] error", ['err' => $e->getMessage()]);
                     return defaultUndefinedException($req, $e, "{$method}");
@@ -512,7 +515,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -530,7 +533,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startGuard = microtime(true);
-                if ($r = self::guard($req, PermissionsConstants::SHW_POS_DSB, Redirect::back())) return $this->accountDashboardIndex($req);
+                if ($r = self::guard($req, PermissionsConstants::SHW_POS_DSB, Redirect::back())) return $r;
                 $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
                 $startRole = microtime(true);
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::ADM || $user[UsersConstants::COL_TP] === PermissionsConstants::SA) {
@@ -543,15 +546,15 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startRole, "{$action} roleCheck", 'completed');
                 try {
                     $startFetch = microtime(true);
-                    $posData = ['monthlyPosAmount' => Pos::totalPosAmount(true), 'totalPosAmount' => Pos::totalPosAmount(), 'monthlyPurchaseAmount' => Purchase::totalPurchaseAmount(true), 'totalPurchaseAmount' => Purchase::totalPurchaseAmount()];
+                    $pos_data = ['monthlyPosAmount' => Pos::totalPosAmount(true), 'totalPosAmount' => Pos::totalPosAmount(), 'monthlyPurchaseAmount' => Purchase::totalPurchaseAmount(true), 'totalPurchaseAmount' => Purchase::totalPurchaseAmount()];
                     $purchasesArray = Purchase::getPurchaseReportChart();
                     $posesArray = Pos::getPosReportChart();
                     $this->logExecutionTime($startFetch, "{$action} fetchData", 'completed');
                     $viewName = ViewsConstants::DSB . '.pos_dashboard';
                     if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
-                    Log::info("[$action] rendering view", ['data_keys' => array_keys($posData)]);
+                    Log::info("[$action] rendering view", ['data_keys' => array_keys($pos_data)]);
                     $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
-                    return view($viewName, compact('posData', 'purchasesArray', 'posesArray'));
+                    return view($viewName, compact('pos_data', 'purchasesArray', 'posesArray'));
                 } catch (\Throwable $e) {
                     Log::error("[$action] error", ['err' => $e->getMessage()]);
                     return defaultUndefinedException($req, $e, "{$method}");
@@ -562,7 +565,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -609,13 +612,13 @@ class DashboardController extends Controller
                 $user = $userOrRedirect;
                 Log::info("[$action] start", ['user_id' => $user->id, 'type' => $user[UsersConstants::COL_TP]]);
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::SA) {
-                    $metrics = ['total_user' => $user->countCompany(), 'total_paid_user' => $user->countPaidCompany(), 'totalOrders' => Order::totalOrders(), 'totalOrders_price' => Order::totalOrdersPrice(), 'total_plan' => Plan::totalPlan(), 'most_purchase_plan' => optional(Plan::mostPurchasePlan())->total ?? 0];
+                    $user = ['total_user' => $user->countCompany(), 'total_paid_user' => $user->countPaidCompany(), 'totalOrders' => Order::totalOrders(), 'totalOrders_price' => Order::totalOrdersPrice(), 'total_plan' => Plan::totalPlan(), 'mostPurchasedPlan' => optional(Plan::mostPurchasedPlan())->total ?? 0];
                     $chartData = $this->getOrderChart(['duration' => 'week']);
                     $viewName = ViewsConstants::DSB . '.super_admin';
                     if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                     Log::info("[$action] rendering super admin");
                     $this->logExecutionTime($startOverall, "{$action} renderSuperAdmin", 'completed');
-                    return view($viewName, compact('metrics', 'chartData'));
+                    return view($viewName, compact('user', 'chartData'));
                 }
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL) {
                     try {
@@ -635,7 +638,7 @@ class DashboardController extends Controller
                         $projectIds = $projects->pluck('id');
                         $tasksCount = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count();
                         $projectBudget = Project::where('client_id', $user->id)->sum('budget');
-                        $projectMetrics = [DatabaseConstants::TABLE_PROJECTS => $projects, 'projects_count' => $projects->count(), 'projects_tasks_count' => $tasksCount, 'project_budget' => $projectBudget];
+                        $project = [DatabaseConstants::TABLE_PROJECTS => $projects, 'projects_count' => $projects->count(), 'projects_tasks_count' => $tasksCount, 'project_budget' => $projectBudget];
                         $totalProjects = $user->userProject();
                         $totalTasks = $user->createdTotalProjectTask();
                         $allProjects = Project::where('client_id', $user->id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
@@ -644,19 +647,21 @@ class DashboardController extends Controller
                         $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
                         $bugLastStatus = BugStatus::latest(ActivitiesConstants::COL_OD)->first();
                         $completedBugs = $bugLastStatus ? Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(ActivitiesConstants::COL_TSK_STT, $bugLastStatus->id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count() : 0;
-                        $projectMetrics += ['projects_bugs_count' => $bugs->count(), 'project_bug_percentage' => $allCount ? intval($completedBugs / $allCount * 100) : 0, 'project_percentage' => $allCount ? intval($completedCount / $allCount * 100) : 0, 'project_task_percentage' => $totalTasks ? intval($user->projectCompleteTask($user->lastProjectStage()?->id ?? 0) / $totalTasks * 100) : 0];
+                        $project += ['projects_bugs_count' => $bugs->count(), 'project_bug_percentage' => $allCount ? intval($completedBugs / $allCount * 100) : 0, 'project_percentage' => $allCount ? intval($completedCount / $allCount * 100) : 0, 'project_task_percentage' => $totalTasks ? intval($user->projectCompleteTask($user->lastProjectStage()?->id ?? 0) / $totalTasks * 100) : 0];
                         $invoices = Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where('client_id', $user->id)->get();
                         $dueInvoices = $invoices->filter(fn($inv) => $inv->getDue() > 0);
                         $invoiceMetrics = ['total_invoice' => $invoices->count(), 'complete_invoice' => $invoices->where(fn($inv) => $inv->getDue() === 0)->count(), 'due_amount' => $dueInvoices->sum(fn($inv) => $inv->getDue()), 'top_due_invoice' => $dueInvoices->sortByDesc(fn($inv) => $inv->getDue())->take(5)->values()];
                         $usersMetrics = ['staff' => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count(), 'user' => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->count(), PermissionsConstants::CL => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, PermissionsConstants::CL)->count()];
-                        $projectStatus = array_values(Project::$project_status);
+                        $project_status = array_values(Project::$project_status);
                         $projectData = Project::getProjectStatus();
                         $taskData = \App\Models\TaskStage::getChartData();
+                        $transdate = $today;
+                        $top_tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->orderByDesc('updated_at')->limit(5)->get();
                         $viewName = ViewsConstants::DSB . '.client_view';
                         if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                         Log::info("[$action] rendering client view");
                         $this->logExecutionTime($startOverall, "{$action} renderClient", 'completed');
-                        return view($viewName, compact('calendarTasks', 'arrCount', 'chartData', 'projectMetrics', 'invoiceMetrics', 'usersMetrics', 'projectStatus', 'projectData', 'taskData'));
+                        return view($viewName, compact('calendarTasks', 'arrCount', 'chartData', 'project', 'invoiceMetrics', 'usersMetrics', 'project_status', 'projectData', 'taskData', 'transdate', 'top_tasks'));
                     } catch (\Throwable $e) {
                         Log::error("[$action] error", ['err' => $e->getMessage()]);
                         return defaultUndefinedException($req, $e, "{$method}");
@@ -670,7 +675,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -755,7 +760,7 @@ class DashboardController extends Controller
                     'file' => $e->getFile(),
                     $e->getLine()
                 ]);
-                Redirect::back()->with('error', "HTTP 500: Unexpected error");
+                return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
     }
@@ -813,9 +818,8 @@ class DashboardController extends Controller
             $output->writeln('');
             $output->writeln('<error>No installation detected. Killing process. </error>');
             $output->writeln('');
-            Log::Error('No installation detected. Killing process.');
-            header('Location:install');
-            die;
+            Log::error('No installation detected. Killing process.');
+            return redirect('install');
         }
         $settings = Utility::settings();
         if ($settings['display_landing_page'] === 'on' && app()->runningInConsole() === false) {

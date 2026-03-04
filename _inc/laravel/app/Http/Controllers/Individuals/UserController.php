@@ -35,6 +35,7 @@ use Illuminate\Http\{
     Request
 };
 use Illuminate\Support\Facades\{
+    Auth,
     Crypt,
     DB,
     File,
@@ -401,7 +402,7 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
                     return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
-                $todo = UserToDo::findOrFail($todoId);
+                $todo = UserToDo::where('user_id', $userOrRedirect->id)->findOrFail($todoId);
                 $todo[ProjectsConstants::COL_IS_CP] = !$todo[ProjectsConstants::COL_IS_CP];
                 $todo->save();
                 Log::debug("$cls::$action toggled", ['id' => $todo->id, 'complete' => $todo[ProjectsConstants::COL_IS_CP]]);
@@ -422,7 +423,7 @@ class UserController extends AppController
             try {
                 if ((self::_checkLogin()) instanceof RedirectResponse)
                     return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
-                $todo = UserToDo::findOrFail($id);
+                $todo = UserToDo::where('user_id', Auth::id())->findOrFail($id);
                 $todo->delete();
                 Log::debug("$cls::$action deleted", ['id' => $id]);
                 return response()->json(['success' => true], Response::HTTP_OK);
@@ -547,7 +548,7 @@ class UserController extends AppController
                 self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
                 $validator = Validator::make($request->all(), ['password' => 'required|confirmed']);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
-                $user = User::findOrFail($id);
+                $user = User::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->findOrFail($id);
                 $user->password = Hash::make($request->input('password'));
                 $user?->save();
                 Log::debug("$cls::$action", [UsersConstants::COL_USER_ID => $user?->id]);

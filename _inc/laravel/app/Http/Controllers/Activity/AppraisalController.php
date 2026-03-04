@@ -170,6 +170,9 @@ final class AppraisalController extends Controller
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
         Log::info("[{$class}::{$action}] start", ['appraisal_id' => $appraisal->id]);
+        if ($appraisal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+          return redirect()->back()->with('error', __('Permission denied.'));
+        }
         $rating = json_decode($appraisal->rating, true);
         $creatorId = $user?->creatorId();
         $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
@@ -200,7 +203,7 @@ final class AppraisalController extends Controller
         $user = $userOrRedirect;
         Log::info("[{$class}::{$action}] start", ['appraisal_id' => $appraisal->id]);
         Log::info("[{$class}::{$action}] checking permission", [strtolower(class_basename(Permission::class)) => 'edit appraisal']);
-        if (!$user?->can('edit appraisal')) {
+        if (!$user?->can('edit appraisal') || $appraisal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
           Log::warning("[{$class}::{$action}] denied", [UsersConstants::COL_USER_ID => $user?->id]);
           throw new AuthorizationException();
         }
@@ -232,7 +235,7 @@ final class AppraisalController extends Controller
         $user = $userOrRedirect;
         Log::info("[{$class}::{$action}] start", ['appraisal_id' => $appraisal->id]);
         Log::info("[{$class}::{$action}] checking permission", [strtolower(class_basename(Permission::class)) => 'edit appraisal']);
-        if (!$user?->can('edit appraisal')) {
+        if (!$user?->can('edit appraisal') || $appraisal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
           Log::warning("[{$class}::{$action}] denied", [UsersConstants::COL_USER_ID => $user?->id]);
           throw new AuthorizationException();
         }

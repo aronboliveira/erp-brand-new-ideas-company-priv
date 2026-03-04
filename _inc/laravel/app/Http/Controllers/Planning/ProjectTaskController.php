@@ -855,9 +855,9 @@ class ProjectTaskController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
-            Log::info("[{$class}::{$action}] start", ['calendarType' => $req->get('calendar_type'), ProjectsConstants::COL_PJ_ID => $projectId]);
+            Log::info("[{$class}::{$action}] start", ['calendarType' => $req->input('calendar_type'), ProjectsConstants::COL_PJ_ID => $projectId]);
             try {
-                if ($req->get('calendar_type') === 'google_calendar') $arrayJson = Utility::getCalendarData('task');
+                if ($req->input('calendar_type') === 'google_calendar') $arrayJson = Utility::getCalendarData('task');
                 else {
                     $creatorId = $user?->creatorId();
                     $q = ProjectTask::query();
@@ -882,7 +882,7 @@ class ProjectTaskController extends Controller
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
             }
-        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'calendar_type' => $request->get('calendar_type'), 'project_id' => $projectId]);
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'calendar_type' => $request->input('calendar_type'), 'project_id' => $projectId]);
     }
 
     public const UPD_TSK_PR_CL = 'updateTaskPriorityColor';
