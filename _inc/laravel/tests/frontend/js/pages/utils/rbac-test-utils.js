@@ -310,11 +310,7 @@ export function createTestRunner() {
     assertEqual: function (a, b, msg) {
       if (a !== b)
         throw new Error(
-          msg ||
-            "Expected " +
-              JSON.stringify(b) +
-              ", got " +
-              JSON.stringify(a),
+          msg || "Expected " + JSON.stringify(b) + ", got " + JSON.stringify(a),
         );
     },
     assertVisible: function (sel) {

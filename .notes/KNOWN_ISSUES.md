@@ -1,6 +1,6 @@
 # KNOWN ISSUES
 
-> Last updated: 2026-03-04
+> Last updated: 2026-03-07
 > Active issues only. Resolved items archived to `.notes/.llms/.history/fixes/`.
 > Naming history moved to `.notes/.llms/.history/fixes/naming-history.md`.
 > Coding conventions in `.notes/.llms/.guidelines/`.
@@ -15,6 +15,10 @@
 | FP-4 | web.php L1783: "Undefined type PaytabsLaravelListenerApi"                 | Info     | Runtime container resolution via `app()` — works if Paytabs package installed |
 | D-1  | CSP `unsafe-inline` in SecureHeaders.php                                  | Medium   | Needs nonce-based CSP implementation — major refactor, deferred               |
 | D-2  | holidays/calendar.blade.php: no getData function for calendar type        | Low      | Calendar type dropdown exists but no JS implements switching for holidays     |
+| D-5  | PHPStan full run requires `--memory-limit=2G`; `--workers` flag absent    | Low      | Installed version has no `--workers`; run with `--memory-limit=2G --no-progress` |
+| D-6  | `npm run test:pytest` fails under `/bin/sh` (`source` unavailable)        | Low      | Use `. .venv/bin/activate` or `bash -c "source .venv/bin/activate && pytest"` |
+| D-7  | Composer audit: 14 advisories (5 high, 7 medium, 1 low)                  | Medium   | See `.tmp/copilot/report-20260305-2/security.md` — deferred pending upgrade planning |
+| D-8  | npm audit: 20 vulnerabilities (1 critical `next`, 9 high)                 | Medium   | `next` is a transitive dep; see security.md — deferred pending upgrade planning |
 
 ## RECENTLY RESOLVED
 

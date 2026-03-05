@@ -155,15 +155,20 @@ npm run dev
 
 ---
 
-# 🧪 Test Status (2026-03-05)
+# 🧪 Test Status (2026-03-07)
 
-| Suite | Result |
-|-------|--------|
-| **ESLint** (frontend) | 0 errors · 0 warnings on modified files |
-| **Jest** (core + frontend) | 10 / 10 passed |
-| **Pytest** | 53 / 53 passed |
-| **Playwright RBAC hardening** | 5 previously-failing → fixed |
-| **HTTP batch** (1050 routes) | 0 × 500 (all previously-500 routes fixed) |
-| **MySQL** | 8.4.7 · 21 tables · DB healthy |
+| Suite | Result | Notes |
+|-------|--------|-------|
+| **PHP lint** | ✅ 0 errors / 1,417 files | |
+| **ESLint** (frontend) | ✅ 0 errors · 0 warnings | Down from 758 warnings (2026-03-05) |
+| **Jest** (core + frontend) | ✅ 10 / 10 | 3 suites |
+| **Pytest** | ✅ 53 / 53 | Run with `bash` — see D-6 in KNOWN_ISSUES |
+| **Playwright RBAC hardening** | ✅ 5 previously-failing → fixed | |
+| **HTTP batch** (20 routes) | ✅ 0 × 500 | All previously-500 routes fixed |
+| **PHPStan L3** | ⏳ fresh run in progress | ~150 real errors in BillController+DashboardController (prior data) |
+| **MySQL** (prod) | ✅ healthy | 8.4.7 · 21 tables |
+| **MySQL** (test DB) | ✅ healthy | `erp_prestech_test` · 210 tables · 215 migrations |
 
-See `.notes/CURRENT_WORKING_ISSUES.md` for change history and `.tmp/FIXES_20260305.md` for this session's fix log.
+> Security: 14 Composer advisories · 20 npm vulns — deferred; see `.tmp/copilot/report-20260305-2/security.md`
+
+See `.notes/CURRENT_WORKING_ISSUES.md` for change history.

@@ -1,6 +1,6 @@
 # CURRENT WORKING ISSUES
 
-> Last updated: 2026-03-04
+> Last updated: 2026-03-07
 > Branch: `main`
 > Resolved items archived to `.notes/.llms/.history/`. Guidelines in `.notes/.llms/.guidelines/`.
 
@@ -44,6 +44,48 @@ _None — all audited issues resolved or documented as deferred._
 - Pytest: 6 test files — `pytest.ini` + `.venv/`
 - curl timing: 1 polyglot script — `tests/curl_timing.sh`
 - Postman/Newman: 1 collection — `tests/postman/`
+
+## RESOLVED (2026-03-07 — Readonly Scan + Codex Report Integration + Log Archival)
+
+### Readonly scan (`.tmp/copilot/report-20260305-2/`)
+
+- **PHP lint:** 0 errors across 1,417 files ✅
+- **ESLint (frontend):** 0 errors · 0 warnings ✅
+- **Routes:** 1,507 routes registered
+- **HTTP smoke test (20 routes):** 0 × 500 ✅
+- **Jest:** 10 / 10 ✅
+- **Pytest:** 53 / 53 ✅
+- **Composer audit:** 14 advisories (5 high, 7 medium, 1 low) — deferred, no fix this session
+- **npm audit:** 20 vulnerabilities (1 critical `next`, 9 high) — deferred
+- **PHPStan L3:** fresh run in progress (background job, 2G RAM, no workers); prior data: ~150 real errors in BillController+DashboardController
+
+### Codex isolated run (`.tmp/codex/report-20260305-2/`)
+
+**Context:** Codex runs against a cloned snapshot (isolated env on port 19082, maintenance mode active).
+
+| Suite | Status | Notes |
+| --- | --- | --- |
+| PHPStan | timed_out (20 min) | Requires `--memory-limit=2G`; no `--workers` flag |
+| ESLint public | passed | 758 warnings — pre-fix snapshot; main workspace = 0 ✅ |
+| ESLint frontend | failed (exit 1) | 5 pre-fix warnings — already fixed in main workspace |
+| Playwright main/frontend | failed | webServer/auth setup timeout in isolated env |
+| PHPUnit | timed_out (20 min) | Expected; SQLite compat issue pre-existing |
+| Jest | **10 / 10** | ✅ |
+| pytest (npm script) | failed exit 127 | `source` not available in `/bin/sh`; rerun with bash = 53/53 |
+| pytest (bash rerun) | **53 / 53** | ✅ |
+| curl timing | 503 (all) | Maintenance mode in clone; not a real bug |
+| MySQL | **210 tables, 0 failures** | ✅ |
+
+**Codex findings that need action:**
+- `npm run test:pytest` uses `source` — fails under `/bin/sh`; fix: use `. .venv/bin/activate` or `bash -c ...`
+- PHPStan must be run with `--memory-limit=2G` (no `--workers` flag in installed version)
+
+### Log archival (2026-03-07)
+
+- `.notes/*.txt`, `.notes/*.log` → `.notes/.llms/.history/reports/` (4 files)
+- `_inc/laravel/.notes/` — created `.history/` subdir; archived 14 dated log/txt/md files
+
+---
 
 ## RESOLVED (2026-03-07 — Combined Copilot + Codex Security Audit Fix Batch)
 
@@ -105,6 +147,7 @@ Browser-aware timeouts, `test.slow()`, separated skip vs fail logic. See `.notes
 ## RESOLVED (2026-03-05 — ESLint + Playwright RBAC + HTTP 500 fix batch)
 
 ### ESLint — frontend tests: 5 no-unused-vars warnings eliminated
+
 - `performance.test.ts`: `measureTimeAsync` → `_measureTimeAsync`
 - `performance.spec.ts`: `longTasks` → `_longTasks`
 - `rbac.spec.ts`: `getElementCount` → `_getElementCount`
@@ -112,18 +155,21 @@ Browser-aware timeouts, `test.slow()`, separated skip vs fail logic. See `.notes
 - `eslint.frontend.config.mjs`: added `caughtErrorsIgnorePattern: "^_"` to TS rule
 
 ### Playwright RBAC — 5 failing hardening tests fixed
+
 **Root cause**: `tests/frontend/js/pages/utils/rbac-test-utils.js` did not exist.
 **Fix**: Created the file as a full ES module exporting `Permissions`, `RoleTemplates`, `createMockUser`, `userCan`, `setUserContext`, `hideElementsWithoutPermission`, `createTestRunner`.
 
 ### HTTP 500 errors — 4 routes fixed (all now 2xx/3xx)
-| Route | Fix |
-|-------|-----|
-| `GET /register` | Added `$data??=[];` guard in `register.blade.php` |
-| `GET /fortify-register` | Same view, same fix |
+
+| Route                                 | Fix                                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET /register`                       | Added `$data??=[];` guard in `register.blade.php`                                    |
+| `GET /fortify-register`               | Same view, same fix                                                                  |
 | `GET /projects.timesheets/table-view` | Fixed `FT_TMS_TBL` constant: `'filterTimesheetTable'` → `'filterTimesheetTableView'` |
-| `GET /_debugbars/assets/javascript` | `composer reinstall php-debugbar/php-debugbar` (empty Resources dir) |
+| `GET /_debugbars/assets/javascript`   | `composer reinstall php-debugbar/php-debugbar` (empty Resources dir)                 |
 
 ### Cleanup
+
 - Removed `_inc/laravel/_inc/` empty garbage directory
 - `.gitignore` + `_inc/laravel/.gitignore`: added `tmp/`, `**/tmp/`, `**/tmp2/`, `storage/tmp/`, `storage/tmp2/`
 
