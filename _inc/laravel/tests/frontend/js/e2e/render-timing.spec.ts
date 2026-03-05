@@ -130,7 +130,7 @@ async function injectLCPObserver(page: Page): Promise<void> {
           (window as any).__lcpValue = entry.startTime;
         }
       }).observe({ type: "largest-contentful-paint", buffered: true });
-    } catch (_) {}
+    } catch {}
   });
 }
 
@@ -375,7 +375,7 @@ test.describe.serial("Render Timing Benchmark", () => {
               navTransitionMs = Date.now() - t0;
             }
           }
-        } catch (_) {}
+        } catch {}
 
         allResults.push({
           view: view.name,

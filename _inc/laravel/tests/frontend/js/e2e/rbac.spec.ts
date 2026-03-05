@@ -31,7 +31,7 @@ async function elementExists(page: Page, selector: string): Promise<boolean> {
 /**
  * Helper to get element count
  */
-async function getElementCount(page: Page, selector: string): Promise<number> {
+async function _getElementCount(page: Page, selector: string): Promise<number> {
   return await page.locator(selector).count();
 }
 

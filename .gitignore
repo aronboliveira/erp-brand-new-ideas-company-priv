@@ -50,6 +50,9 @@ pyvenv.cfg
 
 .tmp/
 **/.tmp/
+tmp/
+**/tmp/
+**/tmp2/
 .deprecated/
 **/.deprecated/
 .backup/
@@ -72,6 +75,8 @@ pyvenv.cfg
 **/storage/logs/
 **/tests/playwright-report/
 **/tests/e2e/test-results/
+**/tests/frontend/js/test-results/
+**/tests/frontend/js/playwright-report/
 **/tests/auth-error.png
 **/.notes/
 !.notes/

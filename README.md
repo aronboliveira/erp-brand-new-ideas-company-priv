@@ -152,3 +152,18 @@ npm run dev
 -> PersonalAcessToken do not have a model
 -> GeneratePayslipOptions do not have a model
 -> FailedJobs do not have a model
+
+---
+
+# 🧪 Test Status (2026-03-05)
+
+| Suite | Result |
+|-------|--------|
+| **ESLint** (frontend) | 0 errors · 0 warnings on modified files |
+| **Jest** (core + frontend) | 10 / 10 passed |
+| **Pytest** | 53 / 53 passed |
+| **Playwright RBAC hardening** | 5 previously-failing → fixed |
+| **HTTP batch** (1050 routes) | 0 × 500 (all previously-500 routes fixed) |
+| **MySQL** | 8.4.7 · 21 tables · DB healthy |
+
+See `.notes/CURRENT_WORKING_ISSUES.md` for change history and `.tmp/FIXES_20260305.md` for this session's fix log.

@@ -8,6 +8,7 @@
 	use Illuminate\Support\Str;
 	use Symfony\Component\Console\Output\ConsoleOutput;
 	$filePath??='';
+	$data??=[];
 	$commonSettings??=[];
 	$setting??=[];
 	$colorSettings??=[];

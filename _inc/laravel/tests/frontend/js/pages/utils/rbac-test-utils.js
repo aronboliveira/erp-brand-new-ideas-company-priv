@@ -1,0 +1,360 @@
+/**
+ * Shared RBAC test utilities for mock pages.
+ * ES module — served via http-server (port 3000) during Playwright tests.
+ *
+ * Consumed by:
+ *   tests/frontend/js/pages/mocks/rbac/{super-admin,admin,hr,accountant,client}.html
+ */
+
+// ---------------------------------------------------------------------------
+// Permission constants
+// ---------------------------------------------------------------------------
+export var Permissions = {
+  // Role shorthands
+  SA: "super admin",
+  ADM: "admin",
+  ACT: "accountant",
+  HR: "hr",
+  CL: "client",
+  CT: "customer",
+  VD: "vendor",
+  CPN: "company",
+
+  // Permission management
+  MNG_PERM: "manage permission",
+  CR_PERM: "create permission",
+  ED_PERM: "edit permission",
+  DEL_PERM: "delete permission",
+
+  // Role management
+  MNG_ROLE: "manage role",
+  CR_ROLE: "create role",
+  ED_ROLE: "edit role",
+  DEL_ROLE: "delete role",
+
+  // Dashboard access — long-form (guest.html style)
+  SHW_ACC_DSB: "show account dashboard",
+  SHW_CRM_DSB: "show crm dashboard",
+  SHW_HRM_DSB: "show hrm dashboard",
+  SHW_POS_DSB: "show pos dashboard",
+  SHW_PRJ_DSB: "show project dashboard",
+  MNG_CLT_DSB: "manage client dashboard",
+  MNG_SA_DSB: "manage super admin dashboard",
+
+  // Dashboard access — short-form (used by failing pages)
+  SH_ADMIN_DB: "show admin dashboard",
+  SH_ACC_DB: "show account dashboard",
+  SH_HRM_DB: "show hrm dashboard",
+  SH_POS_DB: "show pos dashboard",
+  SH_PRJ_DB: "show project dashboard",
+  SH_CLIENT_DB: "show client dashboard",
+  MNG_SA_DB: "manage super admin dashboard",
+
+  // User management
+  MNG_USER: "manage user",
+  MNG_USR: "manage user",
+  CR_USER: "create user",
+  ED_USER: "edit user",
+  DEL_USER: "delete user",
+
+  // Employee / HRM
+  MNG_EMP: "manage employee",
+  MNG_CLT: "manage client",
+  CR_CLT: "create client",
+  MNG_CST: "manage customer",
+  MNG_VD: "manage vendor",
+
+  // Finance
+  MNG_BIL: "manage bill",
+  MNG_BL: "manage bill",
+  MNG_INV: "manage invoice",
+  CR_INV: "create invoice",
+  MNG_RVN: "manage revenue",
+  MNG_PMT: "manage payment",
+  MNG_BACC: "manage bank account",
+  MNG_BTF: "manage bank transfer",
+  MNG_TRT: "manage transaction",
+  MNG_COA: "manage chart of account",
+  MNG_JNL: "manage journal entry",
+  MNG_CRD: "manage credit note",
+  MNG_DBT: "manage debit note",
+  MNG_RPT: "manage report",
+  MNG_EXP: "manage expense",
+
+  // HRM
+  MNG_ATD: "manage attendance",
+  CR_ATD: "create attendance",
+  MNG_LV: "manage leave",
+  MNG_PSL: "manage payslip",
+  CR_PSL: "create payslip",
+  MNG_SSL: "manage set salary",
+  MNG_APR: "manage appraisal",
+  MNG_AWD: "manage award",
+  MNG_TRM: "manage termination",
+  MNG_RSG: "manage resignation",
+  MNG_PRM: "manage promotion",
+  MNG_TRF: "manage transfer",
+  MNG_TRV: "manage travel",
+  MNG_CPT: "manage complaint",
+  MNG_WRN: "manage warning",
+  MNG_TNG: "manage training",
+  MNG_TNR: "manage trainer",
+  MNG_HLD: "manage holiday",
+
+  // Projects / CRM
+  MNG_PRJ: "manage project",
+  MNG_PRJ_TSK: "manage project task",
+  MNG_TS: "manage timesheet",
+  MNG_LD: "manage lead",
+  MNG_DL: "manage deal",
+
+  // POS
+  MNG_POS: "manage pos",
+  MNG_OD: "manage order",
+
+  // Other
+  MNG_PPS: "manage proposal",
+  MNG_CTC: "manage contract",
+  MNG_PRC: "manage purchase",
+  MNG_RPRT: "manage report",
+  VW_CRM: "view crm activity",
+
+  // Settings
+  MNG_SYS_ST: "manage system settings",
+  MNG_CPN_SET: "manage company settings",
+};
+
+// ---------------------------------------------------------------------------
+// Role templates — one per mock page
+// ---------------------------------------------------------------------------
+var RoleTemplates = {
+  superAdmin: {
+    id: "role-super-admin",
+    name: "Super Admin",
+    permissions: [Permissions.SA],
+  },
+  admin: {
+    id: "role-admin",
+    name: "Admin",
+    permissions: [
+      "show admin dashboard",
+      "show hrm dashboard",
+      "show account dashboard",
+      "manage company settings",
+      "manage user",
+      "manage role",
+    ],
+  },
+  hr: {
+    id: "role-hr",
+    name: "HR",
+    permissions: [
+      "show hrm dashboard",
+      "manage employee",
+      "manage attendance",
+      "manage leave",
+    ],
+  },
+  accountant: {
+    id: "role-accountant",
+    name: "Accountant",
+    permissions: [
+      "show account dashboard",
+      "manage invoice",
+      "manage bill",
+      "manage expense",
+    ],
+  },
+  client: {
+    id: "role-client",
+    name: "Client",
+    permissions: ["show client dashboard"],
+  },
+  guest: {
+    id: "role-guest",
+    name: "Guest",
+    permissions: [],
+  },
+};
+
+// ---------------------------------------------------------------------------
+// createMockUser(role, overrides?)
+// ---------------------------------------------------------------------------
+export function createMockUser(role, overrides) {
+  var tpl = RoleTemplates[role] || RoleTemplates.guest;
+  var base = {
+    id: "user-" + role + "-" + Date.now(),
+    name: "Test " + tpl.name,
+    email: "test." + role.toLowerCase() + "@prestech.com.br",
+    role: tpl,
+    permissions: tpl.permissions,
+    company_id: "company-1",
+    is_active: true,
+    isAuthenticated: role !== "guest",
+    session_token: "token-" + Date.now(),
+    session_expires_at: new Date(Date.now() + 3600000),
+  };
+  if (overrides) {
+    for (var k in overrides) base[k] = overrides[k];
+  }
+  return base;
+}
+
+// ---------------------------------------------------------------------------
+// userCan(user, permission)
+// Super-admin shortcut: if user holds SA permission, all checks pass.
+// ---------------------------------------------------------------------------
+export function userCan(user, permission) {
+  if (!user || !user.is_active) return false;
+  if (user.role.permissions.indexOf(Permissions.SA) !== -1) return true;
+  return user.role.permissions.indexOf(permission) !== -1;
+}
+
+// ---------------------------------------------------------------------------
+// setUserContext(user)
+// Stores session data in localStorage / window.__mockUser.
+// ---------------------------------------------------------------------------
+export function setUserContext(user) {
+  window.__mockUser = user;
+  if (user) {
+    localStorage.setItem("auth_token", user.session_token || "");
+    localStorage.setItem("user_role", user.role.name);
+    localStorage.setItem(
+      "user_permissions",
+      JSON.stringify(user.role.permissions),
+    );
+  } else {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_permissions");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// hideElementsWithoutPermission(user)
+// Hides [data-permission] elements the user lacks and [data-role] elements
+// (except <body>) that don't match the user's role.
+// ---------------------------------------------------------------------------
+export function hideElementsWithoutPermission(user) {
+  document.querySelectorAll("[data-permission]").forEach(function (el) {
+    var req = el.getAttribute("data-permission");
+    if (req && !userCan(user, req)) {
+      el.style.display = "none";
+      el.setAttribute("aria-hidden", "true");
+    }
+  });
+  document.querySelectorAll("[data-role]").forEach(function (el) {
+    if (el === document.body) return;
+    var reqRole = el.getAttribute("data-role");
+    if (
+      reqRole &&
+      user &&
+      user.role.name.toLowerCase() !== reqRole.toLowerCase()
+    ) {
+      el.style.display = "none";
+      el.setAttribute("aria-hidden", "true");
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// createTestRunner()
+// Returns a lightweight test-runner compatible with window.runRbacTests().
+// ---------------------------------------------------------------------------
+export function createTestRunner() {
+  var results = [];
+  return {
+    test: function (name, fn) {
+      var start = performance.now();
+      try {
+        var result = fn();
+        if (result && typeof result.then === "function") {
+          return result
+            .then(function () {
+              results.push({
+                name: name,
+                passed: true,
+                message: "Passed",
+                duration: performance.now() - start,
+              });
+            })
+            .catch(function (err) {
+              results.push({
+                name: name,
+                passed: false,
+                message: err.message || String(err),
+                duration: performance.now() - start,
+              });
+            });
+        }
+        results.push({
+          name: name,
+          passed: true,
+          message: "Passed",
+          duration: performance.now() - start,
+        });
+        return Promise.resolve();
+      } catch (err) {
+        results.push({
+          name: name,
+          passed: false,
+          message: err.message || String(err),
+          duration: performance.now() - start,
+        });
+        return Promise.resolve();
+      }
+    },
+    assert: function (cond, msg) {
+      if (!cond) throw new Error("Assertion failed: " + msg);
+    },
+    assertEqual: function (a, b, msg) {
+      if (a !== b)
+        throw new Error(
+          msg ||
+            "Expected " +
+              JSON.stringify(b) +
+              ", got " +
+              JSON.stringify(a),
+        );
+    },
+    assertVisible: function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) throw new Error("Element not found: " + sel);
+      var s = window.getComputedStyle(el);
+      if (
+        s.display === "none" ||
+        s.visibility === "hidden" ||
+        s.opacity === "0"
+      )
+        throw new Error("Element not visible: " + sel);
+    },
+    assertHidden: function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) return; // element absent → treated as hidden
+      var s = window.getComputedStyle(el);
+      if (
+        s.display !== "none" &&
+        s.visibility !== "hidden" &&
+        s.opacity !== "0"
+      )
+        throw new Error("Element should be hidden: " + sel);
+    },
+    getResults: function () {
+      return results;
+    },
+    getSummary: function () {
+      return {
+        total: results.length,
+        passed: results.filter(function (r) {
+          return r.passed;
+        }).length,
+        failed: results.filter(function (r) {
+          return !r.passed;
+        }).length,
+        duration: results.reduce(function (s, r) {
+          return s + r.duration;
+        }, 0),
+      };
+    },
+  };
+}

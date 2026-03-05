@@ -8,30 +8,32 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 
 ## Results Summary
 
-| Framework | Tests | Passed | Failed | Skipped | Status |
-|-----------|-------|--------|--------|---------|--------|
-| ESLint | 758 problems | 0 errors | 758 warnings | - | ✅ |
-| Jest | 10 | 10 | 0 | 0 | ✅ |
-| Pytest | 53 | 53 | 0 | 0 | ✅ |
-| Playwright (Chromium) | 434 | 391 | 5 | 38 | ⚠️ |
-| HTTP Route Tests | 1050 | 846* | 8 | - | ⚠️ |
-| MySQL Health | - | - | - | - | ✅ |
-| PHPStan | In Progress | - | - | - | ⏳ |
-| PHPUnit | In Progress | - | - | - | ⏳ |
+| Framework             | Tests        | Passed   | Failed       | Skipped | Status |
+| --------------------- | ------------ | -------- | ------------ | ------- | ------ |
+| ESLint                | 758 problems | 0 errors | 758 warnings | -       | ✅     |
+| Jest                  | 10           | 10       | 0            | 0       | ✅     |
+| Pytest                | 53           | 53       | 0            | 0       | ✅     |
+| Playwright (Chromium) | 434          | 391      | 5            | 38      | ⚠️     |
+| HTTP Route Tests      | 1050         | 846\*    | 8            | -       | ⚠️     |
+| MySQL Health          | -            | -        | -            | -       | ✅     |
+| PHPStan               | In Progress  | -        | -            | -       | ⏳     |
+| PHPUnit               | In Progress  | -        | -            | -       | ⏳     |
 
-*HTTP codes: 200s=19, 302s=827 (auth redirects), 405s=163 (method not allowed), 404s=16, 500s=8
+\*HTTP codes: 200s=19, 302s=827 (auth redirects), 405s=163 (method not allowed), 404s=16, 500s=8
 
 ---
 
 ## Detailed Results
 
 ### ESLint (v9.33.0)
+
 - **Result**: 0 errors, 758 warnings
 - **Type**: All warnings are `@typescript-eslint/no-unused-vars`
 - **File**: [eslint_run_20260305.txt](eslint_run_20260305.txt)
 - **Status**: ✅ PASS (no blocking errors)
 
 ### Jest (frontend tests)
+
 - **Result**: 3 suites, 10 tests passed
 - **Duration**: 45.361s
 - **Suites**:
@@ -42,6 +44,7 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 - **Status**: ✅ PASS
 
 ### Pytest (Python tests)
+
 - **Result**: 53 tests passed
 - **Duration**: 34.36s
 - **Test files**:
@@ -52,6 +55,7 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 - **Status**: ✅ PASS
 
 ### Playwright E2E (Chromium)
+
 - **Result**: 391 passed, 5 failed, 38 skipped
 - **Duration**: ~2.4m
 - **Failed Tests**: 5 RBAC inline self-tests
@@ -68,6 +72,7 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 - **Status**: ⚠️ MOSTLY PASS (90% pass rate)
 
 ### HTTP Route Tests
+
 - **Result**: 1050 routes tested
 - **Summary**:
   - 200 OK: 19 routes (publicly accessible)
@@ -80,11 +85,12 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
   - /register
   - /fortify-register
   - /projects.timesheets/table-view
-  - /_debugbars/assets/javascript
+  - /\_debugbars/assets/javascript
 - **File**: [http_routes_test_20260305.txt](http_routes_test_20260305.txt)
 - **Status**: ⚠️ ATTENTION NEEDED (8 server errors)
 
 ### MySQL Health Check
+
 - **Server**: MySQL 8.4.7-0ubuntu0.25.04.2
 - **Database**: erp_prestech (1.16 MB)
 - **Tables**: 21 total, 20 empty (test environment)
@@ -93,6 +99,7 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 - **Status**: ✅ HEALTHY
 
 ### PHPStan (Level 3)
+
 - **Status**: In progress
 - **Method**: Module-by-module analysis via phpstan-modules.sh
 - **Progress**: Processing controllers/models with some timeouts
@@ -100,6 +107,7 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 - **Status**: ⏳ RUNNING
 
 ### PHPUnit
+
 - **Status**: In progress
 - **Issues**: Slow bootstrap process
 - **File**: /tmp/phpunit_full_20260305.txt
@@ -143,4 +151,4 @@ Comprehensive test suite execution across all testing frameworks for the erp_pre
 
 ---
 
-*Generated: 2026-03-05*
+_Generated: 2026-03-05_

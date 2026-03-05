@@ -64,3 +64,12 @@ tests/e2e/test-results/
 tests/auth-error.png
 .notes/
 utils/caches/
+
+# temporary directories — never track
+.tmp/
+**/.tmp/
+tmp/
+**/tmp/
+storage/tmp/
+storage/tmp2/
+**/tmp2/

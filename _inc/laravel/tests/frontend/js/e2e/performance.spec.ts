@@ -371,7 +371,7 @@ test.describe("Performance Optimization", () => {
   test.describe("JavaScript Execution", () => {
     test("no long-running synchronous operations", async ({ page }) => {
       // Catch long tasks
-      const longTasks: number[] = [];
+      const _longTasks: number[] = [];
 
       await page.goto(`${BASE}/login`);
 

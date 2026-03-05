@@ -102,6 +102,31 @@ _None — all audited issues resolved or documented as deferred._
 
 Browser-aware timeouts, `test.slow()`, separated skip vs fail logic. See `.notes/.llms/.history/` for details.
 
+## RESOLVED (2026-03-05 — ESLint + Playwright RBAC + HTTP 500 fix batch)
+
+### ESLint — frontend tests: 5 no-unused-vars warnings eliminated
+- `performance.test.ts`: `measureTimeAsync` → `_measureTimeAsync`
+- `performance.spec.ts`: `longTasks` → `_longTasks`
+- `rbac.spec.ts`: `getElementCount` → `_getElementCount`
+- `render-timing.spec.ts` (×2): `catch (_) {}` → `catch {}`
+- `eslint.frontend.config.mjs`: added `caughtErrorsIgnorePattern: "^_"` to TS rule
+
+### Playwright RBAC — 5 failing hardening tests fixed
+**Root cause**: `tests/frontend/js/pages/utils/rbac-test-utils.js` did not exist.
+**Fix**: Created the file as a full ES module exporting `Permissions`, `RoleTemplates`, `createMockUser`, `userCan`, `setUserContext`, `hideElementsWithoutPermission`, `createTestRunner`.
+
+### HTTP 500 errors — 4 routes fixed (all now 2xx/3xx)
+| Route | Fix |
+|-------|-----|
+| `GET /register` | Added `$data??=[];` guard in `register.blade.php` |
+| `GET /fortify-register` | Same view, same fix |
+| `GET /projects.timesheets/table-view` | Fixed `FT_TMS_TBL` constant: `'filterTimesheetTable'` → `'filterTimesheetTableView'` |
+| `GET /_debugbars/assets/javascript` | `composer reinstall php-debugbar/php-debugbar` (empty Resources dir) |
+
+### Cleanup
+- Removed `_inc/laravel/_inc/` empty garbage directory
+- `.gitignore` + `_inc/laravel/.gitignore`: added `tmp/`, `**/tmp/`, `**/tmp2/`, `storage/tmp/`, `storage/tmp2/`
+
 ---
 
 ## REMINDERS

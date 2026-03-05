@@ -316,7 +316,7 @@ class TimesheetController extends Controller
         return $this->timesheetDestroy($request, $timesheetId);
     }
 
-    public const FT_TMS_TBL = 'filterTimesheetTable';
+    public const FT_TMS_TBL = 'filterTimesheetTableView';
     public function filterTimesheetTableView(Request $request): JsonResponse|RedirectResponse|null
     {
         $scope = static::class . '::' . __FUNCTION__;
