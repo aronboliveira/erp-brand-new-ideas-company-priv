@@ -1,0 +1,40 @@
+● Validation Warning:
+
+  Unknown option "setupFilesAfterSetup" with value undefined was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+● Validation Warning:
+
+  Unknown option "setupFilesAfterSetup" with value undefined was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+PASS tests/frontend/js/unit/frontend-performance-budgets.test.cjs (15.92 s)
+  Frontend performance and stability budgets
+    ✓ mock HTML fixtures stay below 200KB each (4 ms)
+    ✓ first-party route scripts stay below 25KB each (5 ms)
+    ✓ guest auth form provides password autocomplete hints (52 ms)
+
+PASS tests/frontend/js/unit/frontend-risk-audit.test.cjs (16.452 s)
+  First-party frontend security risk audit
+    ✓ route scripts avoid eval and new Function (548 ms)
+    ✓ route scripts avoid document.write (18 ms)
+    ✓ route scripts avoid direct innerHTML-style injection from message or data payloads (29 ms)
+
+PASS tests/frontend/js/unit/mock-pages.integrity.test.cjs (17.627 s)
+  Frontend mock page integrity
+    ✓ catalog contains the expected number of mock pages (4 ms)
+    ✓ all local asset and page references resolve (1044 ms)
+    ✓ every mock page includes styling so it does not render as raw HTML (4 ms)
+    ✓ pages contain meaningful text instead of numeric or mangled output (724 ms)
+
+Test Suites: 3 passed, 3 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        45.361 s
+Ran all test suites.
