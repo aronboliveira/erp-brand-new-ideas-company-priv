@@ -5,7 +5,6 @@
 
 - **\_inc/**  
    Versão para testar módulos de desenvolvimento:
-
   - `django/` – [Arquivado] Em sua maior parte desatualizado, mas módulos para exportar/manipular planilhas (ou ML) serão usados como microsserviços
   - `erp-prestech-frontend/` – [Arquivado] Mantido somente para consulta. Movido para laravel/frontend/
   - `laravel/` – [CORE] Será usado tanto para backend quanto para frontend
@@ -146,6 +145,45 @@ npm run dev
 
 </details>
 
+# 📘 TypeScript Migration
+
+The frontend JavaScript has been migrated to TypeScript in an isolated `_inc/laravel/ts/` module.
+
+<details>
+<summary><strong>Structure & Commands</strong></summary>
+
+## Directory Structure
+```
+_inc/laravel/ts/
+├── src/           # TypeScript sources (mirrored from public/, resources/, tests/)
+├── dist/          # Compiled output
+├── package.json   # TS-specific dependencies
+├── tsconfig.json  # Strict TS config with path aliases
+└── jest.config.cjs / playwright.config.ts  # Test configs
+```
+
+## Development Commands
+```bash
+cd _inc/laravel/ts
+npm install
+npm run typecheck    # Type-check without emit
+npm run build        # Compile to dist/
+npm run lint         # ESLint
+npm run test         # Jest tests
+```
+
+## Key Features
+- **Strict Mode**: All TypeScript strict checks enabled
+- **Path Aliases**: `@/`, `@public/`, `@resources/`, `@tests/`
+- **Global Types**: Bootstrap 5, jQuery, DataTables, Select2, Summernote, ApexCharts, etc.
+
+## Documentation
+See `.notes/.llms/typescript-migration.md` for full LLM guidelines.
+
+</details>
+
+---
+
 # NOTAS
 
 -> Setting do not have a model
@@ -157,17 +195,17 @@ npm run dev
 
 # 🧪 Test Status (2026-03-07)
 
-| Suite | Result | Notes |
-|-------|--------|-------|
-| **PHP lint** | ✅ 0 errors / 1,417 files | |
-| **ESLint** (frontend) | ✅ 0 errors · 0 warnings | Down from 758 warnings (2026-03-05) |
-| **Jest** (core + frontend) | ✅ 10 / 10 | 3 suites |
-| **Pytest** | ✅ 53 / 53 | Run with `bash` — see D-6 in KNOWN_ISSUES |
-| **Playwright RBAC hardening** | ✅ 5 previously-failing → fixed | |
-| **HTTP batch** (20 routes) | ✅ 0 × 500 | All previously-500 routes fixed |
-| **PHPStan L3** | ⏳ fresh run in progress | ~150 real errors in BillController+DashboardController (prior data) |
-| **MySQL** (prod) | ✅ healthy | 8.4.7 · 21 tables |
-| **MySQL** (test DB) | ✅ healthy | `erp_prestech_test` · 210 tables · 215 migrations |
+| Suite                         | Result                          | Notes                                                               |
+| ----------------------------- | ------------------------------- | ------------------------------------------------------------------- |
+| **PHP lint**                  | ✅ 0 errors / 1,417 files       |                                                                     |
+| **ESLint** (frontend)         | ✅ 0 errors · 0 warnings        | Down from 758 warnings (2026-03-05)                                 |
+| **Jest** (core + frontend)    | ✅ 10 / 10                      | 3 suites                                                            |
+| **Pytest**                    | ✅ 53 / 53                      | Run with `bash` — see D-6 in KNOWN_ISSUES                           |
+| **Playwright RBAC hardening** | ✅ 5 previously-failing → fixed |                                                                     |
+| **HTTP batch** (20 routes)    | ✅ 0 × 500                      | All previously-500 routes fixed                                     |
+| **PHPStan L3**                | ⏳ fresh run in progress        | ~150 real errors in BillController+DashboardController (prior data) |
+| **MySQL** (prod)              | ✅ healthy                      | 8.4.7 · 21 tables                                                   |
+| **MySQL** (test DB)           | ✅ healthy                      | `erp_prestech_test` · 210 tables · 215 migrations                   |
 
 > Security: 14 Composer advisories · 20 npm vulns — deferred; see `.tmp/copilot/report-20260305-2/security.md`
 
