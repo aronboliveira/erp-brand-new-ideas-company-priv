@@ -1,0 +1,61 @@
+{
+  "compilerOptions": {
+    // === Output settings ===
+    "target": "ES2020",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // === Strict checks - MIGRATION MODE ===
+    // Set to false for gradual migration, enable as code is properly typed
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "useUnknownInCatchVariables": false,
+
+    // === Code quality checks - WARNINGS (won't block build) ===
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": true,
+
+    // === Module interop ===
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": false,
+
+    // === Build optimization ===
+    "composite": true,
+    "incremental": true,
+
+    // === Path aliases ===
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@public/*": ["./src/public/*"],
+      "@resources/*": ["./src/resources/*"],
+      "@tests/*": ["./src/tests/*"]
+    },
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

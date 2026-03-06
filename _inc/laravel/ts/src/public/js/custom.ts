@@ -1,0 +1,583 @@
+/**
+ * @fileoverview TypeScript version of public/js/custom.js
+ * @generated from original JavaScript - manual review recommended
+ * @module custom
+ */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands , prefer-const */
+
+/* global bootstrap, flatpickr, Swal, $, jQuery */
+/**
+ *
+ * You can write your JS code here, DO NOT touch the default style file
+ * because it will make it harder for you to update.
+ *
+ */
+
+"use strict";
+// for pos system
+const session_key = $(location).attr("href").split("/").pop();
+//
+
+$(function (): void {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if ($(".custom-scroll").length) {
+    $(".custom-scroll").niceScroll();
+    $(".custom-scroll-horizontal").niceScroll();
+  }
+
+  // loadConfirm();
+});
+
+$(document).ready(function (): void {
+  if ($(".datatable").length > 0) {
+    const dataTable = new simpleDatatables.DataTable(".datatable");
+  }
+
+  select2();
+  summernote();
+  daterange();
+  // loadConfirm();
+});
+
+function daterange() {
+  if ($("#pc-daterangepicker-1").length > 0) {
+    document.querySelector<HTMLElement>("#pc-daterangepicker-1")?.flatpickr({
+      mode: "range",
+    });
+  }
+}
+
+function select2() {
+  if ($(".select2").length > 0) {
+    $($(".select2")).each(function (index, element) {
+      const id = $(element).attr("id");
+      const multipleCancelButton = new Choices("#" + id, {
+        removeItemButton: true,
+      });
+    });
+  }
+}
+
+function show_toastr(type, message) {
+  const f = document.getElementById("liveToast");
+  const a = new bootstrap.Toast(f).show();
+  if (type == "success") {
+    $("#liveToast").addClass("bg-primary");
+  } else {
+    $("#liveToast").addClass("bg-danger");
+  }
+  $("#liveToast .toast-body").html(message);
+}
+
+$(document).on(
+  "click",
+  'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]',
+  function (): void {
+    const data = {};
+    const title1 = $(this).data("title");
+
+    const title2 = $(this).data("bs-original-title");
+    const title3 = $(this).data("original-title");
+    let title = title1 ?? title2;
+    let title = title ?? title3;
+
+    $(".modal-dialog").removeClass("modal-xl");
+    const size = $(this).data("size") == "" ? "md" : $(this).data("size");
+
+    const url = $(this).data("url");
+    $("#commonModal .modal-title").html(title);
+    $("#commonModal .modal-dialog").addClass("modal-" + size);
+
+    if ($("#vc_name_hidden").length > 0) {
+      data.vc_name = $("#vc_name_hidden").val();
+    }
+    if ($("#warehouse_name_hidden").length > 0) {
+      data.warehouse_name = $("#warehouse_name_hidden").val();
+    }
+    if ($("#discount_hidden").length > 0) {
+      data.discount = $("#discount_hidden").val();
+    }
+    $.ajax({
+      url: url,
+      data: data,
+      success: function (data) {
+        $("#commonModal .body").html(data);
+        $("#commonModal").modal("show");
+        // daterange_set();
+        taskCheckbox();
+        common_bind("#commonModal");
+        commonLoader();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        show_toastr("Error", data.error, "error");
+      },
+    });
+  }
+);
+
+function arrayToJson(form) {
+  const data = $(form).serializeArray();
+  const indexed_array = {};
+
+  $.map(data, function (n, i) {
+    indexed_array[n.name] = n.value;
+  });
+
+  return indexed_array;
+}
+
+function common_bind() {
+  select2();
+}
+
+function taskCheckbox() {
+  let checked = 0;
+  let count = 0;
+  let percentage = 0;
+
+  count = $("#check-list input[type=checkbox]").length;
+  checked = $("#check-list input[type=checkbox]:checked").length;
+  percentage = parseInt((checked / count) * 100, 10);
+  if (isNaN(percentage)) {
+    percentage = 0;
+  }
+  $(".custom-label").text(percentage + "%");
+  $("#taskProgress").css("width", percentage + "%");
+
+  $("#taskProgress").removeClass("bg-warning");
+  $("#taskProgress").removeClass("bg-primary");
+  $("#taskProgress").removeClass("bg-success");
+  $("#taskProgress").removeClass("bg-danger");
+
+  if (percentage <= 15) {
+    $("#taskProgress").addClass("bg-danger");
+  } else if (percentage > 15 && percentage <= 33) {
+    $("#taskProgress").addClass("bg-warning");
+  } else if (percentage > 33 && percentage <= 70) {
+    $("#taskProgress").addClass("bg-primary");
+  } else {
+    $("#taskProgress").addClass("bg-success");
+  }
+}
+
+function commonLoader() {
+  $('[data-toggle="tooltip"]').tooltip();
+  if ($('[data-toggle="tags"]').length > 0) {
+    $('[data-toggle="tags"]').tagsinput({ tagClass: "badge badge-primary" });
+  }
+
+  // $(function (): void {
+  //
+  //     let dtToday = new Date();
+  //
+  //     let month = dtToday.getMonth() + 1;
+  //     let day = dtToday.getDate();
+  //     let year = dtToday.getFullYear();
+  //     if(month < 10)
+  //         month = '0' + month.toString();
+  //     if(day < 10)
+  //         day = '0' + day.toString();
+  //
+  //     let maxDate = year + '-' + month + '-' + day;
+  //
+  //     $("input[type='date']").attr('max', maxDate);
+  // });
+
+  const e = $(".scrollbar-inner");
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  e.length && e.scrollbar().scrollLock();
+
+  const e1 = $(".custom-input-file");
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  e1.length &&
+    e1.each(function (): void {
+      const e1 = $(this);
+      e1.on("change", function (t) {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        !(function (e, t, a) {
+          let n,
+            o = e.next("label"),
+            i = o.html();
+          t?.files.length > 1
+            ? (n = (t.getAttribute("data-multiple-caption") ?? "").replace(
+                "{count}",
+                t.files.length
+              ))
+            : a.target.value && (n = a.target.value.split("\\").pop()),
+            n ? o.find("span").html(n) : o.html(i);
+        })(e1, this, t);
+      }),
+        e1
+          .on("focus", function (): void {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+            !(function (e) {
+              e.addClass("has-focus");
+            })(e1);
+          })
+          .on("blur", function (): void {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+            !(function (e) {
+              e.removeClass("has-focus");
+            })(e1);
+          });
+    });
+
+  // let e2 = $('[data-toggle="autosize"]');
+  // e2.length && autosize(e2);
+
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if ($(".jscolor").length) {
+    jscolor.installByClassName("jscolor");
+  }
+  summernote();
+  // for Choose file
+  $(document).on("change", "input[type=file]", function (): void {
+    const fileclass = $(this).attr("data-filename");
+    const finalname = $(this).val().split("\\").pop();
+    $("." + fileclass).html(finalname);
+  });
+}
+
+function summernote() {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if ($(".summernote-simple").length) {
+    $(".summernote-simple").summernote({
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      dialogsInBody: !0,
+      minHeight: 200,
+      maxHeight: 300,
+      toolbar: [
+        ["style", ["style"]],
+        ["font", ["bold", "italic", "underline", "clear", "strikethrough"]],
+        ["fontname", ["fontname"]],
+        ["color", ["color"]],
+        ["para", ["ul", "ol", "paragraph"]],
+      ],
+    });
+    $(".dropdown-toggle").dropdown();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if ($(".summernote-simple-2").length) {
+    $(".summernote-simple-2").summernote({
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      dialogsInBody: !0,
+      minHeight: 200,
+      maxHeight: 300,
+      toolbar: [
+        ["style", ["style"]],
+        ["font", ["bold", "italic", "underline", "clear", "strikethrough"]],
+        ["fontname", ["fontname"]],
+        ["color", ["color"]],
+        ["para", ["ul", "ol", "paragraph"]],
+      ],
+    });
+  }
+}
+
+$(document).on("click", ".bs-pass-para", function (): void {
+  const form = $(this).closest("form");
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+  void swalWithBootstrapButtons
+    .fire({
+      title: "Are you sure?",
+      text: "This action can not be undone. Do you want to continue?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    })
+    .then(result => {
+      if (result.isConfirmed) {
+        form.submit();
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+      }
+    });
+});
+
+//only pos system delete button
+$(document).on("click", ".bs-pass-para-pos", function (): void {
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+  void swalWithBootstrapButtons
+    .fire({
+      title: "Are you sure?",
+      text: "This action can not be undone. Do you want to continue?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    })
+    .then(result => {
+      if (result.isConfirmed) {
+        document.getElementById($(this).data("confirm-yes")).submit();
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+      }
+    });
+});
+
+function postAjax(url, data, cb) {
+  const token = $('meta[name="csrf-token"]').attr("content");
+  const jdata = { _token: token };
+
+  for (const k in data) {
+    jdata[k] = data[k];
+  }
+
+  $.ajax({
+    type: "POST",
+    url: url,
+    data: jdata,
+    success: function (data) {
+      if (typeof data === "object") {
+        cb(data);
+      } else {
+        cb(data);
+      }
+    },
+  });
+}
+
+//end only pos system delete button
+
+function deleteAjax(url, data, cb) {
+  const token = $('meta[name="csrf-token"]').attr("content");
+  const jdata = { _token: token };
+
+  for (const k in data) {
+    jdata[k] = data[k];
+  }
+
+  $.ajax({
+    type: "DELETE",
+    url: url,
+    data: jdata,
+    success: function (data) {
+      if (typeof data === "object") {
+        cb(data);
+      } else {
+        cb(data);
+      }
+    },
+  });
+}
+
+// Google calendar
+$(document).on(
+  "click",
+  ".local_calendar .fc-daygrid-event, .fc-timegrid-event",
+  function (e) {
+    // if (!$(this).hasClass('project')) {
+    e.preventDefault();
+    const event = $(this);
+    const title1 = $(".fc-event-title").html();
+    const title2 = $(this).data("bs-original-title");
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const title = title1 ?? title2;
+    // let size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
+    const size = "md";
+    const url = $(this).attr("href");
+    $("#commonModal .modal-title").html(title);
+    $("#commonModal .modal-dialog").addClass("modal-" + size);
+    $.ajax({
+      url: url,
+      success: function (data) {
+        $("#commonModal .body").html(data);
+        $("#commonModal").modal("show");
+        common_bind();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        toastrs("Error", data.error, "error");
+      },
+    });
+    // }
+  }
+);
+
+//date value 4
+
+// $(function (): void {
+//
+//     let dtToday = new Date();
+//
+//     let month = dtToday.getMonth() + 1;
+//     let day = dtToday.getDate();
+//     let year = dtToday.getFullYear();
+//     if(month < 10)
+//         month = '0' + month.toString();
+//     if(day < 10)
+//         day = '0' + day.toString();
+//
+//     let maxDate = year + '-' + month + '-' + day;
+//
+//     $("input[type='date']").attr('max', maxDate);
+// });
+
+function addCommas(num) {
+  const number = parseFloat(num)
+    .toFixed(2)
+    .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+  return (
+    (site_currency_symbol_position == "pre" ? site_currency_symbol : "") +
+    number +
+    (site_currency_symbol_position == "post" ? site_currency_symbol : "")
+  );
+}
+
+// PLUS MINUS QUANTITY JS
+function wcqib_refresh_quantity_increments() {
+  jQuery(
+    "div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)"
+  ).each(function (a, b) {
+    const c = jQuery(b);
+    c.addClass("buttons_added"),
+      c
+        .children()
+        .first()
+        .before('<input type="button" value="-" class="minus" />'),
+      c
+        .children()
+        .last()
+        .after('<input type="button" value="+" class="plus" />');
+  });
+}
+
+String.prototype.getDecimals ||
+  (String.prototype.getDecimals = function (): void {
+    const a = this,
+      b = ("" + a).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    return b ? Math.max(0, (b[1] ? b[1].length : 0) - (b[2] ? +b[2] : 0)) : 0;
+  }),
+  jQuery(document).ready(function (): void {
+    wcqib_refresh_quantity_increments();
+  }),
+  jQuery(document).on("updated_wc_div", function (): void {
+    wcqib_refresh_quantity_increments();
+  }),
+  jQuery(document).on("click", ".plus, .minus", function (): void {
+    const a = jQuery(this)
+        .closest(".quantity")
+        .find('input[name="quantity"], input[name="quantity[]"]'),
+      b = parseFloat(a.val()),
+      c = parseFloat(a.attr("max")),
+      d = parseFloat(a.attr("min")),
+      e = a.attr("step");
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    (b && "" !== b && "NaN" !== b) || (b = 0),
+      ("" !== c && "NaN" !== c) || (c = ""),
+      ("" !== d && "NaN" !== d) || (d = 0),
+      ("any" !== e && "" !== e && void 0 !== e && "NaN" !== parseFloat(e)) ||
+        (e = 1),
+      jQuery(this).is(".plus")
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        ? c && b >= c
+          ? a.val(c)
+          : a.val((b + parseFloat(e)).toFixed(e.getDecimals()))
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        : d && b <= d
+        ? a.val(d)
+        : b > 0 && a.val((b - parseFloat(e)).toFixed(e.getDecimals())),
+      a.trigger("change");
+  });
+
+$(document).on(
+  "click",
+  'input[name="quantity"], input[name="quantity[]"]',
+  function (e) {
+    // Allow: backspace, delete, tab, escape, enter and .
+    if (
+      $.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
+      // Allow: Ctrl+A
+      (e.keyCode == 65 && e.ctrlKey === true) ||
+      // Allow: home, end, left, right
+      (e.keyCode >= 35 && e.keyCode <= 39)
+    ) {
+      // let it happen, don't do anything
+      return;
+    }
+    // Ensure that it is a number and stop the keypress
+    if (
+      (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+      (e.keyCode < 96 || e.keyCode > 105)
+    ) {
+      e.preventDefault();
+    }
+  }
+);
+
+//for ai module
+$(document).on(
+  "click",
+  'a[data-ajax-popup-over="true"], button[data-ajax-popup-over="true"], div[data-ajax-popup-over="true"]',
+  function (): void {
+    const validate = $(this).attr("data-validate");
+    let id = "";
+    if (validate != null && validate !== "") {
+      id = $(validate).val();
+    }
+    const title_over = $(this).data("title");
+    $("#commonModalOver .modal-dialog").removeClass("modal-lg");
+    const size_over = $(this).data("size") == "" ? "md" : $(this).data("size");
+
+    const url = $(this).data("url");
+    $("#commonModalOver .modal-title").html(title_over);
+    $("#commonModalOver .modal-dialog").addClass("modal-" + size_over);
+    $.ajax({
+      url: url + "?id=" + id,
+      success: function (data) {
+        $("#commonModalOver .modal-body").html(data);
+        $("#commonModalOver").modal("show");
+        taskCheckbox();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        show_toastr("Error", data.error, "error");
+      },
+    });
+  }
+);
+
+//start input serach box
+function JsSearchBox() {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if ($(".js-searchBox").length) {
+    $(".js-searchBox").each(function (index) {
+      if ($(this).parent().find(".formTextbox").length == 0) {
+        $(this).searchBox({ elementWidth: "250" });
+      }
+    });
+  }
+}
+
+$(document).ready(function (): void {
+  JsSearchBox();
+
+  function JsSearchBox() {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if ($(".js-searchBox").length) {
+      $(".js-searchBox").each(function (index) {
+        if ($(this).parent().find(".formTextbox").length === 0) {
+          $(this).searchBox({ elementWidth: "250" });
+        }
+      });
+    }
+  }
+});
+
+//end input serach box

@@ -1,0 +1,29 @@
+# Dependency lock file - not needed for isolated ts modules
+package-lock.json
+
+# Build output
+dist/
+
+# Node modules
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/

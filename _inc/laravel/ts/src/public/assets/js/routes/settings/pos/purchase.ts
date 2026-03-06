@@ -1,0 +1,249 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/settings/pos/purchase.js
+ * @generated from original JavaScript - manual review recommended
+ * @module purchase
+ */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-template-expressions */
+
+/* global bootstrap, $, jQuery */
+((): void => {
+  const errFb = "# ERROR";
+  const dataClientLocalized = "data-client-localized";
+  const dataGuardMsg = "data-guard-msg";
+  const DATA_LISTENER_ADDED = "data-listener-added";
+  const getMsg = (el, msgKey) => {
+    let msg = errFb;
+    if (
+      el?.getAttribute("data-sv-localized") === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    )
+      msg = el.getAttribute(dataGuardMsg) || errFb;
+    else {
+      let lang = (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+        window.sessionStorage.getItem("erp-np-lang") ??
+        document.documentElement.lang ?? "en"
+      )
+        .toLowerCase()
+        .replace(/_/g, "-");
+      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      const key = msgKey;
+      msg =
+        window.translations?.[lang]?.[key] ||
+        el?.getAttribute(dataGuardMsg) ||
+        window.translations?.en?.[key] ||
+        errFb;
+      if (msg !== errFb) {
+        el?.setAttribute(dataGuardMsg, msg);
+        el?.setAttribute(dataClientLocalized, "true");
+      }
+    }
+    return msg;
+  };
+  const showFeedback = (el, key, ev = "click") => {
+    const text = getMsg(el ?? document.body, key);
+    const hasBs =
+      document.querySelector('link[href*="bootstrap"]') &&
+      window.bootstrap.Toast;
+    if (hasBs) {
+      let toast = document.querySelector<HTMLElement>("#np-error-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "np-error-toast";
+        toast.className = "toast align-items-center text-bg-danger border-0";
+        toast.setAttribute("role", "alert");
+        toast.setAttribute("aria-live", "assertive");
+        toast.setAttribute("aria-atomic", "true");
+        { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = text; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+        document.body.appendChild(toast);
+      }
+      const handler = (): void => { new bootstrap.Toast(toast).show(); };
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (!toast.getAttribute(DATA_LISTENER_ADDED)) {
+        toast.setAttribute(DATA_LISTENER_ADDED, "true");
+        const mo = new MutationObserver((_, o) => {
+          if (!document.body.contains(toast)) {
+            document.removeEventListener(ev, handler);
+            o.disconnect();
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      }
+      document.addEventListener(ev, handler, { once: true });
+    } else {
+      const handler = (): void => { alert(text); };
+      document.addEventListener(ev, handler, { once: true });
+    }
+  };
+  const guardOnce = (el, key, ev = "click") => {
+    if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
+    const handler = (): void => { showFeedback(el, key, ev); };
+    el.addEventListener(ev, handler, { once: true });
+    el.setAttribute(DATA_LISTENER_ADDED, "true");
+    const mo = new MutationObserver((_, o) => {
+      if (!document.body.contains(el)) {
+        el.removeEventListener(ev, handler);
+        o.disconnect();
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  };
+  const routeGuard = (element, alt) => {
+    const url = element?.getAttribute?.("data-url");
+    const href = element?.action ?? element?.href;
+    return (
+      (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
+    );
+  };
+  try {
+    if (typeof $ === "undefined") {
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
+      return;
+    }
+    try {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+      if (window.bootstrap.ScrollSpy) {
+        new bootstrap.ScrollSpy(document.body, {
+          target: "#useradd-sidenav",
+          offset: 300,
+        });
+      } else {
+        guardOnce(document.body, "scrollspy_unavailable", "click");
+      }
+    } catch {
+      guardOnce(document.body, "scrollspy_unavailable", "click");
+    }
+    $(document).on(
+      "change",
+      "select[name='purchase_template'], input[name='purchase_color']",
+      function (): void {
+        try {
+          const template = $("select[name='purchase_template']").val() ?? "";
+          const color = $("input[name='purchase_color']:checked").val() ?? "";
+          const $frame = $("#purchase_frame");
+          const preview = `{{url('/purchase/preview')}}/${template}/${color}`;
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          if (!$frame.length || routeGuard($frame.get(0), preview)) {
+            guardOnce(
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+              $frame.get(0) || document.body,
+              "purchase_preview_unavailable",
+              "click"
+            );
+            return;
+          }
+          $frame.attr("src", preview);
+        } catch {
+          guardOnce(document.body, "purchase_preview_unavailable", "click");
+        }
+      }
+    );
+    ((): void => {
+      const input = document.getElementById("purchase_logo");
+      const img = document.getElementById("purchase_image");
+      if (!input || !img) {
+        guardOnce(document.body, "purchase_logo_unavailable", "click");
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (!input.getAttribute(DATA_LISTENER_ADDED)) {
+        input.addEventListener(
+          "change",
+          (): void => {
+            try {
+              const f = input.files?.[0];
+              if (!f) {
+                return;
+              }
+              const src = URL.createObjectURL(f);
+              img.src = src;
+            } catch {
+              guardOnce(input, "purchase_logo_unavailable", "click");
+            }
+          },
+          { once: false }
+        );
+        input.setAttribute(DATA_LISTENER_ADDED, "true");
+        const mo = new MutationObserver((_, o) => {
+          if (!document.body.contains(input)) {
+            input.removeEventListener("change", (): void => {});
+            o.disconnect();
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      }
+    })();
+    $(document).on(
+      "change",
+      "select[name='pos_template'], input[name='pos_color']",
+      function (): void {
+        try {
+          const template = $("select[name='pos_template']").val() ?? "";
+          const color = $("input[name='pos_color']:checked").val() ?? "";
+          const $frame = $("#pos_frame");
+          const preview = `{{url('/pos/preview')}}/${template}/${color}`;
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          if (!$frame.length || routeGuard($frame.get(0), preview)) {
+            guardOnce(
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+              $frame.get(0) || document.body,
+              "pos_preview_unavailable",
+              "click"
+            );
+            return;
+          }
+          $frame.attr("src", preview);
+        } catch {
+          guardOnce(document.body, "pos_preview_unavailable", "click");
+        }
+      }
+    );
+    ((): void => {
+      const input = document.getElementById("pos_logo");
+      const img = document.getElementById("pos_image");
+      if (!input || !img) {
+        guardOnce(document.body, "pos_logo_unavailable", "click");
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (!input.getAttribute(DATA_LISTENER_ADDED)) {
+        input.addEventListener(
+          "change",
+          (): void => {
+            try {
+              const f = input.files?.[0];
+              if (!f) {
+                return;
+              }
+              const src = URL.createObjectURL(f);
+              img.src = src;
+            } catch {
+              guardOnce(input, "pos_logo_unavailable", "click");
+            }
+          },
+          { once: false }
+        );
+        input.setAttribute(DATA_LISTENER_ADDED, "true");
+        const mo = new MutationObserver((_, o) => {
+          if (!document.body.contains(input)) {
+            input.removeEventListener("change", (): void => {});
+            o.disconnect();
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      }
+    })();
+  } catch (e) {
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
+  }
+})();
+
+export {};

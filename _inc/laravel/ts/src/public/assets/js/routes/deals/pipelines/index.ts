@@ -1,0 +1,122 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/deals/pipelines/index.js
+ * @generated from original JavaScript - manual review recommended
+ * @module index
+ */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+
+/* global bootstrap */
+((): void => {
+  const ERR_FB = "# ERROR";
+  const FL_CLIENT = "data-client-localized";
+  const FL_GUARD = "data-guard-msg";
+  const LANG_KEY = "erp-np-lang";
+  let errorMessage = "";
+
+  const getMsg = (key, el) => {
+    let msg = ERR_FB;
+    if (el.getAttribute(FL_CLIENT) === "true") {
+      msg = el.getAttribute(FL_GUARD) || msg;
+    } else {
+      let lang = (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+        sessionStorage.getItem(LANG_KEY) ??
+        document.documentElement.lang ?? "en"
+      )
+        .toLowerCase()
+        .replace(/_/g, "-");
+      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      msg =
+        translations?.[lang]?.[key] ??
+        el.getAttribute(FL_GUARD) ??
+        translations?.en?.[key] ??
+        msg;
+      if (msg !== ERR_FB) {
+        el.setAttribute(FL_GUARD, msg);
+        el.setAttribute(FL_CLIENT, "true");
+      }
+    }
+    return msg;
+  };
+
+  const showError = message => {
+    try {
+      let c = document.getElementById("toast-container");
+      if (!c) {
+        c = document.createElement("div");
+        c.id = "toast-container";
+        document.body.appendChild(c);
+      }
+      const bs =
+        !!document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (bs) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.setAttribute("role", "alert");
+        t.setAttribute("aria-live", "assertive");
+        t.setAttribute("aria-atomic", "true");
+        const b = document.createElement("div");
+        b.className = "toast-body";
+        b.textContent = message;
+        t.appendChild(b);
+        c.appendChild(t);
+        bootstrap.Toast.getOrCreateInstance(t).show();
+      } else {
+        alert(message);
+      }
+    } catch {
+      alert(message);
+    }
+  };
+
+  const onUp = (): void => {
+    if (errorMessage !== "") {
+      showError(errorMessage);
+      errorMessage = "";
+    }
+  };
+  document.addEventListener("pointerup", onUp);
+  new MutationObserver((m, obs) => {
+    m.forEach(mut =>
+      { Array.from(mut.removedNodes).forEach(n => {
+        if (n === document.documentElement) {
+          document.removeEventListener("pointerup", onUp);
+          obs.disconnect();
+        }
+      }); }
+    );
+  }).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("DOMContentLoaded", (): void => {
+    const sel = document.querySelector<HTMLElement>(".change-pipeline select[name=default_pipeline_id]");
+    if (!sel) return;
+    if (sel.dataset.listenerAttached === "true") return;
+    sel.dataset.listenerAttached = "true";
+
+    const handler = (): void => {
+      try {
+        const form = document.getElementById("change-pipeline");
+        if (!form) throw new Error("pipeline_change_failed");
+        form.submit();
+      } catch (e) {
+        errorMessage = getMsg("pipeline_change_failed", sel);
+      }
+    };
+
+    sel.addEventListener("change", handler);
+    new MutationObserver((m, obs) => {
+      m.forEach(mut =>
+        { Array.from(mut.removedNodes).forEach(n => {
+          if (n === sel) {
+            sel.removeEventListener("change", handler);
+            obs.disconnect();
+          }
+        }); }
+      );
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+})();
+
+export {};

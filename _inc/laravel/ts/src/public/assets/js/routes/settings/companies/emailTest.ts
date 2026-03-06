@@ -1,0 +1,47 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/emailTest.js
+ * @generated from original JavaScript - manual review recommended
+ * @module emailTest
+ */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+
+/* global bootstrap */
+((): void => {
+  const btn = document.getElementById("send-test-mail-btn");
+  if (!btn || btn.getAttribute("data-listener-active") === "true") return;
+  btn.setAttribute("data-listener-active", "true");
+  btn.addEventListener("click", e => {
+    try {
+      const url = btn.getAttribute("data-url") ?? "#";
+      if (url !== "#") return;
+      e.preventDefault();
+      const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
+      const hasBootstrap =
+        document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+      let container = document.getElementById("toast-container");
+      if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        document.body.appendChild(container);
+      }
+      if (hasBootstrap) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.setAttribute("role", "alert");
+        toast.setAttribute("aria-live", "assertive");
+        toast.setAttribute("aria-atomic", "true");
+        const body = document.createElement("div");
+        body.className = "toast-body";
+        body.textContent = msg;
+        toast.appendChild(body);
+        container.appendChild(toast);
+        bootstrap.Toast.getOrCreateInstance(toast).show();
+      } else {
+        alert(msg);
+      }
+      btn.setAttribute("data-failed-route", "true");
+    } catch (err) {}
+  });
+})();
+
+export {};

@@ -1,0 +1,150 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/attendances/picker.js
+ * @generated from original JavaScript - manual review recommended
+ * @module picker
+ */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
+
+/* global bootstrap, $, jQuery */
+((): void => {
+  const BS_LINK = 'link[href*="bootstrap"]';
+  const DATE_PICKER_CLASS = ".daterangepicker";
+  const DATE_PICKER_ATTR = "data-datepicker";
+  const translations = {
+    ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },
+    da: { datepicker_unavailable: "Kunne ikke initialisere datovælger" },
+    de: {
+      datepicker_unavailable: "Datumauswahl konnte nicht initialisiert werden",
+    },
+    en: { datepicker_unavailable: "Failed to initialize date picker" },
+    es: { datepicker_unavailable: "Error al inicializar el selector de fecha" },
+    fr: {
+      datepicker_unavailable: "Échec de l'initialisation du sélecteur de date",
+    },
+    he: { datepicker_unavailable: "נכשל באתחול בורר התאריכים" },
+    it: {
+      datepicker_unavailable: "Impossibile inizializzare il selettore di data",
+    },
+    ja: { datepicker_unavailable: "日付ピッカーの初期化に失敗しました" },
+    nl: { datepicker_unavailable: "Initialiseren van datumkiezer mislukt" },
+    pl: { datepicker_unavailable: "Nie udało się zainicjować selektora daty" },
+    pt: { datepicker_unavailable: "Falha ao inicializar o seletor de data" },
+    "pt-br": {
+      datepicker_unavailable: "Falha ao inicializar o seletor de data",
+    },
+    ru: { datepicker_unavailable: "Не удалось инициализировать выбор даты" },
+    tr: { datepicker_unavailable: "Tarih seçici başlatılamadı" },
+    zh: { datepicker_unavailable: "无法初始化日期选择器" },
+  };
+
+  const toastContainer = ((): void => {
+    const existing = document.querySelector<HTMLElement>(".toast-container");
+    if (existing) return existing;
+    const container = document.createElement("div");
+    container.className = "toast-container position-fixed bottom-0 end-0 p-3";
+    document.body.append(container);
+    return container;
+  })();
+
+  const showError = (key, el = null) => {
+    const errFb = "# ERROR";
+    const dataClientLocalized = "data-client-localized";
+    const dataGuardMsg = "data-guard-msg";
+    let msg = errFb;
+    if (
+      el?.getAttribute("data-sv-localized") === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    )
+      msg = el.getAttribute(dataGuardMsg) || errFb;
+    else {
+      let lang = (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+        window.sessionStorage.getItem("erp-np-lang") ??
+        document.documentElement.lang ?? "en"
+      )
+        .toLowerCase()
+        .replace(/_/g, "-");
+      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      const msgKey = key;
+      msg =
+        window.translations?.[lang]?.[msgKey] ||
+        el?.getAttribute(dataGuardMsg) ||
+        window.translations?.en?.[msgKey] ||
+        errFb;
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+      if (msg !== errFb && el) {
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
+      }
+    }
+    const bs = document.querySelector(BS_LINK);
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+    if (bs && window.bootstrap.Toast) {
+      const toast = document.createElement("div");
+      toast.className = "toast align-items-center text-bg-danger border-0";
+      toast.setAttribute("role", "alert");
+      toast.setAttribute("aria-live", "assertive");
+      toast.setAttribute("aria-atomic", "true");
+      {
+        toast.replaceChildren();
+        const _d = document.createElement("div");
+        _d.className = "d-flex";
+        const _b = document.createElement("div");
+        _b.className = "toast-body";
+        _b.textContent = msg;
+        const _c = document.createElement("button");
+        _c.type = "button";
+        _c.className = "btn-close btn-close-white me-2 m-auto";
+        _c.dataset.bsDismiss = "toast";
+        _c.setAttribute("aria-label", "Close");
+        _d.append(_b, _c);
+        toast.append(_d);
+      }
+      toastContainer.append(toast);
+      new window.bootstrap.Toast(toast).show();
+    } else {
+      alert(msg);
+    }
+  };
+
+  const handleDatePickerClick = el => {
+    try {
+      if (typeof $ !== "function") throw new Error("jQuery not loaded");
+      if (typeof $(el).daterangepicker !== "function")
+        throw new Error("daterangepicker plugin not available");
+      $(el).daterangepicker({
+        format: "yyyy-mm-dd",
+        locale: { format: "YYYY-MM-DD" },
+      });
+    } catch (err) {
+      showError("datepicker_unavailable");
+    }
+  };
+
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.removedNodes.forEach(node => {
+        if (node.nodeType === 1 && node.matches(DATE_PICKER_CLASS)) {
+          node.removeEventListener("click", handleDatePickerClick);
+        }
+      });
+    });
+  });
+
+  try {
+    const pickers = document.querySelectorAll(DATE_PICKER_CLASS);
+    if (pickers.length === 0) return;
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    pickers.forEach((el: Element): void => {
+      if (el.getAttribute(DATE_PICKER_ATTR) === "true") return;
+      el.setAttribute(DATE_PICKER_ATTR, "true");
+      el.addEventListener("click", (): void => { handleDatePickerClick(el); });
+    });
+  } catch (err) {
+    showError("datepicker_unavailable");
+  }
+})();
+
+export {};
