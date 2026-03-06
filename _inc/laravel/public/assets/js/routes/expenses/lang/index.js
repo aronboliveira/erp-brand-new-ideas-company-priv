@@ -27,6 +27,46 @@
       url_copy_success: "URL copiée dans le presse-papiers.",
       url_copy_failed: "Échec de la copie de l’URL.",
     },
+    he: {
+      url_copy_success: "הכתובת הועתקה ללוח.",
+      url_copy_failed: "העתקת הכתובת נכשלה.",
+    },
+    it: {
+      url_copy_success: "URL copiata negli appunti.",
+      url_copy_failed: "Impossibile copiare l’URL.",
+    },
+    ja: {
+      url_copy_success: "URL をクリップボードにコピーしました。",
+      url_copy_failed: "URL のコピーに失敗しました。",
+    },
+    nl: {
+      url_copy_success: "URL gekopieerd naar klembord.",
+      url_copy_failed: "Kon URL niet kopiëren.",
+    },
+    pl: {
+      url_copy_success: "URL skopiowany do schowka.",
+      url_copy_failed: "Nie udało się skopiować URL.",
+    },
+    pt: {
+      url_copy_success: "URL copiada para a área de transferência.",
+      url_copy_failed: "Falha ao copiar a URL.",
+    },
+    "pt-br": {
+      url_copy_success: "URL copiada para a área de transferência.",
+      url_copy_failed: "Falha ao copiar a URL.",
+    },
+    ru: {
+      url_copy_success: "URL скопирован в буфер обмена.",
+      url_copy_failed: "Не удалось скопировать URL.",
+    },
+    tr: {
+      url_copy_success: "URL panoya kopyalandı.",
+      url_copy_failed: "URL kopyalanamadı.",
+    },
+    zh: {
+      url_copy_success: "URL 已复制到剪贴板。",
+      url_copy_failed: "无法复制 URL。",
+    },
   };
   Object.keys(t).forEach(
     k =>

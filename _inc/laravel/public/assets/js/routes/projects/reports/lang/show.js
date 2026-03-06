@@ -192,6 +192,9 @@ const t2 = {
 };
 
 const allTranslations = [t1, t2];
+if (!window.translations) {
+  window.translations = {};
+}
 allTranslations.forEach(tObj => {
   Object.keys(tObj).forEach(lang => {
     if (window.translations[lang]) {

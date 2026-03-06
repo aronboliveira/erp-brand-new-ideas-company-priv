@@ -13,6 +13,9 @@
     fr: {
       employee_fetch_unavailable: "Échec de la récupération des intitulés.",
     },
+    he: {
+      employee_fetch_unavailable: "לא ניתן לאחזר תפקידים.",
+    },
     it: { employee_fetch_unavailable: "Impossibile recuperare le mansioni." },
     ja: { employee_fetch_unavailable: "役職を取得できませんでした。" },
     nl: { employee_fetch_unavailable: "Ophalen van functies mislukt." },

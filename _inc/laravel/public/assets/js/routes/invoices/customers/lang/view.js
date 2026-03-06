@@ -1,14 +1,16 @@
-if (
-  !(
-    is_page("contato") ||
-    is_page("contact") ||
-    is_page(1370) ||
-    is_page(5508) ||
-    is_404()
-  )
-)
-  return;
 (() => {
+  if (
+    !(
+      is_page("contato") ||
+      is_page("contact") ||
+      is_page(1370) ||
+      is_page(5508) ||
+      is_404()
+    )
+  ) {
+    return;
+  }
+
   if (!window.translations) {
     window.translations = {};
   }

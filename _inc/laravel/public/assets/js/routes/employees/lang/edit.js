@@ -27,6 +27,10 @@
       file_name_append_failed: "Impossible d’afficher le nom du fichier.",
       designation_fetch_failed: "Échec de la récupération des intitulés.",
     },
+    he: {
+      file_name_append_failed: "לא ניתן להציג את שם הקובץ.",
+      designation_fetch_failed: "לא ניתן לאחזר תפקידים.",
+    },
     it: {
       file_name_append_failed: "Impossibile mostrare il nome del file.",
       designation_fetch_failed: "Impossibile recuperare le mansioni.",

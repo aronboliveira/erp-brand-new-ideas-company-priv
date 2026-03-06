@@ -17,6 +17,7 @@
       date_picker_init_failed:
         "Échec de l’initialisation du sélecteur de date.",
     },
+    he: { date_picker_init_failed: "אתחול בוחר התאריך נכשל." },
     it: {
       date_picker_init_failed: "Impossibile inizializzare il selettore data.",
     },
