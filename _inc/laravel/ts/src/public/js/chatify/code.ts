@@ -4,23 +4,22 @@
  * @module code
  */
 
-/* global bootstrap, $, jQuery */
 /**
  *-------------------------------------------------------------
  * Global variables
  *-------------------------------------------------------------
  */
-let messenger = "0",
-  auth_id = $("meta[name=url]").attr("data-user"),
-  route = $("meta[name=route]").attr("content"),
-  url = $("meta[name=url]").attr("content"),
-  access_token = $('meta[name="csrf-token"]').attr("content"),
-  typingTimeout: ReturnType<typeof setTimeout> | undefined,
-  typingNow = 0,
-  temporaryMsgId = 0,
-  defaultAvatarInSettings: string | null = null,
-  messengerColor: string | undefined,
-  dark_mode: string | number | boolean | undefined;
+let messenger = "0";
+const auth_id = $("meta[name=url]").attr("data-user");
+const _route = $("meta[name=route]").attr("content");
+const url = $("meta[name=url]").attr("content");
+const access_token = $('meta[name="csrf-token"]').attr("content");
+let typingTimeout: ReturnType<typeof setTimeout> | undefined;
+let typingNow = 0;
+let temporaryMsgId = 0;
+let defaultAvatarInSettings: string | null = null;
+let messengerColor: string | undefined;
+let dark_mode: string | number | boolean | undefined;
 const messagesContainer = $(".messenger-messagingView .m-body"),
   messengerTitleDefault = $(".messenger-headTitle").text(),
   messageInput = $("#message-form .m-send");
@@ -33,16 +32,9 @@ const messagesContainer = $(".messenger-messagingView .m-body"),
  *-------------------------------------------------------------
  */
 // Loading svg
-function loadingSVG(w_h = "25px", className: string | null = null) {
-  return (
-    `
-    <svg class="loadingSVG ` +
-    className +
-    `" xmlns="http://www.w3.org/2000/svg" width="` +
-    w_h +
-    `" height="` +
-    w_h +
-    `" viewBox="0 0 40 40" stroke="#2196f3">
+function loadingSVG(w_h = "25px", className: string | null = null): string {
+  return `
+    <svg class="loadingSVG ${String(className ?? "")}" xmlns="http://www.w3.org/2000/svg" width="${w_h}" height="${w_h}" viewBox="0 0 40 40" stroke="#2196f3">
       <g fill="none" fill-rule="evenodd">
         <g transform="translate(2 2)" stroke-width="3">
           <circle stroke-opacity=".1" cx="18" cy="18" r="18"></circle>
@@ -52,12 +44,11 @@ function loadingSVG(w_h = "25px", className: string | null = null) {
         </g>
       </g>
     </svg>
-    `
-  );
+    `;
 }
 
 // loading placeholder for users list item
-function listItemLoading(items: number) {
+function listItemLoading(items: number): string {
   let template = "";
   for (let i = 0; i < items; i++) {
     template += `
@@ -82,7 +73,7 @@ function listItemLoading(items: number) {
 }
 
 // loading placeholder for avatars
-function avatarLoading(items: number) {
+function avatarLoading(items: number): string {
   let template = "";
   for (let i = 0; i < items; i++) {
     template += `
@@ -105,18 +96,12 @@ function avatarLoading(items: number) {
 }
 
 // While sending a message, show this temporary message card.
-function sendigCard(message: string, id: string | number) {
-  return (
-    `
-    <div class="message-card mc-sender" data-id="` +
-    id +
-    `">
-        <p>` +
-    message +
-    `<sub><span class="far fa-clock"></span></sub></p>
+function sendigCard(message: string, id: string | number): string {
+  return `
+    <div class="message-card mc-sender" data-id="${id}">
+        <p>${message}<sub><span class="far fa-clock"></span></sub></p>
     </div>
-    `
-  );
+    `;
 }
 
 // upload image preview card.
@@ -124,37 +109,27 @@ function attachmentTemplate(
   fileType: string,
   fileName: string,
   imgURL: string | null = null,
-) {
+): string {
   if (fileType != "image") {
-    return (
-      `
+    return `
         <div class="attachment-preview">
             <span class="fas fa-times cancel"></span>
-            <p style="padding:0px 30px;"><span class="fas fa-file"></span> ` +
-      fileName +
-      `</p>
+            <p style="padding:0px 30px;"><span class="fas fa-file"></span> ${fileName}</p>
         </div>
-        `
-    );
+        `;
   } else {
-    return (
-      `
+    return `
         <div class="attachment-preview">
             <span class="fas fa-times cancel"></span>
-            <div class="image-file chat-image" style="background-image: url('` +
-      imgURL +
-      `');"></div>
-            <p><span class="fas fa-file-image"></span> ` +
-      fileName +
-      `</p>
+            <div class="image-file chat-image" style="background-image: url('${String(imgURL)}');"></div>
+            <p><span class="fas fa-file-image"></span> ${fileName}</p>
         </div>
-        `
-    );
+        `;
   }
 }
 
 // Active Status Circle
-function activeStatusCircle() {
+function activeStatusCircle(): string {
   return `<span class="activeStatus"></span>`;
 }
 
@@ -167,23 +142,13 @@ $(window as unknown as Element).on("resize", function (): void {
   cssMediaQueries();
 });
 
-function cssMediaQueries() {
+function cssMediaQueries(): void {
   if (window.matchMedia("(min-width: 980px)").matches) {
     $(".messenger-listView").removeAttr("style");
   }
-  if (window.matchMedia("(max-width: 980px)").matches) {
-    $("body")
-      .find(".messenger-list-item")
-      .find("tr[data-action]")
-      .attr("data-action", "1");
-    $("body").find(".favorite-list-item").find("div").attr("data-action", "1");
-  } else {
-    $("body")
-      .find(".messenger-list-item")
-      .find("tr[data-action]")
-      .attr("data-action", "0");
-    $("body").find(".favorite-list-item").find("div").attr("data-action", "0");
-  }
+  const actionVal = window.matchMedia("(max-width: 980px)").matches ? "1" : "0";
+  $("body").find(".messenger-list-item").find("tr[data-action]").attr("data-action", actionVal);
+  $("body").find(".favorite-list-item").find("div").attr("data-action", actionVal);
 }
 
 /**
@@ -207,35 +172,22 @@ const app_modal = function ({
   buttons = true,
   header = null,
   body = null,
-}: AppModalOptions) {
-  const modal = $(".app-modal[data-name=" + name + "]");
-  // header
-  header ? modal.find(".app-modal-header").html(header) : "";
-
-  // body
-  body ? modal.find(".app-modal-body").html(body) : "";
-
-  // buttons
+}: AppModalOptions): void {
+  const modal = $(`.app-modal[data-name=${name}]`),
+    modalCard = $(`.app-modal-card[data-name=${name}]`);
+  if (header) modal.find(".app-modal-header").html(header);
+  if (body) modal.find(".app-modal-body").html(body);
   buttons
     ? modal.find(".app-modal-footer").show()
     : modal.find(".app-modal-footer").hide();
-
-  // show / hide
   if (show) {
     modal.show();
-    $(".app-modal-card[data-name=" + name + "]").addClass("app-show-modal");
-    $(".app-modal-card[data-name=" + name + "]").attr(
-      "data-modal",
-      (data as string | number | null) ?? null,
-    );
+    modalCard.addClass("app-show-modal");
   } else {
     modal.hide();
-    $(".app-modal-card[data-name=" + name + "]").removeClass("app-show-modal");
-    $(".app-modal-card[data-name=" + name + "]").attr(
-      "data-modal",
-      (data as string | number | null) ?? null,
-    );
+    modalCard.removeClass("app-show-modal");
   }
+  modalCard.attr("data-modal", (data as string | number | null) ?? null);
 };
 
 /**
@@ -243,10 +195,10 @@ const app_modal = function ({
  * Slide to bottom on [action] - e.g. [message received, sent, loaded]
  *-------------------------------------------------------------
  */
-function scrollBottom(container: HTMLElement | JQuery<HTMLElement>) {
+function scrollBottom(container: HTMLElement | JQuery<HTMLElement>): void {
   const jqContainer =
     container instanceof HTMLElement ? $(container) : container;
-  if (jqContainer[0] !== undefined && jqContainer[0] !== null) {
+  if (jqContainer.length > 0) {
     jqContainer.stop().animate({
       scrollTop: jqContainer[0].scrollHeight,
     });
@@ -258,32 +210,28 @@ function scrollBottom(container: HTMLElement | JQuery<HTMLElement>) {
  * click and drag to scroll - function
  *-------------------------------------------------------------
  */
-function hScroller(scroller: string) {
+function hScroller(scroller: string): void {
   const slider = document.querySelector<HTMLElement>(scroller);
-  let isDown = false;
-  let startX = 0;
-  let scrollLeft = 0;
-
-  if (slider != null) {
-    slider.addEventListener("mousedown", (e: MouseEvent) => {
+  if (!slider || slider.dataset.hscrollerBound) return;
+  slider.dataset.hscrollerBound = "1";
+  let isDown = false,
+    startX = 0,
+    scrollLeft = 0;
+  for (const [evt, fn] of Object.entries({
+    mousedown: (e: MouseEvent): void => {
       isDown = true;
       startX = e.pageX - slider.offsetLeft;
       scrollLeft = slider.scrollLeft;
-    });
-    slider.addEventListener("mouseleave", (): void => {
-      isDown = false;
-    });
-    slider.addEventListener("mouseup", (): void => {
-      isDown = false;
-    });
-    slider.addEventListener("mousemove", (e: MouseEvent) => {
+    },
+    mouseleave: (): void => { isDown = false; },
+    mouseup: (): void => { isDown = false; },
+    mousemove: (e: MouseEvent): void => {
       if (!isDown) return;
       e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 1;
-      slider.scrollLeft = scrollLeft - walk;
-    });
-  }
+      slider.scrollLeft = scrollLeft - (e.pageX - slider.offsetLeft - startX);
+    },
+  }))
+    slider.addEventListener(evt, fn as EventListener);
 }
 
 /**
@@ -294,7 +242,7 @@ function hScroller(scroller: string) {
  * Default : true
  *-------------------------------------------------------------
  */
-function disableOnLoad(action = true) {
+function disableOnLoad(action = true): void {
   if (action) {
     // hide star button
     $(".add-to-favorite").hide();
@@ -327,16 +275,14 @@ function disableOnLoad(action = true) {
  * Error message card
  *-------------------------------------------------------------
  */
-function errorMessageCard(id: string | number) {
+function errorMessageCard(id: string | number): void {
+  messagesContainer.find(`.message-card[data-id=${id}]`).addClass("mc-error");
   messagesContainer
-    .find(".message-card[data-id=" + id + "]")
-    .addClass("mc-error");
-  messagesContainer
-    .find(".message-card[data-id=" + id + "]")
+    .find(`.message-card[data-id=${id}]`)
     .find("svg.loadingSVG")
     .remove();
   messagesContainer
-    .find(".message-card[data-id=" + id + "] p")
+    .find(`.message-card[data-id=${id}] p`)
     .prepend('<span class="fas fa-exclamation-triangle"></span>');
 }
 
@@ -345,7 +291,7 @@ function errorMessageCard(id: string | number) {
  * Fetch id data (user/group) and update the view
  *-------------------------------------------------------------
  */
-function IDinfo(id: string | number, type: string) {
+function IDinfo(id: string | number, type: string): void {
   // clear temporary message id
   temporaryMsgId = 0;
   // clear typing now
@@ -368,10 +314,10 @@ function IDinfo(id: string | number, type: string) {
         // avatar photo
         $(".messenger-infoView")
           .find(".avatar")
-          .css("background-image", 'url("' + data.user_avatar + '")');
+          .css("background-image", `url("${String(data.user_avatar)}")`);
         $(".header-avatar").css(
           "background-image",
-          'url("' + data.user_avatar + '")',
+          `url("${String(data.user_avatar)}")`,
         );
         // Show shared and actions
         $(".messenger-infoView-btns .delete-conversation").show();
@@ -421,14 +367,14 @@ function IDinfo(id: string | number, type: string) {
  * Send message function
  *-------------------------------------------------------------
  */
-function sendMessage() {
+function sendMessage(): void {
   temporaryMsgId += 1;
-  const tempID = "temp_" + temporaryMsgId;
-  const hasFile = $(".upload-attachment").val() ? true : false;
+  const tempID = `temp_${temporaryMsgId}`;
+  const hasFile = Boolean($(".upload-attachment").val());
   const messageVal = String(messageInput.val() ?? "").trim();
   if (messageVal.length > 0 || hasFile) {
     const formEl = $("#message-form")[0] as HTMLFormElement | undefined;
-    if (!formEl) return false;
+    if (!formEl) return;
     const formData = new FormData(formEl);
     const messengerStr = String(messenger);
     formData.append("id", messengerStr.split("_")[1] ?? "");
@@ -451,7 +397,7 @@ function sendMessage() {
               .find(".messages")
               .append(
                 sendigCard(
-                  messageInput.val() + "\n" + loadingSVG("28px"),
+                  `${String(messageInput.val())}\n${loadingSVG("28px")}`,
                   tempID,
                 ),
               )
@@ -478,11 +424,11 @@ function sendMessage() {
           messagesContainer.find('.mc-sender[data-id="sending"]').remove();
           // get message before the sending one [temporary]
           messagesContainer
-            .find(".message-card[data-id=" + data.tempID + "]")
+            .find(`.message-card[data-id=${String(data.tempID)}]`)
             .before(data.message as string);
           // delete the temporary one
           messagesContainer
-            .find(".message-card[data-id=" + data.tempID + "]")
+            .find(`.message-card[data-id=${String(data.tempID)}]`)
             .remove();
           // scroll to bottom
           scrollBottom(messagesContainer);
@@ -498,7 +444,7 @@ function sendMessage() {
       },
     });
   }
-  return false;
+  return;
 }
 
 /**
@@ -506,7 +452,7 @@ function sendMessage() {
  * Fetch messages from database
  *-------------------------------------------------------------
  */
-function fetchMessages(id: string | number, type: string) {
+function fetchMessages(id: string | number, type: string): void {
   if (messenger !== "0") {
     $.ajax({
       url: url + "/fetchMessages",
@@ -552,7 +498,7 @@ function fetchMessages(id: string | number, type: string) {
  * Cancel file attached in the message.
  *-------------------------------------------------------------
  */
-function cancelAttachment() {
+function cancelAttachment(): void {
   $(".messenger-sendCard").find(".attachment-preview").remove();
   $(".upload-attachment").replaceWith(
     $(".upload-attachment").val("").clone(true),
@@ -564,7 +510,7 @@ function cancelAttachment() {
  * Cancel updating avatar in settings
  *-------------------------------------------------------------
  */
-function cancelUpdatingAvatar() {
+function cancelUpdatingAvatar(): void {
   $(".upload-avatar-preview").css(
     "background-image",
     defaultAvatarInSettings ?? "",
@@ -607,7 +553,7 @@ if (channel && typeof channel.bind === "function") {
       // trigger seen event
       makeSeen(true);
       // remove unseen counter for the user from the contacts list
-      $(".messenger-list-item[data-contact=" + messenger.split("_")[1] + "]")
+      $(`.messenger-list-item[data-contact=${messenger.split("_")[1]}]`)
         .find("tr>td>b")
         .remove();
     }
@@ -658,12 +604,9 @@ if (activeStatusChannel && typeof activeStatusChannel.bind === "function") {
     "pusher:member_added",
     function (member: { id: string }) {
       setActiveStatus(true, member.id);
-      $(".messenger-list-item[data-contact=" + member.id + "]")
-        .find(".activeStatus")
-        .remove();
-      $(".messenger-list-item[data-contact=" + member.id + "]")
-        .find(".avatar")
-        .before(activeStatusCircle());
+      const $memberItem = $(`.messenger-list-item[data-contact=${member.id}]`);
+      $memberItem.find(".activeStatus").remove();
+      $memberItem.find(".avatar").before(activeStatusCircle());
     },
   );
 
@@ -672,7 +615,7 @@ if (activeStatusChannel && typeof activeStatusChannel.bind === "function") {
     "pusher:member_removed",
     function (member: { id: string }) {
       setActiveStatus(false, member.id);
-      $(".messenger-list-item[data-contact=" + member.id + "]")
+      $(`.messenger-list-item[data-contact=${member.id}]`)
         .find(".activeStatus")
         .remove();
     },
@@ -685,7 +628,7 @@ if (activeStatusChannel && typeof activeStatusChannel.bind === "function") {
  * Trigger typing event
  *-------------------------------------------------------------
  */
-function isTyping(status: boolean) {
+function isTyping(status: boolean): void {
   return channel?.trigger("client-typing", {
     from_id: auth_id, // Me
     to_id: messenger.split("_")[1], // Messenger
@@ -698,25 +641,25 @@ function isTyping(status: boolean) {
  * Trigger seen event
  *-------------------------------------------------------------
  */
-function makeSeen(status: boolean) {
+function makeSeen(status: boolean): void {
+  const mId = messenger.split("_")[1];
   // remove unseen counter for the user from the contacts list
-  $(".messenger-list-item[data-contact=" + messenger.split("_")[1] + "]")
+  $(`.messenger-list-item[data-contact=${mId}]`)
     .find("tr>td>b")
     .remove();
   // seen
   $.ajax({
     url: url + "/makeSeen",
     method: "POST",
-    data: { _token: access_token, id: messenger.split("_")[1] },
+    data: { _token: access_token, id: mId },
     dataType: "JSON",
     success: (data: Record<string, unknown>) => {
       $(".custom_messanger_counter").text(data.messengerCount as string);
-      // console.log('[seen] Messages seen - ' + messenger.split('_')[1]);
     },
   });
   return channel?.trigger("client-seen", {
     from_id: auth_id, // Me
-    to_id: messenger.split("_")[1], // Messenger
+    to_id: mId, // Messenger
     seen: status,
   });
 }
@@ -726,7 +669,7 @@ function makeSeen(status: boolean) {
  * Trigger contact item updates
  *-------------------------------------------------------------
  */
-function sendContactItemUpdates(status: boolean) {
+function sendContactItemUpdates(status: boolean): void {
   return channel?.trigger("client-contactItem", {
     update_for: messenger.split("_")[1], // Messenger
     update_to: auth_id, // Me
@@ -739,7 +682,7 @@ function sendContactItemUpdates(status: boolean) {
  * Check internet connection using pusher states
  *-------------------------------------------------------------
  */
-function checkInternet(state: string, selector: JQuery<HTMLElement>) {
+function checkInternet(state: string, selector: JQuery<HTMLElement>): void {
   let net_errs = 0;
   const messengerTitle = $(".messenger-headTitle");
   switch (state) {
@@ -783,7 +726,7 @@ function checkInternet(state: string, selector: JQuery<HTMLElement>) {
  * Get contacts
  *-------------------------------------------------------------
  */
-function getContacts() {
+function getContacts(): void {
   $(".listOfContacts").html(listItemLoading(4));
   $.ajax({
     url: url + "/getContacts",
@@ -791,10 +734,7 @@ function getContacts() {
     data: { _token: access_token, messenger_id: messenger.split("_")[1] },
     dataType: "JSON",
     success: (data: Record<string, unknown>) => {
-      $(".listOfContacts").html("");
       $(".listOfContacts").html(data.contacts as string);
-
-      $(".all_members").html("");
       $(".all_members").html(data.allUsers as string);
       // update data-action required with [responsive design]
       cssMediaQueries();
@@ -822,11 +762,11 @@ function getContacts() {
  * Update contact item
  *-------------------------------------------------------------
  */
-function updateContatctItem(user_id: string) {
+function updateContatctItem(user_id: string): void {
   if (user_id != auth_id) {
     const listItem = $("body")
       .find(".listOfContacts")
-      .find(".messenger-list-item[data-contact=" + user_id + "]");
+      .find(`.messenger-list-item[data-contact=${user_id}]`);
     $.ajax({
       url: url + "/updateContacts",
       method: "POST",
@@ -868,7 +808,7 @@ function updateContatctItem(user_id: string) {
  *-------------------------------------------------------------
  */
 
-function star(user_id: string) {
+function star(user_id: string): void {
   // console.log(messenger);
   if (messenger.split("_")[1] != auth_id) {
     $.ajax({
@@ -905,7 +845,7 @@ function star(user_id: string) {
  * Get favorite list
  *-------------------------------------------------------------
  */
-function getFavoritesList() {
+function getFavoritesList(): void {
   $(".messenger-favorites").html(avatarLoading(4));
   $.ajax({
     url: url + "/favorites",
@@ -913,7 +853,6 @@ function getFavoritesList() {
     data: { _token: access_token },
     dataType: "JSON",
     success: (data: Record<string, unknown>) => {
-      $(".messenger-favorites").html("");
       $(".messenger-favorites").html(data.favorites as string);
       // update data-action required with [responsive design]
       cssMediaQueries();
@@ -941,7 +880,7 @@ function getFavoritesList() {
  * Get shared photos
  *-------------------------------------------------------------
  */
-function getSharedPhotos(user_id: string) {
+function getSharedPhotos(user_id: string): void {
   $.ajax({
     url: url + "/shared",
     method: "POST",
@@ -973,7 +912,7 @@ function getSharedPhotos(user_id: string) {
  * Search in messenger
  *-------------------------------------------------------------
  */
-function messengerSearch(input: string) {
+function messengerSearch(input: string): void {
   $.ajax({
     url: url + "/search",
     method: "POST",
@@ -1013,7 +952,7 @@ function messengerSearch(input: string) {
  * Delete Conversation
  *-------------------------------------------------------------
  */
-function deleteConversation(id: string | number) {
+function deleteConversation(id: string | number): void {
   $.ajax({
     url: url + "/deleteConversation",
     method: "POST",
@@ -1036,7 +975,7 @@ function deleteConversation(id: string | number) {
     success: (data: Record<string, unknown>) => {
       // delete contact from the list
       $(".listOfContacts")
-        .find(".messenger-list-item[data-contact=" + id + "]")
+        .find(`.messenger-list-item[data-contact=${id}]`)
         .remove();
       // refresh info
       IDinfo(id, messenger.split("_")[0]);
@@ -1069,11 +1008,12 @@ function deleteConversation(id: string | number) {
   });
 }
 
-function updateSettings() {
+function updateSettings(): void {
   const formData = new FormData($("#updateAvatar")[0] as HTMLFormElement);
   if (messengerColor) {
     formData.append("messengerColor", messengerColor);
   }
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (dark_mode) {
     formData.append("dark_mode", String(dark_mode));
   }
@@ -1143,13 +1083,13 @@ function updateSettings() {
  * Set Active status
  *-------------------------------------------------------------
  */
-function setActiveStatus(status: boolean, user_id: string) {
+function setActiveStatus(status: boolean, user_id: string): void {
   $.ajax({
     url: url + "/setActiveStatus",
     method: "POST",
     data: { _token: access_token, user_id: user_id, status: status },
     dataType: "JSON",
-    success: (data: Record<string, unknown>) => {
+    success: (_data: Record<string, unknown>) => {
       // Nothing to do
     },
     error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
@@ -1176,326 +1116,353 @@ function setActiveStatus(status: boolean, user_id: string) {
  *-------------------------------------------------------------
  */
 $(document).ready(function (): void {
-  // get contacts list
-  getContacts();
+  try {
+    // get contacts list
+    getContacts();
 
-  // get contacts list
-  getFavoritesList();
+    // get contacts list
+    getFavoritesList();
 
-  // Clear typing timeout
-  clearTimeout(typingTimeout);
-
-  // NProgress configurations
-  // NProgress.configure({showSpinner: false, minimum: 0.7, speed: 500});
-
-  // make message input autosize.
-  // autosize($('.m-send'));
-
-  // check if pusher has access to the channel [Internet status]
-  const pusher = (
-    window as unknown as {
-      __appPusher?: {
-        connection?: {
-          bind: (
-            event: string,
-            callback: (states: { current: string }) => void,
-          ) => void;
-        };
-      };
-    }
-  ).__appPusher;
-  pusher?.connection?.bind(
-    "state_change",
-    function (states: { current: string }) {
-      const selector = $(".internet-connection");
-      checkInternet(states.current, selector);
-      // listening for pusher:subscription_succeeded
-      channel &&
-        typeof channel.bind === "function" &&
-        channel.bind("pusher:subscription_succeeded", function (): void {
-          // On connection state change [Updating] and get [info & msgs]
-          IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
-        });
-    },
-  );
-  if (!pusher?.connection) console.warn("Pusher could not be connected!");
-
-  // tabs on click, show/hide...
-  $(".messenger-listView-tabs a").on("click", function (): void {
-    const dataView = $(this).attr("data-view");
-    $(".messenger-listView-tabs a").removeClass("active-tab");
-    $(this).addClass("active-tab");
-    $(".messenger-tab").hide();
-    $(".messenger-tab[data-view=" + dataView + "]").show();
-  });
-
-  // set item active on click
-  $("body").on("click", ".messenger-list-item", function (): void {
-    $(".messenger-list-item").removeClass("m-list-active");
-    $(this).addClass("m-list-active");
-  });
-
-  // show info side button
-  $(".messenger-infoView nav a , .show-infoSide").on(
-    "click",
-    function (): void {
-      $(".messenger-infoView").toggle();
-    },
-  );
-
-  // x button for info section to show the main button.
-  $(".messenger-infoView nav a").on("click", function (): void {
-    $(".show-infoSide").show();
-  });
-
-  // hide showing button for info section.
-  $(".show-infoSide").on("click", function (): void {
-    $(this).hide();
-  });
-
-  // make favorites card dragable on click to slide.
-  hScroller(".messenger-favorites");
-
-  // click action for list item [user/group]
-  $("body").on("click", ".messenger-list-item", function (): void {
-    if ($(this).find("tr[data-action]").attr("data-action") == "1") {
-      $(".messenger-listView").hide();
-    }
-    messenger = $(this).find("p[data-id]").attr("data-id") ?? "0";
-    IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
-  });
-
-  // click action for favorite button
-  $("body").on("click", ".favorite-list-item", function (): void {
-    if ($(this).find("div").attr("data-action") == "1") {
-      $(".messenger-listView").hide();
-    }
-    messenger = "user_" + $(this).find("div.avatar").attr("data-id");
-    IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
-  });
-
-  // list view buttons
-  $(".listView-x").on("click", function (): void {
-    $(".messenger-listView").hide();
-  });
-  $(".show-listView").on("click", function (): void {
-    $(".messenger-listView").show();
-  });
-
-  // click action for [add to favorite] button.
-  $(".add-to-favorite").on("click", function (): void {
-    star(messenger.split("_")[1]);
-  });
-
-  // calling Css Media Queries
-  cssMediaQueries();
-
-  // message form on submit.
-  $("#message-form").on("submit", (e: Event) => {
-    e.preventDefault();
-    sendMessage();
-  });
-
-  // message input on keyup [Enter to send, Enter+Shift for new line]
-  $("#message-form .m-send").on("keyup", function (e) {
-    const evt = e as unknown as KeyboardEvent;
-    // if enter key pressed.
-    if (evt.which == 13 || evt.keyCode == 13) {
-      // if shift + enter key pressed, do nothing (new line).
-      // if only enter key pressed, send message.
-      if (!evt.shiftKey) {
-        isTyping(false);
-        sendMessage();
-      }
-    }
-  });
-
-  // On [upload attachment] input change, show a preview of the image/file.
-  $("body").on("change", ".upload-attachment", e => {
-    const target = e.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    const sendCard = $(".messenger-sendCard");
-    reader.readAsDataURL(file);
-    reader.addEventListener("loadstart", (e: Event) => {
-      $("#message-form").before(loadingSVG());
-    });
-    reader.addEventListener("load", (e: Event) => {
-      $(".messenger-sendCard").find(".loadingSVG").remove();
-      if (!file.type.match("image.*")) {
-        // if the file not image
-        sendCard.find(".attachment-preview").remove(); // older one
-        sendCard.prepend(attachmentTemplate("file", file.name));
-      } else {
-        // if the file is an image
-        sendCard.find(".attachment-preview").remove(); // older one
-        sendCard.prepend(
-          attachmentTemplate(
-            "image",
-            file.name,
-            (e.target as FileReader).result as string | null,
-          ),
-        );
-      }
-    });
-  });
-
-  // Attachment preview cancel button.
-  $("body").on("click", ".attachment-preview .cancel", e => {
-    cancelAttachment();
-  });
-
-  // typing indicator on [input] keyDown
-  $("#message-form .m-send").on("keydown", (): void => {
-    if (typingNow < 1) {
-      // Trigger typing
-      const triggered = isTyping(true);
-      /*triggered ? console.info('[+] Triggered')
-                : console.error('[+] Not triggered');*/
-      // Typing now
-      typingNow = 1;
-    }
     // Clear typing timeout
     clearTimeout(typingTimeout);
-    // Typing timeout
-    typingTimeout = setTimeout(function (): void {
-      isTyping(false);
-      /*triggered ? console.info('[-] Triggered')
-                : console.error('[-] Not triggered');*/
-      // Clear typing now
-      typingNow = 0;
-    }, 1000);
-  });
 
-  // Image modal
-  $("body").on("click", ".chat-image", function (): void {
-    const src = $(this).css("background-image").split(/"/)[1];
-    $("#imageModalBox").show();
-    $("#imageModalBoxSrc").attr("src", src);
-  });
-  $(".imageModal-close").on("click", function (): void {
-    $("#imageModalBox").hide();
-  });
+    // NProgress configurations
+    // NProgress.configure({showSpinner: false, minimum: 0.7, speed: 500});
 
-  // Search input on focus
-  $(".messenger-search").on("focus", function (): void {
-    $(".messenger-tab").hide();
-    $('.messenger-tab[data-view="search"]').show();
-  });
-  // Search action on keyup
-  $(".messenger-search").on("keyup", function (e: Event) {
-    const val = String($(this).val() ?? "").trim();
-    if (val.length > 0) {
-      $(".messenger-search").trigger("focus");
-      messengerSearch(val);
-    } else {
-      $(".messenger-tab").hide();
-      $('.messenger-listView-tabs a[data-view="users"]').trigger("click");
-    }
-  });
+    // make message input autosize.
+    // autosize($('.m-send'));
 
-  // Delete Conversation button
-  $(".messenger-infoView-btns .delete-conversation").on(
-    "click",
-    function (): void {
-      app_modal({
-        name: "delete",
-      });
-    },
-  );
-  // delete modal [delete button]
-  $(".app-modal[data-name=delete]")
-    .find(".app-modal-footer .delete")
-    .on("click", function (): void {
-      deleteConversation(messenger.split("_")[1]);
-      app_modal({
-        show: false,
-        name: "delete",
-      });
-    });
-  // delete modal [cancel button]
-  $(".app-modal[data-name=delete]")
-    .find(".app-modal-footer .cancel")
-    .on("click", function (): void {
-      app_modal({
-        show: false,
-        name: "delete",
-      });
+    // check if pusher has access to the channel [Internet status]
+    const pusher = (
+      window as unknown as {
+        __appPusher?: {
+          connection?: {
+            bind: (
+              event: string,
+              callback: (states: { current: string }) => void,
+            ) => void;
+          };
+        };
+      }
+    ).__appPusher;
+    pusher?.connection?.bind(
+      "state_change",
+      function (states: { current: string }) {
+        const selector = $(".internet-connection");
+        checkInternet(states.current, selector);
+        // listening for pusher:subscription_succeeded
+        channel &&
+          typeof channel.bind === "function" &&
+          channel.bind("pusher:subscription_succeeded", function (): void {
+            // On connection state change [Updating] and get [info & msgs]
+            IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
+          });
+      },
+    );
+    if (!pusher?.connection) console.warn("Pusher could not be connected!");
+
+    // tabs on click, show/hide...
+    $(".messenger-listView-tabs a").on(
+      "click",
+      function (this: HTMLElement): void {
+        const dataView = $(this).attr("data-view");
+        $(".messenger-listView-tabs a").removeClass("active-tab");
+        $(this).addClass("active-tab");
+        $(".messenger-tab").hide();
+        $(`.messenger-tab[data-view=${dataView}]`).show();
+      },
+    );
+
+    // set item active on click
+    $("body").on(
+      "click",
+      ".messenger-list-item",
+      function (this: HTMLElement): void {
+        $(".messenger-list-item").removeClass("m-list-active");
+        $(this).addClass("m-list-active");
+      },
+    );
+
+    // show info side button
+    $(".messenger-infoView nav a , .show-infoSide").on(
+      "click",
+      function (): void {
+        $(".messenger-infoView").toggle();
+      },
+    );
+
+    // x button for info section to show the main button.
+    $(".messenger-infoView nav a").on("click", function (): void {
+      $(".show-infoSide").show();
     });
 
-  // Settings button action to show settings modal
-  $(".settings-btn").on("click", function (): void {
-    app_modal({
-      name: "settings",
+    // hide showing button for info section.
+    $(".show-infoSide").on("click", function (this: HTMLElement): void {
+      $(this).hide();
     });
-  });
 
-  // on submit settings' form
-  $("#updateAvatar").on("submit", function (e) {
-    e.preventDefault();
-    updateSettings();
-  });
-  // Settings modal [cancel button]
-  $(".app-modal[data-name=settings]")
-    .find(".app-modal-footer .cancel")
-    .on("click", function (): void {
-      app_modal({
-        show: false,
-        name: "settings",
-      });
-      cancelUpdatingAvatar();
+    // make favorites card dragable on click to slide.
+    hScroller(".messenger-favorites");
+
+    // click action for list item [user/group]
+    $("body").on(
+      "click",
+      ".messenger-list-item",
+      function (this: HTMLElement): void {
+        if ($(this).find("tr[data-action]").attr("data-action") == "1") {
+          $(".messenger-listView").hide();
+        }
+        messenger = $(this).find("p[data-id]").attr("data-id") ?? "0";
+        IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
+      },
+    );
+
+    // click action for favorite button
+    $("body").on(
+      "click",
+      ".favorite-list-item",
+      function (this: HTMLElement): void {
+        if ($(this).find("div").attr("data-action") == "1") {
+          $(".messenger-listView").hide();
+        }
+        messenger = `user_${String($(this).find("div.avatar").attr("data-id"))}`;
+        IDinfo(messenger.split("_")[1], messenger.split("_")[0]);
+      },
+    );
+
+    // list view buttons
+    $(".listView-x").on("click", function (): void {
+      $(".messenger-listView").hide();
     });
-  // upload avatar on change
-  $("body").on("change", ".upload-avatar", e => {
-    // store the original avatar
-    if (defaultAvatarInSettings == null) {
-      defaultAvatarInSettings = $(".upload-avatar-preview").css(
-        "background-image",
-      );
-    }
-    const target = e.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.addEventListener("loadstart", (e: Event) => {
-      $(".upload-avatar-preview").append(
-        loadingSVG("42px", "upload-avatar-loading"),
-      );
+    $(".show-listView").on("click", function (): void {
+      $(".messenger-listView").show();
     });
-    reader.addEventListener("load", (e: Event) => {
-      $(".upload-avatar-preview").find(".loadingSVG").remove();
-      if (!file.type.match("image.*")) {
-        // if the file is not an image
-        // console.error('File you selected is not an image!');
-      } else {
-        // if the file is an image
-        $(".upload-avatar-preview").css(
-          "background-image",
-          'url("' + ((e.target as FileReader).result ?? "") + '")',
-        );
+
+    // click action for [add to favorite] button.
+    $(".add-to-favorite").on("click", function (): void {
+      star(messenger.split("_")[1]);
+    });
+
+    // calling Css Media Queries
+    cssMediaQueries();
+
+    // message form on submit.
+    $("#message-form").on("submit", (e: Event) => {
+      e.preventDefault();
+      sendMessage();
+    });
+
+    // message input on keyup [Enter to send, Enter+Shift for new line]
+    $("#message-form .m-send").on("keyup", function (e) {
+      const evt = e as unknown as KeyboardEvent;
+      // if enter key pressed.
+      if (evt.which == 13 || evt.keyCode == 13) {
+        // if shift + enter key pressed, do nothing (new line).
+        // if only enter key pressed, send message.
+        if (!evt.shiftKey) {
+          isTyping(false);
+          sendMessage();
+        }
       }
     });
-  });
-  // change messenger color button
-  $("body").on("click", ".update-messengerColor a", function (): void {
-    messengerColor = ($(this).attr("class") ?? "").split(" ")[0];
-    $(".update-messengerColor a").removeClass("m-color-active");
-    $(this).addClass("m-color-active");
-  });
-  // Switch to Dark/Light mode
-  $("body").on("click", ".dark-mode-switch", function (): void {
-    if ($(this).attr("data-mode") == "0") {
-      $(this).attr("data-mode", "1");
-      $(this).removeClass("far");
-      $(this).addClass("fas");
-      dark_mode = "dark";
-    } else {
-      $(this).attr("data-mode", "0");
-      $(this).removeClass("fas");
-      $(this).addClass("far");
-      dark_mode = "light";
-    }
-  });
+
+    // On [upload attachment] input change, show a preview of the image/file.
+    $("body").on("change", ".upload-attachment", e => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      const sendCard = $(".messenger-sendCard");
+      reader.readAsDataURL(file);
+      reader.addEventListener("loadstart", (_e: Event) => {
+        $("#message-form").before(loadingSVG());
+      });
+      reader.addEventListener("load", (e: Event) => {
+        $(".messenger-sendCard").find(".loadingSVG").remove();
+        if (!file.type.match("image.*")) {
+          // if the file not image
+          sendCard.find(".attachment-preview").remove(); // older one
+          sendCard.prepend(attachmentTemplate("file", file.name));
+        } else {
+          // if the file is an image
+          sendCard.find(".attachment-preview").remove(); // older one
+          sendCard.prepend(
+            attachmentTemplate(
+              "image",
+              file.name,
+              (e.target as FileReader).result as string | null,
+            ),
+          );
+        }
+      });
+    });
+
+    // Attachment preview cancel button.
+    $("body").on("click", ".attachment-preview .cancel", _e => {
+      cancelAttachment();
+    });
+
+    // typing indicator on [input] keyDown
+    $("#message-form .m-send").on("keydown", (): void => {
+      if (typingNow < 1) {
+        // Trigger typing
+        const _triggered = isTyping(true);
+        /*triggered ? console.info('[+] Triggered')
+                  : console.error('[+] Not triggered');*/
+        // Typing now
+        typingNow = 1;
+      }
+      // Clear typing timeout
+      clearTimeout(typingTimeout);
+      // Typing timeout
+      typingTimeout = setTimeout(function (): void {
+        isTyping(false);
+        /*triggered ? console.info('[-] Triggered')
+                  : console.error('[-] Not triggered');*/
+        // Clear typing now
+        typingNow = 0;
+      }, 1000);
+    });
+
+    // Image modal
+    $("body").on("click", ".chat-image", function (this: HTMLElement): void {
+      const src = $(this).css("background-image").split(/"/)[1];
+      $("#imageModalBox").show();
+      $("#imageModalBoxSrc").attr("src", src);
+    });
+    $(".imageModal-close").on("click", function (): void {
+      $("#imageModalBox").hide();
+    });
+
+    // Search input on focus
+    $(".messenger-search").on("focus", function (): void {
+      $(".messenger-tab").hide();
+      $('.messenger-tab[data-view="search"]').show();
+    });
+    // Search action on keyup
+    $(".messenger-search").on("keyup", function (this: HTMLElement, _e: Event) {
+      const val = String($(this).val() ?? "").trim();
+      if (val.length > 0) {
+        $(".messenger-search").trigger("focus");
+        messengerSearch(val);
+      } else {
+        $(".messenger-tab").hide();
+        $('.messenger-listView-tabs a[data-view="users"]').trigger("click");
+      }
+    });
+
+    // Delete Conversation button
+    $(".messenger-infoView-btns .delete-conversation").on(
+      "click",
+      function (): void {
+        app_modal({
+          name: "delete",
+        });
+      },
+    );
+    // delete modal [delete button]
+    $(".app-modal[data-name=delete]")
+      .find(".app-modal-footer .delete")
+      .on("click", function (): void {
+        deleteConversation(messenger.split("_")[1]);
+        app_modal({
+          show: false,
+          name: "delete",
+        });
+      });
+    // delete modal [cancel button]
+    $(".app-modal[data-name=delete]")
+      .find(".app-modal-footer .cancel")
+      .on("click", function (): void {
+        app_modal({
+          show: false,
+          name: "delete",
+        });
+      });
+
+    // Settings button action to show settings modal
+    $(".settings-btn").on("click", function (): void {
+      app_modal({
+        name: "settings",
+      });
+    });
+
+    // on submit settings' form
+    $("#updateAvatar").on("submit", function (e) {
+      e.preventDefault();
+      updateSettings();
+    });
+    // Settings modal [cancel button]
+    $(".app-modal[data-name=settings]")
+      .find(".app-modal-footer .cancel")
+      .on("click", function (): void {
+        app_modal({
+          show: false,
+          name: "settings",
+        });
+        cancelUpdatingAvatar();
+      });
+    // upload avatar on change
+    $("body").on("change", ".upload-avatar", e => {
+      // store the original avatar
+      if (defaultAvatarInSettings == null) {
+        defaultAvatarInSettings = $(".upload-avatar-preview").css(
+          "background-image",
+        );
+      }
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.addEventListener("loadstart", (_e: Event) => {
+        $(".upload-avatar-preview").append(
+          loadingSVG("42px", "upload-avatar-loading"),
+        );
+      });
+      reader.addEventListener("load", (e: Event) => {
+        $(".upload-avatar-preview").find(".loadingSVG").remove();
+        if (!file.type.match("image.*")) {
+          // if the file is not an image
+          // console.error('File you selected is not an image!');
+        } else {
+          // if the file is an image
+          $(".upload-avatar-preview").css(
+            "background-image",
+            `url("${String((e.target as FileReader).result ?? "")}")`,
+          );
+        }
+      });
+    });
+    // change messenger color button
+    $("body").on(
+      "click",
+      ".update-messengerColor a",
+      function (this: HTMLElement): void {
+        messengerColor = ($(this).attr("class") ?? "").split(" ")[0];
+        $(".update-messengerColor a").removeClass("m-color-active");
+        $(this).addClass("m-color-active");
+      },
+    );
+    // Switch to Dark/Light mode
+    $("body").on(
+      "click",
+      ".dark-mode-switch",
+      function (this: HTMLElement): void {
+        if ($(this).attr("data-mode") == "0") {
+          $(this).attr("data-mode", "1");
+          $(this).removeClass("far");
+          $(this).addClass("fas");
+          dark_mode = "dark";
+        } else {
+          $(this).attr("data-mode", "0");
+          $(this).removeClass("fas");
+          $(this).addClass("far");
+          dark_mode = "light";
+        }
+      },
+    );
+  } catch (__moduleErr) {
+    console.error("[code] failed to initialise:", __moduleErr);
+  }
 });
