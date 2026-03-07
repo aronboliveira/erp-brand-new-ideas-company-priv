@@ -1,0 +1,71 @@
+trigger:
+    branches:
+        include:
+            - main
+            - develop
+
+variables:
+    # Azure Configuration
+    azureServiceConnection: "azure-connection-name"
+    resourceGroup: "erp-rg"
+    clusterName: "erp-aks"
+    acrName: "erpacr"
+    imageNameBackend: "erp-backend"
+    imageNameFrontend: "erp-frontend"
+
+stages:
+    - stage: Build
+      displayName: Build Stage
+      jobs:
+          - job: BuildAndPush
+            displayName: Build and Push Docker Images
+            pool:
+                vmImage: "ubuntu-latest"
+            steps:
+                - task: Docker@2
+                  displayName: Build and Push Backend
+                  inputs:
+                      containerRegistry: "$(acrName)"
+                      repository: "$(imageNameBackend)"
+                      command: "buildAndPush"
+                      Dockerfile: "_inc/laravel/Dockerfile"
+                      tags: |
+                          $(Build.BuildId)
+                          latest
+
+                - task: Docker@2
+                  displayName: Build and Push Frontend
+                  inputs:
+                      containerRegistry: "$(acrName)"
+                      repository: "$(imageNameFrontend)"
+                      command: "buildAndPush"
+                      Dockerfile: "_inc/laravel/frontend/Dockerfile"
+                      tags: |
+                          $(Build.BuildId)
+                          latest
+
+# Deploy Stage - Commented out to prevent accidental deployment
+# - stage: Deploy
+#   displayName: Deploy to AKS
+#   dependsOn: Build
+#   jobs:
+#   - job: Deploy
+#     displayName: Deploy to AKS
+#     pool:
+#       vmImage: 'ubuntu-latest'
+#     steps:
+#     - task: KubernetesManifest@0
+#       displayName: Deploy to Kubernetes
+#       # inputs:
+#       #   action: 'deploy'
+#       #   kubernetesServiceConnection: '$(azureServiceConnection)'
+#       #   namespace: 'default'
+#       #   manifests: |
+#       #     k8s/backend/deployment.yaml
+#       #     k8s/backend/config_secrets.yaml
+#       #     k8s/backend/nginx-config.yaml
+#       #     k8s/frontend/deployment.yaml
+#       #     k8s/ingress.yaml
+#       #   containers: |
+#       #     $(acrName).azurecr.io/$(imageNameBackend):$(Build.BuildId)
+#       #     $(acrName).azurecr.io/$(imageNameFrontend):$(Build.BuildId)
