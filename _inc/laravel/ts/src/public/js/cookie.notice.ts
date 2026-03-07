@@ -45,7 +45,7 @@ interface CookieNoticeJSFunction {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   try {
-    "use strict";
+    ("use strict");
 
     /**
      * Store current instance

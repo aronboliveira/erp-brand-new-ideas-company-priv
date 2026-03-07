@@ -22,9 +22,11 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs("#np-toast-container") as HTMLDivElement | null;
@@ -39,7 +41,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -65,7 +67,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (message: string): void=> {
+  const schedulePointerupError = (message: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -84,7 +86,7 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -140,7 +142,8 @@
         (window.Pusher as Record<string, unknown>).logToConsole = true;
       } catch (_) {}
       const key = "{{ config('chatify.pusher.key') }}" as string;
-      const cluster = "{{ config('chatify.pusher.options.cluster') }}" as string;
+      const cluster =
+        "{{ config('chatify.pusher.options.cluster') }}" as string;
       const authEndpoint = '{{route("pusher.auth")}}' as string;
       if (!key || key === "#" || !cluster || cluster === "#") {
         schedulePointerupError(getMsg(document.body, "pusher_unavailable"));

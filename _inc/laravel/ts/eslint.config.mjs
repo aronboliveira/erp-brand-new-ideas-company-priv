@@ -20,6 +20,7 @@ export default tseslint.config(
       "src/tests/**",
       "src/public/js/.constants.ts",
       "src/public/js/app.ts",
+      "utils/**",
     ],
   },
   eslint.configs.recommended,
