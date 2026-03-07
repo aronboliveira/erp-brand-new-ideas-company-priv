@@ -1,6 +1,7 @@
 <?php
 # Template 8
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
+use App\Helpers\TemplateHelper;
 use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
@@ -567,14 +568,5 @@ if (isset($proposal) && !empty($proposal)) {
     </html>
 <?php
 } else {
-    echo '<!DOCTYPE html>
-<html lang="' . htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8') . '">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-	<div class="alert alert-warning">' . e(__('No proposal data available.')) . '</div>
-</body>
-</html>';
+    echo TemplateHelper::getNoDataHtml('proposal');
 }
