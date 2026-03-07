@@ -1365,7 +1365,7 @@
                                           <img
                                             src="{{ asset('storage/uploads/avatar/avatar.png') }}"
                                             class="img-fluid wid-40 me-3 mb-2 mb-sm-0"
-                                            alt="image"
+                                            alt="{{ __('image') }}"
                                           >
                                           <div class="w-100">
                                             <div class="{{ VC::DFL_AIC_JCB }}">
@@ -1479,7 +1479,7 @@
                                               ? asset('storage/uploads/avatar/'.$discussion->user->avatar)
                                               : asset('storage/uploads/avatar/avatar.png') }}"
                                             class="img-fluid wid-40 me-3 mb-2 mb-sm-0"
-                                            alt="image"
+                                            alt="{{ __('image') }}"
                                           >
                                           <div class="w-100">
                                             <div class="{{ VC::DFL_AIC_JCB }}">

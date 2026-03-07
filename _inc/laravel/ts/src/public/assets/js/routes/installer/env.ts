@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module env
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
@@ -12,14 +11,16 @@
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-env-error";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s) as T | null;
   const hasBootstrapUi = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
     c = document.createElement("div");
@@ -32,7 +33,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -58,9 +59,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = message => {
+  const scheduleClickError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -79,7 +79,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -88,9 +88,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -108,18 +108,18 @@
     }
     return msg;
   };
-  const safeDisplay = (el, show) => {
+  const safeDisplay = (el: HTMLElement | null, show: boolean) => {
     if (!el) return false;
     el.style.display = show ? "block" : "none";
     return true;
   };
-  const checkEnvironment = val => {
+  const checkEnvironment = (val?: unknown) => {
     try {
       const el = qs("#environment_text_input");
       const ok = safeDisplay(el, val === "other");
       if (!ok)
         scheduleClickError(
-          getMsg(el ?? document.body, "env_toggle_unavailable")
+          getMsg(el ?? document.body, "env_toggle_unavailable"),
         );
     } catch (_) {
       scheduleClickError(getMsg(document.body, "env_toggle_unavailable"));
@@ -127,7 +127,7 @@
   };
   const showDatabaseSettings = (): void => {
     try {
-      const el = qs("#tab2");
+      const el = qs<HTMLInputElement>("#tab2");
       if (!el) {
         scheduleClickError(getMsg(document.body, "tab_db_unavailable"));
         return;
@@ -139,7 +139,7 @@
   };
   const showApplicationSettings = (): void => {
     try {
-      const el = qs("#tab3");
+      const el = qs<HTMLInputElement>("#tab3");
       if (!el) {
         scheduleClickError(getMsg(document.body, "tab_app_unavailable"));
         return;

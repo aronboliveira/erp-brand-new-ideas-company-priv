@@ -1,7 +1,7 @@
 {
   "python.languageServer": "Pylance",
-  "python.defaultInterpreterPath": "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/.venv/bin/python",
-  "python.analysis.extraPaths": [".venv/lib/python3.11/site-packages"],
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.extraPaths": [".venv/lib/python3.13/site-packages"],
   "files.autoSave": "onFocusChange",
 
   // ──────────────────────────────────────────────────────────────

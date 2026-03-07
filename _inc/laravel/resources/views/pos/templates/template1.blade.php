@@ -40,7 +40,7 @@ if (empty($pos)) {
     echo '<!DOCTYPE html>
     <html lang="' . e($docLang) . '">
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>POS</title></head>
-    <body><div class="alert alert-warning">No POS data available.</div></body></html>';
+    <body><div class="alert alert-warning">{{ __('No POS data available.') }}</div></body></html>';
     return;
 }
 

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, no-inner-declarations */
 
 /* global bootstrap */
 (function (): void {
@@ -20,13 +19,12 @@
       f.setAttribute("action", resolved);
     }
 
-    function notify(msg) {
+    function notify(msg: string) {
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        if (window.bootstrap && window.bootstrap.Toast) {
+        if (window.bootstrap?.Toast) {
           const c =
             document.getElementById("toast-container") ??
-            (function (): void {
+            (function (): HTMLDivElement {
               const d = document.createElement("div");
               d.id = "toast-container";
               document.body.appendChild(d);
@@ -51,14 +49,14 @@
       }
     }
 
-    f.addEventListener("submit", function (e) {
+    f.addEventListener("submit", function (e: Event) {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (action && action !== "#") return;
         e.preventDefault();
         const msg =
-          f.getAttribute("data-guard-msg") ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+          f.getAttribute("data-guard-msg") ??
+          "Requested route is unavailable. Please contact technical support or your domain administrator.";
         notify(msg);
         f.setAttribute("data-failed-route", "true");
       } catch (_) {}

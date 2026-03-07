@@ -3,12 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module inputPreview
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
 ((): void => {
   try {
     const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-preview-target]')
+      document.querySelectorAll('input[type="file"][data-preview-target]'),
     );
     if (inputs.length === 0) return;
     inputs.forEach(inp => {
@@ -17,11 +16,12 @@
       inp.addEventListener("change", (): void => {
         try {
           const targetId = inp.getAttribute("data-preview-target");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const img = targetId ? document.getElementById(targetId) : null;
-          const file = inp.files?.[0] ? inp.files[0] : null;
+          const file = (inp as HTMLInputElement).files?.[0]
+            ? (inp as HTMLInputElement).files![0]
+            : null;
           if (!img || !file) return;
-          img.src = URL.createObjectURL(file);
+          (img as HTMLImageElement).src = URL.createObjectURL(file);
         } catch {}
       });
     });

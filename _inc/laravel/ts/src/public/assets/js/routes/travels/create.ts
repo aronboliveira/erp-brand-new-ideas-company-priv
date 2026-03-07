@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,15 +14,13 @@
 
     const url = a.getAttribute("data-url") ?? "#";
     const href = a.getAttribute("href") ?? "#";
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if ((href === "#" || !href) && url && url !== "#") {
       a.setAttribute("href", url);
     }
 
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       try {
         const currentHref = a.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (currentHref && currentHref !== "#") return;
 
         e.preventDefault();
@@ -40,8 +37,7 @@
           document.body.appendChild(container);
         }
 
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        if (window.bootstrap && window.bootstrap.Toast) {
+        if (window.bootstrap?.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");

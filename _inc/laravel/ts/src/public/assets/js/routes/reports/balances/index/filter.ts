@@ -13,7 +13,7 @@
     btn.setAttribute(flag, "true");
     btn.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
           e.preventDefault();
           const wrap = document.querySelector<HTMLElement>("div#filter");

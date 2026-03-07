@@ -3,19 +3,20 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
   const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataListenerGuard = "data-listener-guard";
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
   if (!$) {
     try {
       if (
@@ -27,7 +28,7 @@
     scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
     return;
   }
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
     let c = qs("#" + id);
     if (c) {
@@ -43,13 +44,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const toastId = "np-toast";
@@ -78,9 +77,8 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message) {
+  function scheduleInteractiveError(message: string) {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -101,7 +99,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   }
-  const getMsg = (el, key) => {
+  function getMsg(el: HTMLElement, key: string): string {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -110,9 +108,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -129,8 +127,13 @@
       }
     }
     return msg;
-  };
-  const bindWithObserver = (el, evt, handler, flag) => {
+  }
+  const bindWithObserver = (
+    el: HTMLElement,
+    evt: string,
+    handler: (e: Event) => void,
+    flag: string,
+  ) => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
@@ -150,7 +153,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name = ($("#filename").val()).toString().trim();
+    const name = String($("#filename").val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -195,26 +198,32 @@
       window.close();
     } catch (_) {}
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-optional-chain
-      window.history && window.history.back && window.history.back();
+      window.history?.back && window.history.back();
     } catch (_) {}
   };
   const init = (): void => {
     const filterBtn = document.getElementById("filter");
-    bindWithObserver(
-      filterBtn,
-      "click",
-      onFilterClick,
-      dataListenerGuard + "-filter"
-    );
+    if (filterBtn) {
+      bindWithObserver(
+        filterBtn,
+        "click",
+        onFilterClick,
+        dataListenerGuard + "-filter",
+      );
+    }
     const exportBtnCandidates = Array.from(
       document.querySelectorAll(
-        '[data-export-pdf], [data-action="export-pdf"], #saveAsPDF'
-      )
+        '[data-export-pdf], [data-action="export-pdf"], #saveAsPDF',
+      ),
     );
-    exportBtnCandidates.forEach((el: Element): void =>
-      { bindWithObserver(el, "click", exportPDF, dataListenerGuard + "-export"); }
-    );
+    exportBtnCandidates.forEach((el: Element): void => {
+      bindWithObserver(
+        el as HTMLElement,
+        "click",
+        exportPDF,
+        dataListenerGuard + "-export",
+      );
+    });
     if (!window._afterPrintBound) {
       window._afterPrintBound = true;
       window.addEventListener("afterprint", onAfterPrint, { once: false });

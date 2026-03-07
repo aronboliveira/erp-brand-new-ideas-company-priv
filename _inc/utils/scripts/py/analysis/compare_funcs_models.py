@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-import os, re, sys, traceback
+import os
+import re
+import sys
+import traceback
 from typing import Dict, List, Tuple, Optional
 from time import sleep
 from colorama import Fore, init
@@ -20,7 +23,7 @@ def are_equivalent_paths(rel1: str, rel2: str) -> bool:
     if dirs2[:len(dirs1)] == dirs1 or dirs1[:len(dirs2)] == dirs2:
         return True
     return False
-  
+
 def adjust_path_type(path:str) -> str:
   return os.path.abspath(path.strip().strip('"').strip("'"))
 
@@ -30,7 +33,7 @@ class MethodInfo:
   relations: List[str]
   start_line: int
   end_line: int
-  def __init__(self, name, return_type, relations, start_line, end_line) -> None:
+  def __init__(self, name: str, return_type: Optional[str], relations: List[str], start_line: int, end_line: int) -> None:
     self.name = name
     self.return_type = return_type
     self.relations = relations
@@ -39,49 +42,49 @@ class MethodInfo:
 
 def get_relations_methods_data(path:str) -> Dict[str, MethodInfo]:
   ALLOWED_RELATION_CHAINS = [
-    'withDefault',
-    'withoutDefault',
-    'touches',
-    'withoutGlobalScopes',
-    'withoutGlobalScope',
-    'withPivot',
-    'withTimestamps',
-    'wherePivot',
-    'orWherePivot',
-    'wherePivotIn',
-    'wherePivotNotIn',
-    'wherePivotNull',
-    'wherePivotNotNull',
-    'orderBy',
-    'limit',
-    'skip',
-    'take',
-    'latest',
-    'oldest'
-	]
+      'withDefault',
+      'withoutDefault',
+      'touches',
+      'withoutGlobalScopes',
+      'withoutGlobalScope',
+      'withPivot',
+      'withTimestamps',
+      'wherePivot',
+      'orWherePivot',
+      'wherePivotIn',
+      'wherePivotNotIn',
+      'wherePivotNull',
+      'wherePivotNotNull',
+      'orderBy',
+      'limit',
+      'skip',
+      'take',
+      'latest',
+      'oldest'
+  ]
   allowed = '|'.join(ALLOWED_RELATION_CHAINS)
   methods_pattern = re.compile(
-		r'^\s*(?:public|private|protected)?\s+function\s+&?\s*'
-  	r'(?P<name>[A-Za-z_]\w*)\s*\(.*\)'
-    r'(?:\s*:\s*(?P<ret>[\?\w\\]+))?'
-	)
+      r'^\s*(?:public|private|protected)?\s+function\s+&?\s*'
+      r'(?P<name>[A-Za-z_]\w*)\s*\(.*\)'
+      r'(?:\s*:\s*(?P<ret>[\?\w\\]+))?'
+  )
   relation_pattern = re.compile(
-    r'return\s+\$this->'
-    r'(hasOne|hasMany|belongsTo|belongsToMany|morphOne|morphTo|morphMany)'
-    r'\s*\([^)]*\)'
-		r'('
-       r'(?:->\s*(?:' + allowed + r')\s*\([^)]*\)\s*)*'
-    r')'   
-    r'\s*;',
-    re.IGNORECASE
-	)
+      r'return\s+\$this->'
+      r'(hasOne|hasMany|belongsTo|belongsToMany|morphOne|morphTo|morphMany)'
+      r'\s*\([^)]*\)'
+      r'('
+      r'(?:->\s*(?:' + allowed + r')\s*\([^)]*\)\s*)*'
+      r')'
+      r'\s*;',
+      re.IGNORECASE
+  )
   methods_defs: Dict[str, MethodInfo] = {}
   with open(path, 'r', encoding='utf-8') as f:
     lines = f.readlines()
   i, total = 0, len(lines)
   while i < total:
-    l = lines[i]
-    m = methods_pattern.match(l)
+    line = lines[i]
+    m = methods_pattern.match(line)
     if not m:
       i += 1
       continue
@@ -98,7 +101,7 @@ def get_relations_methods_data(path:str) -> Dict[str, MethodInfo]:
         i = j
         continue
     start_line, brace_count = i + 1, 0
-    brace_count += l.count('{') - l.count('}')
+    brace_count += line.count('{') - line.count('}')
     while j < total and brace_count == 0:
       brace_count += lines[j].count('{') - lines[j].count('}')
       j += 1
@@ -115,15 +118,15 @@ def get_relations_methods_data(path:str) -> Dict[str, MethodInfo]:
     if relations:
         k = re.sub(r'[-_]', '', nm.lower())
         methods_defs[k] = MethodInfo(name=nm, return_type=ret_type, relations=relations,
-																		start_line=start_line, end_line=j)
+                                     start_line=start_line, end_line=j)
     i = j
   return methods_defs
 
-def main():
+def main() -> None:
   init(autoreset=True)
   secs = 3
   print(Fore.GREEN + "You executed the file comparison between two Laravel Model Modules methods.\n"
-          f"Press Ctrl+C to exit, otherwise wait for {secs} seconds...")
+        f"Press Ctrl+C to exit, otherwise wait for {secs} seconds...")
   sleep(secs)
   try:
     print(Fore.YELLOW + "Starting procedure...")
@@ -132,7 +135,8 @@ def main():
     for d in (first_root, second_root):
       if not os.path.isdir(d):
         raise ValueError(f'The given path {d!r} is not a directory.')
-    first_php, second_php = [], []
+    first_php: list[str] = []
+    second_php: list[str] = []
     php_map = ((first_root, first_php), (second_root, second_php))
     for b, coll in php_map:
       for r, _, fs in os.walk(b):
@@ -163,14 +167,14 @@ def main():
         errs.append(Fore.RED + f'Error reading {p1}: {e}')
         trace = traceback.format_exc()
         print(trace)
-        m1 = []
+        m1 = {}
       try:
         m2 = get_relations_methods_data(p2)
       except Exception as e:
         errs.append(Fore.RED + f'Error reading {p2}: {e}')
         trace = traceback.format_exc()
         print(trace)
-        m2 = []
+        m2 = {}
       if not m1 or not m2:
         status, color = 'Error', Fore.YELLOW
         statuses[s_rel] = status

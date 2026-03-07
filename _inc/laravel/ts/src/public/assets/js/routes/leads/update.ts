@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -23,10 +22,9 @@
         return false;
       }
     }
-    function toast(msg) {
+    function toast(msg: string) {
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
+        if (hasBootstrapCss() && window.bootstrap?.Toast) {
           let c = document.getElementById("toast-container");
           if (!c) {
             c = document.createElement("div");
@@ -51,16 +49,16 @@
         alert(msg);
       }
     }
-    function getMsg(el, key) {
+    function getMsg(el: HTMLElement, key: string) {
       try {
         let msg = ERR;
         if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
           msg = el.getAttribute(DGM) || ERR;
         else {
           let lang = (
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
             window.sessionStorage.getItem("erp-np-lang") ??
-            document.documentElement.lang ?? "en"
+            document.documentElement.lang ??
+            "en"
           )
             .toLowerCase()
             .replace(/_/g, "-");
@@ -75,7 +73,6 @@
             el.setAttribute(DCL, "true");
           }
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return msg || ERR;
       } catch (_) {
         return ERR;
@@ -84,7 +81,6 @@
     function bindSubmitGuard() {
       try {
         const $ = window.jQuery;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!$) {
           try {
             if (
@@ -95,25 +91,26 @@
           } catch (_) {}
           return;
         }
-        const form = document.getElementById("lead-update-form");
+        const form = document.getElementById(
+          "lead-update-form",
+        ) as HTMLFormElement | null;
         const btn = document.getElementById("lead-update-submit");
         if (!form || !btn) return;
         if (form.getAttribute(L) === "true") return;
         form.setAttribute(L, "true");
         $(btn)
           .off("click.leadsUpdateGuard")
-          .on("click.leadsUpdateGuard", function (e) {
+          .on("click.leadsUpdateGuard", function (e: Event) {
             try {
               const url = form.getAttribute("data-url");
               const href = form.action;
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               if ((!url || url === "#") && (!href || href === "#")) {
                 e.preventDefault();
-                toast(getMsg(form, "action_unavailable"));
+                toast(getMsg(form as HTMLElement, "action_unavailable"));
               }
             } catch (_) {
               e.preventDefault();
-              toast(getMsg(form, "action_unavailable"));
+              toast(getMsg(form as HTMLElement, "action_unavailable"));
             }
           });
         const obs = new MutationObserver(function (): void {
@@ -129,7 +126,6 @@
     }
     try {
       const $ = window.jQuery;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!$) {
         try {
           if (
@@ -151,7 +147,6 @@
         )
           if (
             window.location.hostname === "localhost" ||
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             window.location.hostname === "127.0.0.1"
           )
             console.error("Failed to run leads/update");
@@ -172,10 +167,9 @@
       return false;
     }
   }
-  function toast(msg) {
+  function toast(msg: string) {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
+      if (hasBootstrapCss() && window.bootstrap?.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -200,16 +194,16 @@
       alert(msg);
     }
   }
-  function getMsg(el, key) {
+  function getMsg(el: HTMLElement, key: string) {
     try {
       let msg = ERR;
       if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
         msg = el.getAttribute(DGM) || ERR;
       else {
         let lang = (
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
           window.sessionStorage.getItem("erp-np-lang") ??
-          document.documentElement.lang ?? "en"
+          document.documentElement.lang ??
+          "en"
         )
           .toLowerCase()
           .replace(/_/g, "-");
@@ -224,7 +218,6 @@
           el.setAttribute(DCL, "true");
         }
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return msg || ERR;
     } catch (_) {
       return ERR;
@@ -233,7 +226,6 @@
   function bindAiGuard() {
     try {
       const $ = window.jQuery;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!$) {
         try {
           if (
@@ -244,23 +236,24 @@
         } catch (_) {}
         return;
       }
-      const a = document.getElementById("lead-ai-generate");
+      const a = document.getElementById(
+        "lead-ai-generate",
+      ) as HTMLAnchorElement | null;
       if (!a || a.getAttribute(L) === "true") return;
       a.setAttribute(L, "true");
       $(a)
         .off("click.aiGuard")
-        .on("click.aiGuard", function (e) {
+        .on("click.aiGuard", function (e: Event) {
           try {
             const url = a.getAttribute("data-url");
             const href = a.href;
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
-              toast(getMsg(a, "ai_generate_unavailable"));
+              toast(getMsg(a as HTMLElement, "ai_generate_unavailable"));
             }
           } catch (_) {
             e.preventDefault();
-            toast(getMsg(a, "ai_generate_unavailable"));
+            toast(getMsg(a as HTMLElement, "ai_generate_unavailable"));
           }
         });
       const obs2 = new MutationObserver(function (): void {
@@ -276,7 +269,6 @@
   }
   try {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$) {
       try {
         if (

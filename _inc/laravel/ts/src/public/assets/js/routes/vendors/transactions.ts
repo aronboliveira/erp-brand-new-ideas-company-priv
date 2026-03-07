@@ -3,29 +3,27 @@
  * @generated from original JavaScript - manual review recommended
  * @module transactions
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
     const f = document.getElementById("vendor-transaction-filter-form");
-    if (f?.getAttribute("data-listener-active") !== "true") {
+    if (f && f.getAttribute("data-listener-active") !== "true") {
       f.setAttribute("data-listener-active", "true");
       const resolved = f.getAttribute("data-resolved-action") ?? "#";
       if (
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
         resolved !== "#"
       ) {
         f.setAttribute("action", resolved);
       }
-      f.addEventListener("submit", e => {
+      f.addEventListener("submit", (e: Event) => {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (action && action !== "#") return;
         e.preventDefault();
         const msg =
-          f.getAttribute("data-guard-msg") ?? "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
+          f.getAttribute("data-guard-msg") ??
+          "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -34,9 +32,7 @@
         }
         const ok =
           document.querySelector('link[href*="bootstrap"]') &&
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-          window.bootstrap &&
-          window.bootstrap.Toast;
+          window.bootstrap?.Toast;
         if (ok) {
           const t = document.createElement("div");
           t.className = "toast";
@@ -61,23 +57,22 @@
     }
 
     const reset = document.getElementById("vendor-transaction-reset-link");
-    if (reset?.getAttribute("data-listener-active") !== "true") {
+    if (reset && reset.getAttribute("data-listener-active") !== "true") {
       reset.setAttribute("data-listener-active", "true");
       const url = reset.getAttribute("data-url") ?? "#";
       if (
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         (reset.getAttribute("href") === "#" || !reset.getAttribute("href")) &&
         url !== "#"
       ) {
         reset.setAttribute("href", url);
       }
-      reset.addEventListener("click", e => {
+      reset.addEventListener("click", (e: Event) => {
         const href = reset.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (href && href !== "#") return;
         e.preventDefault();
         const msg =
-          reset.getAttribute("data-guard-msg") ?? "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
+          reset.getAttribute("data-guard-msg") ??
+          "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -86,9 +81,7 @@
         }
         const ok =
           document.querySelector('link[href*="bootstrap"]') &&
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-          window.bootstrap &&
-          window.bootstrap.Toast;
+          window.bootstrap?.Toast;
         if (ok) {
           const t = document.createElement("div");
           t.className = "toast";

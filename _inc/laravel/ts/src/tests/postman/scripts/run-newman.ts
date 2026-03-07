@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires */
 /**
  * @fileoverview TypeScript version of tests/postman/scripts/run-newman.cjs
  * @generated from original JavaScript - manual review recommended
@@ -18,12 +17,10 @@ const environmentPath = path.join(postmanRoot, "local.environment.json");
 const reportsDir = path.join(postmanRoot, "reports");
 const localBin = path.join(postmanRoot, "node_modules", ".bin", process.platform === "win32" ? "newman.cmd" : "newman");
 
-// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 const baseUrl = (process.env.POSTMAN_BASE_URL ?? process.env.APP_URL ?? "http://127.0.0.1:18081").replace(/\/$/, "");
 const apiBase = (process.env.POSTMAN_API_BASE ?? `${baseUrl}/apis`).replace(/\/$/, "");
 const apiEmail = process.env.POSTMAN_API_EMAIL ?? "";
 const apiPassword = process.env.POSTMAN_API_PASSWORD ?? "";
-// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 const haveCreds = Boolean(apiEmail && apiPassword);
 
 fs.mkdirSync(reportsDir, { recursive: true });

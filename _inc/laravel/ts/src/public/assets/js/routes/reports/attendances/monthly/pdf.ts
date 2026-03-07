@@ -3,12 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
   const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: Document | HTMLElement = document) =>
+    r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -17,13 +17,13 @@
   const dataEvtBranch = "data-branch-guard";
   const dataEvtDept = "data-dept-guard";
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) {
-      return c;
+    const existing = qs("#" + id);
+    if (existing instanceof HTMLElement) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -34,16 +34,14 @@
     return c;
   };
 
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs("#np-toast", container) as HTMLElement | null;
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -69,9 +67,8 @@
     }
   };
 
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -93,7 +90,7 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -102,9 +99,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -123,7 +120,7 @@
     return msg;
   };
 
-  const validRoute = url =>
+  const validRoute = (url: unknown): url is string =>
     typeof url === "string" && url.trim() !== "" && url.trim() !== "#";
 
   const saveAsPDF = (): void => {
@@ -132,8 +129,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name =
-      (($("#filename").val())).toString().trim();
+    const name = String($?.("#filename")?.val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -164,7 +160,7 @@
   const deptUrl = '{{route(VW::RPT . ".attendance.getdepartment")}}';
   const empUrl = '{{route(VW::RPT . ".attendance.getemployee")}}';
 
-  const renderDepartmentSelect = data => {
+  const renderDepartmentSelect = (data: Record<string, unknown>) => {
     const wrap = document.getElementById("department_div");
     if (!wrap) {
       return;
@@ -199,16 +195,16 @@
     optAll.textContent = '{{__("All Department")}}';
     select.appendChild(optAll);
     if (data && typeof data === "object") {
-      Object.keys(data).forEach(function (k) {
+      Object.keys(data).forEach(function (k: string) {
         const o = document.createElement("option");
         o.value = k;
-        o.textContent = data[k];
+        o.textContent = String(data[k] ?? "");
         select.appendChild(o);
       });
     }
   };
 
-  const renderEmployeeSelect = data => {
+  const renderEmployeeSelect = (data: Record<string, unknown>) => {
     const wrap = document.getElementById("employee_div");
     if (!wrap) {
       return;
@@ -244,10 +240,10 @@
     optAll.textContent = '{{__("All Employee")}}';
     select.appendChild(optAll);
     if (data && typeof data === "object") {
-      Object.keys(data).forEach(function (k) {
+      Object.keys(data).forEach(function (k: string) {
         const o = document.createElement("option");
         o.value = k;
-        o.textContent = data[k];
+        o.textContent = String(data[k] ?? "");
         select.appendChild(o);
       });
     }
@@ -268,47 +264,47 @@
     }
   };
 
-  const getDepartment = branchId => {
+  const getDepartment = (branchId: string) => {
     if (!validRoute(deptUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
     }
-    $.ajax({
+    $?.ajax({
       url: deptUrl,
       type: "POST",
       data: { branch_id: branchId, _token: "{{ csrf_token() }}" },
-      success: function (data) {
+      success: function (data: unknown) {
         try {
-          renderDepartmentSelect(data);
+          renderDepartmentSelect(data as Record<string, unknown>);
         } catch (_) {
           scheduleInteractiveError(
-            getMsg(document.body, "department_unavailable")
+            getMsg(document.body, "department_unavailable"),
           );
         }
       },
       error: function (): void {
         scheduleInteractiveError(
-          getMsg(document.body, "department_unavailable")
+          getMsg(document.body, "department_unavailable"),
         );
       },
     });
   };
 
-  const getEmployee = deptId => {
+  const getEmployee = (deptId: string) => {
     if (!validRoute(empUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
     }
-    $.ajax({
+    $?.ajax({
       url: empUrl,
       type: "POST",
       data: { department_id: deptId, _token: "{{ csrf_token() }}" },
-      success: function (data) {
+      success: function (data: unknown) {
         try {
-          renderEmployeeSelect(data);
+          renderEmployeeSelect(data as Record<string, unknown>);
         } catch (_) {
           scheduleInteractiveError(
-            getMsg(document.body, "employee_unavailable")
+            getMsg(document.body, "employee_unavailable"),
           );
         }
       },
@@ -318,15 +314,20 @@
     });
   };
 
-  const bindWithObserver = (el, evt, handler, flag) => {
+  const bindWithObserver = (
+    el: HTMLElement,
+    evt: string,
+    handler: (this: HTMLElement, e: Event) => void,
+    flag: string,
+  ) => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
     el.setAttribute(flag, "true");
-    $(el).on(evt, handler);
+    if ($) $(el).on(evt, handler as unknown as (e: Event) => void);
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(el)) {
-        $(el).off(evt, handler);
+        if ($) $(el).off(evt, handler as unknown as (e: Event) => void);
         o.disconnect();
       }
     });
@@ -335,15 +336,15 @@
 
   const init = (): void => {
     const branch = document.querySelector('select[name="branch_id"]');
-    if (branch) {
+    if (branch instanceof HTMLElement) {
       bindWithObserver(
         branch,
         "change",
-        function (): void {
-          const v = $(this).val();
+        function (this: HTMLElement): void {
+          const v = $ ? String($(this).val() ?? "") : "";
           getDepartment(v);
         },
-        dataEvtBranch
+        dataEvtBranch,
       );
     }
     const dept = document.getElementById("department_id");
@@ -351,11 +352,11 @@
       bindWithObserver(
         dept,
         "change",
-        function (): void {
-          const v = $(this).val();
+        function (this: HTMLElement): void {
+          const v = $ ? String($(this).val() ?? "") : "";
           getEmployee(v);
         },
-        dataEvtDept
+        dataEvtDept,
       );
     }
   };

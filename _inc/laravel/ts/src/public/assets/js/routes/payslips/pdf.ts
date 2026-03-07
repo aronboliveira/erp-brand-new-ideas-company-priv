@@ -3,17 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const toast = msg => {
+  const toast = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -40,15 +38,14 @@
 
   const mail = document.getElementById("payslip-mail-send");
   if (mail) {
-    mail.addEventListener("click", e => {
+    mail.addEventListener("click", (e: Event) => {
       const url =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         mail.getAttribute("href") ?? mail.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          mail.getAttribute("data-guard-msg") ?? "Send Payslip route is unavailable. Please contact technical support or your domain administrator.";
+          mail.getAttribute("data-guard-msg") ??
+          "Send Payslip route is unavailable. Please contact technical support or your domain administrator.";
         toast(msg);
       }
     });
@@ -62,7 +59,8 @@
     const w = window.open("about:blank", "_blank", "noopener,noreferrer");
     if (!w) return;
     const bootstrapHref =
-      document.querySelector('link[href*="bootstrap"]')?.href ?? "";
+      (document.querySelector('link[href*="bootstrap"]') as HTMLLinkElement)
+        ?.href ?? "";
     const newDoc = w.document;
     newDoc.head.innerHTML = [
       "<title>Payslip</title>",
@@ -73,10 +71,12 @@
     ].join("");
     newDoc.body.innerHTML = el.innerHTML;
     w.focus();
-    setTimeout((): void => { w.print(); }, 300);
+    setTimeout((): void => {
+      w.print();
+    }, 300);
   };
   if (printBtn) {
-    printBtn.addEventListener("click", e => {
+    printBtn.addEventListener("click", (e: Event) => {
       e.preventDefault();
       printFn();
     });

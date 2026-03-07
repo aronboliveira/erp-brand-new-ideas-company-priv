@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module indexLabelStore
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -15,7 +14,6 @@
     try {
       const action = form.getAttribute("action");
       const dataAction = form.getAttribute("data-action");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if ((!action || action === "#") && (!dataAction || dataAction === "#")) {
         event.preventDefault();
         const msg = form.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -29,7 +27,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";

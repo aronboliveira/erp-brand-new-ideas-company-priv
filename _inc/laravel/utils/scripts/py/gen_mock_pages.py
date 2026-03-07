@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Generate mock HTML+JS test pages for every route group in the ERP system."""
-import json, os, re, html
+import html
+import json
+import os
+import re
 from datetime import datetime, timezone
+from typing import Any
 
 ROUTES_FILE = "/tmp/routes_full.json"
 OUTPUT_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/tests/frontend/js/pages/mocks"
@@ -188,20 +192,20 @@ CATEGORY_MAP = {
     ".well-knowns": "debug", "{uid}": "debug",
 }
 
-def route_to_category(uri):
+def route_to_category(uri: str) -> str:
     seg = uri.strip('/').split('/')[0] if uri.strip('/') else '/'
     return CATEGORY_MAP.get(seg, "other")
 
-def sanitize_filename(s):
+def sanitize_filename(s: str) -> str:
     return re.sub(r'[^a-z0-9_-]', '-', s.lower()).strip('-')
 
-def gen_html(category, routes):
+def gen_html(category: str, routes: list[dict[str, Any]]) -> str:
     safe_cat = html.escape(category)
     methods_with_body = {"POST", "PUT", "PATCH"}
-    
+
     route_rows = []
     js_fetches = []
-    
+
     for i, r in enumerate(routes):
         uri = r['uri']
         raw_methods = [m for m in r['method'].split('|') if m != 'HEAD']
@@ -209,7 +213,7 @@ def gen_html(category, routes):
         action = r.get('action') or ''
         mw_list = r.get('middleware', [])
         needs_auth = any('Authenticate' in str(m) for m in mw_list)
-        
+
         safe_uri = html.escape(uri)
         safe_name = html.escape(name)
         safe_action = html.escape(action)
@@ -230,22 +234,16 @@ def gen_html(category, routes):
         # For JS: pick first real method
         primary = raw_methods[0] if raw_methods else 'GET'
         has_body = primary in methods_with_body
-        
+
         # Build a parameterized URI (replace {param} with example values)
         js_uri = re.sub(r'\{([^}]+)\}', '1', '/' + uri)
-        
-        body_arg = ""
-        if has_body:
-            body_arg = """,
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ _token: csrfToken })"""
-        
+
         js_fetches.append(f"""    case {i}:
       return {{ url: '{js_uri}', method: '{primary}', hasBody: {str(has_body).lower()} }};""")
 
     rows_html = "\n".join(route_rows)
     cases_js = "\n".join(js_fetches)
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -398,12 +396,13 @@ def gen_html(category, routes):
 </body>
 </html>"""
 
+
 # Load routes
 with open(ROUTES_FILE) as f:
     routes = json.load(f)
 
 # Group by category
-categories = {}
+categories: dict[str, list[dict[str, Any]]] = {}
 for r in routes:
     cat = route_to_category(r['uri'])
     categories.setdefault(cat, []).append(r)
@@ -424,7 +423,7 @@ for cat, cat_routes in sorted(categories.items()):
 index_rows = []
 for cat, fname, count in sorted(created, key=lambda x: -x[2]):
     index_rows.append(f'      <tr><td><a href="{fname}">{html.escape(cat)}</a></td><td>{count}</td></tr>')
-    
+
 index_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>

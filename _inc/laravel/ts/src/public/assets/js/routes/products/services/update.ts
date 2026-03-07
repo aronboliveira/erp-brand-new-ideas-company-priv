@@ -3,20 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("productService-update-form");
   if (!form) return;
 
-  const toast = msg => {
+  const toast = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -43,11 +41,9 @@
 
   form.addEventListener(
     "submit",
-    e => {
+    (e: Event) => {
       const url =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
@@ -63,7 +59,8 @@
   const qtyInput = document.querySelector('input[name="quantity"]');
 
   const syncQtyVisibility = (): void => {
-    const val = document.querySelector('input[name="type"]:checked')?.value;
+    const checked = document.querySelector<HTMLInputElement>('input[name="type"]:checked');
+    const val = checked?.value;
     if (!qtyWrap || !qtyInput) return;
     if (val === "service") {
       qtyWrap.classList.add("d-none");
@@ -77,8 +74,8 @@
   typeRadios.forEach(r => { r.addEventListener("change", syncQtyVisibility); });
   syncQtyVisibility();
 
-  const file = document.getElementById("pro_image");
-  const img = document.getElementById("image");
+  const file = document.getElementById("pro_image") as HTMLInputElement | null;
+  const img = document.getElementById("image") as HTMLImageElement | null;
   if (file && img) {
     file.addEventListener("change", (): void => {
       const f = file.files?.[0];

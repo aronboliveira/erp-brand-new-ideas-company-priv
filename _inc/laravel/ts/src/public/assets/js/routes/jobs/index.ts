@@ -3,22 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 /* global bootstrap */
 ((): void => {
-  const QA = s => Array.from(document.querySelectorAll(s));
+  const QA = (s: string) => Array.from(document.querySelectorAll(s));
   const T = window.JOBS_I18N || {};
   const DEFAULT_ROUTE_MSG =
-    T.routeUnavailable ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+    T.routeUnavailable ??
+    "Requested route is unavailable. Please contact technical support or your domain administrator.";
   const COPIED = T.copySuccess ?? "Link copied to clipboard";
   const COPY_FAIL = T.copyFail ?? "Failed to copy link";
 
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
     let box = document.getElementById("toast-container");
@@ -48,10 +47,10 @@
     }
   };
 
-  const bindLinkGuard = el => {
+  const bindLinkGuard = (el: Element | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       const href = (el.getAttribute("href") ?? "#").trim();
       const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
       if (url !== "#" && href !== "#") return;
@@ -61,10 +60,10 @@
     });
   };
 
-  const bindFormGuard = fm => {
+  const bindFormGuard = (fm: Element | null) => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       const action = (fm.getAttribute("action") ?? "#").trim();
       const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
       if (url !== "#" && action !== "#") return;
@@ -84,8 +83,7 @@
     } catch (_) {}
   };
 
-  const copyToClipboard = text =>
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+  const copyToClipboard = (text: string) =>
     navigator.clipboard
       ? navigator.clipboard.writeText(text)
       : Promise.reject();
@@ -94,7 +92,7 @@
     QA("a.copy-link").forEach(a => {
       if (a.getAttribute("data-copy-bound") === "true") return;
       a.setAttribute("data-copy-bound", "true");
-      a.addEventListener("click", e => {
+      a.addEventListener("click", (e: Event) => {
         const href = (a.getAttribute("href") ?? "#").trim();
         const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
         if (url === "#" || href === "#") {
@@ -104,8 +102,12 @@
         }
         e.preventDefault();
         copyToClipboard(url)
-          .then((): void => { toast(COPIED); })
-          .catch((): void => { toast(COPY_FAIL); });
+          .then((): void => {
+            toast(COPIED);
+          })
+          .catch((): void => {
+            toast(COPY_FAIL);
+          });
       });
     });
   };

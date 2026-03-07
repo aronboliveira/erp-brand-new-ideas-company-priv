@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -11,15 +10,15 @@
   const dataClientLoc = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
 
-  function getLocalizedMessage(el, key) {
+  function getLocalizedMessage(el: HTMLElement, key: string) {
     let msg = errFb;
     if (el.getAttribute(dataClientLoc) === "true") {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -37,13 +36,12 @@
     return msg;
   }
 
-  function showError(msg) {
+  function showError(msg: string) {
     const bsLink = document.querySelector("link[href*='bootstrap']");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (bsLink && window.bootstrap.Toast) {
       const container =
         document.getElementById("toast-container") ??
-        ((): void => {
+        ((): HTMLDivElement => {
           const c = document.createElement("div");
           c.id = "toast-container";
           document.body.appendChild(c);
@@ -68,26 +66,41 @@
   document.addEventListener("DOMContentLoaded", (): void => {
     document.querySelectorAll(".toggleswitch").forEach((el: Element): void => {
       try {
-        if (typeof $(el).bootstrapToggle !== "function") {
+        if (typeof ($(el) as any).bootstrapToggle !== "function") {
           throw new Error("bootstrapToggle missing");
         }
-        $(el).bootstrapToggle();
+        ($(el) as any).bootstrapToggle();
       } catch {
-        const msg = getLocalizedMessage(el, "toggle_init_failed");
-        el.addEventListener("click", (): void => { showError(msg); }, { once: true });
+        const msg = getLocalizedMessage(
+          el as HTMLElement,
+          "toggle_init_failed",
+        );
+        el.addEventListener(
+          "click",
+          (): void => {
+            showError(msg);
+          },
+          { once: true },
+        );
       }
     });
 
     const starSelector = "fieldset[id^='demo'] .stars";
-    const handleStarClick = e => {
-      const tgt = e.target;
-      if (!tgt.matches(starSelector)) return;
+    const handleStarClick = (e: Event) => {
+      const tgt = e.target as HTMLInputElement | null;
+      if (!tgt || !tgt.matches(starSelector)) return;
       try {
         alert(tgt.value);
         tgt.checked = true;
       } catch {
         const msg = getLocalizedMessage(tgt, "star_click_failed");
-        tgt.addEventListener("pointerup", (): void => { showError(msg); }, { once: true });
+        tgt.addEventListener(
+          "pointerup",
+          (): void => {
+            showError(msg);
+          },
+          { once: true },
+        );
       }
     };
 

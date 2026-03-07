@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module preview
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -14,8 +13,7 @@
   const imageEl = document.querySelector(IMAGE_SELECTOR);
   if (!attachEl || !imageEl) return;
 
-  const showError = msg => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const showError = (msg: string) => {
     const hasBs = window.bootstrap && typeof bootstrap.Toast === "function";
     if (hasBs) {
       const toastEl = document.createElement("div");
@@ -34,16 +32,16 @@
     }
   };
 
-  const handler = e => {
+  const handler = (e: Event) => {
     try {
-      const file = e.target.files?.[0];
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
-      imageEl.src = URL.createObjectURL(file);
+      (imageEl as HTMLImageElement).src = URL.createObjectURL(file);
     } catch {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");

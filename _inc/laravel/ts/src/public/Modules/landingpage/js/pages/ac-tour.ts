@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module ac-tour
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 'use strict';
 document.addEventListener("DOMContentLoaded", function (): void {

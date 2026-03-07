@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module deleteBankPayment
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
-  const bindGuard = el => {
+  const bindGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       try {
         const url = el.getAttribute("data-url") ?? "#";
         if (url !== "#") return;
@@ -26,7 +25,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -48,7 +46,7 @@
   };
   document
     .querySelectorAll('[data-listener-alias^="delete-bankpayment-"]')
-    .forEach(bindGuard);
+    .forEach(el => bindGuard(el as HTMLElement));
 })();
 
 export {};

@@ -3,16 +3,29 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+declare const html2pdf:
+  | (() => {
+      set: (opt: unknown) => {
+        from: (el: HTMLElement) => {
+          save: () => {
+            then: (fn: () => void) => {
+              catch: (fn: (err: unknown) => void) => void;
+            };
+          };
+        };
+      };
+    })
+  | undefined;
+
 ((): void => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_BOUND = "data-np-bound";
 
-  const localize = (el, msgKey) => {
+  const localize = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +34,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,9 +54,8 @@
     return msg;
   };
 
-  const showErrorOnPointer = key => {
+  const showErrorOnPointer = (key: string) => {
     const target = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!target || target.getAttribute(DATA_BOUND) === "true") return;
     const handler = (): void => {
       const text = localize(document.body, key);
@@ -60,7 +72,21 @@
           toast.setAttribute("role", "alert");
           toast.setAttribute("aria-live", "assertive");
           toast.setAttribute("aria-atomic", "true");
-          { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = text; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+          {
+            toast.replaceChildren();
+            const _d = document.createElement("div");
+            _d.className = "d-flex";
+            const _b = document.createElement("div");
+            _b.className = "toast-body";
+            _b.textContent = text;
+            const _c = document.createElement("button");
+            _c.type = "button";
+            _c.className = "btn-close btn-close-white me-2 m-auto";
+            _c.dataset.bsDismiss = "toast";
+            _c.setAttribute("aria-label", "Close");
+            _d.append(_b, _c);
+            toast.append(_d);
+          }
           document.body.appendChild(toast);
         }
         new bootstrap.Toast(toast).show();
@@ -97,7 +123,7 @@
         console.error("jQuery failed to load");
       return;
     }
-    $(window).on("load", (): void => {
+    $(window as unknown as Element).on("load", (): void => {
       try {
         const el = document.getElementById("boxes");
         if (!el || typeof html2pdf === "undefined") {
@@ -121,7 +147,9 @@
           .from(el)
           .save()
           .then(closeWindowSafely)
-          .catch((): void => { showErrorOnPointer("proposal_pdf_unavailable"); });
+          .catch((): void => {
+            showErrorOnPointer("proposal_pdf_unavailable");
+          });
       } catch {
         showErrorOnPointer("proposal_pdf_unavailable");
       }

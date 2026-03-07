@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -21,7 +20,7 @@
       f.setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
         if (action !== "#") return;

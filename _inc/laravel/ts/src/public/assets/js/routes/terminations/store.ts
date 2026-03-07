@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 // public/assets/js/routes/terminations/store.js
@@ -12,10 +11,9 @@
     const f = document.getElementById("store_termination");
     if (!f || f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = f.getAttribute("data-url") ?? "#";
         if (action !== "#" || url !== "#") return;
         e.preventDefault();
@@ -23,13 +21,12 @@
           ? f.getAttribute("data-guard-msg")
           : "";
         const msg =
-          msgAttr?.trim().length > 0
+          (msgAttr ?? "").trim().length > 0
             ? msgAttr
             : "Store termination route is unavailable. Please contact technical support or your domain administrator.";
         const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap = !!(
-          bootstrapLink &&
-          typeof window.bootstrap.Toast !== "undefined"
+          bootstrapLink && typeof window.bootstrap.Toast !== "undefined"
         );
         let container = document.getElementById("toast-container");
         if (!container) {

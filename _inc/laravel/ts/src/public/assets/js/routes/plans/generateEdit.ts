@@ -3,20 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   const btn = document.getElementById("generate-plan-btn");
   if (!btn) return;
 
-  const show = msg => {
+  const show = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -43,17 +41,17 @@
 
   btn.addEventListener(
     "click",
-    e => {
+    (e: Event) => {
       const url = btn.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          btn.getAttribute("data-guard-msg") ?? "Generate content route for Plan is unavailable. Please contact technical support or your domain administrator.";
+          btn.getAttribute("data-guard-msg") ??
+          "Generate content route for Plan is unavailable. Please contact technical support or your domain administrator.";
         show(msg);
       }
     },
-    { passive: false }
+    { passive: false },
   );
 })();
 

@@ -169,7 +169,7 @@
                                                 @endphp
                                                 <tr data-product-id="{{ $id }}" id="product-id-{{ $id }}">
                                                     <td class="cart-images">
-                                                        <img alt="Image" src="{{ asset(Storage::url('uploads/pro_image/'.$image_url)) }}" class="card-image avatar rounded-circle-sale shadow hover-shadow-lg">
+                                                        <img alt="{{ __('Image') }}" src="{{ asset(Storage::url('uploads/pro_image/'.$image_url)) }}" class="card-image avatar rounded-circle-sale shadow hover-shadow-lg">
                                                     </td>
                                                     <td class="name">{{ $name }}</td>
                                                     <td>
@@ -289,7 +289,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="body"></div>
                 </div>
@@ -300,7 +300,7 @@
             <div id="liveToast" class="toast text-white fade" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="{{ VC::DFL }}">
                     <div class="toast-body"></div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>

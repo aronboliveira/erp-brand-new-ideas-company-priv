@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module showIndex
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const el = document.getElementById("customer-index-breadcrumb");
   if (!el || el.getAttribute("data-listener-active") === "true") return;
   el.setAttribute("data-listener-active", "true");
-  el.addEventListener("click", e => {
+  el.addEventListener("click", (e: Event) => {
     try {
       const url = el.getAttribute("data-url") ?? "#";
       if (url !== "#") return;

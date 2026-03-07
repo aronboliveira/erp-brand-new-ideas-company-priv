@@ -165,7 +165,7 @@
 											<div class="col-1">{{ data_get($t, 'end_time') ? date('H:i:s', strtotime((string) data_get($t, 'end_time'))) : __('No end time available') }}</div>
 											<div class="col-1">{{ (string) data_get($t, 'total', __('Could not find total time')) }}</div>
 											<div class="col-1">
-												<img alt="Image placeholder" src="{{ asset('assets/images/gallery.png') }}" class="avatar view-images rounded-circle avatar-sm" data-toggle="tooltip" data-original-title="{{ __('View Screenshot images') }}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{ (string) data_get($t, 'id', '') }}" id="track-images-{{ (string) data_get($t, 'id', '') }}">
+												<img alt="{{ __('Image placeholder') }}" src="{{ asset('assets/images/gallery.png') }}" class="avatar view-images rounded-circle avatar-sm" data-toggle="tooltip" data-original-title="{{ __('View Screenshot images') }}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{ (string) data_get($t, 'id', '') }}" id="track-images-{{ (string) data_get($t, 'id', '') }}">
 												<i data-id="{{ (string) data_get($t, 'id', '') }}" data-is_billable="{{ (int) data_get($t, 'is_billable', 0) }}" data-toggle="tooltip" data-original-title="{{ data_get($t, 'is_billable', 0) == 1 ? __('Click to Mark Non-Billable') : __('Click to Mark Billable') }}" class="change_billable ti ti-dollar-sign {{ data_get($t, 'is_billable', 0) == 1 ? 'doller-billable' : 'doller-non-billable' }}"></i>
 												<i class="ti ti-times text-danger mx-2 pointer remove-track" data-toggle="tooltip" data-original-title="{{ __('Delete') }}" data-id="{{ (string) data_get($t, 'id', '') }}" data-url=""></i>
 											</div>

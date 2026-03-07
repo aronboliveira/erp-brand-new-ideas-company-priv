@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -12,7 +11,7 @@
     if (!fm) return;
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const action = (fm.getAttribute("action") ?? "#").trim();
         const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -22,7 +21,6 @@
           fm.getAttribute("data-guard-msg") ??
           "Update estimate route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");

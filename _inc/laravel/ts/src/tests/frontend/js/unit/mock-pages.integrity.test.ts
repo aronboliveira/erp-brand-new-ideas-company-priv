@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module mock-pages.integrity.test
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/restrict-template-expressions */
 
 /* global $, jQuery */
 // @ts-check
@@ -62,7 +61,6 @@ describe("Frontend mock page integrity", (): void => {
       const dom = new DOMParser().parseFromString(readText(file), "text/html");
       const text = (dom.body.textContent).replace(/\s+/g, " ").trim();
 
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!text || text.length < 30 || /^[\d\s.,:/-]+$/.test(text)) {
         suspicious.push(toRepoRelative(file));
       }

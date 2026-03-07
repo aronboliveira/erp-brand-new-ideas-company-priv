@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module header
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 document.querySelectorAll(".theme-avatar img").forEach(img => {
   if (img.hasAttribute("data-reloading-active")) return;

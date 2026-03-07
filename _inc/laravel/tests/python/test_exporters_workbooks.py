@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 from pathlib import Path
+from typing import Any
 
 import openpyxl
 import pytest
@@ -25,7 +26,7 @@ WORKBOOK_CASES = [
 ]
 
 
-def _run_export(module_name: str, payload: dict, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def _run_export(module_name: str, payload: dict[str, Any], tmp_path: Path, monkeypatch: Any) -> Any:
     exporter_cls = load_exporter_class(module_name)
     output_path = tmp_path / f"{module_name}.xlsx"
     payload = dict(payload)
@@ -39,24 +40,24 @@ def _run_export(module_name: str, payload: dict, tmp_path: Path, monkeypatch: py
     return openpyxl.load_workbook(output_path, data_only=False)
 
 
-def _sheet_values(sheet) -> list:
+def _sheet_values(sheet: Any) -> list[Any]:
     return [cell.value for row in sheet.iter_rows() for cell in row if cell.value not in (None, "")]
 
 
-def _freeze_panes(sheet):
+def _freeze_panes(sheet: Any) -> Any:
     pane = sheet.freeze_panes
     return pane.coordinate if hasattr(pane, "coordinate") else pane
 
 
-@pytest.mark.parametrize("module_name,main_sheet,first_sheet,header_row", WORKBOOK_CASES)
+@pytest.mark.parametrize("module_name,main_sheet,first_sheet,header_row", WORKBOOK_CASES)  # type: ignore[untyped-decorator]
 def test_exporters_generate_loadable_workbooks(
-    module_name,
-    main_sheet,
-    first_sheet,
-    header_row,
-    exporter_payloads,
-    tmp_path,
-    monkeypatch,
+    module_name: str,
+    main_sheet: str,
+    first_sheet: str,
+    header_row: int,
+    exporter_payloads: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     workbook = _run_export(module_name, exporter_payloads[module_name](), tmp_path, monkeypatch)
 
@@ -80,7 +81,7 @@ def test_exporters_generate_loadable_workbooks(
         assert _freeze_panes(sheet) == "A2"
 
 
-def test_balance_sheet_workbook_contains_dashboard_and_balance_check(exporter_payloads, tmp_path, monkeypatch) -> None:
+def test_balance_sheet_workbook_contains_dashboard_and_balance_check(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
     workbook = _run_export("balance_sheet_exporter", exporter_payloads["balance_sheet_exporter"](), tmp_path, monkeypatch)
 
     dashboard = workbook["Dashboard"]
@@ -92,7 +93,7 @@ def test_balance_sheet_workbook_contains_dashboard_and_balance_check(exporter_pa
     assert "Total Liabilities & Equity" in values
 
 
-def test_trial_balance_workbook_contains_balance_formula(exporter_payloads, tmp_path, monkeypatch) -> None:
+def test_trial_balance_workbook_contains_balance_formula(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
     workbook = _run_export("trial_balance_exporter", exporter_payloads["trial_balance_exporter"](), tmp_path, monkeypatch)
 
     dashboard = workbook["Dashboard"]
@@ -104,7 +105,7 @@ def test_trial_balance_workbook_contains_balance_formula(exporter_payloads, tmp_
     assert any(formula.startswith("=C") and "-D" in formula for formula in formulas)
 
 
-def test_sales_report_workbook_contains_totals_and_pivot(exporter_payloads, tmp_path, monkeypatch) -> None:
+def test_sales_report_workbook_contains_totals_and_pivot(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
     workbook = _run_export("sales_report_exporter", exporter_payloads["sales_report_exporter"](), tmp_path, monkeypatch)
 
     sheet = workbook["Sales Item"]

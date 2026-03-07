@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module ship
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -13,15 +12,17 @@
   const dataSvLocalized = "data-sv-localized";
   const dataBound = "data-shipping-bound";
   const dataArmed = "data-shipping-error-armed";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
   const hasBS = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLDivElement => {
+    let c = qs<HTMLDivElement>("#np-toast-container");
     if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
@@ -33,9 +34,9 @@
     document.body.appendChild(c);
     return c;
   };
-  const showToast = message => {
+  const showToast = (message: string) => {
     const container = ensureToastContainer();
-    let t = qs("#np-toast", container);
+    let t = qs<HTMLDivElement>("#np-toast", container);
     if (!t) {
       t = document.createElement("div");
       t.id = "np-toast";
@@ -51,7 +52,7 @@
     if (body) body.textContent = message ?? errFb;
     new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
   };
-  const notifyError = (host, msg) => {
+  const notifyError = (host: HTMLElement, msg: string) => {
     if (!host || host.getAttribute(dataArmed) === "true") return;
     host.setAttribute(dataArmed, "true");
     const handler = (): void => {
@@ -70,7 +71,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const localize = function (el, msgKey) {
+  const localize = function (el: HTMLElement, msgKey: string): string {
     let msg = errFb;
     if (
       el.getAttribute(dataSvLocalized) === "true" ||
@@ -79,9 +80,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -99,13 +100,12 @@
     }
     return msg;
   };
-  const bindOnce = el => {
+  const bindOnce = (el: HTMLElement | null) => {
     if (!el || el.getAttribute(dataBound) === "true") return;
     el.setAttribute(dataBound, "true");
     const handler = function (): void {
       const $ = window.jQuery;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-      if (!$.ajax) {
+      if (!$ || !$.ajax) {
         try {
           if (
             window.location.hostname === "localhost" ||
@@ -117,11 +117,11 @@
         return;
       }
       const url = el.getAttribute("data-url");
-      let href = null;
-      const isAnchor = el.tagName && el.tagName.toLowerCase() === "a";
+      let href: string | null = null;
+      const isAnchor = el.tagName?.toLowerCase() === "a";
       if (isAnchor) href = el.getAttribute("href");
-      else if (el.form) href = el.form.getAttribute("action");
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+      else if ("form" in el && el.form instanceof HTMLFormElement)
+        href = el.form.getAttribute("action");
       if ((!url || url === "#") && (!href || href === "#")) {
         hasBS()
           ? showToast(localize(el, "shipping_unavailable"))
@@ -145,11 +145,11 @@
           : alert(localize(el, "shipping_unavailable"));
       }
     };
-    window.jQuery(el).on("pointerup", handler);
+    window.jQuery?.(el).on("pointerup", handler);
     const mo = new MutationObserver(function (): void {
       if (!document.body.contains(el)) {
         try {
-          window.jQuery(el).off("pointerup", handler);
+          window.jQuery?.(el).off("pointerup", handler);
         } catch (_) {}
         mo.disconnect();
       }
@@ -157,10 +157,10 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
   const init = (): void => {
-    const el = qs("#shipping");
+    const el = qs<HTMLElement>("#shipping");
     if (el) bindOnce(el);
     const mo = new MutationObserver(function (): void {
-      const s = qs("#shipping");
+      const s = qs<HTMLElement>("#shipping");
       if (s) bindOnce(s);
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });

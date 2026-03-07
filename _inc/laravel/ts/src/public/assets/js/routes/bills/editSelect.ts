@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editSelect
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -11,10 +10,9 @@
   if (!select || select.getAttribute("data-listener-active") === "true") return;
   select.setAttribute("data-listener-active", "true");
 
-  select.addEventListener("change", async (): void => {
+  select.addEventListener("change", async (): Promise<void> => {
     try {
       const url = select.getAttribute("data-url");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         const msg = select.getAttribute("data-guard-msg");
         const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
@@ -27,7 +25,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -47,25 +44,27 @@
         return;
       }
 
-      const productId = select.value ?? "";
+      const productId = (select as HTMLSelectElement).value ?? "";
       const response = await fetch(
         `${url}?product_id=${encodeURIComponent(productId)}`,
         {
           headers: { "X-Requested-With": "XMLHttpRequest" },
-        }
+        },
       );
       if (!response.ok) throw new Error(`Network error: ${response.status}`);
       const data = await response.json();
 
-      document.querySelectorAll("[data-product-field]").forEach((el: Element): void => {
-        const key = el.getAttribute("data-product-field");
-        const val = data[key] ?? "";
-        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-          el.value = val;
-        } else {
-          el.textContent = val;
-        }
-      });
+      document
+        .querySelectorAll("[data-product-field]")
+        .forEach((el: Element): void => {
+          const key = el.getAttribute("data-product-field") ?? "";
+          const val = data[key] ?? "";
+          if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            (el as HTMLInputElement).value = val;
+          } else {
+            el.textContent = val;
+          }
+        });
     } catch (e) {}
   });
 })();

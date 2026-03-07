@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editPicker
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,13 +11,12 @@
   const GUARD_MSG = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
 
-  const getMsg = (key, el) => {
+  const getMsg = (key: string, el: HTMLElement) => {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
       msg = el.getAttribute(GUARD_MSG) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(LANG_KEY) ??
         document.documentElement.lang ?? "en"
       )
@@ -38,7 +36,7 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {

@@ -7,7 +7,8 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const BASE = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/src";
+const BASE =
+  "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/src";
 
 function walk(dir) {
   let results = [];
@@ -28,7 +29,7 @@ for (const fp of walk(BASE)) {
   const orig = src;
 
   // ──────────────────────────────────────────────────
-  // 1. Wrap bare fetch().then().catch() chains that don't have .catch() 
+  // 1. Wrap bare fetch().then().catch() chains that don't have .catch()
   //    Already-awaited fetches inside try blocks are fine.
   // ──────────────────────────────────────────────────
 
@@ -37,11 +38,11 @@ for (const fp of walk(BASE)) {
   // This catches: fetch(...).then(...) NOT followed by .catch
   src = src.replace(
     /\bfetch\([^)]*\)[\s\S]*?\.then\([^)]*\)(?!\s*\.catch)/gm,
-    (match) => {
+    match => {
       // Don't double-add
       if (match.includes(".catch")) return match;
       return match;
-    }
+    },
   );
 
   // ──────────────────────────────────────────────────
@@ -73,16 +74,25 @@ for (const fp of walk(BASE)) {
       }
     }
 
-    if (trimmed.startsWith("try ") || trimmed === "try{" || trimmed === "try {") {
+    if (
+      trimmed.startsWith("try ") ||
+      trimmed === "try{" ||
+      trimmed === "try {"
+    ) {
       tryDepth++;
       tryStack.push(braceDepth);
     }
 
     // Check for JSON.parse not in try
-    if (tryDepth === 0 && /JSON\.parse\s*\(/.test(line) && !trimmed.startsWith("//")) {
+    if (
+      tryDepth === 0 &&
+      /JSON\.parse\s*\(/.test(line) &&
+      !trimmed.startsWith("//")
+    ) {
       // Wrap this line in try-catch
       const indent = line.match(/^(\s*)/)?.[1] ?? "";
-      lines[i] = `${indent}try { ${trimmed} } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }`;
+      lines[i] =
+        `${indent}try { ${trimmed} } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }`;
       jsonGuards++;
     }
   }
@@ -98,13 +108,13 @@ for (const fp of walk(BASE)) {
   // This regex matches: fetch(...)followed by .then(...)  not followed by .catch
   src = src.replace(
     /(fetch\([^)]*(?:\([^)]*\))*[^)]*\)\s*\.then\([^)]*(?:\([^)]*\))*[^)]*\))(?!\s*\.\s*catch)/g,
-    "$1.catch(console.error)"
+    "$1.catch(console.error)",
   );
 
   // For standalone fetch().then().then() - add catch if missing
   src = src.replace(
     /(\.then\([^)]*(?:\([^)]*\))*[^)]*\)\s*\.then\([^)]*(?:\([^)]*\))*[^)]*\))(?!\s*\.\s*catch)/g,
-    "$1.catch(console.error)"
+    "$1.catch(console.error)",
   );
 
   if (src !== orig) {
@@ -113,4 +123,6 @@ for (const fp of walk(BASE)) {
   }
 }
 
-console.log(`Guarded: ${fileCount} files, ${fetchGuards} fetch calls, ${jsonGuards} JSON.parse calls.`);
+console.log(
+  `Guarded: ${fileCount} files, ${fetchGuards} fetch calls, ${jsonGuards} JSON.parse calls.`,
+);

@@ -546,7 +546,7 @@ if (isset($purchase) && !empty($purchase)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <div class="alert alert-warning">No purchase data available.</div>
+    <div class="alert alert-warning">{{ __('No purchase data available.') }}</div>
 </body>
 </html>';
 }

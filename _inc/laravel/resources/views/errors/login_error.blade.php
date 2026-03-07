@@ -16,8 +16,8 @@
                         <div class="alert alert-danger">
                             {{!empty($message) ? $message : "Undefined error." }}
                         </div>
-                        <a href="{{ route('login') }}" class="btn btn-primary">Try Again</a>
-                        <a href="{{ url('/') }}" class="btn btn-secondary">Go Home</a>
+                        <a href="{{ route('login') }}" class="btn btn-primary">{{ __('Try Again') }}</a>
+                        <a href="{{ url('/') }}" class="btn btn-secondary">{{ __('Go Home') }}</a>
                     </div>
                 </div>
             </div>

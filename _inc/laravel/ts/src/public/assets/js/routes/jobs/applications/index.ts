@@ -3,18 +3,24 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
-/* global bootstrap */
+/* global bootstrap dragula */
+declare const dragula:
+  | ((containers: Element[]) => {
+      on: (event: string, callback: () => void) => void;
+    })
+  | undefined;
+
 ((): void => {
-  const Q = s => document.querySelector(s),
-    QA = s => Array.from(document.querySelectorAll(s));
-  const T = m => {
+  const Q = (s: string) => document.querySelector(s),
+    QA = (s: string) => Array.from(document.querySelectorAll(s));
+  const T = (m: unknown) => {
     const t =
-        m ?? "Requested route is unavailable. Please contact technical support or your domain administrator.",
+        typeof m === "string"
+          ? m
+          : "Requested route is unavailable. Please contact technical support or your domain administrator.",
       hasBs = !!(
         document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         window.bootstrap
       );
     let box = document.getElementById("toast-container");
@@ -39,10 +45,10 @@
       alert(t);
     }
   };
-  const bindLink = a => {
+  const bindLink = (a: Element) => {
     if (!a || a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       const href = (a.getAttribute("href") ?? "#").trim();
       const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
       if (url !== "#" && href !== "#") return;
@@ -50,10 +56,10 @@
       T(a.getAttribute("data-guard-msg") ?? "");
     });
   };
-  const bindForm = f => {
+  const bindForm = (f: Element) => {
     if (!f || f.getAttribute("data-submit-guarded") === "true") return;
     f.setAttribute("data-submit-guarded", "true");
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       const action = (f.getAttribute("action") ?? "#").trim();
       const url = (f.getAttribute("data-url") ?? action ?? "#").trim();
       if (url !== "#" && action !== "#") return;
@@ -80,15 +86,17 @@
   const initDragula = (): void => {
     const wrap = Q(".kanban-wrapper");
     if (!wrap || typeof dragula !== "function") return;
-    let ids = [];
+    let ids: string[] = [];
     try {
-      ids = JSON.parse(wrap.getAttribute("data-containers") ?? "[]");
+      ids = JSON.parse(
+        wrap.getAttribute("data-containers") ?? "[]",
+      ) as string[];
     } catch (_) {
       ids = [];
     }
     const containers = ids
-      .map(id => document.getElementById(id))
-      .filter(Boolean);
+      .map((id: string) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
     if (containers.length === 0) return;
     dragula(containers).on("drop", (): void => {
       updateCounts();

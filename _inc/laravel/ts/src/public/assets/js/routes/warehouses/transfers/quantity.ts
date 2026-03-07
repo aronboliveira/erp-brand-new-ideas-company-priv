@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module quantity
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,14 +14,14 @@
   const dataErrGuard = "data-warehouse-error";
   const dataBindGuard = "data-warehouse-bound";
   const ns = "._npWarehouse";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: ParentNode = document): HTMLElement | null =>
+    r.querySelector(s) as HTMLElement | null;
   const hasBootstrap = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
     c = document.createElement("div");
@@ -35,10 +34,10 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs("#np-toast", container as ParentNode);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -50,7 +49,7 @@
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
-      const body = qs(".toast-body", t);
+      const body = qs(".toast-body", t as ParentNode);
       if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
@@ -61,9 +60,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = message => {
+  const scheduleClickError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -82,7 +80,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -91,9 +89,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -110,18 +108,17 @@
     }
     return msg;
   };
-  const csrf = (): void => {
+  const csrf = (): string => {
     const m = document.querySelector('meta[name="csrf-token"]');
-    return m.getAttribute("content") ?? "";
+    return m?.getAttribute("content") ?? "";
   };
-  const isBadUrl = u => !u || u === "#";
+  const isBadUrl = (u: string): boolean => !u || u === "#";
   const urls = {
     products: '{{ route(VW::WRH_TRF.".get.product") }}',
     quantity: '{{ route(VW::WRH_TRF.".get.quantity") }}',
   };
 
-  const ensureJq = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const ensureJq = (): boolean => {
     if (!$.fn) {
       try {
         if (
@@ -138,33 +135,34 @@
   const buildProductControls = (): void => {
     const wrap = $("#product_div");
     if (wrap.length === 0) return;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!wrap.find('label[for="product"]').length) {
       wrap.append(
-        '<label for="product" class="form-label">{{ __("Product") }}</label>'
+        '<label for="product" class="form-label">{{ __("Product") }}</label>',
       );
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$("#product_id").length) {
       wrap.append(
-        '<select class="form-control" id="product_id" name="product_id"></select>'
+        '<select class="form-control" id="product_id" name="product_id"></select>',
       );
     }
   };
-  const populateSelect = ($sel, entries, placeholder) => {
+  const populateSelect = (
+    $sel: JQuery | null | undefined,
+    entries: Record<string, unknown>,
+    placeholder?: string,
+  ): void => {
     if (!$sel?.length) return;
     $sel.empty();
     if (placeholder) $sel.append(`<option value="">${placeholder}</option>`);
-    $.each(entries, function (key, value) {
+    Object.entries(entries).forEach(([key, value]) => {
       $sel.append(`<option value="${key}">${value}</option>`);
     });
   };
-  const getProduct = wid => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const getProduct = (wid: string) => {
     if (!ensureJq()) return;
     if (isBadUrl(urls.products)) {
       scheduleClickError(
-        getMsg(document.body, "warehouse_products_unavailable")
+        getMsg(document.body, "warehouse_products_unavailable"),
       );
       return;
     }
@@ -172,7 +170,10 @@
       url: urls.products,
       type: "POST",
       data: { warehouse_id: wid ?? "", _token: csrf() },
-      success: function (data) {
+      success: function (data: {
+        ware_products?: Record<string, unknown>;
+        to_warehouses?: Record<string, unknown>;
+      }) {
         try {
           buildProductControls();
           const $product = $("#product_id");
@@ -181,27 +182,25 @@
             populateSelect($product, data.ware_products);
           }
           const $to = $('select[name="to_warehouse"]');
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if ($to.length && data?.to_warehouses) {
             $to.empty();
-            $.each(data.to_warehouses, function (key, value) {
+            Object.entries(data.to_warehouses).forEach(([key, value]) => {
               $to.append(`<option value="${key}">${value}</option>`);
             });
           }
         } catch (_) {
           scheduleClickError(
-            getMsg(document.body, "warehouse_products_unavailable")
+            getMsg(document.body, "warehouse_products_unavailable"),
           );
         }
       },
     });
   };
-  const getQuantity = (pid, wid) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const getQuantity = (pid: string, wid: string) => {
     if (!ensureJq()) return;
     if (isBadUrl(urls.quantity)) {
       scheduleClickError(
-        getMsg(document.body, "warehouse_quantity_unavailable")
+        getMsg(document.body, "warehouse_quantity_unavailable"),
       );
       return;
     }
@@ -209,39 +208,40 @@
       url: urls.quantity,
       type: "POST",
       data: { product_id: pid ?? "", warehouse_id: wid ?? "", _token: csrf() },
-      success: function (data) {
+      success: function (data: string | number | null) {
         try {
-          $("#quantity").val((data ?? "").toString());
+          $("#quantity").val(String(data ?? ""));
         } catch (_) {
           scheduleClickError(
-            getMsg(document.body, "warehouse_quantity_unavailable")
+            getMsg(document.body, "warehouse_quantity_unavailable"),
           );
         }
       },
     });
   };
   const bind = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!ensureJq()) return;
     const host = document.body;
     if (host.getAttribute(dataBindGuard) === "true") return;
     host.setAttribute(dataBindGuard, "true");
-    $(document).on("change" + ns, 'select[name="from_warehouse"]', function (): void {
-      const v = $(this).val();
-      getProduct(v);
-    });
+    $(document).on(
+      "change" + ns,
+      'select[name="from_warehouse"]',
+      function (): void {
+        const v = String($(this).val() ?? "");
+        getProduct(v);
+      },
+    );
     $(document).on("change" + ns, "#product_id", function (): void {
-      const pid = $(this).val();
-      const wid = $("#warehouse_id").val();
+      const pid = String($(this).val() ?? "");
+      const wid = String($("#warehouse_id").val() ?? "");
       getQuantity(pid, wid);
     });
     const startWid = $("#warehouse_id").val();
-    if (startWid != null) getProduct(startWid);
+    if (startWid != null) getProduct(String(startWid));
     const mo = new MutationObserver(function (): void {
       if (
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         !$('select[name="from_warehouse"]').length &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         !$("#product_id").length
       ) {
         $(document).off("change" + ns);

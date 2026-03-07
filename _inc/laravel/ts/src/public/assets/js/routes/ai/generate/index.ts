@@ -3,20 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   try {
     const f = document.getElementById("ai-template-form");
     const btn = document.getElementById("ai-generate-btn");
-    const desc = document.getElementById("ai-description");
+    const desc = document.getElementById(
+      "ai-description",
+    ) as HTMLTextAreaElement | null;
 
     if (!f || !btn || !desc) return;
     if (btn.getAttribute("data-listener-active") === "true") return;
     btn.setAttribute("data-listener-active", "true");
 
-    const showNotice = msg => {
+    const showNotice = (msg: string) => {
       try {
         if (!msg) return;
         const bsLink = document.querySelector('link[href*="bootstrap"]');
@@ -29,13 +30,7 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        if (
-          bsLink &&
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap?.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -55,12 +50,12 @@
       }
     };
 
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", (e: Event) => {
       try {
         e.preventDefault();
 
         const selected = f.querySelector(
-          'input.template_name[type="radio"]:checked'
+          'input.template_name[type="radio"]:checked',
         );
         if (!selected) {
           const msg =
@@ -73,19 +68,27 @@
         const templateId = selected.getAttribute("value") ?? "";
         const templateName = selected.getAttribute("data-name") ?? "";
         const language = (
-          document.getElementById("language")?.value ?? ""
+          (document.getElementById("language") as HTMLSelectElement | null)
+            ?.value ?? ""
         ).toString();
         const tone = (
-          f.querySelector('select[name="tone"]').value ?? ""
+          (f.querySelector('select[name="tone"]') as HTMLSelectElement | null)
+            ?.value ?? ""
         ).toString();
         const creativity = (
-          document.getElementById("ai_creativity")?.value ?? ""
+          (document.getElementById("ai_creativity") as HTMLInputElement | null)
+            ?.value ?? ""
         ).toString();
         const num = (
-          document.getElementById("num_of_result")?.value ?? ""
+          (document.getElementById("num_of_result") as HTMLInputElement | null)
+            ?.value ?? ""
         ).toString();
         const maxLen = (
-          f.querySelector('input[name="result_length"]').value ?? ""
+          (
+            f.querySelector(
+              'input[name="result_length"]',
+            ) as HTMLInputElement | null
+          )?.value ?? ""
         ).toString();
 
         const payload = {
@@ -115,7 +118,7 @@
           console.error(
             "[assets/js/routes/aiTemplates/generate.js] Click handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -127,7 +130,7 @@
       console.error(
         "[assets/js/routes/aiTemplates/generate.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

@@ -24,8 +24,10 @@ for (const entry of report) {
     if (idx < 0 || idx >= lines.length) continue;
     let line = lines[idx];
 
-    if (err.ruleId === "@typescript-eslint/no-unnecessary-condition" &&
-        err.message.includes("left-hand side of `??`")) {
+    if (
+      err.ruleId === "@typescript-eslint/no-unnecessary-condition" &&
+      err.message.includes("left-hand side of `??`")
+    ) {
       // More aggressive removal: handle cases like .toString().trim() ?? "x"
       // and (expr) ?? "x"
       // Try different patterns:
@@ -58,16 +60,18 @@ for (const entry of report) {
         });
         fixed++;
       }
-    } else if (err.ruleId === "@typescript-eslint/prefer-nullish-coalescing" &&
-               err.message.includes("ternary")) {
+    } else if (
+      err.ruleId === "@typescript-eslint/prefer-nullish-coalescing" &&
+      err.message.includes("ternary")
+    ) {
       // x != undefined ? x : y  →  x ?? y
       const ternary = line.match(
-        /(\w+)\s*!=\s*(?:undefined|null)\s*\?\s*\1\s*:\s*(\w+)/
+        /(\w+)\s*!=\s*(?:undefined|null)\s*\?\s*\1\s*:\s*(\w+)/,
       );
       if (ternary) {
         line = line.replace(
           /(\w+)\s*!=\s*(?:undefined|null)\s*\?\s*\1\s*:\s*(\w+)/,
-          "$1 ?? $2"
+          "$1 ?? $2",
         );
         lines[idx] = line;
         fixed++;
@@ -100,7 +104,8 @@ for (const vf of [
   "src/public/Modules/landingpage/js/vendor-all.ts",
   "src/public/assets/js/vendor-all.ts",
 ]) {
-  const base = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
+  const base =
+    "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
   const fp = base + vf;
   try {
     let content = readFileSync(fp, "utf8");

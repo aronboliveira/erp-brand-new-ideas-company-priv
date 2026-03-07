@@ -3,12 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module convert
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const Q = s => document.querySelector(s),
-    QA = s => Array.from(document.querySelectorAll(s)),
+  const Q = (s: string) => document.querySelector(s),
+    QA = (s: string) => Array.from(document.querySelectorAll(s)),
     G = (): void => {
       try {
         QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
@@ -19,7 +18,8 @@
       } catch (_) {}
     };
   const L = (): void => {
-    QA('input[type="file"][data-filename]').forEach(i => {
+    QA('input[type="file"][data-filename]').forEach(el => {
+      const i = el as HTMLInputElement;
       const c = i.getAttribute("data-filename");
       const o = c ? Q(`.${c}`) : null;
       const set = (): void => {
@@ -29,21 +29,24 @@
       set();
     });
   };
-  const N = d => {
+  const N = (d: unknown) => {
     if (!d) return [];
     if (Array.isArray(d))
       return d
         .map(x =>
           typeof x === "object"
             ? { id: x.id ?? x.value ?? "", name: x.name ?? x.text ?? "" }
-            : null
+            : null,
         )
-        .filter(Boolean);
+        .filter((x): x is { id: any; name: any } => x != null);
     if (typeof d === "object")
-      return Object.keys(d).map(k => ({ id: k, name: String(d[k]) }));
+      return Object.keys(d).map(k => ({
+        id: k,
+        name: String((d as Record<string, unknown>)[k]),
+      }));
     return [];
   };
-  const P = (sel, items, selId = "") => {
+  const P = (sel: HTMLSelectElement | null, items: unknown[], selId = "") => {
     if (!sel) return;
     sel.innerHTML = "";
     const def = document.createElement("option");
@@ -54,30 +57,38 @@
       const o = document.createElement("option");
       o.value = it.id;
       o.textContent = it.name;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (selId && String(selId) === String(it.id)) o.selected = true;
       sel.appendChild(o);
     });
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-      if (window.jQuery.fn.select2 && window.jQuery(sel).data("select2"))
-        window.jQuery(sel).trigger("change.select2");
+      const jQ = window.jQuery;
+      if (jQ?.fn?.select2 && jQ(sel).data("select2"))
+        jQ(sel).trigger("change.select2");
     } catch (_) {}
   };
   const C = (): void => {
-    const d = Q("#department_id"),
-      s = Q("#designation_id");
+    const d = Q("#department_id") as HTMLSelectElement | null,
+      s = Q("#designation_id") as HTMLSelectElement | null;
     if (!d || !s) return;
     const url =
-      s.getAttribute("data-url") ||
-      d.getAttribute("data-designation-url") ?? "#";
+      (s.getAttribute("data-url") || d.getAttribute("data-designation-url")) ??
+      "#";
     const guard =
-      s.getAttribute("data-guard-msg") ||
-      d.getAttribute("data-guard-msg") ?? "";
+      (s.getAttribute("data-guard-msg") || d.getAttribute("data-guard-msg")) ??
+      "";
     const csrf =
-      document.querySelector('meta[name="csrf-token"]')?.content ||
-      document.querySelector('input[name="_token"]')?.value ?? "";
-    const load = async id => {
+      ((
+        document.querySelector(
+          'meta[name="csrf-token"]',
+        ) as HTMLMetaElement | null
+      )?.content ||
+        (
+          document.querySelector(
+            'input[name="_token"]',
+          ) as HTMLInputElement | null
+        )?.value) ??
+      "";
+    const load = async (id: string) => {
       if (!id) {
         P(s, []);
         return;
@@ -93,14 +104,16 @@
           },
           body: JSON.stringify(payload),
         }).then(r => (r.ok ? r.json().catch(() => ({})) : Promise.reject()));
-      const doAjax = (): void => {
+      const doAjax = (): Promise<unknown> => {
         if (typeof $ === "undefined") return Promise.reject();
-        return $.ajax({
-          url,
-          method: "POST",
-          headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
-          data: payload,
-        });
+        return Promise.resolve(
+          $.ajax({
+            url,
+            method: "POST",
+            headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
+            data: payload,
+          }),
+        );
       };
       try {
         const res = await (typeof fetch === "function"

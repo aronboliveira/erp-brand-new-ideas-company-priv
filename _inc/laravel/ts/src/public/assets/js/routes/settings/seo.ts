@@ -3,20 +3,19 @@
  * @generated from original JavaScript - manual review recommended
  * @module seo
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   try {
     const seoGen = document.getElementById("generate-ai-seo-link");
-    if (seoGen?.getAttribute("data-listener-active") !== "true") {
+    if (seoGen && seoGen.getAttribute("data-listener-active") !== "true") {
       seoGen.setAttribute("data-listener-active", "true");
-      seoGen.addEventListener("click", e => {
+      seoGen.addEventListener("click", (e: Event) => {
         try {
           const url = seoGen.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           e.preventDefault();
-          const msg = seoGen.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = seoGen?.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -44,22 +43,23 @@
           } else {
             alert(msg);
           }
-          seoGen.setAttribute("data-failed-route", "true");
+          seoGen?.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
 
     const cookieGen = document.getElementById("generate-ai-cookie-link");
     if (
-      cookieGen?.getAttribute("data-listener-active") !== "true"
+      cookieGen &&
+      cookieGen.getAttribute("data-listener-active") !== "true"
     ) {
       cookieGen.setAttribute("data-listener-active", "true");
-      cookieGen.addEventListener("click", e => {
+      cookieGen.addEventListener("click", (e: Event) => {
         try {
           const url = cookieGen.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           e.preventDefault();
-          const msg = cookieGen.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = cookieGen?.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -87,21 +87,21 @@
           } else {
             alert(msg);
           }
-          cookieGen.setAttribute("data-failed-route", "true");
+          cookieGen?.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
 
     const seoForm = document.getElementById("settings-seo-store-form");
-    if (seoForm?.getAttribute("data-listener-active") !== "true") {
+    if (seoForm && seoForm.getAttribute("data-listener-active") !== "true") {
       seoForm.setAttribute("data-listener-active", "true");
-      seoForm.addEventListener("submit", e => {
+      seoForm.addEventListener("submit", (e: Event) => {
         try {
           const url = seoForm.getAttribute("data-url") ?? "#";
           const action = seoForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = seoForm.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = seoForm?.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -129,25 +129,26 @@
           } else {
             alert(msg);
           }
-          seoForm.setAttribute("data-failed-route", "true");
+          seoForm?.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
 
     const cookiesForm = document.getElementById(
-      "{{ $settingsCookiesStoreFormId }}"
+      "{{ $settingsCookiesStoreFormId }}",
     );
     if (
-      cookiesForm?.getAttribute("data-listener-active") !== "true"
+      cookiesForm &&
+      cookiesForm.getAttribute("data-listener-active") !== "true"
     ) {
       cookiesForm.setAttribute("data-listener-active", "true");
-      cookiesForm.addEventListener("submit", e => {
+      cookiesForm.addEventListener("submit", (e: Event) => {
         try {
           const url = cookiesForm.getAttribute("data-url") ?? "#";
           const action = cookiesForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = cookiesForm.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = cookiesForm?.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -175,21 +176,21 @@
           } else {
             alert(msg);
           }
-          cookiesForm.setAttribute("data-failed-route", "true");
+          cookiesForm?.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
 
     const chatForm = document.getElementById("settings-chatgpt-settings-form");
-    if (chatForm?.getAttribute("data-listener-active") !== "true") {
+    if (chatForm && chatForm.getAttribute("data-listener-active") !== "true") {
       chatForm.setAttribute("data-listener-active", "true");
-      chatForm.addEventListener("submit", e => {
+      chatForm.addEventListener("submit", (e: Event) => {
         try {
           const url = chatForm.getAttribute("data-url") ?? "#";
           const action = chatForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = chatForm.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = chatForm?.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -217,7 +218,7 @@
           } else {
             alert(msg);
           }
-          chatForm.setAttribute("data-failed-route", "true");
+          chatForm?.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }

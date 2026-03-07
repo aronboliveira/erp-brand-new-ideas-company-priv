@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module barcodeSetting
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -16,16 +15,15 @@
   function hasBootstrapCss() {
     try {
       return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]'
+        'link[rel~="stylesheet"][href*="bootstrap"]',
       );
     } catch (_) {
       return false;
     }
   }
-  function toast(msg) {
+  function toast(msg: string) {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
+      if (hasBootstrapCss() && window.bootstrap?.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -50,42 +48,38 @@
       alert(msg);
     }
   }
-  function getMsg(el, key) {
+  function getMsg(el: HTMLElement, key: string) {
     try {
       let msg = ERR;
       if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
         msg = el.getAttribute(DGM) || ERR;
       else {
         let lang = (
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
           window.sessionStorage.getItem("erp-np-lang") ??
-          document.documentElement.lang ?? "en"
+          document.documentElement.lang ??
+          "en"
         )
           .toLowerCase()
           .replace(/_/g, "-");
         lang = lang === "pt-br" ? lang : lang.slice(0, 2);
         const dict = window.translations || {};
         msg =
-          dict?.[lang]?.[key] ||
-          el.getAttribute(DGM) ||
-          dict?.en?.[key] ||
-          ERR;
+          dict?.[lang]?.[key] || el.getAttribute(DGM) || dict?.en?.[key] || ERR;
         if (msg !== ERR) {
           el.setAttribute(DGM, msg);
           el.setAttribute(DCL, "true");
         }
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return msg || ERR;
     } catch (_) {
       return ERR;
     }
   }
-  function bindForm($f) {
+  function bindForm($f: JQuery<HTMLFormElement>) {
     const f = $f.get(0);
     if (!f || f.getAttribute(L) === "true") return;
     f.setAttribute(L, "true");
-    const handler = function (e) {
+    const handler = function (e: Event) {
       try {
         const url = f.getAttribute("data-url");
         const href = f.action;
@@ -101,16 +95,17 @@
     $f.on("submit.formGuard", handler);
     map.set(f, handler);
   }
-  function unbindForm(f) {
+  function unbindForm(f: HTMLFormElement) {
     try {
       if (!f) return;
+      if (!window.jQuery) return;
       const $f = window.jQuery(f);
       $f.off("submit.formGuard");
       f.removeAttribute(L);
       map.delete(f);
     } catch (_) {}
   }
-  function observeRemoval(f) {
+  function observeRemoval(f: HTMLFormElement) {
     try {
       const obs = new MutationObserver(function (): void {
         if (!document.body.contains(f)) {
@@ -123,7 +118,6 @@
   }
   try {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$) {
       try {
         if (
@@ -138,9 +132,9 @@
       try {
         const $forms = $("form[data-guard-msg], form[data-url]");
         $forms.each(function (): void {
-          const $f = $(this);
+          const $f = $(this) as JQuery<HTMLFormElement>;
           bindForm($f);
-          observeRemoval($f.get(0));
+          observeRemoval($f.get(0) as HTMLFormElement);
         });
       } catch (_) {}
     });
@@ -156,7 +150,7 @@
   (function (): void {
     const L = "data-listener-active";
     const NS = ".barcodeSetting";
-    function bindSelect($s) {
+    function bindSelect($s: JQuery<HTMLSelectElement>) {
       const el = $s.get(0);
       if (!el || el.getAttribute(L) === "true") return;
       el.setAttribute(L, "true");
@@ -169,18 +163,19 @@
         } catch (_) {}
       });
     }
-    function unbindSelect(el) {
+    function unbindSelect(el: HTMLSelectElement) {
       try {
         if (!el) return;
+        if (!window.jQuery) return;
         const $s = window.jQuery(el);
         $s.off("change" + NS);
         el.removeAttribute(L);
       } catch (_) {}
     }
-    function observeRemoval(nodeList) {
+    function observeRemoval(nodeList: HTMLSelectElement[]) {
       try {
         const obs = new MutationObserver(function (): void {
-          nodeList.forEach(function (el) {
+          nodeList.forEach(function (el: HTMLSelectElement) {
             if (!document.body.contains(el)) {
               unbindSelect(el);
             }
@@ -191,7 +186,6 @@
     }
     try {
       const $ = window.jQuery;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!$) {
         try {
           if (
@@ -206,10 +200,12 @@
         try {
           const form = document.getElementById("pos-barcode-setting-form");
           if (!form) return;
-          const selects = form.querySelectorAll('select[data-toggle="select"]');
-          const nodes = [];
+          const selects = form.querySelectorAll<HTMLSelectElement>(
+            'select[data-toggle="select"]',
+          );
+          const nodes: HTMLSelectElement[] = [];
           selects.forEach(function (s) {
-            const $s = $(s);
+            const $s = $(s) as JQuery<HTMLSelectElement>;
             bindSelect($s);
             nodes.push(s);
           });

@@ -3,22 +3,22 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const Q = sel => document.querySelector(sel);
-  const QA = sel => Array.from(document.querySelectorAll(sel));
+  const Q = (sel: string): HTMLElement | null =>
+    document.querySelector(sel) as HTMLElement | null;
+  const QA = (sel: string): HTMLElement[] =>
+    Array.from(document.querySelectorAll(sel)) as HTMLElement[];
 
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
   const DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
 
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
     let box = document.getElementById("toast-container");
@@ -44,10 +44,10 @@
     }
   };
 
-  const bindLinkGuard = el => {
+  const bindLinkGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       const href = (el.getAttribute("href") ?? "#").trim();
       const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
       if (url !== "#" && href !== "#") return;
@@ -57,10 +57,10 @@
     });
   };
 
-  const bindFormGuard = fm => {
+  const bindFormGuard = (fm: HTMLFormElement | null) => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       const action = (fm.getAttribute("action") ?? "#").trim();
       const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
       if (url !== "#" && action !== "#") return;
@@ -70,29 +70,38 @@
     });
   };
 
-  const getCsrf = (): void => {
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    if (meta.content) return meta.content;
+  const getCsrf = (): string => {
+    const meta = document.querySelector(
+      'meta[name="csrf-token"]',
+    ) as HTMLMetaElement | null;
+    if (meta?.content) return meta.content;
     // fallback: try hidden input in any form
-    const input = document.querySelector('input[name="_token"]');
+    const input = document.querySelector(
+      'input[name="_token"]',
+    ) as HTMLInputElement | null;
     return input ? input.value : "";
   };
 
   // Lightweight HTML5 drag & drop for <li> reordering
-  const enableDragSort = list => {
+  const enableDragSort = (list: HTMLElement | null) => {
     if (!list) return;
-    const items = Array.from(list.children);
-    items.forEach(li => {
+    const items = Array.from(list.children) as HTMLElement[];
+    items.forEach((li: HTMLElement) => {
       li.setAttribute("draggable", "true");
-      li.addEventListener("dragstart", e => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", li.getAttribute("data-id") ?? "");
+      li.addEventListener("dragstart", (e: DragEvent) => {
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(
+            "text/plain",
+            li.getAttribute("data-id") ?? "",
+          );
+        }
         li.classList.add("dragging");
       });
       li.addEventListener("dragend", () => li.classList.remove("dragging"));
     });
 
-    list.addEventListener("dragover", e => {
+    list.addEventListener("dragover", (e: DragEvent) => {
       e.preventDefault();
       const dragging = list.querySelector(".dragging");
       if (!dragging) return;
@@ -110,11 +119,19 @@
     });
   };
 
-  const getDragAfterElement = (container, y) => {
-    const els = [...container.querySelectorAll("li:not(.dragging)")];
+  const getDragAfterElement = (
+    container: HTMLElement,
+    y: number,
+  ): HTMLElement | null => {
+    const els = [
+      ...container.querySelectorAll("li:not(.dragging)"),
+    ] as HTMLElement[];
     return (
       els.reduce(
-        (closest, child) => {
+        (
+          closest: { offset: number; element: HTMLElement | null },
+          child: HTMLElement,
+        ) => {
           const box = child.getBoundingClientRect();
           const offset = y - (box.top + box.height / 2);
           if (offset < 0 && offset > closest.offset) {
@@ -123,19 +140,19 @@
             return closest;
           }
         },
-        { offset: Number.NEGATIVE_INFINITY }
+        { offset: Number.NEGATIVE_INFINITY, element: null },
       ).element || null
     );
   };
 
-  const persistOrder = list => {
+  const persistOrder = (list: HTMLElement) => {
     const url = (list.getAttribute("data-order-url") ?? "#").trim();
     if (url === "#") {
       toast(list.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
       return;
     }
     const ids = QA("#job-stages-sortable > li")
-      .map(li => li.getAttribute("data-id"))
+      .map((li: HTMLElement) => li.getAttribute("data-id"))
       .filter(Boolean);
     if (ids.length === 0) return;
 
@@ -143,7 +160,7 @@
     const csrf = getCsrf();
 
     // Prefer fetch; fallback to jQuery if present
-    const doFetch = () =>
+    const doFetch = (): Promise<unknown> =>
       fetch(url, {
         method: "POST",
         headers: {
@@ -153,15 +170,17 @@
         body: JSON.stringify(payload),
       }).then(r => (r.ok ? r.json().catch(console.error) : Promise.reject()));
 
-    const doAjax = (): void => {
+    const $ = window.jQuery as JQueryStatic | undefined;
+    const doAjax = (): Promise<unknown> => {
       if (typeof $ === "undefined") return Promise.reject();
-      return $.ajax({
-        url,
-        method: "POST",
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
-        data: payload,
-      });
+      return Promise.resolve(
+        $.ajax({
+          url,
+          method: "POST",
+          headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
+          data: payload,
+        }),
+      );
     };
 
     (typeof fetch === "function"
@@ -171,13 +190,17 @@
       .then((): void => {
         /* ok */
       })
-      .catch((): void => { toast(DEFAULT_ORDER_ERR); });
+      .catch((): void => {
+        toast(DEFAULT_ORDER_ERR);
+      });
   };
 
   document.addEventListener("DOMContentLoaded", (): void => {
     // guards & tooltips
     QA("a[data-guard-msg], a[data-url]").forEach(bindLinkGuard);
-    QA("form[data-guard-msg], form[data-url]").forEach(bindFormGuard);
+    QA("form[data-guard-msg], form[data-url]").forEach(fm =>
+      bindFormGuard(fm as HTMLFormElement | null),
+    );
     try {
       QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
         try {

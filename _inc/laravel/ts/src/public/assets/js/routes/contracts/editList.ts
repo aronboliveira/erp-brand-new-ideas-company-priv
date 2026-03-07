@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editList
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
 
     if (
@@ -22,9 +21,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -45,7 +44,11 @@
     return msg;
   };
 
-  const showFeedback = (el, key, ev = "pointerup") => {
+  const showFeedback = (
+    el: HTMLElement,
+    key: string,
+    ev: string = "pointerup",
+  ) => {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -70,7 +73,9 @@
         document.body.appendChild(toast);
       }
 
-      const handler = (): void => { new bootstrap.Toast(toast).show(); };
+      const handler = (): void => {
+        new bootstrap.Toast(toast).show();
+      };
       document.addEventListener(ev, handler, { once: true });
 
       const mo = new MutationObserver((_, o) => {
@@ -81,15 +86,23 @@
       });
       mo.observe(document.body, { childList: true, subtree: true });
     } else {
-      const handler = (): void => { alert(text); };
+      const handler = (): void => {
+        alert(text);
+      };
       document.addEventListener(ev, handler, { once: true });
     }
   };
 
-  const guardOnce = (el, key, ev = "pointerup") => {
+  const guardOnce = (
+    el: HTMLElement,
+    key: string,
+    ev: string = "pointerup",
+  ) => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
 
-    const handler = (): void => { showFeedback(el, key, ev); };
+    const handler = (): void => {
+      showFeedback(el, key, ev);
+    };
     el.addEventListener(ev, handler, { once: true });
     el.setAttribute(DATA_LISTENER_ADDED, "true");
 
@@ -102,9 +115,13 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
 
-  const routeGuard = (element, alt) => {
+  const routeGuard = (
+    element: HTMLElement | null,
+    alt: string | null | undefined,
+  ) => {
     const url = element?.getAttribute?.("data-url");
-    const href = element?.action ?? element?.href;
+    const href =
+      element?.getAttribute?.("action") ?? element?.getAttribute?.("href");
     return (
       (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
     );
@@ -122,7 +139,6 @@
 
     const initChoices = (): void => {
       const $ms = $(".multi-select");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!$ms.length) return;
 
       if (typeof window.Choices !== "function") {
@@ -135,13 +151,12 @@
         return;
       }
 
-      $ms.each((_, el) => {
+      $ms.each((_, el: HTMLElement) => {
         const id = el.id;
         if (id === "") return;
         if (el.getAttribute("data-choices-init") === "true") return;
 
         try {
-           
           new Choices(`#${id}`, { removeItemButton: true });
           el.setAttribute("data-choices-init", "true");
         } catch {
@@ -155,7 +170,7 @@
       });
     };
 
-    const getParent = (bid, sourceEl) => {
+    const getParent = (bid: string, sourceEl: HTMLElement) => {
       const base = `{{ url('contracts/clients/select') }}`;
       const url = `${base}/${encodeURIComponent(bid ?? "")}`;
 
@@ -167,10 +182,9 @@
       $.ajax({
         url,
         type: "GET",
-        success: data => {
+        success: (data: unknown) => {
           try {
             const $sel = $("#project_id");
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (!$sel.length) {
               guardOnce(document.body, "project_list_unavailable");
               return;
@@ -178,7 +192,7 @@
 
             $sel.empty();
 
-            if (Array.isArray(data) && (data.length > 0)) {
+            if (Array.isArray(data) && data.length > 0) {
               data.forEach(it => {
                 if (!it) return;
                 const val = String(it.id ?? "");
@@ -190,11 +204,9 @@
 
             if (
               typeof window.Choices === "function" &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               !$sel[0].getAttribute("data-choices-init")
             ) {
               try {
-                 
                 new Choices("#project_id", { removeItemButton: true });
                 $sel[0].setAttribute("data-choices-init", "true");
               } catch {
@@ -202,22 +214,24 @@
               }
             }
 
-            if (!Array.isArray(data) || (data.length === 0)) {
+            if (!Array.isArray(data) || data.length === 0) {
               $sel.empty();
             }
           } catch {
             showFeedback(sourceEl, "project_list_unavailable");
           }
         },
-        error: (): void => { showFeedback(sourceEl, "project_list_unavailable"); },
+        error: (): void => {
+          showFeedback(sourceEl, "project_list_unavailable");
+        },
       });
     };
 
     initChoices();
 
     $(document).on("change", ".client_select", function (): void {
-      const client_id = $(this).val();
-      getParent(client_id, this);
+      const client_id = String($(this).val() ?? "");
+      getParent(client_id, this as unknown as HTMLElement);
     });
   } catch (e) {
     if (

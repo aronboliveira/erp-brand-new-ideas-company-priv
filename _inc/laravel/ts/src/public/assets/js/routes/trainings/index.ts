@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -16,14 +15,13 @@
     const url = a.getAttribute("data-url") ?? "#";
     if (
       a.hasAttribute("href") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
     ) {
       a.setAttribute("href", url);
     }
 
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       try {
         const href = a.getAttribute("href") ?? "#";
         if (href !== "#") return;

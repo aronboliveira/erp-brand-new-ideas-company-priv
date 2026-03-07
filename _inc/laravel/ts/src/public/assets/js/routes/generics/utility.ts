@@ -3,12 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module utility
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
-function displayUnavailableRouteMessage(lang = "pt-br", msg = null) {
+function displayUnavailableRouteMessage(
+  lang = "pt-br",
+  msg: string | null = null,
+) {
   const message =
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     msg ??
     window.translations?.[lang]?.route_unavailable ??
     "Rota indisponível!";
@@ -30,7 +31,6 @@ function displayUnavailableRouteMessage(lang = "pt-br", msg = null) {
     document.head.appendChild(styleTag);
   }
 
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
   if (window.bootstrap.Toast) {
     let toast = document.getElementById("route-unavailable-toast");
     if (!toast) {
@@ -46,18 +46,23 @@ function displayUnavailableRouteMessage(lang = "pt-br", msg = null) {
           </div>
           <div class="toast-body bg-light text-danger fw-bold"></div>
         </div>`;
-      document.body.appendChild(tpl.content.firstElementChild);
+      const firstEl = tpl.content.firstElementChild;
+      if (firstEl) document.body.appendChild(firstEl);
       toast = document.getElementById("route-unavailable-toast");
+      if (!toast) return;
 
-      toast.addEventListener("hide.bs.toast", (): void => { toast.classList.add("hiding"); }
-      );
-      toast.addEventListener("hidden.bs.toast", (): void => { toast.remove(); });
+      toast.addEventListener("hide.bs.toast", (): void => {
+        toast?.classList.add("hiding");
+      });
+      toast.addEventListener("hidden.bs.toast", (): void => {
+        toast?.remove();
+      });
     }
 
     const body = toast.querySelector(".toast-body");
     if (body) body.textContent = message;
 
-    const instance = window.bootstrap.Toast.getOrCreateInstance(toast, {
+    const instance = window.bootstrap.Toast.getOrCreateInstance(toast!, {
       autohide: true,
       delay: 4000,
     });

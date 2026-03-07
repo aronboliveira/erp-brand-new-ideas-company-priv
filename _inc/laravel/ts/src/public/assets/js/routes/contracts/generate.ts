@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generate
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -17,7 +16,7 @@
     }
     link.setAttribute("data-listener-active", "true");
 
-    link.addEventListener("click", e => {
+    link.addEventListener("click", (e: Event) => {
       try {
         const href = link.getAttribute("href") ?? "#";
         const url = link.getAttribute("data-url") ?? "#";
@@ -30,7 +29,6 @@
           link.getAttribute("data-guard-msg") ??
           "Generate AI contract route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
 

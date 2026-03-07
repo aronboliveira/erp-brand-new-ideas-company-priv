@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module storeSalary
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
-  const attachGuard = (el, eventType) => {
+  const attachGuard = (el: HTMLElement | null, eventType: string) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener(eventType, event => {
@@ -27,7 +26,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -50,13 +48,17 @@
 
   attachGuard(document.getElementById("allowance-store-form"), "submit");
 
-  document.querySelectorAll('[id^="allowance-edit-"]').forEach((el: Element): void => {
-    attachGuard(el, "click");
-  });
+  document
+    .querySelectorAll('[id^="allowance-edit-"]')
+    .forEach((el: Element): void => {
+      attachGuard(el as HTMLElement, "click");
+    });
 
-  document.querySelectorAll('[id^="allowance-delete-"]').forEach((el: Element): void => {
-    attachGuard(el, "click");
-  });
+  document
+    .querySelectorAll('[id^="allowance-delete-"]')
+    .forEach((el: Element): void => {
+      attachGuard(el as HTMLElement, "click");
+    });
 })();
 
 export {};

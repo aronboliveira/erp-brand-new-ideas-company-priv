@@ -11,14 +11,12 @@ Handles Excel export for trial balance reports with:
 - Excel formulas for balance validation
 """
 import sys
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.styles import Alignment, Font, PatternFill
 
 from base_exporter import BaseExporter, ExportStyle, parse_number, safe_get
 
@@ -72,7 +70,6 @@ class TrialBalanceExporter(BaseExporter):
         self._company_name = safe_get(self.data, "company_name", "Company")
         self._start_date = safe_get(self.data, "start_date", "")
         self._end_date = safe_get(self.data, "end_date", "")
-        currency_symbol: str = self.data.get("currency_symbol", "")
 
         rows_data: Dict[str, Any] = self.data.get("rows", {})
         if not rows_data:
@@ -477,13 +474,13 @@ class TrialBalanceExporter(BaseExporter):
 
             # Write data (raw numeric values) with grouping
             data_start = header_row + 1
-            account_type_groups = {}
-            
+            account_type_groups: dict[str, list[int]] = {}
+
             for r_idx, row in df.iterrows():
                 row_num = int(r_idx) + data_start
                 acct_name = row.get("Account Name", "")
                 acct_no = row.get("Account No", "")
-                
+
                 self.sheet.cell(row=row_num, column=1, value=acct_name)
                 self.sheet.cell(row=row_num, column=2, value=acct_no)
 
@@ -494,14 +491,14 @@ class TrialBalanceExporter(BaseExporter):
                     self.sheet.cell(row=row_num, column=3, value=debit if debit else "")
                 if credit is not None:
                     self.sheet.cell(row=row_num, column=4, value=credit if credit else "")
-                
+
                 # Track account types for drill-down grouping
                 if acct_no and str(acct_no):
                     account_type = str(acct_no)[0]
                     if account_type not in account_type_groups:
                         account_type_groups[account_type] = []
                     account_type_groups[account_type].append(row_num)
-            
+
             # Add drill-down grouping by account type (1xxx, 2xxx, etc.)
             for group_rows in account_type_groups.values():
                 if len(group_rows) > 1:
@@ -517,13 +514,13 @@ class TrialBalanceExporter(BaseExporter):
             self.freeze_pane(f"A{data_start}")
             self._apply_row_styling(df)
             self._add_formulas_and_filters(df)
-            
+
             # Add outlier detection for debit and credit columns
             if len(df) > 5:
                 data_end = data_start + len(df) - 1
                 self.add_outlier_formatting(f"C{data_start}:C{data_end - 2}", std_threshold=2.5)
                 self.add_outlier_formatting(f"D{data_start}:D{data_end - 2}", std_threshold=2.5)
-            
+
             # Add statistical summaries for both debit and credit
             stats_row = data_start + len(df) + 6
             debit_end = self.add_statistical_summary(
@@ -533,7 +530,7 @@ class TrialBalanceExporter(BaseExporter):
                 currency_symbol=self.data.get("currency_symbol", ""),
             )
             self.sheet.cell(row=stats_row, column=1, value="Debit Statistics")
-            
+
             credit_start = debit_end + 2
             self.add_statistical_summary(
                 data_range=f"D{data_start}:D{data_start + len(df) - 2}",

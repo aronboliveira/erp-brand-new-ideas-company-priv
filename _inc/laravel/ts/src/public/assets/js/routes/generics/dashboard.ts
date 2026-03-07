@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module dashboard
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,10 +13,9 @@
     l.setAttribute("data-listener-active", "true");
     l.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
           const href = l.getAttribute("href") ?? "#";
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const url = l.getAttribute("data-url") ?? "#";
           if (href !== "#" || url !== "#") return;
           e.preventDefault();
@@ -25,8 +23,7 @@
             l.getAttribute("data-guard-msg") ?? "Dashboard route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBs =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-            linkEl !== null && window.bootstrap && window.bootstrap.Toast;
+            linkEl !== null && window.bootstrap?.Toast;
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -37,7 +34,6 @@
             container.className = "position-fixed top-0 end-0 p-3";
             document.body.appendChild(container);
           }
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (hasBs) {
             const t = document.createElement("div");
             t.className = "toast";

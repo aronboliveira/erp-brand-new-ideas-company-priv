@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -124,7 +123,14 @@
     },
   };
   Object.keys(t).forEach(k => {
-    window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
+    if (window.translations) {
+      window.translations[k] = {
+        ...((window.translations as Record<string, Record<string, string>>)[
+          k
+        ] || {}),
+        ...(t as Record<string, Record<string, string>>)[k],
+      };
+    }
   });
   ((): void => {
     const lang = (
@@ -136,15 +142,11 @@
           window.translations[lang.split("-")[0]])) ||
       window.translations?.en ||
       {};
-    const tr = k => dict[k] || k;
+    const tr = (k: string) => dict[k] || k;
 
-    const showToastOrAlert = msg => {
+    const showToastOrAlert = (msg: string) => {
       try {
-        const hasBootstrapToast = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-          window.bootstrap && window.bootstrap.Toast
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const hasBootstrapToast = !!window.bootstrap?.Toast;
         if (hasBootstrapToast) {
           let container = document.getElementById("toast-container");
           if (!container) {
@@ -170,7 +172,9 @@
           container.appendChild(toastEl);
           const toast = new window.bootstrap.Toast(toastEl, { delay: 3500 });
           toast.show();
-          setTimeout((): void => { toastEl.remove(); }, 4000);
+          setTimeout((): void => {
+            toastEl.remove();
+          }, 4000);
         } else {
           alert(msg);
         }
@@ -179,14 +183,13 @@
       }
     };
 
-    const ensure = selector => {
+    const ensure = (selector: string) => {
       const el = document.querySelector(selector);
       if (!el) throw new Error(`${tr("element_unavailable")} (${selector})`);
       return el;
     };
 
     const init = (): void => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!window.jQuery) throw new Error(tr("jquery_unavailable"));
       const $ = window.jQuery;
       const $radios = $("input[name='client_check']");
@@ -196,38 +199,37 @@
       const $email = $("#client_email");
       const $password = $("#client_password");
 
-      const safeToggle = mode => {
+      const safeToggle = (mode: unknown) => {
         const exist = mode === "exist";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ($existWrap.length) $existWrap.toggleClass("d-none", !exist);
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ($newWrap.length) $newWrap.toggleClass("d-none", exist);
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ($name.length)
           exist
             ? $name.removeAttr("required")
             : $name.attr("required", "required");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ($email.length)
           exist
             ? $email.removeAttr("required")
             : $email.attr("required", "required");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ($password.length)
           exist
             ? $password.removeAttr("required")
             : $password.attr("required", "required");
       };
 
-      const current = ($radios.filter(":checked").val() ?? "new").toLowerCase();
+      const current = String(
+        $radios.filter(":checked").val() ?? "new",
+      ).toLowerCase();
       safeToggle(current);
 
       $(document).on("click", "input[name='client_check']", function (): void {
         try {
           const mode = String($(this).val() ?? "new").toLowerCase();
           safeToggle(mode);
-        } catch (e) {
-          showToastOrAlert(e.message || tr("request_failed"));
+        } catch (e: unknown) {
+          showToastOrAlert(
+            (e instanceof Error ? e.message : null) || tr("request_failed"),
+          );
         }
       });
     };
@@ -236,8 +238,10 @@
       try {
         ensure("body");
         init();
-      } catch (e) {
-        showToastOrAlert(e.message || tr("init_failed"));
+      } catch (e: unknown) {
+        showToastOrAlert(
+          (e instanceof Error ? e.message : null) || tr("init_failed"),
+        );
       }
     };
 

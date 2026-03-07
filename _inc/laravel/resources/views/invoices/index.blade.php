@@ -418,7 +418,7 @@
                                                                     {{--                                                        @if (\Auth::guard('customer')->check())--}}
                                                                     {{--                                                            <div class="action-btn bg-info ms-2">--}}
                                                                     {{--                                                                    <a href="{{ route('customer.invoice.show', Crypt::encrypt($invoice->id)) }}"--}}
-                                                                    {{--                                                                       class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="Show "--}}
+                                                                    {{--                                                                       class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{ __('Show') }}"--}}
                                                                     {{--                                                                       data-original-title="{{ __('Detail') }}">--}}
                                                                     {{--                                                                        <i class="{{ VC::TI_EYE_WT }}"></i>--}}
                                                                     {{--                                                                    </a>--}}

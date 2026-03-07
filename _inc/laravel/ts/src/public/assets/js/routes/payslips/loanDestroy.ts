@@ -3,13 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module loanDestroy
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
     const forms =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       Array.from(
         document.querySelectorAll(
           'form[id^="loan-delete-form-"][data-url][data-guard-msg]'
@@ -21,7 +19,7 @@
           return;
         }
         fm.setAttribute("data-submit-guarded", "true");
-        fm.addEventListener("submit", e => {
+        fm.addEventListener("submit", (e: Event) => {
           try {
             const action = (fm.getAttribute("action") ?? "#").trim();
             const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -34,7 +32,6 @@
               "Delete loan route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");
@@ -67,7 +64,6 @@
       } catch (err) {}
     });
     const links =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       Array.from(
         document.querySelectorAll(
           'a[id^="loan-delete-link-"][data-url][data-guard-msg]'
@@ -79,7 +75,7 @@
           return;
         }
         l.setAttribute("data-listener-active", "true");
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             const url = (l.getAttribute("data-url") ?? "#").trim();
             if (url !== "#") {
@@ -90,7 +86,6 @@
               "Delete loan route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

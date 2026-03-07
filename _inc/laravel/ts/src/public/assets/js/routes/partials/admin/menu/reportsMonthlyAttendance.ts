@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reportsMonthlyAttendance
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -14,10 +13,9 @@
   el.addEventListener("click", event => {
     try {
       const url = el.getAttribute("data-url");
-      const href = el.href
+      const href = (el as HTMLAnchorElement).href
         .replace(window.location.origin, "")
         .replace(window.location.pathname, "");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if ((!url || url === "#") && (!href || href === "#")) {
         event.preventDefault();
         const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -29,7 +27,6 @@
           container.id = containerId;
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";

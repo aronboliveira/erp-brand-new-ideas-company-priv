@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module product
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -22,7 +21,7 @@
           return;
         }
         sel.setAttribute("data-change-guarded", "true");
-        sel.addEventListener("change", e => {
+        sel.addEventListener("change", (e: Event) => {
           try {
             const url = (sel.getAttribute("data-url") ?? "#").trim();
             if (url !== "#") {
@@ -34,7 +33,6 @@
               "Invoice product route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

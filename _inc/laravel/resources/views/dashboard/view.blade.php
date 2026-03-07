@@ -15,7 +15,7 @@
             <div class="{{ VC::CD }} hover-shadow-lg">
                 <div class="card-body text-center">
                     <div class="avatar-parent-child">
-                        <img {{ $usr->img_avatar }} class="{{ VC::AV_CC }} avatar-lg" alt="avatar">
+                        <img {{ $usr->img_avatar }} class="{{ VC::AV_CC }} avatar-lg" alt="{{ __('avatar') }}">
                     </div>
                     <h5 class="{{ VC::MB0 }} {{ VC::H6 }} {{ VC::MT3 }}">
                         <span>{{ $usr?->name }}</span>

@@ -26,10 +26,7 @@ for (const file of files) {
   // ────────────────────────────────────────────────────────────
   // 0. Strip old file-level eslint-disable comments
   // ────────────────────────────────────────────────────────────
-  src = src.replace(
-    /\/\*\s*eslint-disable\s+[\w\s,/@-]+\s*\*\/\s*\n?/g,
-    ""
-  );
+  src = src.replace(/\/\*\s*eslint-disable\s+[\w\s,/@-]+\s*\*\/\s*\n?/g, "");
 
   // ────────────────────────────────────────────────────────────
   // 1. querySelector / querySelectorAll  →  optional chaining
@@ -40,7 +37,7 @@ for (const file of files) {
   // querySelector<T>("...").  →  querySelector<T>("...")?.
   src = src.replace(
     /(document\.querySelector(?:All)?(?:<[^>]+>)?\([^)]*\))\.(?![\s\n])/g,
-    "$1?."
+    "$1?.",
   );
   // document.querySelector("...").  (no generic)
   src = src.replace(
@@ -48,7 +45,7 @@ for (const file of files) {
     (m, fn, arg) => {
       if (m.includes("?.")) return m;
       return `${fn}(${arg})?.`;
-    }
+    },
   );
 
   // ────────────────────────────────────────────────────────────
@@ -57,19 +54,18 @@ for (const file of files) {
   // ────────────────────────────────────────────────────────────
   src = src.replace(
     /(document\.getElementById\([^)]+\))\.(?![\s\n])/g,
-    (m, fn) => (m.includes("?.") ? m : `${fn}?.`)
+    (m, fn) => (m.includes("?.") ? m : `${fn}?.`),
   );
   src = src.replace(
     /(document\.getElementsBy(?:ClassName|TagName|Name)\([^)]+\))\.(?![\s\n])/g,
-    (m, fn) => (m.includes("?.") ? m : `${fn}?.`)
+    (m, fn) => (m.includes("?.") ? m : `${fn}?.`),
   );
 
   // ────────────────────────────────────────────────────────────
   // 3. .closest("sel").foo  →  .closest("sel")?.foo
   // ────────────────────────────────────────────────────────────
-  src = src.replace(
-    /(\.closest\([^)]+\))\.(?![\s\n])/g,
-    (m, fn) => (m.includes("?.") ? m : `${fn}?.`)
+  src = src.replace(/(\.closest\([^)]+\))\.(?![\s\n])/g, (m, fn) =>
+    m.includes("?.") ? m : `${fn}?.`,
   );
 
   // ────────────────────────────────────────────────────────────
@@ -78,7 +74,7 @@ for (const file of files) {
   // ────────────────────────────────────────────────────────────
   src = src.replace(
     /(\w+)\.target\.result/g,
-    (m, ev) => `(${ev}.target as FileReader | null)?.result`
+    (m, ev) => `(${ev}.target as FileReader | null)?.result`,
   );
 
   // ────────────────────────────────────────────────────────────
@@ -89,36 +85,24 @@ for (const file of files) {
   // getAttribute("x") || "default"  →  getAttribute("x") ?? "default"
   src = src.replace(
     /(\.getAttribute\([^)]+\))\s*\|\|\s*(?=["'`#0-9])/g,
-    "$1 ?? "
+    "$1 ?? ",
   );
   // .value || "default"
-  src = src.replace(
-    /(\.value)\s*\|\|\s*(?=["'`])/g,
-    "$1 ?? "
-  );
+  src = src.replace(/(\.value)\s*\|\|\s*(?=["'`])/g, "$1 ?? ");
   // .innerHTML || ""
-  src = src.replace(
-    /(\.innerHTML)\s*\|\|\s*(?=["'`])/g,
-    "$1 ?? "
-  );
+  src = src.replace(/(\.innerHTML)\s*\|\|\s*(?=["'`])/g, "$1 ?? ");
   // .textContent || ""
-  src = src.replace(
-    /(\.textContent)\s*\|\|\s*(?=["'`])/g,
-    "$1 ?? "
-  );
+  src = src.replace(/(\.textContent)\s*\|\|\s*(?=["'`])/g, "$1 ?? ");
 
   // ────────────────────────────────────────────────────────────
   // 6. document.documentElement || document.querySelector → ??
   // ────────────────────────────────────────────────────────────
   src = src.replace(
     /(document\.documentElement)\s*\|\|\s*(document\.)/g,
-    "$1 ?? $2"
+    "$1 ?? $2",
   );
   // document.head || target  →  document.head ?? target
-  src = src.replace(
-    /(document\.head)\s*\|\|\s*/g,
-    "$1 ?? "
-  );
+  src = src.replace(/(document\.head)\s*\|\|\s*/g, "$1 ?? ");
   // document.body || →  document.body ??
   // (Be careful - document.body can be null in some contexts)
 
@@ -142,22 +126,16 @@ for (const file of files) {
   //    Only for function expressions without existing return type
   // ────────────────────────────────────────────────────────────
   // "function () {"  →  "function (): void {"
-  src = src.replace(
-    /function\s*\(\s*\)\s*\{/g,
-    "function (): void {"
-  );
+  src = src.replace(/function\s*\(\s*\)\s*\{/g, "function (): void {");
   // "function (params) {"  →  leave alone for now (parameter types needed)
 
   // Arrow functions with body:  () => { → (): void => {
   // Only simple no-param arrows
-  src = src.replace(
-    /\(\s*\)\s*=>\s*\{/g,
-    (m) => {
-      // Only if not already typed
-      if (m.includes(": ")) return m;
-      return "(): void => {";
-    }
-  );
+  src = src.replace(/\(\s*\)\s*=>\s*\{/g, m => {
+    // Only if not already typed
+    if (m.includes(": ")) return m;
+    return "(): void => {";
+  });
 
   // ────────────────────────────────────────────────────────────
   // 10. Fix ?.?. double optional chaining  (from our replacements)
@@ -171,7 +149,7 @@ for (const file of files) {
   // ────────────────────────────────────────────────────────────
   src = src.replace(
     /(document\.querySelectorAll(?:<[^>]+>)?\([^)]*\))\?\./g,
-    "$1."
+    "$1.",
   );
 
   // ────────────────────────────────────────────────────────────
@@ -190,7 +168,7 @@ for (const file of files) {
   // swalWithBootstrapButtons.fire(
   src = src.replace(
     /^(\s*)(swalWithBootstrapButtons\.fire\()/gm,
-    (m, indent, call) => `${indent}void ${call}`
+    (m, indent, call) => `${indent}void ${call}`,
   );
 
   // ────────────────────────────────────────────────────────────
@@ -203,9 +181,8 @@ for (const file of files) {
   //     Already guarded in well-written files; just ensure optional chain
   // ────────────────────────────────────────────────────────────
   // x.match(...).something → x.match(...)?.something
-  src = src.replace(
-    /(\.match\([^)]+\))\.(?![\s\n])/g,
-    (m, fn) => (m.includes("?.") ? m : `${fn}?.`)
+  src = src.replace(/(\.match\([^)]+\))\.(?![\s\n])/g, (m, fn) =>
+    m.includes("?.") ? m : `${fn}?.`,
   );
 
   // ────────────────────────────────────────────────────────────
@@ -217,28 +194,16 @@ for (const file of files) {
   // ────────────────────────────────────────────────────────────
   // 16. Fix .parentElement.xxx / .parentNode.xxx  → ?.
   // ────────────────────────────────────────────────────────────
-  src = src.replace(
-    /\.parentElement\./g,
-    ".parentElement?."
-  );
-  src = src.replace(
-    /\.parentNode\./g,
-    ".parentNode?."
-  );
+  src = src.replace(/\.parentElement\./g, ".parentElement?.");
+  src = src.replace(/\.parentNode\./g, ".parentNode?.");
   // Avoid double
   src = src.replace(/\?\.\?\./g, "?.");
 
   // ────────────────────────────────────────────────────────────
   // 17. Fix .nextElementSibling. / .previousElementSibling.
   // ────────────────────────────────────────────────────────────
-  src = src.replace(
-    /\.nextElementSibling\./g,
-    ".nextElementSibling?."
-  );
-  src = src.replace(
-    /\.previousElementSibling\./g,
-    ".previousElementSibling?."
-  );
+  src = src.replace(/\.nextElementSibling\./g, ".nextElementSibling?.");
+  src = src.replace(/\.previousElementSibling\./g, ".previousElementSibling?.");
   src = src.replace(/\?\.\?\./g, "?.");
 
   // ────────────────────────────────────────────────────────────
@@ -268,18 +233,12 @@ for (const file of files) {
   // 22. Fix Swal.getContent() which may return null
   //     Already done via general querySelector-like pattern
   // ────────────────────────────────────────────────────────────
-  src = src.replace(
-    /(Swal\.getContent\(\))\./g,
-    "$1?."
-  );
-  src = src.replace(
-    /(Swal\.getHtmlContainer\(\))\./g,
-    "$1?."
-  );
+  src = src.replace(/(Swal\.getContent\(\))\./g, "$1?.");
+  src = src.replace(/(Swal\.getHtmlContainer\(\))\./g, "$1?.");
 
   // ────────────────────────────────────────────────────────────
   // 23.  response.json() — wrap fetch chains with .catch
-  //      fetch(...).then(r => r.json()).then(data => ...) 
+  //      fetch(...).then(r => r.json()).then(data => ...)
   //        → void fetch(...).then(r => r.json() as Promise<unknown>).then(data => ...).catch(() => {})
   //      Complex for regex; we add void and .catch on fetch chains
   // ────────────────────────────────────────────────────────────
@@ -300,4 +259,6 @@ for (const file of files) {
   }
 }
 
-console.log(`${DRY ? "[DRY] " : ""}Transformed ${changed} / ${files.length} files.`);
+console.log(
+  `${DRY ? "[DRY] " : ""}Transformed ${changed} / ${files.length} files.`,
+);

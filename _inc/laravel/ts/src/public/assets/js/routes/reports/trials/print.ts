@@ -3,19 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s) as T | null;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataErrGuard = "data-error-guard";
   const dataPrintBound = "data-print-init-bound";
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
+    let c = qs<HTMLDivElement>("#" + id);
     if (c) {
       return c;
     }
@@ -29,13 +31,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBsLink =
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]');
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-    const hasBsToast = window.bootstrap && window.bootstrap.Toast;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+    const hasBsToast = window.bootstrap?.Toast;
     if (hasBsLink && hasBsToast) {
       const container = ensureToastContainer();
       const tid = "np-toast";
@@ -64,9 +64,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -87,7 +86,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, msgKey) => {
+  const getMsg = (el: HTMLElement, msgKey: string) => {
     const errFbL = errFb;
     const dataClientLocalizedL = dataClientLocalized;
     const dataGuardMsgL = dataGuardMsg;
@@ -99,9 +98,9 @@
       msg = el.getAttribute(dataGuardMsgL) || errFbL;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -123,7 +122,6 @@
       window.close();
     } catch (_) {}
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.history && typeof window.history.back === "function") {
         window.history.back();
       }
@@ -140,7 +138,8 @@
       printed = true;
       goBack();
     };
-    if ("onafterprint" in window) {
+    const hasOnAfterPrint = "onafterprint" in window;
+    if (hasOnAfterPrint) {
       window.onafterprint = onAfterPrint;
     } else {
       window.addEventListener("afterprint", onAfterPrint);

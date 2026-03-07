@@ -2,7 +2,8 @@
 // fix-last.mjs — Fix the final edge cases
 import { readFileSync, writeFileSync } from "node:fs";
 
-const BASE = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
+const BASE =
+  "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
 
 // 1. Fix "void if" patterns (invalid syntax) — remove "void " before if/for/while
 for (const rel of [
@@ -67,23 +68,23 @@ for (const fp of walk(BASE + "src")) {
     const jsdocEnd = src.indexOf("*/");
     if (jsdocEnd !== -1) {
       const insertPos = src.indexOf("\n", jsdocEnd) + 1;
-      src = src.slice(0, insertPos) +
+      src =
+        src.slice(0, insertPos) +
         "/* eslint-disable @typescript-eslint/no-unnecessary-condition */\n" +
         src.slice(insertPos);
     } else {
-      src = "/* eslint-disable @typescript-eslint/no-unnecessary-condition */\n" + src;
+      src =
+        "/* eslint-disable @typescript-eslint/no-unnecessary-condition */\n" +
+        src;
     }
     writeFileSync(fp, src);
     console.log("Added eslint-disable for cookieconsent.ts");
   } else {
     // Already has an eslint-disable — append the rule
-    src = src.replace(
-      /\/\* eslint-disable ([^*]*)\*\//,
-      (m, rules) => {
-        if (rules.includes("no-unnecessary-condition")) return m;
-        return `/* eslint-disable ${rules.trim()}, @typescript-eslint/no-unnecessary-condition */`;
-      }
-    );
+    src = src.replace(/\/\* eslint-disable ([^*]*)\*\//, (m, rules) => {
+      if (rules.includes("no-unnecessary-condition")) return m;
+      return `/* eslint-disable ${rules.trim()}, @typescript-eslint/no-unnecessary-condition */`;
+    });
     writeFileSync(fp, src);
     console.log("Updated eslint-disable for cookieconsent.ts");
   }

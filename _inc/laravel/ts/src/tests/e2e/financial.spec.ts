@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module financial.spec
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global bootstrap, $, jQuery */
 // @ts-check
@@ -42,7 +41,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Invoice Module", (): void => {
-  test("should display invoices index with table", async ({ page }) => {
+  test("should display invoices index: number with table", async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
     await expect(page).toHaveURL(/.*invoices/);
 
@@ -58,7 +57,7 @@ test.describe("Invoice Module", (): void => {
     expect(headerCount).toBeGreaterThan(0);
   });
 
-  test("should load invoice create form", async ({ page }) => {
+  test("should load invoice create form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices/create`);
 
     // Should have form elements (main content form, not debugbar)
@@ -74,7 +73,7 @@ test.describe("Invoice Module", (): void => {
     await expect(customerSelectContainer).toBeAttached();
   });
 
-  test("should have create button on invoice form", async ({ page }) => {
+  test("should have create button: HTMLButtonElement on invoice form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices/create`);
 
     // Verify submit button exists
@@ -87,7 +86,7 @@ test.describe("Invoice Module", (): void => {
 });
 
 test.describe("Bills Module", (): void => {
-  test("should display bills index with table", async ({ page }) => {
+  test("should display bills index: number with table", async ({ page }) => {
     await page.goto(`${BASE_URL}/bills`);
     await expect(page).toHaveURL(/.*bills/);
 
@@ -97,7 +96,7 @@ test.describe("Bills Module", (): void => {
     await expect(table).toBeVisible();
   });
 
-  test("should load bill create form", async ({ page }) => {
+  test("should load bill create form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/bills/create`);
 
     const form = page.locator("#bills-store-form, .card form").first();
@@ -112,7 +111,7 @@ test.describe("Bills Module", (): void => {
 });
 
 test.describe("Payments Module", (): void => {
-  test("should display payments index", async ({ page }) => {
+  test("should display payments index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
     await expect(page).toHaveURL(/.*payments/);
 
@@ -124,7 +123,7 @@ test.describe("Payments Module", (): void => {
 });
 
 test.describe("Expenses Module", (): void => {
-  test("should display expenses index", async ({ page }) => {
+  test("should display expenses index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/expenses`);
     await expect(page).toHaveURL(/.*expenses/);
 
@@ -134,7 +133,7 @@ test.describe("Expenses Module", (): void => {
     await expect(table).toBeVisible();
   });
 
-  test("should load expense create form", async ({ page }) => {
+  test("should load expense create form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/expenses/create`);
 
     const form = page.locator("#expense-create-form, .card form").first();
@@ -181,7 +180,7 @@ test.describe("Financial Reports", (): void => {
 });
 
 test.describe("Payroll Module", (): void => {
-  test("should display payslips index", async ({ page }) => {
+  test("should display payslips index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/payslips`);
     await expect(page).toHaveURL(/.*payslips/);
 
@@ -189,7 +188,7 @@ test.describe("Payroll Module", (): void => {
     await expect(content.first()).toBeVisible();
   });
 
-  test("should display allowances index", async ({ page }) => {
+  test("should display allowances index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/allowances`);
     await expect(page).toHaveURL(/.*allowances/);
 
@@ -197,7 +196,7 @@ test.describe("Payroll Module", (): void => {
     await expect(content.first()).toBeVisible();
   });
 
-  test("should display loans index", async ({ page }) => {
+  test("should display loans index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/loans`);
     await expect(page).toHaveURL(/.*loans/);
 
@@ -272,7 +271,7 @@ test.describe("Super Admin Access", (): void => {
 
 // ── Corrected Route Names (previously 404) ─────────────────────────
 test.describe("Corrected Financial Routes", (): void => {
-  test("should display deduction_options index", async ({ page }) => {
+  test("should display deduction_options index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/deduction_options`);
     await expect(page).toHaveURL(/.*deduction_options/);
     const title = await page.title();
@@ -283,7 +282,7 @@ test.describe("Corrected Financial Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("should display journal_entries index", async ({ page }) => {
+  test("should display journal_entries index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/journal_entries`);
     await expect(page).toHaveURL(/.*journal_entries/);
     const title = await page.title();
@@ -294,7 +293,7 @@ test.describe("Corrected Financial Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("should display chart_of_accounts index", async ({ page }) => {
+  test("should display chart_of_accounts index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/chart_of_accounts`);
     await expect(page).toHaveURL(/.*chart_of_accounts/);
     const title = await page.title();
@@ -316,7 +315,7 @@ test.describe("Corrected Financial Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("should display bank_transfers index", async ({ page }) => {
+  test("should display bank_transfers index: number", async ({ page }) => {
     await page.goto(`${BASE_URL}/bank_transfers`);
     await expect(page).toHaveURL(/.*bank_transfers/);
     const title = await page.title();
@@ -327,14 +326,14 @@ test.describe("Corrected Financial Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("should create journal entry form", async ({ page }) => {
+  test("should create journal entry form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/journal_entries/create`);
     await expect(page).toHaveURL(/.*journal_entries\/create/);
     const form = page.locator("#jrn-et-store-form");
     await expect(form).toBeVisible();
   });
 
-  test("should create chart_of_accounts form", async ({ page }) => {
+  test("should create chart_of_accounts form: HTMLFormElement", async ({ page }) => {
     await page.goto(`${BASE_URL}/chart_of_accounts/create`);
     await expect(page).toHaveURL(/.*chart_of_accounts.*modal=create/);
     const content = page

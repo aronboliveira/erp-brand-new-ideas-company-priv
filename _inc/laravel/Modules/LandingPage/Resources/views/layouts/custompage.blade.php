@@ -142,7 +142,7 @@
                             <div class="header-left">
                                 <a class="{{ VC::NVB_BR_TPR }}" href="#">
                                     <img src="{{ $lpSettings[LPC::SL_K] ? asset('assets/images/'.$lpSettings[LPC::SL_K]) : asset('assets/images/logo-light.webp') }}" 
-                                         alt="logo" 
+                                         alt="{{ __('logo') }}" 
                                          id="headerLogo"
                                          data-fallback-index="0"
                                          style="border-radius: 0.5rem 0.5rem 1rem 1rem; clip-path: inset(-8px 0px 0px 0px); width: 12rem;
@@ -299,7 +299,7 @@
                                 </ul>
                                 <button class="{{ VC::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                    aria-label="Toggle navigation">
+                                    aria-label="{{ __('Toggle navigation') }}">
                                     <span class="{{ VC::NVB_TG_IC }}"></span>
                                 </button>
                             </div>
@@ -314,7 +314,7 @@
                                 </a>
                                 <button class="{{ VC::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                    aria-label="Toggle navigation">
+                                    aria-label="{{ __('Toggle navigation') }}">
                                     <span class="{{ VC::NVB_TG_IC }}"></span>
                                 </button>
                             </div>
@@ -498,7 +498,7 @@
                                                                 <img
                                                                     src="{{ $avatarUrl }}"
                                                                     class="img-fluid rounded-circle"
-                                                                    alt="User avatar"
+                                                                    alt="{{ __('User avatar') }}"
                                                                 >
                                                             </span>
                                                         </div>
@@ -522,7 +522,7 @@
                             <div class="footer-logo mb-3">
                                 <a rel="external" href="https://prestech.com.br/site/" hreflang="pt-BR" target="_blank">
                                     <img src="{{ asset($lpSettings[LPC::SL_K] ?? 'assets/images/favicon.ico') }}" 
-                                         alt="logo" 
+                                         alt="{{ __('logo') }}" 
                                          id="footerLogo"
                                          data-fallback-index="0"
                                          style="border-radius: 1rem;
@@ -695,7 +695,7 @@
                             <form method="post" action="{{ $juSt }}">
                                 @csrf
                                 <div class="input-wrapper border border-dark" style="border-color: transparent !important; margin-bottom: 1rem">
-                                    <input type="text" name="email" placeholder="Type your email address...">
+                                    <input type="text" name="email" placeholder="{{ __('Type your email address...') }}">
                                     <button type="submit" class="btn btn-dark rounded-pill">{{__('Join Us')}}!</button>
                                 </div>
                             </form>

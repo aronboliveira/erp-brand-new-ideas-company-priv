@@ -5,4 +5,6 @@ return [
     'sent' => 'Abbiamo inviato per email il link per reimpostare la password!',
     'token' => 'Questo token di reimpostazione della password non è valido.',
     'user' => 'Non troviamo un utente con quell\'indirizzo email.',
+
+    'throttled' => 'Hai richiesto di recente il ripristino della password, controlla la tua email.',
 ];

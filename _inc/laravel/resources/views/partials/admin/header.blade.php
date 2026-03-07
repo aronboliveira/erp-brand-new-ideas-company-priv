@@ -49,7 +49,7 @@
                                 <span class="theme-avatar" style="transform: scale(1.1);">
                                     <img
                                         src="{{ asset( ($user?->avatar && File::exists($user->avatar)) ? $user->avatar : 'assets/images/user/defaults/fictional_tech_lead.webp') }}"
-                                        alt="User Avatar"
+                                        alt="{{ __('User Avatar') }}"
                                         data-reload-attempt="0"
                                         height="40px"
                                         width="40px"

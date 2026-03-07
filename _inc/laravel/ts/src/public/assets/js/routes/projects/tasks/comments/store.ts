@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,13 +14,11 @@
     f.setAttribute(flag, "true");
     f.addEventListener(
       "submit",
-      function (e) {
+      function (e: Event) {
         try {
           const action = f.getAttribute("action") ?? "#";
           const url =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
             f.getAttribute("data-url") ??
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             f.getAttribute("data-action") ??
             action ?? "#";
           if (action !== "#" && url !== "#") return;
@@ -30,7 +27,6 @@
             f.getAttribute("data-guard-msg") ?? "Store project task comment route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
             window.bootstrap &&
             typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");

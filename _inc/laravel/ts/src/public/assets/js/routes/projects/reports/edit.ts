@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* global bootstrap */
 ((): void => {
@@ -16,22 +15,21 @@
         el.addEventListener("click", event => {
           try {
             const url = el.getAttribute("data-url");
-            if (url !== "#" || el.href !== "#") return;
+            if (url !== "#" || (el as HTMLAnchorElement).href !== "#") return;
             event.preventDefault();
             const msg =
               el.getAttribute("data-guard-msg") ??
               "Edit project route is unavailable. Please contact technical support or your domain administrator.";
             const hasBS = Array.from(document.scripts).some(
               s =>
-                (s.src).includes("bootstrap.min.js") &&
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+                s.src.includes("bootstrap.min.js") &&
                 window.bootstrap &&
                 typeof window.bootstrap.Toast === "function",
             );
             if (hasBS) {
               const container =
                 document.getElementById("toast-container") ??
-                ((): void => {
+                ((): HTMLDivElement => {
                   const d = document.createElement("div");
                   d.id = "toast-container";
                   d.className =

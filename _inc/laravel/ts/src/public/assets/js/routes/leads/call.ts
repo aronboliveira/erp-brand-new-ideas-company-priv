@@ -3,12 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module call
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const $ = window.jQuery;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
   if (!$) {
     try {
       if (
@@ -31,15 +29,15 @@
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
 
-  const getMsg = (el, fallbackKey) => {
+  const getMsg = (el: HTMLElement, fallbackKey: string) => {
     let msg = ERR_FB;
     if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
       msg = el.getAttribute(DGM) || ERR_FB;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -58,9 +56,8 @@
     return msg;
   };
 
-  const showError = (el, key) => {
+  const showError = (el: HTMLElement, key: string) => {
     const msg = getMsg(el, key);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-ld-calls");
       if (!wrap) {
@@ -89,10 +86,10 @@
   const handlersClick = new WeakMap();
   const handlersPointer = new WeakMap();
 
-  const bindAnchorGuard = el => {
+  const bindAnchorGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
-    const h = e => {
+    const h = (e: Event) => {
       try {
         const url = el.getAttribute("data-url");
         const href = el.getAttribute("href");
@@ -106,13 +103,12 @@
     $(el).on("click", h);
   };
 
-  const bindFormPointerGuard = form => {
+  const bindFormPointerGuard = (form: HTMLFormElement | null) => {
     if (!form || form.getAttribute(DPL) === "true") return;
     form.setAttribute(DPL, "true");
     const $btns = $(form).find('button[type="submit"], input[type="submit"]');
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$btns.length) return;
-    const h = e => {
+    const h = (e: Event) => {
       try {
         const url = form.getAttribute("data-url");
         const action = form.getAttribute("action");
@@ -129,35 +125,37 @@
     });
   };
 
-  const unbindAnchorGuard = el => {
+  const unbindAnchorGuard = (el: HTMLElement | null) => {
+    if (!el) return;
     const h = handlersClick.get(el);
     if (h) {
       $(el).off("click", h);
       handlersClick.delete(el);
     }
-    el?.removeAttribute?.(DLA);
+    el.removeAttribute(DLA);
   };
 
-  const unbindFormPointerGuard = form => {
+  const unbindFormPointerGuard = (form: HTMLFormElement | null) => {
+    if (!form) return;
     const h = handlersPointer.get(form);
     if (h) {
       $(form)
         .find('button[type="submit"], input[type="submit"]')
-        .each(function (): void {
+        .each(function (this: HTMLElement): void {
           $(this).off("pointerup", h);
         });
       handlersPointer.delete(form);
     }
-    form?.removeAttribute?.(DPL);
+    form.removeAttribute(DPL);
   };
 
-  const scan = root => {
+  const scan = (root: Document | Element) => {
     const scope = root || document;
     scope
       .querySelectorAll("a[" + DGM + "]:not([" + DLA + '="true"])')
-      .forEach(bindAnchorGuard);
+      .forEach(el => bindAnchorGuard(el as HTMLElement));
     const form = document.getElementById("ld-call-form");
-    if (form) bindFormPointerGuard(form);
+    if (form) bindFormPointerGuard(form as HTMLFormElement);
   };
 
   const ready = (): void => {
@@ -173,20 +171,22 @@
 
   const mo = new MutationObserver(muts => {
     muts.forEach(m => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       m.addedNodes &&
         m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) scan(n);
+          if (n.nodeType === 1) scan(n as Element);
         });
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       m.removedNodes &&
         m.removedNodes.forEach(n => {
           if (n.nodeType === 1) {
-            if (n.matches?.("a[" + DLA + "]")) unbindAnchorGuard(n);
-            n.querySelectorAll?.("a[" + DLA + "]").forEach(unbindAnchorGuard);
-            if (n.id === "ld-call-form") unbindFormPointerGuard(n);
-            n.querySelectorAll?.("#ld-call-form").forEach(
-              unbindFormPointerGuard
+            const el = n as HTMLElement;
+            if (el.matches("a[" + DLA + "]")) unbindAnchorGuard(el);
+            el.querySelectorAll("a[" + DLA + "]").forEach(c =>
+              unbindAnchorGuard(c as HTMLElement),
+            );
+            if (el.id === "ld-call-form")
+              unbindFormPointerGuard(el as HTMLFormElement);
+            el.querySelectorAll("#ld-call-form").forEach(c =>
+              unbindFormPointerGuard(c as HTMLFormElement),
             );
           }
         });

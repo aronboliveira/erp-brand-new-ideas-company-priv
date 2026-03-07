@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module linkBarcodePrint
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -16,7 +15,7 @@
       return;
     }
     l.setAttribute("data-listener-active", "true");
-    l.addEventListener("click", e => {
+    l.addEventListener("click", (e: Event) => {
       try {
         const href = (l.getAttribute("href") ?? "#").trim();
         const url = (l.getAttribute("data-url") ?? "#").trim();
@@ -28,7 +27,6 @@
           l.getAttribute("data-guard-msg") ??
           "Print POS barcode route is unavailable. Please contact technical support or your domain administrator.";
         const hasBs = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let c = document.getElementById("toast-container");

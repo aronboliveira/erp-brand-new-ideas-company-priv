@@ -3,11 +3,26 @@
  * @generated from original JavaScript - manual review recommended
  * @module confirm
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
+
+interface JQueryStaticExtended extends JQueryStatic {
+  destroyModal?: (modal: JQuery<HTMLElement> | HTMLElement) => void;
+}
+
+interface JQueryExtended extends JQuery<HTMLElement> {
+  fireModal?: (options: {
+    title: string;
+    body: string;
+    buttons: Array<{
+      text: string;
+      class: string;
+      handler: (modal: JQuery<HTMLElement>) => void;
+    }>;
+  }) => void;
+}
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStaticExtended;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,42 +30,43 @@
   const dataBound = "data-confirm-bound";
   const dataErrGuard = "data-error-guard";
   const dataFallbackBound = "data-confirm-fallback";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (
+    s: string,
+    r: Document | HTMLElement = document,
+  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      window.bootstrap &&
-      window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
+    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
       return c;
     }
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
+    const el = document.createElement("div");
+    el.id = "np-toast-container";
+    el.setAttribute("aria-live", "polite");
+    el.setAttribute("aria-atomic", "true");
+    el.style.position = "fixed";
+    el.style.top = "1rem";
+    el.style.right = "1rem";
+    document.body.appendChild(el);
+    return el;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
       if (!t) {
-        t = document.createElement("div");
-        t.id = "np-toast";
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        t.innerHTML =
+        const toastEl = document.createElement("div");
+        toastEl.id = "np-toast";
+        toastEl.className = "toast";
+        toastEl.setAttribute("role", "alert");
+        toastEl.setAttribute("aria-live", "assertive");
+        toastEl.setAttribute("aria-atomic", "true");
+        toastEl.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
-        container.appendChild(t);
+        container.appendChild(toastEl);
+        t = toastEl;
       }
       const body = qs(".toast-body", t);
       if (body) {
@@ -65,7 +81,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (target, message) => {
+  const scheduleInteractiveError = (target: HTMLElement, message: string) => {
     if (!target || target.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -86,7 +102,7 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -95,9 +111,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -116,8 +132,7 @@
     return msg;
   };
   const bindConfirmModals = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!$.fn) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -127,103 +142,128 @@
       } catch (_) {}
       document
         .querySelectorAll("[data-confirm-delete]")
-        .forEach((el: Element): void =>
-          { scheduleInteractiveError(el, getMsg(el, "plugin_unavailable")); },
-        );
+        .forEach((el: Element): void => {
+          scheduleInteractiveError(
+            el as HTMLElement,
+            getMsg(el as HTMLElement, "plugin_unavailable"),
+          );
+        });
       return;
     }
-    const hasFireModal = typeof $.fn.fireModal === "function";
-    document.querySelectorAll("[data-confirm-delete]").forEach((el: Element): void => {
-      const me = $(el);
-      if (el.getAttribute(dataBound) === "true") {
-        return;
-      }
-      el.setAttribute(dataBound, "true");
-      let meData = me.data("confirm-delete");
-      meData = meData == null ? "" : String(meData);
-      const parts = meData.split("|");
-      const title = parts[0] ?? "";
-      const body = parts.slice(1).join("|") ?? "";
-      if (hasFireModal) {
-        try {
-          me.fireModal({
-            title: title,
-            body: body,
-            buttons: [
-              {
-                text: me.data("confirm-text-yes") ?? "Yes",
-                class: "btn btn-sm btn-danger rounded-pill",
-                handler: function (modal) {
-                  try {
-                    const yesCode = me.data("confirm-yes");
-                    if (yesCode) {
-                      // SECURITY: Replace eval with safe handler dispatch
-                      window.__confirmHandlers?.[yesCode]?.() ||
-                        safeFormAction(yesCode, me);
-                    }
-                  } catch (_) {}
-                  try {
-                    if ($.destroyModal) {
-                      $.destroyModal(modal);
-                    } else {
-                      $(modal).remove();
-                    }
-                  } catch (_) {}
-                },
-              },
-              {
-                text: me.data("confirm-text-cancel") ?? "Cancel",
-                class: "btn btn-sm btn-secondary rounded-pill",
-                handler: function (modal) {
-                  try {
-                    if ($.destroyModal) {
-                      $.destroyModal(modal);
-                    } else {
-                      $(modal).remove();
-                    }
-                  } catch (_) {}
-                  try {
-                    const noCode = me.data("confirm-no");
-                    if (noCode) {
-                      // SECURITY: Replace eval with safe handler dispatch
-                      window.__confirmHandlers?.[noCode]?.() ||
-                        safeFormAction(noCode, me);
-                    }
-                  } catch (_) {}
-                },
-              },
-            ],
-          });
-        } catch (_) {
-          scheduleInteractiveError(el, getMsg(el, "confirm_unavailable"));
+    const hasFireModal =
+      typeof ($.fn as unknown as { fireModal?: unknown }).fireModal ===
+      "function";
+    document
+      .querySelectorAll("[data-confirm-delete]")
+      .forEach((el: Element): void => {
+        const htmlEl = el as HTMLElement;
+        const me = $(htmlEl) as JQueryExtended;
+        if (htmlEl.getAttribute(dataBound) === "true") {
+          return;
         }
-      } else {
-        if (el.getAttribute(dataFallbackBound) !== "true") {
-          el.setAttribute(dataFallbackBound, "true");
-          const handler = function (): void {
-            showErrorNow(getMsg(el, "confirm_unavailable"));
-          };
-          $(el).on("click.confirmFallback", handler);
-          const mo = new MutationObserver((m, o) => {
-            if (!document.body.contains(el)) {
-              $(el).off("click.confirmFallback", handler);
-              o.disconnect();
-            }
-          });
-          mo.observe(document.body, { childList: true, subtree: true });
+        htmlEl.setAttribute(dataBound, "true");
+        let meData: unknown = me.data("confirm-delete");
+        meData = meData == null ? "" : String(meData);
+        const parts = (meData as string).split("|");
+        const title = parts[0] ?? "";
+        const body = parts.slice(1).join("|") ?? "";
+        if (hasFireModal) {
+          try {
+            me.fireModal?.({
+              title: title,
+              body: body,
+              buttons: [
+                {
+                  text: String(me.data("confirm-text-yes") ?? "Yes"),
+                  class: "btn btn-sm btn-danger rounded-pill",
+                  handler: function (modal: JQuery<HTMLElement>) {
+                    try {
+                      const yesCode = String(me.data("confirm-yes") ?? "");
+                      if (yesCode) {
+                        // SECURITY: Replace eval with safe handler dispatch
+                        const confirmHandler = window.__confirmHandlers?.[
+                          yesCode
+                        ] as (() => void) | undefined;
+                        if (typeof confirmHandler === "function") {
+                          confirmHandler();
+                        } else {
+                          safeFormAction(yesCode, me.get(0) as HTMLElement);
+                        }
+                      }
+                    } catch (_) {}
+                    try {
+                      const destroyFn = $.destroyModal;
+                      if (destroyFn) {
+                        destroyFn(modal);
+                      } else {
+                        modal.remove();
+                      }
+                    } catch (_) {}
+                  },
+                },
+                {
+                  text: String(me.data("confirm-text-cancel") ?? "Cancel"),
+                  class: "btn btn-sm btn-secondary rounded-pill",
+                  handler: function (modal: JQuery<HTMLElement>) {
+                    try {
+                      const destroyFn = $.destroyModal;
+                      if (destroyFn) {
+                        destroyFn(modal);
+                      } else {
+                        modal.remove();
+                      }
+                    } catch (_) {}
+                    try {
+                      const noCode = String(me.data("confirm-no") ?? "");
+                      if (noCode) {
+                        // SECURITY: Replace eval with safe handler dispatch
+                        const confirmHandler = window.__confirmHandlers?.[
+                          noCode
+                        ] as (() => void) | undefined;
+                        if (typeof confirmHandler === "function") {
+                          confirmHandler();
+                        } else {
+                          safeFormAction(noCode, me.get(0) as HTMLElement);
+                        }
+                      }
+                    } catch (_) {}
+                  },
+                },
+              ],
+            });
+          } catch (_) {
+            scheduleInteractiveError(
+              htmlEl,
+              getMsg(htmlEl, "confirm_unavailable"),
+            );
+          }
+        } else {
+          if (htmlEl.getAttribute(dataFallbackBound) !== "true") {
+            htmlEl.setAttribute(dataFallbackBound, "true");
+            const handler = function (): void {
+              showErrorNow(getMsg(htmlEl, "confirm_unavailable"));
+            };
+            $(htmlEl).on("click.confirmFallback", handler);
+            const mo = new MutationObserver((m, o) => {
+              if (!document.body.contains(htmlEl)) {
+                $(htmlEl).off("click.confirmFallback", handler);
+                o.disconnect();
+              }
+            });
+            mo.observe(document.body, { childList: true, subtree: true });
+          }
         }
-      }
-    });
+      });
   };
 
   // SECURITY: Safe fallback for confirm handlers instead of eval()
-  const safeFormAction = (actionStr, element) => {
+  const safeFormAction = (actionStr: string, element: HTMLElement) => {
     if (!actionStr) return;
     // If it looks like a form selector, submit that form
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
       const form = qs(actionStr);
       if (form?.tagName === "FORM") {
-        form.submit();
+        (form as HTMLFormElement).submit();
       }
       return;
     }

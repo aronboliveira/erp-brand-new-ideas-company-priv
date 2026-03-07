@@ -3,21 +3,23 @@
  * @generated from original JavaScript - manual review recommended
  * @module reorder
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataSortGuard = "data-sort-guard";
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
+    let c = qs<HTMLDivElement>("#" + id);
     if (c) {
       return c;
     }
@@ -31,13 +33,13 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrapLink =
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]');
     if (hasBootstrapLink) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLDivElement>("#np-toast", container);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -54,16 +56,18 @@
         body.textContent = message ?? errFb;
       }
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        new (window.bootstrap && window.bootstrap.Toast
-          ? window.bootstrap.Toast
-          : function (): void {
-              return {
-                show: function (): void {
-                  alert(message ?? errFb);
-                },
-              };
-            })(t, { autohide: true, delay: 4000 }).show();
+        const ToastClass =
+          window.bootstrap?.Toast ??
+          class {
+            constructor(
+              private el: HTMLElement | null,
+              _opts?: object,
+            ) {}
+            show(): void {
+              alert(message ?? errFb);
+            }
+          };
+        new ToastClass(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
         alert(message ?? errFb);
       }
@@ -71,9 +75,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -94,7 +97,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -103,9 +106,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -124,7 +127,6 @@
     return msg;
   };
   const initSortable = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         if (
@@ -136,7 +138,7 @@
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
-    if (!$.fn.sortable) {
+    if (!($.fn as JQuery & { sortable?: unknown }).sortable) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -148,42 +150,45 @@
       return;
     }
     const $lists = $(".sortable");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$lists.length) {
       return;
     }
-    $lists.each(function (): void {
+    $lists.each(function (this: HTMLElement): void {
       const el = this;
       if (el.getAttribute(dataSortGuard) === "true") {
         return;
       }
       el.setAttribute(dataSortGuard, "true");
       try {
-        const $el = $(el);
+        const $el = $(el) as JQuery & {
+          sortable: (opts?: object | string) => JQuery;
+          disableSelection?: () => JQuery;
+        };
         if (typeof $el.disableSelection === "function") {
           $el.disableSelection();
         }
         $el.sortable();
         $el.sortable({
-          stop: function (): void {
+          stop: function (this: HTMLElement): void {
             try {
-              const order = [];
+              const order: string[] = [];
               $(this)
                 .find("li")
-                .each(function (i, li) {
-                  order[i] = $(li).attr("data-id") ?? $(li).data("id") ?? "";
+                .each(function (this: HTMLElement, i: number): void {
+                  order[i] = String(
+                    $(this).attr("data-id") ?? $(this).data("id") ?? "",
+                  );
                 });
               const explicit = "{{route('project-task-stages.order')}}";
               const url = el.getAttribute("data-url");
               const href =
                 el.tagName === "FORM"
-                  ? el.getAttribute("action") ?? ""
-                  : el.getAttribute("href") ?? "";
+                  ? (el.getAttribute("action") ?? "")
+                  : (el.getAttribute("href") ?? "");
               if (
                 (!url || url === "#") &&
                 (!href || href === "#") &&
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-                (!explicit || explicit === "#")
+                (!explicit || (explicit as string) === "#")
               ) {
                 scheduleInteractiveError(getMsg(el, "reorder_unavailable"));
                 return;
@@ -192,14 +197,13 @@
                 url && url !== "#"
                   ? url
                   : href && href !== "#"
-                  ? href
-                  : explicit;
+                    ? href
+                    : explicit;
               const token = $('meta[name="csrf-token"]').attr("content") ?? "";
               $.ajax({
                 url: endpoint,
                 type: "POST",
                 data: { order: order },
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
                 headers: token ? { "X-CSRF-TOKEN": token } : undefined,
                 cache: false,
                 success: function (): void {},
@@ -215,7 +219,9 @@
         const mo = new MutationObserver((m, o) => {
           if (!document.body.contains(el)) {
             try {
-              $(el).sortable("destroy");
+              (
+                $(el) as JQuery & { sortable: (cmd: string) => JQuery }
+              ).sortable("destroy");
             } catch (_) {}
             o.disconnect();
           }

@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module storeIndex
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const link = document.getElementById("clients-index-link");
   if (!link || link.getAttribute("data-listener-active") === "true") return;
   link.setAttribute("data-listener-active", "true");
-  link.addEventListener("click", e => {
+  link.addEventListener("click", (e: Event) => {
     try {
       const url = link.getAttribute("data-url") ?? "#";
       if (url !== "#") return;

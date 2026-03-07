@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module preview
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el, msgKey) => {
+  const getMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,7 +40,7 @@
     return msg;
   };
 
-  const showFeedback = (el, key, ev = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -62,7 +61,9 @@
             </div>`;
         document.body.appendChild(toast);
       }
-      const handler = (): void => { new bootstrap.Toast(toast).show(); };
+      const handler = (): void => {
+        new bootstrap.Toast(toast).show();
+      };
       document.addEventListener(ev, handler, { once: true });
       const mo = new MutationObserver((_, o) => {
         if (!document.body.contains(toast)) {
@@ -72,14 +73,18 @@
       });
       mo.observe(document.body, { childList: true, subtree: true });
     } else {
-      const handler = (): void => { alert(text); };
+      const handler = (): void => {
+        alert(text);
+      };
       document.addEventListener(ev, handler, { once: true });
     }
   };
 
-  const guardOnce = (el, key, ev = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-    const handler = (): void => { showFeedback(el, key, ev); };
+    const handler = (): void => {
+      showFeedback(el, key, ev);
+    };
     el.addEventListener(ev, handler, { once: true });
     el.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
@@ -98,7 +103,6 @@
           const file = this?.files?.[0];
           if (!file) return;
           const $img = $("#image");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!$img.length) {
             guardOnce(this, "image_preview_unavailable");
             return;
@@ -118,7 +122,6 @@
       };
 
       const $input = $("#pro_image");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if ($input.length && $input.attr("data-np-bound") !== "true") {
         $input.on("change", handler);
         $input.attr("data-np-bound", "true");
@@ -151,7 +154,6 @@
         try {
           const type = String($(this).val() ?? "").toLowerCase();
           const $q = $(".quantity");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!$q.length) return;
           if (type === "product") {
             $q.removeClass("d-none").addClass("d-block");

@@ -3,31 +3,28 @@
  * @generated from original JavaScript - manual review recommended
  * @module delete
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const selector = ".delete-custom-field-link[data-route-guard][data-url]";
   const alias = "data-listening-customfieldsdeleteclick";
-  document.querySelectorAll(selector).forEach((el: Element): void => {
+  document.querySelectorAll(selector).forEach((el): void => {
     if (!el.hasAttribute(alias)) {
       el.setAttribute(alias, "true");
       el.addEventListener("click", event => {
         if (el.getAttribute(alias) !== "true") return;
         const url = el.getAttribute("data-url");
-        if (url === "#" && el.href === "#") {
+        if (url === "#" && (el as HTMLAnchorElement).href === "#") {
           event.preventDefault();
           const hasBS = Array.from(document.scripts).some(
             s =>
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               s.src &&
               s.src.includes("bootstrap.min.js") &&
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
               window.bootstrap &&
-              typeof window.bootstrap.Modal === "function"
+              typeof window.bootstrap.Modal === "function",
           );
           const msg =
-            event.currentTarget.getAttribute("data-guard-msg") ??
+            (event.currentTarget as Element)?.getAttribute("data-guard-msg") ??
             "Delete route is unavailable. Please contact technical support or your domain administrator.";
           if (hasBS) {
             const wrapper = document.createElement("div");
@@ -47,7 +44,7 @@
                                             </div>
                                         </div>`;
             document.body.appendChild(wrapper);
-            new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
+            new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
           } else {
             alert(msg);
           }

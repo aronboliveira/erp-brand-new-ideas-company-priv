@@ -3,7 +3,75 @@
  * @generated from original JavaScript - manual review recommended
  * @module custom
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands , prefer-const */
+
+// Type declarations for external libraries and jQuery plugins
+interface BootstrapType {
+  Toast: new (el: Element | null) => { show(): void };
+}
+
+interface SimpleDatatablesType {
+  DataTable: new (selector: string) => unknown;
+}
+
+interface SwalType {
+  mixin(options: Record<string, unknown>): {
+    fire(options: Record<string, unknown>): Promise<SwalResult>;
+  };
+  DismissReason: { cancel: unknown };
+}
+
+interface SwalResult {
+  isConfirmed?: boolean;
+  dismiss?: "cancel" | "close" | "backdrop" | "esc" | "timer" | undefined;
+}
+
+type ChoicesConstructor = new (
+  selector: string,
+  options: Record<string, unknown>,
+) => unknown;
+
+interface JscolorType {
+  installByClassName(className: string): void;
+}
+
+// Cast globals from window
+const _bootstrap = (window as unknown as { bootstrap: BootstrapType })
+  .bootstrap;
+const _simpleDatatables = (
+  window as unknown as { simpleDatatables: SimpleDatatablesType }
+).simpleDatatables;
+const _Swal = (window as unknown as { Swal: SwalType }).Swal;
+const _Choices = (window as unknown as { Choices: ChoicesConstructor }).Choices;
+const _jscolor = (window as unknown as { jscolor: JscolorType }).jscolor;
+const _site_currency_symbol = (
+  window as unknown as { site_currency_symbol: string }
+).site_currency_symbol;
+const _site_currency_symbol_position = (
+  window as unknown as { site_currency_symbol_position: string }
+).site_currency_symbol_position;
+
+// Extend String prototype
+interface String {
+  getDecimals(): number;
+}
+
+// Extend jQuery with plugins
+interface JQuery<TElement = HTMLElement> {
+  niceScroll(): this;
+  summernote(options?: Record<string, unknown>): this;
+  tagsinput(options?: Record<string, unknown>): this;
+  scrollbar(): { scrollLock(): void };
+  searchBox(options?: Record<string, unknown>): this;
+  modal(action: string): this;
+  tooltip(): this;
+  dropdown(): this;
+  next(selector?: string): this;
+}
+
+// Extend HTMLElement with flatpickr
+interface HTMLElement {
+  flatpickr(options?: Record<string, unknown>): void;
+}
 
 /* global bootstrap, flatpickr, Swal, $, jQuery */
 /**
@@ -13,13 +81,12 @@
  *
  */
 
-"use strict";
+("use strict");
 // for pos system
-const session_key = $(location).attr("href").split("/").pop();
+const session_key = window.location.href.split("/").pop() ?? "";
 //
 
 $(function (): void {
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if ($(".custom-scroll").length) {
     $(".custom-scroll").niceScroll();
     $(".custom-scroll-horizontal").niceScroll();
@@ -30,7 +97,7 @@ $(function (): void {
 
 $(document).ready(function (): void {
   if ($(".datatable").length > 0) {
-    const dataTable = new simpleDatatables.DataTable(".datatable");
+    const _dataTable = new _simpleDatatables.DataTable(".datatable");
   }
 
   select2();
@@ -47,20 +114,20 @@ function daterange() {
   }
 }
 
-function select2() {
+function select2(): void {
   if ($(".select2").length > 0) {
-    $($(".select2")).each(function (index, element) {
-      const id = $(element).attr("id");
-      const multipleCancelButton = new Choices("#" + id, {
+    $(".select2").each(function (this: HTMLElement, index: number) {
+      const id = $(this).attr("id");
+      const _multipleCancelButton = new _Choices("#" + id, {
         removeItemButton: true,
       });
     });
   }
 }
 
-function show_toastr(type, message) {
+function show_toastr(type: string, message: string): void {
   const f = document.getElementById("liveToast");
-  const a = new bootstrap.Toast(f).show();
+  const _toastInstance = new _bootstrap.Toast(f).show();
   if (type == "success") {
     $("#liveToast").addClass("bg-primary");
   } else {
@@ -73,19 +140,19 @@ $(document).on(
   "click",
   'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]',
   function (): void {
-    const data = {};
-    const title1 = $(this).data("title");
+    const data: Record<string, unknown> = {};
+    const title1 = $(this).data("title") as string | undefined;
 
-    const title2 = $(this).data("bs-original-title");
-    const title3 = $(this).data("original-title");
-    let title = title1 ?? title2;
-    let title = title ?? title3;
+    const title2 = $(this).data("bs-original-title") as string | undefined;
+    const title3 = $(this).data("original-title") as string | undefined;
+    const titleTemp = title1 ?? title2;
+    const title = titleTemp ?? title3;
 
     $(".modal-dialog").removeClass("modal-xl");
     const size = $(this).data("size") == "" ? "md" : $(this).data("size");
 
-    const url = $(this).data("url");
-    $("#commonModal .modal-title").html(title);
+    const url = $(this).data("url") as string;
+    $("#commonModal .modal-title").html(title ?? "");
     $("#commonModal .modal-dialog").addClass("modal-" + size);
 
     if ($("#vc_name_hidden").length > 0) {
@@ -100,29 +167,29 @@ $(document).on(
     $.ajax({
       url: url,
       data: data,
-      success: function (data) {
-        $("#commonModal .body").html(data);
+      success: function (response: string): void {
+        $("#commonModal .body").html(response);
         $("#commonModal").modal("show");
         // daterange_set();
         taskCheckbox();
-        common_bind("#commonModal");
+        common_bind();
         commonLoader();
       },
-      error: function (data) {
-        data = data.responseJSON;
-        show_toastr("Error", data.error, "error");
+      error: function (xhr: { responseJSON?: { error?: string } }): void {
+        const errorData = xhr.responseJSON;
+        show_toastr("Error", errorData?.error ?? "Unknown error");
       },
     });
-  }
+  },
 );
 
-function arrayToJson(form) {
+function arrayToJson(form: HTMLFormElement): Record<string, unknown> {
   const data = $(form).serializeArray();
-  const indexed_array = {};
+  const indexed_array: Record<string, unknown> = {};
 
-  $.map(data, function (n, i) {
-    indexed_array[n.name] = n.value;
-  });
+  for (const item of data) {
+    indexed_array[item.name] = item.value;
+  }
 
   return indexed_array;
 }
@@ -131,14 +198,14 @@ function common_bind() {
   select2();
 }
 
-function taskCheckbox() {
+function taskCheckbox(): void {
   let checked = 0;
   let count = 0;
   let percentage = 0;
 
   count = $("#check-list input[type=checkbox]").length;
   checked = $("#check-list input[type=checkbox]:checked").length;
-  percentage = parseInt((checked / count) * 100, 10);
+  percentage = parseInt(String((checked / count) * 100), 10);
   if (isNaN(percentage)) {
     percentage = 0;
   }
@@ -185,65 +252,64 @@ function commonLoader() {
   // });
 
   const e = $(".scrollbar-inner");
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  e.length && e.scrollbar().scrollLock();
+  if (e.length) {
+    e.scrollbar().scrollLock();
+  }
 
   const e1 = $(".custom-input-file");
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  e1.length &&
-    e1.each(function (): void {
-      const e1 = $(this);
-      e1.on("change", function (t) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        !(function (e, t, a) {
-          let n,
-            o = e.next("label"),
-            i = o.html();
-          t?.files.length > 1
-            ? (n = (t.getAttribute("data-multiple-caption") ?? "").replace(
-                "{count}",
-                t.files.length
-              ))
-            : a.target.value && (n = a.target.value.split("\\").pop()),
-            n ? o.find("span").html(n) : o.html(i);
-        })(e1, this, t);
-      }),
-        e1
-          .on("focus", function (): void {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            !(function (e) {
-              e.addClass("has-focus");
-            })(e1);
-          })
-          .on("blur", function (): void {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            !(function (e) {
-              e.removeClass("has-focus");
-            })(e1);
-          });
+  if (e1.length) {
+    e1.each(function (this: HTMLElement): void {
+      const $el = $(this);
+      $el.on("change", function (this: HTMLElement, t: JQueryEventObject) {
+        const inputEl = this as HTMLInputElement;
+        let n: string | undefined;
+        const $label = $el.next("label");
+        const i = $label.html();
+        if (inputEl.files && inputEl.files.length > 1) {
+          n = (inputEl.getAttribute("data-multiple-caption") ?? "").replace(
+            "{count}",
+            String(inputEl.files.length),
+          );
+        } else if ((t.target as HTMLInputElement)?.value) {
+          n =
+            (t.target as HTMLInputElement).value.split("\\").pop() ?? undefined;
+        }
+        if (n) {
+          $label.find("span").html(n);
+        } else {
+          $label.html(i);
+        }
+      });
+      $el
+        .on("focus", function (): void {
+          $el.addClass("has-focus");
+        })
+        .on("blur", function (): void {
+          $el.removeClass("has-focus");
+        });
     });
+  }
 
   // let e2 = $('[data-toggle="autosize"]');
   // e2.length && autosize(e2);
 
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if ($(".jscolor").length) {
-    jscolor.installByClassName("jscolor");
+    _jscolor.installByClassName("jscolor");
   }
   summernote();
   // for Choose file
   $(document).on("change", "input[type=file]", function (): void {
-    const fileclass = $(this).attr("data-filename");
-    const finalname = $(this).val().split("\\").pop();
+    const fileclass = $(this).attr("data-filename") ?? "";
+    const rawVal = $(this).val();
+    const finalname =
+      typeof rawVal === "string" ? (rawVal.split("\\").pop() ?? "") : "";
     $("." + fileclass).html(finalname);
   });
 }
 
 function summernote() {
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if ($(".summernote-simple").length) {
     $(".summernote-simple").summernote({
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       dialogsInBody: !0,
       minHeight: 200,
       maxHeight: 300,
@@ -258,10 +324,8 @@ function summernote() {
     $(".dropdown-toggle").dropdown();
   }
 
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if ($(".summernote-simple-2").length) {
     $(".summernote-simple-2").summernote({
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       dialogsInBody: !0,
       minHeight: 200,
       maxHeight: 300,
@@ -278,7 +342,7 @@ function summernote() {
 
 $(document).on("click", ".bs-pass-para", function (): void {
   const form = $(this).closest("form");
-  const swalWithBootstrapButtons = Swal.mixin({
+  const swalWithBootstrapButtons = _Swal.mixin({
     customClass: {
       confirmButton: "btn btn-success",
       cancelButton: "btn btn-danger",
@@ -295,17 +359,19 @@ $(document).on("click", ".bs-pass-para", function (): void {
       cancelButtonText: "No",
       reverseButtons: true,
     })
-    .then(result => {
+    .then((result: SwalResult) => {
       if (result.isConfirmed) {
-        form.submit();
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        (form[0] as HTMLFormElement | undefined)?.submit();
+      } else if (result.dismiss === _Swal.DismissReason.cancel) {
+        // cancelled
       }
     });
 });
 
 //only pos system delete button
 $(document).on("click", ".bs-pass-para-pos", function (): void {
-  const swalWithBootstrapButtons = Swal.mixin({
+  const self = this;
+  const swalWithBootstrapButtons = _Swal.mixin({
     customClass: {
       confirmButton: "btn btn-success",
       cancelButton: "btn btn-danger",
@@ -322,17 +388,23 @@ $(document).on("click", ".bs-pass-para-pos", function (): void {
       cancelButtonText: "No",
       reverseButtons: true,
     })
-    .then(result => {
+    .then((result: SwalResult) => {
       if (result.isConfirmed) {
-        document.getElementById($(this).data("confirm-yes")).submit();
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        const formId = $(self).data("confirm-yes") as string;
+        (document.getElementById(formId) as HTMLFormElement | null)?.submit();
+      } else if (result.dismiss === _Swal.DismissReason.cancel) {
+        // cancelled
       }
     });
 });
 
-function postAjax(url, data, cb) {
+function postAjax(
+  url: string,
+  data: Record<string, unknown>,
+  cb: (response: unknown) => void,
+): void {
   const token = $('meta[name="csrf-token"]').attr("content");
-  const jdata = { _token: token };
+  const jdata: Record<string, unknown> = { _token: token };
 
   for (const k in data) {
     jdata[k] = data[k];
@@ -342,21 +414,21 @@ function postAjax(url, data, cb) {
     type: "POST",
     url: url,
     data: jdata,
-    success: function (data) {
-      if (typeof data === "object") {
-        cb(data);
-      } else {
-        cb(data);
-      }
+    success: function (response: unknown): void {
+      cb(response);
     },
   });
 }
 
 //end only pos system delete button
 
-function deleteAjax(url, data, cb) {
+function deleteAjax(
+  url: string,
+  data: Record<string, unknown>,
+  cb: (response: unknown) => void,
+): void {
   const token = $('meta[name="csrf-token"]').attr("content");
-  const jdata = { _token: token };
+  const jdata: Record<string, unknown> = { _token: token };
 
   for (const k in data) {
     jdata[k] = data[k];
@@ -366,12 +438,8 @@ function deleteAjax(url, data, cb) {
     type: "DELETE",
     url: url,
     data: jdata,
-    success: function (data) {
-      if (typeof data === "object") {
-        cb(data);
-      } else {
-        cb(data);
-      }
+    success: function (response: unknown): void {
+      cb(response);
     },
   });
 }
@@ -380,13 +448,12 @@ function deleteAjax(url, data, cb) {
 $(document).on(
   "click",
   ".local_calendar .fc-daygrid-event, .fc-timegrid-event",
-  function (e) {
+  function (e: Event) {
     // if (!$(this).hasClass('project')) {
     e.preventDefault();
     const event = $(this);
     const title1 = $(".fc-event-title").html();
     const title2 = $(this).data("bs-original-title");
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const title = title1 ?? title2;
     // let size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
     const size = "md";
@@ -395,18 +462,18 @@ $(document).on(
     $("#commonModal .modal-dialog").addClass("modal-" + size);
     $.ajax({
       url: url,
-      success: function (data) {
-        $("#commonModal .body").html(data);
+      success: function (response: string): void {
+        $("#commonModal .body").html(response);
         $("#commonModal").modal("show");
         common_bind();
       },
-      error: function (data) {
-        data = data.responseJSON;
-        toastrs("Error", data.error, "error");
+      error: function (xhr: { responseJSON?: { error?: string } }): void {
+        const errData = xhr.responseJSON;
+        show_toastr("Error", errData?.error ?? "Unknown error");
       },
     });
     // }
-  }
+  },
 );
 
 //date value 4
@@ -428,24 +495,24 @@ $(document).on(
 //     $("input[type='date']").attr('max', maxDate);
 // });
 
-function addCommas(num) {
-  const number = parseFloat(num)
+function addCommas(num: number): string {
+  const number = parseFloat(String(num))
     .toFixed(2)
     .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
   return (
-    (site_currency_symbol_position == "pre" ? site_currency_symbol : "") +
+    (_site_currency_symbol_position == "pre" ? _site_currency_symbol : "") +
     number +
-    (site_currency_symbol_position == "post" ? site_currency_symbol : "")
+    (_site_currency_symbol_position == "post" ? _site_currency_symbol : "")
   );
 }
 
 // PLUS MINUS QUANTITY JS
 function wcqib_refresh_quantity_increments() {
   jQuery(
-    "div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)"
+    "div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)",
   ).each(function (a, b) {
     const c = jQuery(b);
-    c.addClass("buttons_added"),
+    (c.addClass("buttons_added"),
       c
         .children()
         .first()
@@ -453,56 +520,69 @@ function wcqib_refresh_quantity_increments() {
       c
         .children()
         .last()
-        .after('<input type="button" value="+" class="plus" />');
+        .after('<input type="button" value="+" class="plus" />'));
   });
 }
 
 String.prototype.getDecimals ||
-  (String.prototype.getDecimals = function (): void {
-    const a = this,
-      b = ("" + a).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  (String.prototype.getDecimals = function (): number {
+    const a = this as string;
+    const b = ("" + a).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
     return b ? Math.max(0, (b[1] ? b[1].length : 0) - (b[2] ? +b[2] : 0)) : 0;
-  }),
-  jQuery(document).ready(function (): void {
-    wcqib_refresh_quantity_increments();
-  }),
-  jQuery(document).on("updated_wc_div", function (): void {
-    wcqib_refresh_quantity_increments();
-  }),
-  jQuery(document).on("click", ".plus, .minus", function (): void {
-    const a = jQuery(this)
-        .closest(".quantity")
-        .find('input[name="quantity"], input[name="quantity[]"]'),
-      b = parseFloat(a.val()),
-      c = parseFloat(a.attr("max")),
-      d = parseFloat(a.attr("min")),
-      e = a.attr("step");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    (b && "" !== b && "NaN" !== b) || (b = 0),
-      ("" !== c && "NaN" !== c) || (c = ""),
-      ("" !== d && "NaN" !== d) || (d = 0),
-      ("any" !== e && "" !== e && void 0 !== e && "NaN" !== parseFloat(e)) ||
-        (e = 1),
-      jQuery(this).is(".plus")
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        ? c && b >= c
-          ? a.val(c)
-          : a.val((b + parseFloat(e)).toFixed(e.getDecimals()))
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        : d && b <= d
-        ? a.val(d)
-        : b > 0 && a.val((b - parseFloat(e)).toFixed(e.getDecimals())),
-      a.trigger("change");
   });
 
+jQuery(document).ready(function (): void {
+  wcqib_refresh_quantity_increments();
+});
+
+jQuery(document).on("updated_wc_div", function (): void {
+  wcqib_refresh_quantity_increments();
+});
+
+jQuery(document).on("click", ".plus, .minus", function (): void {
+  const a = jQuery(this)
+    .closest(".quantity")
+    .find('input[name="quantity"], input[name="quantity[]"]');
+  let b = parseFloat(String(a.val() ?? "0"));
+  let c = parseFloat(String(a.attr("max") ?? ""));
+  let d = parseFloat(String(a.attr("min") ?? "0"));
+  let e = String(a.attr("step") ?? "1");
+  if (!b || isNaN(b)) {
+    b = 0;
+  }
+  if (isNaN(c)) {
+    c = Infinity;
+  }
+  if (!d || isNaN(d)) {
+    d = 0;
+  }
+  if (e === "any" || e === "" || isNaN(parseFloat(e))) {
+    e = "1";
+  }
+  if (jQuery(this).is(".plus")) {
+    if (c !== Infinity && b >= c) {
+      a.val(c);
+    } else {
+      a.val((b + parseFloat(e)).toFixed(e.getDecimals()));
+    }
+  } else {
+    if (d && b <= d) {
+      a.val(d);
+    } else if (b > 0) {
+      a.val((b - parseFloat(e)).toFixed(e.getDecimals()));
+    }
+  }
+  a.trigger("change");
+});
+
 $(document).on(
-  "click",
+  "keydown",
   'input[name="quantity"], input[name="quantity[]"]',
-  function (e) {
+  function (evt) {
+    const e = evt as unknown as KeyboardEvent;
     // Allow: backspace, delete, tab, escape, enter and .
     if (
-      $.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
+      [46, 8, 9, 27, 13, 190].indexOf(e.keyCode) !== -1 ||
       // Allow: Ctrl+A
       (e.keyCode == 65 && e.ctrlKey === true) ||
       // Allow: home, end, left, right
@@ -518,7 +598,7 @@ $(document).on(
     ) {
       e.preventDefault();
     }
-  }
+  },
 );
 
 //for ai module
@@ -529,35 +609,34 @@ $(document).on(
     const validate = $(this).attr("data-validate");
     let id = "";
     if (validate != null && validate !== "") {
-      id = $(validate).val();
+      id = String($(validate).val() ?? "");
     }
-    const title_over = $(this).data("title");
+    const title_over = $(this).data("title") as string;
     $("#commonModalOver .modal-dialog").removeClass("modal-lg");
     const size_over = $(this).data("size") == "" ? "md" : $(this).data("size");
 
-    const url = $(this).data("url");
+    const url = $(this).data("url") as string;
     $("#commonModalOver .modal-title").html(title_over);
     $("#commonModalOver .modal-dialog").addClass("modal-" + size_over);
     $.ajax({
       url: url + "?id=" + id,
-      success: function (data) {
-        $("#commonModalOver .modal-body").html(data);
+      success: function (response: string): void {
+        $("#commonModalOver .modal-body").html(response);
         $("#commonModalOver").modal("show");
         taskCheckbox();
       },
-      error: function (data) {
-        data = data.responseJSON;
-        show_toastr("Error", data.error, "error");
+      error: function (xhr: { responseJSON?: { error?: string } }): void {
+        const errData = xhr.responseJSON;
+        show_toastr("Error", errData?.error ?? "Unknown error");
       },
     });
-  }
+  },
 );
 
 //start input serach box
 function JsSearchBox() {
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if ($(".js-searchBox").length) {
-    $(".js-searchBox").each(function (index) {
+    $(".js-searchBox").each(function (index: number) {
       if ($(this).parent().find(".formTextbox").length == 0) {
         $(this).searchBox({ elementWidth: "250" });
       }
@@ -569,9 +648,8 @@ $(document).ready(function (): void {
   JsSearchBox();
 
   function JsSearchBox() {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if ($(".js-searchBox").length) {
-      $(".js-searchBox").each(function (index) {
+      $(".js-searchBox").each(function (index: number) {
         if ($(this).parent().find(".formTextbox").length === 0) {
           $(this).searchBox({ elementWidth: "250" });
         }

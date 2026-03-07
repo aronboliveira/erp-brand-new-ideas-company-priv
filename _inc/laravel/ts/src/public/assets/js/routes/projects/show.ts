@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -18,7 +17,7 @@
           return;
         }
         el.setAttribute("data-listener-active", "true");
-        el.addEventListener("click", e => {
+        el.addEventListener("click", (e: Event) => {
           try {
             const href = el.getAttribute("href") ?? "#";
             const url = el.getAttribute("data-url") ?? "#";
@@ -31,7 +30,6 @@
               "Show project route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

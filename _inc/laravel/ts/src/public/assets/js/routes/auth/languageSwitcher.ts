@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module languageSwitcher
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -17,9 +16,12 @@
       sel.getAttribute("data-guard-msg") ??
       "Language switch route is unavailable. Please contact technical support or your domain administrator.";
 
-    sel.addEventListener("change", e => {
+    sel.addEventListener("change", (e: Event) => {
       try {
-        const val = sel.options?.[sel.selectedIndex]?.value ?? "#";
+        const val =
+          (sel as HTMLSelectElement).options?.[
+            (sel as HTMLSelectElement).selectedIndex
+          ]?.value ?? "#";
         if (val && val !== "#") return;
 
         e.preventDefault();
@@ -35,13 +37,7 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap?.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -65,7 +61,7 @@
               console.error(
                 "[assets/js/routes/auth/languageSwitcher.js] Bootstrap toast error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
             alert(guardMsg);
           }
@@ -82,7 +78,7 @@
           console.error(
             "[assets/js/routes/auth/languageSwitcher.js] Change handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -94,7 +90,7 @@
       console.error(
         "[assets/js/routes/auth/languageSwitcher.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

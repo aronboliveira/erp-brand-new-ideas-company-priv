@@ -86,7 +86,7 @@
 										<td>{{ isset($tracker->end_time) ? date('H:i:s', strtotime($tracker->end_time)) : __('No end time') }}</td>
 										<td>{{ $total_name }}</td>
 										<td>
-											<img alt="Image placeholder"
+											<img alt="{{ __('Image placeholder') }}"
 												 src="{{ asset('assets/images/gallery.png') }}"
 												 class="{{ VC::AV_CC_SM }} view-images"
 												 data-bs-toggle="tooltip"

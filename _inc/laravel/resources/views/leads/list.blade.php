@@ -129,7 +129,7 @@
                                             <td>
                                                 @foreach(data_get($lead,'users',[]) as $assignee)
                                                     <a href="#" class="{{ VC::BT_SM }} p-0 rounded-circle">
-                                                        <img alt="image"
+                                                        <img alt="{{ __('image') }}"
                                                              data-bs-toggle="tooltip"
                                                              title="{{ data_get($assignee,'name','') }}"
                                                              src="{{ data_get($assignee,'avatar')

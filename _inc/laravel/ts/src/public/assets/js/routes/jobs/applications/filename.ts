@@ -3,12 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module filename
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
 ((): void => {
   try {
     const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-filename]')
+      document.querySelectorAll('input[type="file"][data-filename]'),
     );
     if (inputs.length === 0) return;
     inputs.forEach(inp => {
@@ -17,10 +16,10 @@
       inp.addEventListener("change", (): void => {
         try {
           const sel = inp.getAttribute("data-filename") ?? "";
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const out = sel ? document.querySelector("." + sel) : null;
           if (!out) return;
-          const file = inp.files?.[0] ? inp.files[0] : null;
+          const inputEl = inp as HTMLInputElement;
+          const file = inputEl.files?.[0] ? inputEl.files[0] : null;
           out.textContent = file ? file.name : "";
         } catch {}
       });

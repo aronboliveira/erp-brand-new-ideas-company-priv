@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module picker
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -37,7 +36,7 @@
     zh: { datepicker_unavailable: "无法初始化日期选择器" },
   };
 
-  const toastContainer = ((): void => {
+  const toastContainer = ((): HTMLElement => {
     const existing = document.querySelector<HTMLElement>(".toast-container");
     if (existing) return existing;
     const container = document.createElement("div");
@@ -46,7 +45,7 @@
     return container;
   })();
 
-  const showError = (key, el = null) => {
+  const showError = (key: string, el: HTMLElement | null = null) => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -58,9 +57,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -71,14 +70,12 @@
         el?.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
       }
     }
     const bs = document.querySelector(BS_LINK);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (bs && window.bootstrap.Toast) {
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
@@ -107,12 +104,14 @@
     }
   };
 
-  const handleDatePickerClick = el => {
+  const handleDatePickerClick = (el: HTMLElement | null) => {
+    if (!el) return;
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
-      if (typeof $(el).daterangepicker !== "function")
+      const $el = $(el) as JQuery & { daterangepicker?: Function };
+      if (typeof $el.daterangepicker !== "function")
         throw new Error("daterangepicker plugin not available");
-      $(el).daterangepicker({
+      $el.daterangepicker({
         format: "yyyy-mm-dd",
         locale: { format: "YYYY-MM-DD" },
       });
@@ -124,8 +123,14 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (node.nodeType === 1 && node.matches(DATE_PICKER_CLASS)) {
-          node.removeEventListener("click", handleDatePickerClick);
+        if (
+          node.nodeType === 1 &&
+          (node as Element).matches(DATE_PICKER_CLASS)
+        ) {
+          (node as Element).removeEventListener(
+            "click",
+            handleDatePickerClick as unknown as EventListener,
+          );
         }
       });
     });
@@ -140,7 +145,9 @@
     pickers.forEach((el: Element): void => {
       if (el.getAttribute(DATE_PICKER_ATTR) === "true") return;
       el.setAttribute(DATE_PICKER_ATTR, "true");
-      el.addEventListener("click", (): void => { handleDatePickerClick(el); });
+      el.addEventListener("click", (): void => {
+        handleDatePickerClick(el as HTMLElement);
+      });
     });
   } catch (err) {
     showError("datepicker_unavailable");

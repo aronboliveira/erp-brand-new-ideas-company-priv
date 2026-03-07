@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars, no-inner-declarations */
 
 /* global bootstrap */
 (function (): void {
@@ -14,16 +13,13 @@
     const guardMsg = f.getAttribute("data-guard-msg") ?? "Route unavailable";
     const actionHref = f.getAttribute("data-action-href") ?? "";
 
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!f.getAttribute("action") && actionHref && actionHref !== "#") {
       f.setAttribute("action", actionHref);
     }
 
-    function toastOrAlert(msg) {
+    function toastOrAlert(msg: string) {
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        const hasBootstrap = !!(window.bootstrap && window.bootstrap.Toast);
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const hasBootstrap = !!(window.bootstrap?.Toast);
         if (!hasBootstrap) {
           alert(msg);
           return;
@@ -49,11 +45,9 @@
       }
     }
 
-    f.addEventListener("submit", function (e) {
+    f.addEventListener("submit", function (e: Event) {
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const a = f.getAttribute("action") ?? "";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!a || a === "#") {
           e.preventDefault();
           toastOrAlert(guardMsg);

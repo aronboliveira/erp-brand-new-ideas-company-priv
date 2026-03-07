@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, no-console */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -18,17 +17,14 @@
   const dataBoundChange = "data-bound-template-change";
   const dataBoundGen = "data-bound-generate";
   const copiedMsgId = "ai-copied-msg";
-  const qs = (s, r = document) => r.querySelector(s);
-  const qsa = (s, r = document) =>
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const qs = (s: string, r: ParentNode = document): HTMLElement | null =>
+    r.querySelector(s) as HTMLElement | null;
+  const qsa = (s: string, r = document) =>
     Array.prototype.slice.call(r.querySelectorAll(s) || []);
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      window.bootstrap &&
-      window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
+    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
       return c;
@@ -43,7 +39,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -71,9 +67,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveErrorClick = message => {
+  const scheduleInteractiveErrorClick = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -94,7 +89,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -103,9 +98,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -123,12 +118,15 @@
     }
     return msg;
   };
-  const resolveRoute = (el, explicit) => {
+  const resolveRoute = (
+    el: HTMLElement | null | undefined,
+    explicit: string,
+  ) => {
     const url = el?.getAttribute?.("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
-        ? el.getAttribute("action") ?? ""
-        : el.getAttribute("href") ?? ""
+        ? (el.getAttribute("action") ?? "")
+        : (el.getAttribute("href") ?? "")
       : "";
     if (
       (!explicit || explicit === "#") &&
@@ -140,8 +138,8 @@
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
-      ? url
-      : href;
+        ? url
+        : href;
   };
   const setCheckedFirstRadio = (): void => {
     const modal = qs("#commonModalOver");
@@ -149,7 +147,7 @@
       return;
     }
     const RadioSel = "#commonModalOver input[type='radio']";
-    const first = qs(RadioSel);
+    const first = qs(RadioSel) as HTMLInputElement | null;
     if (first) {
       if (!first.checked) {
         first.checked = true;
@@ -157,13 +155,13 @@
       }
     }
   };
-  const writeField = (name, value) => {
+  const writeField = (name: string, value: unknown) => {
     if (!name) {
       return false;
     }
     const $in = $('input[name="' + name + '"]');
     if ($in.length > 0) {
-      $in.val(value ?? "");
+      $in.val(String(value ?? ""));
       return true;
     }
     const $ta = $('textarea[name="' + name + '"]');
@@ -174,17 +172,17 @@
       $ta.hasClass("summernote-simple") || $ta.hasClass("summernote-simple-2");
     if (isSummer && typeof $ta.summernote === "function") {
       try {
-        $ta.summernote("code", value ?? "");
+        $ta.summernote("code", String(value ?? ""));
         return true;
       } catch (_) {
-        $ta.val(value ?? "");
+        $ta.val(String(value ?? ""));
         return true;
       }
     }
-    $ta.val(value ?? "");
+    $ta.val(String(value ?? ""));
     return true;
   };
-  const ensureCopiedLabel = afterEl => {
+  const ensureCopiedLabel = (afterEl: HTMLElement | null) => {
     const el = qs("#" + copiedMsgId);
     if (el) {
       return el;
@@ -195,7 +193,7 @@
     span.textContent = getMsg(afterEl || document.body, "copied_label");
     (afterEl?.parentNode ?? document.body).insertBefore(
       span,
-      afterEl?.nextSibling || null
+      afterEl?.nextSibling || null,
     );
     return span;
   };
@@ -206,25 +204,24 @@
       const copied = $("#ai-description").val() ?? "";
       if (selected === "") {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          getMsg(document.body, "copy_unavailable"),
         );
         return;
       }
       const ok = writeField(selected, copied);
       if (!ok) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          getMsg(document.body, "copy_unavailable"),
         );
         return;
       }
       const anchor = qs("#ai-description");
       ensureCopiedLabel(anchor);
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.show_toastr) {
         window.show_toastr(
           "success",
           "Result text has been copied successfully",
-          "success"
+          "success",
         );
       }
       $("#commonModalOver").modal("hide");
@@ -237,35 +234,33 @@
       const selected =
         $('input[name="template_name"]:checked').attr("data-name") ?? "";
       const selText =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        (window.getSelection && window.getSelection().toString()) || "";
+        (window.getSelection && window.getSelection()?.toString()) || "";
       if (selected === "") {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          getMsg(document.body, "copy_unavailable"),
         );
         return;
       }
       if (selText === "") {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "selection_unavailable")
+          getMsg(document.body, "selection_unavailable"),
         );
         return;
       }
       const ok = writeField(selected, selText);
       if (!ok) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          getMsg(document.body, "copy_unavailable"),
         );
         return;
       }
       const anchor = qs("#ai-description");
       ensureCopiedLabel(anchor);
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.show_toastr) {
         window.show_toastr(
           "success",
           "Result text has been copied successfully",
-          "success"
+          "success",
         );
       }
       $("#commonModalOver").modal("hide");
@@ -279,48 +274,52 @@
       return;
     }
     root.setAttribute(dataBoundChange, "true");
-    $(document.body).on("change.aiTemplate", ".template_name", function (): void {
-      const templateId = $(this).val() ?? "";
-      const explicit =
-        '{{route("generate.keywords",["__templateId"])}}'.replace(
-          "__templateId",
-          templateId
-        );
-      const endpoint = resolveRoute(this, explicit);
-      if (!endpoint) {
-        scheduleInteractiveErrorClick(getMsg(this, "keywords_unavailable"));
-        return;
-      }
-      $.ajax({
-        type: "post",
-        url: endpoint,
-        dataType: "json",
-        data: { _token: "{{ csrf_token() }}", template_id: templateId },
-        cache: false,
-        success: function (data) {
-          try {
-            if (data?.tone == 1) {
-              $(".tone").removeClass("d-none");
-              $(".tone select").attr("name", "tone");
-            } else {
-              $(".tone").addClass("d-none");
-              $(".d-none select").removeAttr("name");
-            }
-            $("#getkeywords").empty();
-            $("#getkeywords").append(data?.template ?? "");
-          } catch (_) {
-            scheduleInteractiveErrorClick(
-              getMsg(document.body, "keywords_unavailable")
-            );
-          }
-        },
-        error: function (): void {
-          scheduleInteractiveErrorClick(
-            getMsg(document.body, "server_unavailable")
+    $(document.body).on(
+      "change.aiTemplate",
+      ".template_name",
+      function (): void {
+        const templateId = String($(this).val() ?? "");
+        const explicit =
+          '{{route("generate.keywords",["__templateId"])}}'.replace(
+            "__templateId",
+            templateId,
           );
-        },
-      });
-    });
+        const endpoint = resolveRoute(this, explicit);
+        if (!endpoint) {
+          scheduleInteractiveErrorClick(getMsg(this, "keywords_unavailable"));
+          return;
+        }
+        $.ajax({
+          type: "post",
+          url: endpoint,
+          dataType: "json",
+          data: { _token: "{{ csrf_token() }}", template_id: templateId },
+          cache: false,
+          success: function (data: { tone?: number; template?: string }) {
+            try {
+              if (data?.tone == 1) {
+                $(".tone").removeClass("d-none");
+                $(".tone select").attr("name", "tone");
+              } else {
+                $(".tone").addClass("d-none");
+                $(".d-none select").removeAttr("name");
+              }
+              $("#getkeywords").empty();
+              $("#getkeywords").append(data?.template ?? "");
+            } catch (_) {
+              scheduleInteractiveErrorClick(
+                getMsg(document.body, "keywords_unavailable"),
+              );
+            }
+          },
+          error: function (): void {
+            scheduleInteractiveErrorClick(
+              getMsg(document.body, "server_unavailable"),
+            );
+          },
+        });
+      },
+    );
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(root)) {
         $(document.body).off(".aiTemplate");
@@ -356,32 +355,31 @@
           try {
             $("#generate").empty();
             $("#generate").append(
-              '<span class="spinner-grow spinner-grow-sm" role="status"></span>'
+              '<span class="spinner-grow spinner-grow-sm" role="status"></span>',
             );
           } catch (_) {}
         },
-        success: function (data) {
+        success: function (data: string | { message?: string }) {
           try {
             $(".response").removeClass("d-none");
             $("#generate").text("Re-Generate");
-            if (data?.message) {
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+            if (typeof data !== "string" && data?.message) {
               if (window.show_toastr) {
                 window.show_toastr("error", data.message, "error");
               }
               $("#commonModalOver").modal("hide");
             } else {
-              $("#ai-description").val(data ?? "");
+              $("#ai-description").val((data ?? "") as string);
             }
           } catch (_) {
             scheduleInteractiveErrorClick(
-              getMsg(document.body, "generate_unavailable")
+              getMsg(document.body, "generate_unavailable"),
             );
           }
         },
         error: function (): void {
           scheduleInteractiveErrorClick(
-            getMsg(document.body, "server_unavailable")
+            getMsg(document.body, "server_unavailable"),
           );
         },
       });
@@ -403,13 +401,12 @@
     }
   };
   const init = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         console.log("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveErrorClick(
-        getMsg(document.body, "plugin_unavailable")
+        getMsg(document.body, "plugin_unavailable"),
       );
       return;
     }

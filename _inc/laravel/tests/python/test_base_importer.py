@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+from typing import Any
 
 import pandas as pd
 from openpyxl import Workbook
@@ -16,11 +17,11 @@ class DummyImporter(BaseImporter):
     def get_expected_headers(self) -> list[str]:
         return ["employee_id", "date", "status"]
 
-    def validate_row(self, row, row_idx):
+    def validate_row(self, row: dict[str, Any], row_idx: int) -> dict[str, Any] | None:
         return row
 
-    def process_data(self):
-        return self._data.get("rows", [])
+    def process_data(self) -> list[Any]:
+        return list(self._data.get("rows", []))
 
     def run(self) -> None:
         self.read_stdin()
@@ -44,6 +45,7 @@ def test_clean_cell_parse_date_and_header_normalisation() -> None:
 def test_detect_header_row_finds_expected_columns() -> None:
     workbook = Workbook()
     sheet = workbook.active
+    assert sheet is not None
     sheet.append(["Ignore", "This", "Row"])
     sheet.append(["Employee ID", "Date", "Status"])
 
@@ -66,7 +68,7 @@ def test_read_rows_from_data_and_add_error_updates_counts() -> None:
     assert importer._errors == ["Row 3: bad row"]
 
 
-def test_read_spreadsheet_supports_csv_and_xlsx(tmp_path) -> None:
+def test_read_spreadsheet_supports_csv_and_xlsx(tmp_path: Any) -> None:
     importer = DummyImporter()
     frame = pd.DataFrame(
         [
@@ -87,7 +89,7 @@ def test_read_spreadsheet_supports_csv_and_xlsx(tmp_path) -> None:
     assert xlsx_frame.to_dict("records")[1]["status"] == "Absent"
 
 
-def test_run_reads_and_writes_json(monkeypatch) -> None:
+def test_run_reads_and_writes_json(monkeypatch: Any) -> None:
     importer = DummyImporter()
     monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps({"rows": [{"employee_id": "EMP-1"}]})))
     fake_stdout = io.StringIO()
@@ -99,4 +101,3 @@ def test_run_reads_and_writes_json(monkeypatch) -> None:
     assert result["status"] == "success"
     assert result["imported"] == 0
     assert result["rows"] == [{"employee_id": "EMP-1"}]
-

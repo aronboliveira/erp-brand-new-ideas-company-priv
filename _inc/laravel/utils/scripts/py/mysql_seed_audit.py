@@ -18,9 +18,10 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
-    import mysql.connector as mc  # type: ignore[import-untyped]
+    import mysql.connector as mc
 except ImportError:
     mc = None
 
@@ -84,7 +85,7 @@ def parse_seeders() -> list[str]:
     return re.findall(r"(\w+Seeder)::class", text)
 
 
-def get_connection():
+def get_connection() -> Any:
     """Create a MySQL connection using mysql-connector-python or CLI fallback."""
     if mc:
         return mc.connect(
@@ -139,7 +140,7 @@ def get_table_counts() -> dict[str, int]:
     return tables
 
 
-def run_seeds():
+def run_seeds() -> bool:
     """Run php artisan db:seed."""
     artisan = LARAVEL_ROOT / "artisan"
     if not artisan.exists():
@@ -156,7 +157,7 @@ def run_seeds():
     return True
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Audit MySQL seed state")
     parser.add_argument("--json", action="store_true", help="JSON output")
     parser.add_argument("--run-seeds", action="store_true", help="Run db:seed before audit")
@@ -171,7 +172,7 @@ def main():
     table_counts = get_table_counts()
 
     # Build expected → actual mapping
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     seeded_tables: set[str] = set()
 
     for seeder in seeders:
@@ -196,7 +197,7 @@ def main():
         if tbl not in seeded_tables:
             uncovered.append({"table": tbl, "rows": cnt})
 
-    report = {
+    report: dict[str, Any] = {
         "database": DB_NAME,
         "host": f"{DB_HOST}:{DB_PORT}",
         "total_tables": len(table_counts),

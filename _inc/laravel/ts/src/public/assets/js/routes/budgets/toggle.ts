@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,13 +11,12 @@
   const guardMsgKey = "data-guard-msg";
   const langKey = "erp-np-lang";
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement): string {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
       msg = el.getAttribute(guardMsgKey) ?? msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         sessionStorage.getItem(langKey) ??
         document.documentElement.lang ??
         "en"
@@ -27,9 +25,9 @@
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
-        translations?.[lang]?.[key] ??
+        window.translations?.[lang]?.[key] ??
         el.getAttribute(guardMsgKey) ??
-        translations?.en?.[key] ??
+        window.translations?.en?.[key] ??
         msg;
       if (msg !== errFb) {
         el.setAttribute(guardMsgKey, msg);
@@ -39,7 +37,7 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -80,109 +78,141 @@
   };
   document.addEventListener("pointerup", onErrorPointerUp);
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { Array.from(m.removedNodes).forEach(n => {
+    muts.forEach(m => {
+      Array.from(m.removedNodes).forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    const bindField = (selector, handler, isThrottle) => {
-      document.querySelectorAll(selector).forEach((el: Element): void => {
-        if (el.dataset.listenerAttached === "true") return;
-        el.dataset.listenerAttached = "true";
-        el.addEventListener(isThrottle ? "keyup" : "change", handler);
-        new MutationObserver((ms, obs) => {
-          ms.forEach(m =>
-            { Array.from(m.removedNodes).forEach(n => {
-              if (n === el) {
-                el.removeEventListener(
-                  isThrottle ? "keyup" : "change",
-                  handler
-                );
-                obs.disconnect();
-              }
-            }); }
-          );
-        }).observe(document.body, { childList: true, subtree: true });
-      });
+    const bindField = (
+      selector: string,
+      handler: (e: Event) => void,
+      isThrottle: boolean,
+    ): void => {
+      document
+        .querySelectorAll<HTMLElement>(selector)
+        .forEach((el: HTMLElement): void => {
+          if (el.dataset.listenerAttached === "true") return;
+          el.dataset.listenerAttached = "true";
+          el.addEventListener(isThrottle ? "keyup" : "change", handler);
+          new MutationObserver((ms, obs) => {
+            ms.forEach(m => {
+              Array.from(m.removedNodes).forEach(n => {
+                if (n === el) {
+                  el.removeEventListener(
+                    isThrottle ? "keyup" : "change",
+                    handler,
+                  );
+                  obs.disconnect();
+                }
+              });
+            });
+          }).observe(document.body, { childList: true, subtree: true });
+        });
     };
 
-    const onIncomeKeyup = event => {
+    const onIncomeKeyup = (event: Event): void => {
       try {
-        const row = event.currentTarget.closest("tr");
-        const inputs = row.querySelectorAll(".income_data");
+        const target = event.currentTarget as HTMLInputElement;
+        const row = target.closest("tr");
+        if (!row) return;
+        const inputs = row.querySelectorAll<HTMLInputElement>(".income_data");
         let total = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        inputs.forEach(i => (total += parseFloat(i.value) || 0));
-        row.querySelector(".totalIncome").textContent = total;
-        const month = event.currentTarget.dataset.month;
-        const monthInputs = row.parentElement?.querySelectorAll(
-          `.${month}_income`
+        inputs.forEach(
+          (i: HTMLInputElement) => (total += parseFloat(i.value) || 0),
         );
+        const totalIncomeEl = row.querySelector(".totalIncome");
+        if (totalIncomeEl) totalIncomeEl.textContent = String(total);
+        const month = target.dataset.month;
+        const monthInputs =
+          row.parentElement?.querySelectorAll<HTMLInputElement>(
+            `.${month}_income`,
+          );
         let mTotal = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        monthInputs.forEach(i => (mTotal += parseFloat(i.value) || 0));
-        row.parentElement?.querySelector(`.${month}_total_income`).textContent =
-          mTotal;
+        monthInputs?.forEach(
+          (i: HTMLInputElement) => (mTotal += parseFloat(i.value) || 0),
+        );
+        const monthTotalEl = row.parentElement?.querySelector(
+          `.${month}_total_income`,
+        );
+        if (monthTotalEl) monthTotalEl.textContent = String(mTotal);
         const allTotals = row.parentElement?.querySelectorAll(".totalIncome");
         let grand = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        allTotals.forEach(t => (grand += parseFloat(t.textContent) || 0));
-        row.parentElement?.querySelector(".income").textContent = grand;
+        allTotals?.forEach(
+          (t: Element) => (grand += parseFloat(t.textContent ?? "0") || 0),
+        );
+        const incomeEl = row.parentElement?.querySelector(".income");
+        if (incomeEl) incomeEl.textContent = String(grand);
       } catch {
         errorMessage = getLocalizedMessage(
           "income_calculation_failed",
-          event.currentTarget
+          event.currentTarget as HTMLElement,
         );
       }
     };
 
-    const onExpenseKeyup = event => {
+    const onExpenseKeyup = (event: Event): void => {
       try {
-        const row = event.currentTarget.closest("tr");
-        const inputs = row.querySelectorAll(".expense_data");
+        const target = event.currentTarget as HTMLInputElement;
+        const row = target.closest("tr");
+        if (!row) return;
+        const inputs = row.querySelectorAll<HTMLInputElement>(".expense_data");
         let total = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        inputs.forEach(i => (total += parseFloat(i.value) || 0));
-        row.querySelector(".totalExpense").textContent = total;
-        const month = event.currentTarget.dataset.month;
-        const monthInputs = row.parentElement?.querySelectorAll(
-          `.${month}_expense`
+        inputs.forEach(
+          (i: HTMLInputElement) => (total += parseFloat(i.value) || 0),
         );
+        const totalExpenseEl = row.querySelector(".totalExpense");
+        if (totalExpenseEl) totalExpenseEl.textContent = String(total);
+        const month = target.dataset.month;
+        const monthInputs =
+          row.parentElement?.querySelectorAll<HTMLInputElement>(
+            `.${month}_expense`,
+          );
         let mTotal = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        monthInputs.forEach(i => (mTotal += parseFloat(i.value) || 0));
-        row.parentElement?.querySelector(`.${month}_total_expense`).textContent =
-          mTotal;
+        monthInputs?.forEach(
+          (i: HTMLInputElement) => (mTotal += parseFloat(i.value) || 0),
+        );
+        const monthTotalEl = row.parentElement?.querySelector(
+          `.${month}_total_expense`,
+        );
+        if (monthTotalEl) monthTotalEl.textContent = String(mTotal);
         const allTotals = row.parentElement?.querySelectorAll(".totalExpense");
         let grand = 0;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        allTotals.forEach(t => (grand += parseFloat(t.textContent) || 0));
-        row.parentElement?.querySelector(".expense").textContent = grand;
+        allTotals?.forEach(
+          (t: Element) => (grand += parseFloat(t.textContent ?? "0") || 0),
+        );
+        const expenseEl = row.parentElement?.querySelector(".expense");
+        if (expenseEl) expenseEl.textContent = String(grand);
       } catch {
         errorMessage = getLocalizedMessage(
           "expense_calculation_failed",
-          event.currentTarget
+          event.currentTarget as HTMLElement,
         );
       }
     };
 
-    const onPeriodChange = event => {
+    const onPeriodChange = (event: Event): void => {
       try {
-        const val = event.currentTarget.value;
+        const target = event.currentTarget as HTMLSelectElement;
+        const val = target.value;
         document
           .querySelectorAll(".budget_plan")
-          .forEach((el: Element): void => { el.classList.add("d-none"); });
-        const target = document.getElementById(val);
-        if (target) target.classList.replace("d-none", "d-block");
+          .forEach((el: Element): void => {
+            el.classList.add("d-none");
+          });
+        const targetEl = document.getElementById(val);
+        if (targetEl) targetEl.classList.replace("d-none", "d-block");
       } catch {
         showError(
-          getLocalizedMessage("period_toggle_failed", event.currentTarget)
+          getLocalizedMessage(
+            "period_toggle_failed",
+            event.currentTarget as HTMLElement,
+          ),
         );
       }
     };
@@ -190,9 +220,9 @@
     bindField(".income_data", onIncomeKeyup, true);
     bindField(".expense_data", onExpenseKeyup, true);
     bindField(".period", onPeriodChange, false);
-    document
-      .querySelectorAll(".period")
-      .forEach((el: Element): void => el.dispatchEvent(new Event("change")));
+    document.querySelectorAll(".period").forEach((el: Element): void => {
+      el.dispatchEvent(new Event("change"));
+    });
   });
 })();
 

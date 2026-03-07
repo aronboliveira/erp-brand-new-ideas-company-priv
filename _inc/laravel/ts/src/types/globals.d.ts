@@ -45,6 +45,10 @@ declare namespace bootstrap {
     hide(): void;
     dispose(): void;
     static getInstance(element: Element): Toast | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<ToastOptions>,
+    ): Toast;
   }
 
   interface ToastOptions {
@@ -61,6 +65,10 @@ declare namespace bootstrap {
     dispose(): void;
     update(): void;
     static getInstance(element: Element): Dropdown | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<DropdownOptions>,
+    ): Dropdown;
   }
 
   interface DropdownOptions {
@@ -83,6 +91,10 @@ declare namespace bootstrap {
     update(): void;
     dispose(): void;
     static getInstance(element: Element): Tooltip | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<TooltipOptions>,
+    ): Tooltip;
   }
 
   interface TooltipOptions {
@@ -107,6 +119,10 @@ declare namespace bootstrap {
 
   class Popover extends Tooltip {
     static getInstance(element: Element): Popover | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<TooltipOptions>,
+    ): Popover;
   }
 
   class Collapse {
@@ -116,6 +132,10 @@ declare namespace bootstrap {
     hide(): void;
     dispose(): void;
     static getInstance(element: Element): Collapse | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<CollapseOptions>,
+    ): Collapse;
   }
 
   interface CollapseOptions {
@@ -128,6 +148,7 @@ declare namespace bootstrap {
     show(): void;
     dispose(): void;
     static getInstance(element: Element): Tab | null;
+    static getOrCreateInstance(element: Element): Tab;
   }
 
   class Alert {
@@ -135,6 +156,7 @@ declare namespace bootstrap {
     close(): void;
     dispose(): void;
     static getInstance(element: Element): Alert | null;
+    static getOrCreateInstance(element: Element): Alert;
   }
 
   class Carousel {
@@ -147,6 +169,10 @@ declare namespace bootstrap {
     to(index: number): void;
     dispose(): void;
     static getInstance(element: Element): Carousel | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<CarouselOptions>,
+    ): Carousel;
   }
 
   interface CarouselOptions {
@@ -165,6 +191,10 @@ declare namespace bootstrap {
     hide(): void;
     dispose(): void;
     static getInstance(element: Element): Offcanvas | null;
+    static getOrCreateInstance(
+      element: Element,
+      options?: Partial<OffcanvasOptions>,
+    ): Offcanvas;
   }
 
   interface OffcanvasOptions {
@@ -300,9 +330,19 @@ interface FlatpickrOptions {
   defaultDate?: string | Date | Date[];
   defaultHour?: number;
   defaultMinute?: number;
-  disable?: (string | Date | { from: Date; to: Date } | ((date: Date) => boolean))[];
+  disable?: (
+    | string
+    | Date
+    | { from: Date; to: Date }
+    | ((date: Date) => boolean)
+  )[];
   disableMobile?: boolean;
-  enable?: (string | Date | { from: Date; to: Date } | ((date: Date) => boolean))[];
+  enable?: (
+    | string
+    | Date
+    | { from: Date; to: Date }
+    | ((date: Date) => boolean)
+  )[];
   enableSeconds?: boolean;
   enableTime?: boolean;
   hourIncrement?: number;
@@ -513,6 +553,26 @@ interface SweetAlertOptions {
   didClose?: () => void;
   didDestroy?: () => void;
   scrollbarPadding?: boolean;
+  // Animation classes
+  showClass?: {
+    popup?: string;
+    backdrop?: string;
+    icon?: string;
+  };
+  hideClass?: {
+    popup?: string;
+    backdrop?: string;
+    icon?: string;
+  };
+  // Lifecycle callbacks (deprecated aliases)
+  willOpen?: (popup: HTMLElement) => void;
+  onClose?: () => void;
+  // Footer
+  footer?: string | HTMLElement;
+  // ARIA labels
+  confirmButtonAriaLabel?: string;
+  cancelButtonAriaLabel?: string;
+  denyButtonAriaLabel?: string;
 }
 
 interface SweetAlertStatic {
@@ -553,6 +613,18 @@ interface SweetAlertStatic {
   clickConfirm(): void;
   clickDeny(): void;
   clickCancel(): void;
+  // Deprecated method (alias for getHtmlContainer)
+  getContent(): HTMLElement | null;
+  // Validation message
+  showValidationMessage(message: string): void;
+  // Dismiss reasons enum
+  DismissReason: {
+    cancel: "cancel";
+    backdrop: "backdrop";
+    close: "close";
+    esc: "esc";
+    timer: "timer";
+  };
 }
 
 declare const Swal: SweetAlertStatic;
@@ -583,9 +655,7 @@ interface JQueryStatic {
   extend<T, U, V>(target: T, object1: U, object2: V): T & U & V;
   fn: JQuery;
   Deferred<T>(): JQueryDeferred<T>;
-  when<T>(
-    ...deferreds: (JQueryDeferred<T> | Promise<T>)[]
-  ): JQueryPromise<T>;
+  when<T>(...deferreds: (JQueryDeferred<T> | Promise<T>)[]): JQueryPromise<T>;
 }
 
 interface JQuery<TElement = HTMLElement> extends Iterable<TElement> {
@@ -731,6 +801,10 @@ interface JQuery<TElement = HTMLElement> extends Iterable<TElement> {
   serialize(): string;
   serializeArray(): { name: string; value: string }[];
   map<U>(callback: (index: number, element: TElement) => U): JQuery<U>;
+
+  // jQuery UI
+  sortable(options?: string | Record<string, unknown>): this;
+  disableSelection(): this;
 
   // AJAX
   load(
@@ -890,9 +964,7 @@ interface DataTablesApi {
     len(): number;
     len(length: number): this;
   };
-  order(
-    order?: [number, "asc" | "desc"][],
-  ): this | [number, "asc" | "desc"][];
+  order(order?: [number, "asc" | "desc"][]): this | [number, "asc" | "desc"][];
   clear(): this;
   destroy(remove?: boolean): void;
   on(event: string, callback: (...args: unknown[]) => void): this;
@@ -1079,17 +1151,647 @@ interface Toastr {
 declare const toastr: Toastr;
 
 /* ==========================================================================
+   Bootstrap Slider (bootstrap-slider)
+   ========================================================================== */
+
+interface SliderOptions {
+  id?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  precision?: number;
+  value?: number | [number, number];
+  range?: boolean;
+  orientation?: "horizontal" | "vertical";
+  reversed?: boolean;
+  tooltip?: "show" | "hide" | "always";
+  tooltip_position?: "top" | "bottom" | "left" | "right";
+  formatter?: (value: number | [number, number]) => string;
+  ticks?: number[];
+  ticks_labels?: string[];
+  ticks_positions?: number[];
+  ticks_snap_bounds?: number;
+  ticks_tooltip?: boolean;
+  scale?: "linear" | "logarithmic";
+  focus?: boolean;
+  labelledby?: string | string[];
+  rangeHighlights?: { start: number; end: number; class?: string }[];
+  enabled?: boolean;
+  selection?: "before" | "after" | "none";
+  handle?: "round" | "square" | "triangle" | "custom";
+  lock_to_ticks?: boolean;
+}
+
+declare class Slider {
+  constructor(selector: string | Element, options?: SliderOptions);
+  getValue(): number | [number, number];
+  setValue(
+    newValue: number | [number, number],
+    triggerSlideEvent?: boolean,
+    triggerChangeEvent?: boolean,
+  ): this;
+  destroy(): void;
+  disable(): this;
+  enable(): this;
+  toggle(): this;
+  isEnabled(): boolean;
+  setAttribute(attribute: string, value: unknown): this;
+  getAttribute(attribute: string): unknown;
+  refresh(options?: Partial<SliderOptions>): this;
+  on(
+    eventName: string,
+    callback: (value: number | [number, number]) => void,
+  ): this;
+  off(
+    eventName: string,
+    callback?: (value: number | [number, number]) => void,
+  ): this;
+  relayout(): this;
+}
+
+/* ==========================================================================
+   Tiny Slider (tiny-slider)
+   ========================================================================== */
+
+interface TnsOptions {
+  container?: string | Element;
+  items?: number;
+  slideBy?: number | "page";
+  autoplay?: boolean;
+  autoplayTimeout?: number;
+  autoplayButton?: string | Element | false;
+  axis?: "horizontal" | "vertical";
+  center?: boolean;
+  gutter?: number;
+  edgePadding?: number;
+  controls?: boolean;
+  controlsContainer?: string | Element | false;
+  nav?: boolean;
+  navContainer?: string | Element | false;
+  navAsThumbnails?: boolean;
+  arrowKeys?: boolean;
+  speed?: number;
+  autoplayHoverPause?: boolean;
+  autoplayResetOnVisibility?: boolean;
+  autoplayText?: [string, string];
+  rewind?: boolean;
+  loop?: boolean;
+  mode?: "carousel" | "gallery";
+  lazyload?: boolean;
+  lazyloadSelector?: string;
+  touch?: boolean;
+  mouseDrag?: boolean;
+  swipeAngle?: number | false;
+  preventActionWhenRunning?: boolean;
+  preventScrollOnTouch?: "auto" | "force" | false;
+  nested?: "inner" | "outer" | false;
+  freezable?: boolean;
+  disable?: boolean;
+  startIndex?: number;
+  onInit?: () => void;
+  responsive?: Record<number, Partial<TnsOptions>>;
+}
+
+interface TnsInstance {
+  getInfo(): {
+    index: number;
+    slideCount: number;
+    cloneCount: number;
+    slideCountNew: number;
+    navItems: Element[];
+    slideItems: Element[];
+  };
+  goTo(target: number | "next" | "prev" | "first" | "last"): void;
+  play(): void;
+  pause(): void;
+  isOn: boolean;
+  updateSliderHeight(): void;
+  refresh(): void;
+  destroy(): void;
+  rebuild(): TnsInstance;
+  events: {
+    on(type: string, handler: (info: unknown) => void): void;
+    off(type: string, handler: (info: unknown) => void): void;
+  };
+}
+
+declare function tns(options: TnsOptions): TnsInstance;
+
+/* ==========================================================================
+   Intro.js
+   ========================================================================== */
+
+interface IntroJsStep {
+  element?: Element | string | null;
+  intro: string;
+  title?: string;
+  position?: "top" | "bottom" | "left" | "right" | "auto";
+  tooltipClass?: string;
+  highlightClass?: string;
+  scrollTo?: "element" | "tooltip" | "off";
+  disableInteraction?: boolean;
+}
+
+interface IntroJsOptions {
+  steps?: IntroJsStep[];
+  nextLabel?: string;
+  prevLabel?: string;
+  skipLabel?: string;
+  doneLabel?: string;
+  hidePrev?: boolean;
+  hideNext?: boolean;
+  nextToDone?: boolean;
+  tooltipPosition?: string;
+  tooltipClass?: string;
+  highlightClass?: string;
+  exitOnEsc?: boolean;
+  exitOnOverlayClick?: boolean;
+  showStepNumbers?: boolean;
+  keyboardNavigation?: boolean;
+  showButtons?: boolean;
+  showBullets?: boolean;
+  showProgress?: boolean;
+  scrollToElement?: boolean;
+  scrollTo?: "element" | "tooltip" | "off";
+  scrollPadding?: number;
+  overlayOpacity?: number;
+  disableInteraction?: boolean;
+  dontShowAgain?: boolean;
+  dontShowAgainLabel?: string;
+  dontShowAgainCookie?: string;
+  dontShowAgainCookieDays?: number;
+}
+
+interface IntroJsInstance {
+  start(): this;
+  goToStep(step: number): this;
+  goToStepNumber(stepNumber: number): this;
+  nextStep(): this;
+  previousStep(): this;
+  exit(force?: boolean): this;
+  setOptions(options: IntroJsOptions): this;
+  setOption(option: string, value: unknown): this;
+  refresh(): this;
+  addHints(): this;
+  showHint(hintIndex: number): this;
+  showHints(): this;
+  hideHint(hintIndex: number): this;
+  hideHints(): this;
+  removeHint(hintIndex: number): this;
+  removeHints(): this;
+  showHintDialog(hintIndex: number): this;
+  onbeforechange(callback: (targetElement: Element) => void | boolean): this;
+  onchange(callback: (targetElement: Element) => void): this;
+  onafterchange(callback: (targetElement: Element) => void): this;
+  oncomplete(callback: () => void): this;
+  onexit(callback: () => void): this;
+  onhintsadded(callback: () => void): this;
+  onhintclick(
+    callback: (hintElement: Element, item: IntroJsStep, stepId: number) => void,
+  ): this;
+  onhintclose(callback: (stepId: number) => void): this;
+  onskip(callback: () => void): this;
+  onbeforeexit(callback: () => boolean | void): this;
+}
+
+declare function introJs(targetElement?: string | Element): IntroJsInstance;
+
+/* ==========================================================================
+   VanillaTree
+   ========================================================================== */
+
+interface VanillaTreeContextMenuItem {
+  label: string;
+  action: (id: string) => void;
+}
+
+interface VanillaTreeOptions {
+  placeholder?: string;
+  contextmenu?: VanillaTreeContextMenuItem[];
+}
+
+interface VanillaTreeAddOptions {
+  label: string;
+  id?: string;
+  parent?: string;
+  opened?: boolean;
+  selected?: boolean;
+}
+
+interface VanillaTreeEvent extends Event {
+  detail: {
+    id: string;
+  };
+}
+
+declare class VanillaTree {
+  constructor(element: Element | null, options?: VanillaTreeOptions);
+  add(options: VanillaTreeAddOptions): this;
+  move(id: string, parentId: string): this;
+  remove(id: string): this;
+  open(id: string): this;
+  close(id: string): this;
+  toggle(id: string): this;
+  select(id: string): this;
+}
+
+/* ==========================================================================
+   IMask
+   ========================================================================== */
+
+interface IMaskOptions {
+  mask:
+    | string
+    | NumberConstructor
+    | DateConstructor
+    | RegExp
+    | ((value: string) => boolean)
+    | IMaskOptions[];
+  lazy?: boolean;
+  eager?: boolean | "append" | "remove";
+  overwrite?: boolean | "shift";
+  prepare?: (value: string, masked: unknown) => string;
+  commit?: (value: string, masked: unknown) => void;
+  validate?: (value: string, masked: unknown) => boolean;
+  format?: (value: unknown) => string;
+  parse?: (str: string) => unknown;
+  // Pattern mask options
+  definitions?: Record<
+    string,
+    { mask: string | RegExp; displayChar?: string; placeholderChar?: string }
+  >;
+  blocks?: Record<string, IMaskOptions>;
+  placeholderChar?: string;
+  displayChar?: string;
+  // Number mask options
+  scale?: number;
+  signed?: boolean;
+  thousandsSeparator?: string;
+  padFractionalZeros?: boolean;
+  normalizeZeros?: boolean;
+  radix?: string;
+  mapToRadix?: string[];
+  min?: number;
+  max?: number;
+  // Date mask options
+  pattern?: string;
+  autofix?: boolean | "pad";
+}
+
+interface IMaskInstance {
+  value: string;
+  unmaskedValue: string;
+  typedValue: unknown;
+  masked: unknown;
+  el: { value: string };
+  updateValue(): void;
+  updateControl(): void;
+  updateOptions(opts: Partial<IMaskOptions>): void;
+  updateCursor(cursorPos: number): void;
+  alignCursor(): void;
+  alignCursorFriendly(): void;
+  on(ev: string, handler: (...args: unknown[]) => void): this;
+  off(ev: string, handler?: (...args: unknown[]) => void): this;
+  destroy(): void;
+}
+
+declare function IMask(
+  element: Element | null,
+  options: IMaskOptions,
+): IMaskInstance;
+declare namespace IMask {
+  export const Masked: unknown;
+  export const MaskedPattern: unknown;
+  export const MaskedNumber: unknown;
+  export const MaskedDate: unknown;
+  export const MaskedRange: unknown;
+  export const MaskedEnum: unknown;
+  export const MaskedRegExp: unknown;
+  export const MaskedFunction: unknown;
+  export const MaskedDynamic: unknown;
+  export const InputMask: unknown;
+  export const PIPE_TYPE: unknown;
+  export const pipe: unknown;
+  export const createMask: unknown;
+}
+
+/* ==========================================================================
+   Datepicker (vanillajs-datepicker)
+   ========================================================================== */
+
+interface DatepickerOptions {
+  autohide?: boolean;
+  beforeShowDay?: (
+    date: Date,
+  ) =>
+    | { enabled?: boolean; classes?: string; tooltip?: string }
+    | string
+    | boolean
+    | undefined;
+  beforeShowDecade?: (
+    date: Date,
+  ) => { enabled?: boolean; classes?: string } | string | boolean | undefined;
+  beforeShowMonth?: (
+    date: Date,
+  ) => { enabled?: boolean; classes?: string } | string | boolean | undefined;
+  beforeShowYear?: (
+    date: Date,
+  ) => { enabled?: boolean; classes?: string } | string | boolean | undefined;
+  buttonClass?: string;
+  calendarWeeks?: boolean;
+  clearBtn?: boolean;
+  container?: string | Element;
+  dateDelimiter?: string;
+  datesDisabled?: (string | Date)[];
+  daysOfWeekDisabled?: number[];
+  daysOfWeekHighlighted?: number[];
+  defaultViewDate?:
+    | string
+    | Date
+    | { year: number; month: number; day: number };
+  disableTouchKeyboard?: boolean;
+  format?: string;
+  language?: string;
+  maxDate?: string | Date | null;
+  maxNumberOfDates?: number;
+  maxView?: number;
+  minDate?: string | Date | null;
+  nextArrow?: string;
+  orientation?:
+    | "auto"
+    | "top"
+    | "bottom"
+    | "left"
+    | "right"
+    | "top left"
+    | "top right"
+    | "bottom left"
+    | "bottom right";
+  pickLevel?: 0 | 1 | 2;
+  prevArrow?: string;
+  showDaysOfWeek?: boolean;
+  showOnClick?: boolean;
+  showOnFocus?: boolean;
+  startView?: number;
+  title?: string;
+  todayBtn?: boolean | "link";
+  todayBtnMode?: 0 | 1;
+  todayHighlight?: boolean;
+  updateOnBlur?: boolean;
+  weekStart?: number;
+}
+
+declare class Datepicker {
+  constructor(element: Element, options?: DatepickerOptions);
+  static locales: Record<string, Record<string, unknown>>;
+  static formatDate(date: Date, format: string, lang?: string): string;
+  static parseDate(dateStr: string | Date, format: string, lang?: string): Date;
+  dates: Date[];
+  destroy(): void;
+  getDate(format?: string): Date | Date[] | string | string[] | undefined;
+  hide(): void;
+  refresh(target?: "picker" | "input", forceRender?: boolean): void;
+  setDate(
+    ...args: (
+      | string
+      | Date
+      | { clear?: boolean; render?: boolean; autohide?: boolean }
+    )[]
+  ): void;
+  setOptions(options: Partial<DatepickerOptions>): void;
+  show(): void;
+  toggle(): void;
+  update(options?: { autohide?: boolean }): void;
+  element: Element;
+  inputField: HTMLInputElement;
+}
+
+/* ==========================================================================
+   DateRangePicker (vanillajs-datepicker)
+   ========================================================================== */
+
+declare class DateRangePicker {
+  constructor(element: Element, options?: DatepickerOptions);
+  dates: Date[];
+  datepickers: [Datepicker, Datepicker];
+  destroy(): void;
+  getDates(
+    format?: string,
+  ): [Date | string | undefined, Date | string | undefined];
+  setDates(
+    rangeStart?: string | Date | { clear?: boolean },
+    rangeEnd?: string | Date | { clear?: boolean },
+  ): void;
+  setOptions(options: Partial<DatepickerOptions>): void;
+  element: Element;
+  inputs: [HTMLInputElement, HTMLInputElement];
+}
+
+/* ==========================================================================
+   Notifier
+   ========================================================================== */
+
+interface NotifierOptions {
+  position?:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "top-center"
+    | "bottom-center";
+  durations?: Record<string, number>;
+}
+
+interface Notifier {
+  show(
+    title: string,
+    message: string,
+    type?: string,
+    imageUrl?: string,
+    duration?: number,
+  ): string;
+  hide(notificationId: string): void;
+  success(title: string, message: string, duration?: number): string;
+  error(title: string, message: string, duration?: number): string;
+  warning(title: string, message: string, duration?: number): string;
+  info(title: string, message: string, duration?: number): string;
+}
+
+declare const notifier: Notifier;
+
+/* ==========================================================================
+   Choices.js
+   ========================================================================== */
+
+interface ChoicesOptions {
+  silent?: boolean;
+  items?: (
+    | string
+    | {
+        value: string;
+        label?: string;
+        id?: number;
+        selected?: boolean;
+        disabled?: boolean;
+        customProperties?: Record<string, unknown>;
+      }
+  )[];
+  choices?: (
+    | string
+    | {
+        value: string;
+        label?: string;
+        id?: number;
+        selected?: boolean;
+        disabled?: boolean;
+        customProperties?: Record<string, unknown>;
+        groupId?: number;
+      }
+  )[];
+  renderChoiceLimit?: number;
+  maxItemCount?: number;
+  addItems?: boolean;
+  addItemFilter?: string | RegExp | ((value: string) => boolean) | null;
+  removeItems?: boolean;
+  removeItemButton?: boolean;
+  editItems?: boolean;
+  allowHTML?: boolean;
+  duplicateItemsAllowed?: boolean;
+  delimiter?: string;
+  paste?: boolean;
+  searchEnabled?: boolean;
+  searchChoices?: boolean;
+  searchFloor?: number;
+  searchResultLimit?: number;
+  searchFields?: string[];
+  position?: "auto" | "top" | "bottom";
+  resetScrollPosition?: boolean;
+  shouldSort?: boolean;
+  shouldSortItems?: boolean;
+  sorter?: (a: unknown, b: unknown) => number;
+  placeholder?: boolean;
+  placeholderValue?: string | null;
+  searchPlaceholderValue?: string | null;
+  prependValue?: string | null;
+  appendValue?: string | null;
+  renderSelectedChoices?: "always" | "auto";
+  loadingText?: string;
+  noResultsText?: string | (() => string);
+  noChoicesText?: string | (() => string);
+  itemSelectText?: string;
+  addItemText?: string | ((value: string) => string);
+  maxItemText?: string | ((maxItemCount: number) => string);
+  uniqueItemText?: string;
+  customAddItemText?: string;
+  valueComparer?: (a: unknown, b: unknown) => boolean;
+  classNames?: Record<string, string>;
+  fuseOptions?: Record<string, unknown>;
+  callbackOnInit?: () => void;
+  callbackOnCreateTemplates?: (
+    template: (arg: string) => Element,
+  ) => Record<string, (...args: unknown[]) => Element>;
+}
+
+declare class Choices {
+  constructor(element: string | Element, options?: ChoicesOptions);
+  static readonly defaults: { options: ChoicesOptions };
+  init(): void;
+  destroy(): void;
+  enable(): this;
+  disable(): this;
+  highlightItem(item: Element, runEvent?: boolean): this;
+  unhighlightItem(item: Element): this;
+  highlightAll(): this;
+  unhighlightAll(): this;
+  removeActiveItemsByValue(value: string): this;
+  removeActiveItems(excludedId?: number): this;
+  removeHighlightedItems(runEvent?: boolean): this;
+  showDropdown(focusInput?: boolean): this;
+  hideDropdown(blurInput?: boolean): this;
+  getValue(
+    valueOnly?: boolean,
+  ): string | string[] | { value: string; label: string }[];
+  setValue(items: (string | { value: string; label?: string })[]): this;
+  setChoiceByValue(value: string | string[]): this;
+  setChoices(
+    choices: ChoicesOptions["choices"],
+    value?: string,
+    label?: string,
+    replaceChoices?: boolean,
+  ): this;
+  clearChoices(): this;
+  clearStore(): this;
+  clearInput(): this;
+  ajax(
+    fn: (
+      callback: (results: unknown[], value: string, label: string) => void,
+    ) => void,
+  ): this;
+  passedElement: { element: Element };
+  containerOuter: { element: Element };
+  containerInner: { element: Element };
+  choiceList: { element: Element };
+  itemList: { element: Element };
+  input: { element: HTMLInputElement };
+  dropdown: { element: Element };
+}
+
+/* ==========================================================================
    Window extensions
    ========================================================================== */
 
 interface Window {
-  bootstrap: typeof bootstrap;
-  $: JQueryStatic;
-  jQuery: JQueryStatic;
+  bootstrap?: typeof bootstrap;
+  $?: JQueryStatic;
+  jQuery?: JQueryStatic;
   feather?: FeatherIcons;
   ApexCharts?: typeof ApexCharts;
   PerfectScrollbar?: typeof PerfectScrollbar;
   flatpickr?: FlatpickrStatic;
   Swal?: SweetAlertStatic;
   toastr?: Toastr;
+  Slider?: typeof Slider;
+  tns?: typeof tns;
+  introJs?: typeof introJs;
+  VanillaTree?: typeof VanillaTree;
+  IMask?: typeof IMask;
+  Datepicker?: typeof Datepicker;
+  DateRangePicker?: typeof DateRangePicker;
+  notifier?: Notifier;
+  Choices?: typeof Choices;
+  show_toastr?: (type: string, message: string, status?: string) => void;
+  html2pdf?: unknown;
+  saveAsPDF?: (element?: Element, options?: Record<string, unknown>) => void;
+  svLang?: Record<string, string>;
+  __confirmHandlers?: Record<string, (() => void)[]>;
+  svToastOrAlert?: (message: string, type?: string) => void;
+  FullCalendar?: unknown;
+  __mockUser?: unknown;
+  currentYear?: number;
+  _afterPrintBound?: boolean;
+  Swiper?: unknown;
+  Pusher?: unknown;
+  get_data?: (url: string, callback: (data: unknown) => void) => void;
+  dataTabelLang?: Record<string, unknown>;
+  webpackChunkerp_nova_prestech?: unknown[];
+  showDatabaseSettings?: () => void;
+  showApplicationSettings?: () => void;
+  date_picker_locale?: string;
+  copyText?: (text: string) => void;
+  copySelectedText?: () => void;
+  copyGrammerText?: () => void;
+  copyToClipboard?: (text: string) => void;
+  csrfToken?: string;
+  Alpine?: unknown;
+  __appPusher?: unknown;
+  Brick?: unknown;
+  checkEnvironment?: () => void;
+  check_theme?: () => void;
+  cookieNoticeJS?: unknown;
+  JOBS_I18N?: Record<string, string>;
+  LetterAvatar?: unknown;
+  PAYSLIP_I18N?: Record<string, string>;
+  PAYSLIP_SHOW_I18N?: Record<string, string>;
+  RBACTestUtils?: unknown;
+  translations?: Record<string, Record<string, string>>;
 }

@@ -294,7 +294,7 @@
                                                             <tr>
                                                                 <td>
                                                                     <div class="{{ VC::DFL_AIC }}">
-                                                                        <div><img src="{{ $u->avatar ? asset('/storage/uploads/avatar/'.$u->avatar) : asset('/storage/uploads/avatar/avatar.png') }}" class="wid-30 rounded-circle me-3" alt="avatar image"></div>
+                                                                        <div><img src="{{ $u->avatar ? asset('/storage/uploads/avatar/'.$u->avatar) : asset('/storage/uploads/avatar/avatar.png') }}" class="wid-30 rounded-circle me-3" alt="{{ __('avatar image') }}"></div>
                                                                         <p class="{{ VC::MB0 }}">{{ $u->name ?? '' }}</p>
                                                                     </div>
                                                                 </td>
@@ -467,7 +467,7 @@
                                                     @foreach($emails as $email)
                                                         <li class="list-group-item px-0">
                                                             <div class="d-block d-sm-flex align-items-start">
-                                                                <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}" class="img-fluid wid-40 me-3 mb-2 mb-sm-0" alt="image">
+                                                                <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}" class="img-fluid wid-40 me-3 mb-2 mb-sm-0" alt="{{ __('image') }}">
                                                                 <div class="w-100">
                                                                     <div class="{{ VC::DFL_AIC_JCB }}">
                                                                         <div class="{{ VC::MB3 }}">
@@ -510,7 +510,7 @@
                                                     @foreach($discussions as $discussion)
                                                         <li class="list-group-item px-0">
                                                             <div class="d-block d-sm-flex align-items-start">
-                                                                <img src="{{ $discussion->user?->avatar ? asset('/storage/uploads/avatar/'.$discussion->user->avatar) : asset('/storage/uploads/avatar/avatar.png') }}" class="img-fluid wid-40 me-3 mb-2 mb-sm-0" alt="image">
+                                                                <img src="{{ $discussion->user?->avatar ? asset('/storage/uploads/avatar/'.$discussion->user->avatar) : asset('/storage/uploads/avatar/avatar.png') }}" class="img-fluid wid-40 me-3 mb-2 mb-sm-0" alt="{{ __('image') }}">
                                                                 <div class="w-100">
                                                                     <div class="{{ VC::DFL_AIC_JCB }}">
                                                                         <div class="{{ VC::MB3 }}">
@@ -721,7 +721,7 @@
                     toast.innerHTML = `
                         <div class="d-flex">
                         <div class="toast-body">${text}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                         </div>`;
                     document.body.appendChild(toast);
                     }

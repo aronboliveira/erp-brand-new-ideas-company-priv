@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reset
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -11,7 +10,7 @@
   if (!resetBtn || resetBtn.getAttribute("data-listener-active") === "true")
     return;
   resetBtn.setAttribute("data-listener-active", "true");
-  resetBtn.addEventListener("click", e => {
+  resetBtn.addEventListener("click", (e: Event) => {
     try {
       const url = resetBtn.getAttribute("data-url") ?? "#";
       if (url !== "#") return;

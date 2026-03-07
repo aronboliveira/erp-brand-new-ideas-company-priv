@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module storeSelect
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
 
-  const getLocalizedMessage = (el, msgKey) => {
+  const getLocalizedMessage = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -42,7 +41,6 @@
   };
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!window.jQuery) {
       if (
         window.location.hostname === "localhost" ||
@@ -53,7 +51,6 @@
     }
     const candidate = jQuery("select#candidate");
     const el = candidate.get(0);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!el) {
       if (
         window.location.hostname === "localhost" ||
@@ -63,15 +60,14 @@
       return;
     }
     const url = el.getAttribute("data-url");
-    const href = el.href
-      .replace(window.location.origin, "")
-      .replace(window.location.pathname, "");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    const href =
+      (el as HTMLAnchorElement).href
+        ?.replace(window.location.origin, "")
+        .replace(window.location.pathname, "") ?? "";
     if ((!url || url === "#") && (!href || href === "#")) {
       return;
     }
-    const candidateVal = candidate;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const candidateVal = String(candidate.val() ?? "");
     if (candidateVal == null) {
       return;
     }
@@ -102,13 +98,15 @@
                     </div>`;
           document.body.appendChild(toast);
         }
-        new bootstrap.Toast(document.querySelector<HTMLElement>("#error-toast")).show();
+        new bootstrap.Toast(
+          document.querySelector<HTMLElement>("#error-toast")!,
+        ).show();
       } else {
         alert(message);
       }
     };
     const el = document.querySelector<HTMLSelectElement>("select#candidate");
-    if (el?.getAttribute(dataListenerAdded) !== "true") {
+    if (el && el.getAttribute(dataListenerAdded) !== "true") {
       const observer = new MutationObserver((_, obs) => {
         if (!document.body.contains(el)) {
           el.removeEventListener("click", handleErrorDisplay);

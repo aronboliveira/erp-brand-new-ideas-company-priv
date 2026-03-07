@@ -3,23 +3,26 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 // assets/js/routes/zoomMeetings/index.js
 ((): void => {
+  type NestedLang = Record<string, Record<string, Record<string, string>>>;
   (function (): void {
     try {
-      window.svLang = window.svLang || {};
-      window.svLang.zoomMeetings = window.svLang.zoomMeetings || {};
-      window.svLang.zoomMeetings.index = window.svLang.zoomMeetings.index || {};
-      window.svLang.zoomMeetings.index.calendarGuardDefault =
+      const svLang = ((window.svLang as unknown) ?? {}) as NestedLang;
+      window.svLang = svLang as unknown as Record<string, string>;
+      svLang.zoomMeetings =
+        svLang.zoomMeetings || ({} as Record<string, Record<string, string>>);
+      svLang.zoomMeetings.index =
+        svLang.zoomMeetings.index || ({} as Record<string, string>);
+      svLang.zoomMeetings.index.calendarGuardDefault =
         "Calendar route is unavailable. Please contact technical support or your domain administrator.";
-      window.svLang.zoomMeetings.index.createGuardDefault =
+      svLang.zoomMeetings.index.createGuardDefault =
         "Create zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
     } catch {}
   })();
-  function attachGuard(anchor, fallbackMsg) {
+  function attachGuard(anchor: HTMLElement | null, fallbackMsg: string) {
     if (!anchor || anchor.getAttribute("data-listener-active") === "true")
       return;
     anchor.setAttribute("data-listener-active", "true");
@@ -31,7 +34,7 @@
     ) {
       anchor.setAttribute("href", url);
     }
-    anchor.addEventListener("click", e => {
+    anchor.addEventListener("click", (e: Event) => {
       try {
         const href = anchor.getAttribute("href") ?? "#";
         if (href && href !== "#") return;
@@ -46,10 +49,7 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        const hasBs =
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" && window.bootstrap.Toast;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        const hasBs = window.bootstrap?.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";
@@ -77,19 +77,18 @@
   try {
     const cal = document.getElementById("zoom-calendar-link");
     const crt = document.getElementById("zoom-create-link");
-    const dCal =
-      (window.svLang?.zoomMeetings?.index?.calendarGuardDefault) ||
-      "";
-    const dCrt =
-      (window.svLang?.zoomMeetings?.index?.createGuardDefault) ||
-      "";
+    const svLang = window.svLang as unknown as NestedLang | undefined;
+    const dCal = svLang?.zoomMeetings?.index?.calendarGuardDefault || "";
+    const dCrt = svLang?.zoomMeetings?.index?.createGuardDefault || "";
     attachGuard(
       cal,
-      dCal ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
+      dCal ??
+        "Requested route is unavailable. Please contact technical support or your domain administrator.",
     );
     attachGuard(
       crt,
-      dCrt ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
+      dCrt ??
+        "Requested route is unavailable. Please contact technical support or your domain administrator.",
     );
   } catch {}
 })();

@@ -168,7 +168,7 @@
                                         <div class="text-center text-muted">{{ __('No applications available') }}</div>
                                     @endif
                                 </div>
-                                <span class="empty-container" data-placeholder="Empty"></span>
+                                <span class="empty-container" data-placeholder="{{ __('Empty') }}"></span>
                             </div>
                         </div>
                     @endforeach
@@ -236,7 +236,7 @@
                                 <button type="button"
                                         class="btn-close btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
+                                        aria-label="{{ __('Close') }}"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }

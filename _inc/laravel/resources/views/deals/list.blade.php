@@ -364,7 +364,7 @@
                                                             $assigneeName = $assignee->name ?? '';
                                                         @endphp
                                                         <a href="#" class="btn btn-sm p-0 rounded-circle" tabindex="-1" aria-label="{{ $assigneeName }}">
-                                                            <img alt="avatar" data-bs-toggle="tooltip" title="{{ $assigneeName }}"
+                                                            <img alt="{{ __('avatar') }}" data-bs-toggle="tooltip" title="{{ $assigneeName }}"
                                                                  src="{{ $avatar }}" class="rounded-circle" width="25" height="25">
                                                         </a>
                                                     @endforeach

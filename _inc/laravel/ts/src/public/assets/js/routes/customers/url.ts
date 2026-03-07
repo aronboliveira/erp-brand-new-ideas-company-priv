@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module url
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -12,15 +11,15 @@
   const GUARD_MSG = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
       msg = el.getAttribute(GUARD_MSG) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(LANG_KEY) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -38,7 +37,7 @@
     return msg;
   }
 
-  function showToast(message, isError = false) {
+  function showToast(message: string, isError = false) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -51,7 +50,6 @@
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&
         window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (hasBs) {
         const toast = document.createElement("div");
         toast.className = "toast";
@@ -81,20 +79,19 @@
   };
   document.addEventListener("pointerup", onPointerUp);
   new MutationObserver((m, obs) => {
-    m.forEach(mut =>
-      { Array.from(mut.removedNodes).forEach(node => {
+    m.forEach(mut => {
+      Array.from(mut.removedNodes).forEach(node => {
         if (node === document.documentElement) {
           document.removeEventListener("pointerup", onPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
-  window.copyToClipboard = element => {
+  window.copyToClipboard = (text: string) => {
+    const element = document.getElementById(text) ?? document.body;
     try {
-      const text = element?.id ?? "";
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!navigator.clipboard) throw new Error("url_copy_failed");
       navigator.clipboard
         .writeText(text)
@@ -105,8 +102,8 @@
         .catch((): void => {
           throw new Error("url_copy_failed");
         });
-    } catch (e) {
-      errorMessage = getLocalizedMessage(e.message, element ?? document.body);
+    } catch (err) {
+      errorMessage = getLocalizedMessage((err as Error).message, element);
     }
   };
 })();

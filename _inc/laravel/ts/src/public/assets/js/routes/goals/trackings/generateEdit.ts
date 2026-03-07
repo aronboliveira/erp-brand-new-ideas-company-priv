@@ -3,16 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const guardToast = msg => {
+    const guardToast = (msg: string) => {
       const text =
         msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -43,7 +41,7 @@
     if (!aiBtn) return;
     if (aiBtn.getAttribute("data-listener-active") === "true") return;
     aiBtn.setAttribute("data-listener-active", "true");
-    aiBtn.addEventListener("click", e => {
+    aiBtn.addEventListener("click", (e: Event) => {
       try {
         const href = (aiBtn.getAttribute("href") ?? "#").trim();
         const url = (aiBtn.getAttribute("data-url") ?? "#").trim();

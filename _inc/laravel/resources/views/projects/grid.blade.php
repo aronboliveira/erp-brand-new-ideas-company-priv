@@ -188,12 +188,12 @@
                                                 <a href="#" class="avatar rounded-circle avatar-sm">
                                                     @if(isset($user->avatar) && !empty($user->avatar) && is_string($user->avatar))
                                                         <img src="{{ asset('/storage/uploads/avatar/'.$user->avatar) }}" 
-                                                            alt="image" 
+                                                            alt="{{ __('image') }}" 
                                                             data-bs-toggle="tooltip" 
                                                             title="{{ data_get($user, 'name', 'Unknown User') }}">
                                                     @else
                                                         <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}" 
-                                                            alt="image" 
+                                                            alt="{{ __('image') }}" 
                                                             data-bs-toggle="tooltip" 
                                                             title="{{ data_get($user, 'name', 'Unknown User') }}">
                                                     @endif

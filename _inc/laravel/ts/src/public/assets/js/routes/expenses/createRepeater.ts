@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module createRepeater
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -13,7 +12,7 @@
   const langSessionKey = "erp-np-lang";
   let errorMessage = "";
 
-  const getLocalizedMessage = (msgKey, el) => {
+  const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -22,9 +21,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem(langSessionKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,11 +40,10 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       const bsLink = document.querySelector('link[href*="bootstrap"]');
       let container = document.getElementById("toast-container");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bsLink && window.bootstrap) {
         if (!container) {
           container = document.createElement("div");
@@ -83,7 +81,7 @@
 
   document.addEventListener("pointerup", onPointerUp);
 
-  document.querySelectorAll("[data-repeater-delete]").forEach((el: Element): void => {
+  document.querySelectorAll("[data-repeater-delete]").forEach((el): void => {
     if (el.getAttribute("data-guard-listener-active") === "true") return;
     el.setAttribute("data-guard-listener-active", "true");
     el.addEventListener("click", (): void => {
@@ -91,20 +89,23 @@
         $(".price").change();
         $(".discount").change();
       } catch {
-        errorMessage = getLocalizedMessage("repeater_delete_failed", el);
+        errorMessage = getLocalizedMessage(
+          "repeater_delete_failed",
+          el as HTMLElement,
+        );
       }
     });
   });
 
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { m.removedNodes.forEach(n => {
+    muts.forEach(m => {
+      m.removedNodes.forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 })();
 

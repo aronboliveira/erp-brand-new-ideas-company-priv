@@ -21,6 +21,7 @@ module.exports = {
   testMatch: [
     "<rootDir>/tests/frontend/js/**/*.test.cjs",
     "<rootDir>/tests/frontend/js/**/*.test.js",
+    /* TypeScript tests in ts/src/tests/ are handled by ts/jest.config.cjs */
   ],
   setupFilesAfterSetup: undefined,
   setupFilesAfterEnv: (() => {

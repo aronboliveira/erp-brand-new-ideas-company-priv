@@ -3,15 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
-  const toast = m => {
+  const toast = (m: string) => {
     try {
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         !!window.bootstrap.Toast;
       if (hasBs) {
         let c = document.getElementById("toast-container");
@@ -40,15 +38,16 @@
   };
 
   const selector = '[data-ajax-popup-over="true"][data-url]';
-  const bind = a => {
+  const bind = (a: Element) => {
     if (a.getAttribute("data-gen-guarded") === "true") return;
     a.setAttribute("data-gen-guarded", "true");
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       const url = (a.getAttribute("data-url") ?? "#").trim();
       if (!url || url === "#") {
         e.preventDefault();
         toast(
-          a.getAttribute("data-guard-msg") ?? "AI generation route unavailable."
+          a.getAttribute("data-guard-msg") ??
+            "AI generation route unavailable.",
         );
       }
     });

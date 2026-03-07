@@ -3,20 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 (function (): void {
   const mark = "data-listener-active";
 
-  function toast(message) {
+  function toast(message: string) {
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
-    if (!hasBs) { alert(text); return; }
+    if (!hasBs) {
+      alert(text);
+      return;
+    }
     let box = document.getElementById("toast-container");
     if (!box) {
       box = document.createElement("div");
@@ -36,12 +37,12 @@
     bootstrap.Toast.getOrCreateInstance(t).show();
   }
 
-  function guardLink(a) {
+  function guardLink(a: Element | null) {
     if (!a || a.getAttribute(mark) === "true") return;
     a.setAttribute(mark, "true");
-    a.addEventListener("click", function (e) {
+    a.addEventListener("click", function (e: Event) {
       const href = (a.getAttribute("href") ?? "#").trim();
-      const url = (a.getAttribute("data-url") || href ?? "#").trim();
+      const url = ((a.getAttribute("data-url") || href) ?? "#").trim();
       if (url !== "#" && href !== "#") return;
       e.preventDefault();
       toast(a.getAttribute("data-guard-msg") ?? "");
@@ -53,13 +54,13 @@
       .querySelectorAll("a[data-guard-msg], a[data-url]")
       .forEach(guardLink);
     try {
-      document
-        .querySelectorAll('[data-bs-toggle="tooltip"]')
-        .forEach(function (el) {
-          try {
-            bootstrap.Tooltip.getOrCreateInstance(el);
-          } catch (_) {}
-        });
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (
+        el: HTMLElement,
+      ) {
+        try {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        } catch (_) {}
+      });
     } catch (_) {}
   }
 

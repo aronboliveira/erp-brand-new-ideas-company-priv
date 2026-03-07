@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
@@ -15,13 +14,12 @@
 
     const url = a.getAttribute("data-url") ?? "#";
     if (
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
     )
       a.setAttribute("href", url);
 
-    a.addEventListener("click", function (e) {
+    a.addEventListener("click", function (e: Event) {
       try {
         const href = a.getAttribute("href") ?? "#";
         if (href !== "#") return;

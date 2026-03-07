@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from conftest import load_exporter_class
@@ -17,8 +19,8 @@ SIMPLE_EXPORTERS = [
 ]
 
 
-@pytest.mark.parametrize("module_name", SIMPLE_EXPORTERS)
-def test_simple_exporters_return_expected_columns(module_name, exporter_payloads) -> None:
+@pytest.mark.parametrize("module_name", SIMPLE_EXPORTERS)  # type: ignore[untyped-decorator]
+def test_simple_exporters_return_expected_columns(module_name: str, exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class(module_name)
     exporter = exporter_cls()
     exporter.data = exporter_payloads[module_name]()
@@ -29,11 +31,11 @@ def test_simple_exporters_return_expected_columns(module_name, exporter_payloads
     assert len(frame) == len(exporter.data["rows"])
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore[untyped-decorator]
     "module_name",
     SIMPLE_EXPORTERS + ["balance_sheet_exporter", "sales_report_exporter", "trial_balance_exporter"],
 )
-def test_exporters_return_empty_frames_for_missing_rows(module_name, exporter_payloads) -> None:
+def test_exporters_return_empty_frames_for_missing_rows(module_name: str, exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class(module_name)
     exporter = exporter_cls()
     payload = exporter_payloads[module_name]()
@@ -45,7 +47,7 @@ def test_exporters_return_empty_frames_for_missing_rows(module_name, exporter_pa
     assert frame.empty
 
 
-def test_balance_sheet_exporter_flattens_hierarchy_and_tracks_totals(exporter_payloads) -> None:
+def test_balance_sheet_exporter_flattens_hierarchy_and_tracks_totals(exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class("balance_sheet_exporter")
     exporter = exporter_cls()
     exporter.data = exporter_payloads["balance_sheet_exporter"]()
@@ -62,7 +64,7 @@ def test_balance_sheet_exporter_flattens_hierarchy_and_tracks_totals(exporter_pa
     assert exporter._asset_breakdown == [("Current Assets", 2000.5), ("Fixed Assets", 3000.0)]
 
 
-def test_trial_balance_exporter_builds_grouped_rows_and_marks_balanced(exporter_payloads) -> None:
+def test_trial_balance_exporter_builds_grouped_rows_and_marks_balanced(exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class("trial_balance_exporter")
     exporter = exporter_cls()
     exporter.data = exporter_payloads["trial_balance_exporter"]()
@@ -78,7 +80,7 @@ def test_trial_balance_exporter_builds_grouped_rows_and_marks_balanced(exporter_
     assert exporter._type_totals["Assets"] == (1500.0, 0.0)
 
 
-def test_sales_report_item_mode_tracks_top_performers_and_metrics(exporter_payloads) -> None:
+def test_sales_report_item_mode_tracks_top_performers_and_metrics(exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class("sales_report_exporter")
     exporter = exporter_cls()
     exporter.data = exporter_payloads["sales_report_exporter"]()
@@ -100,7 +102,7 @@ def test_sales_report_item_mode_tracks_top_performers_and_metrics(exporter_paylo
     assert exporter._top_performers[0] == ("Integration", 1500.0)
 
 
-def test_sales_report_customer_mode_calculates_tax_inclusive_sales(exporter_payloads) -> None:
+def test_sales_report_customer_mode_calculates_tax_inclusive_sales(exporter_payloads: Any) -> None:
     exporter_cls = load_exporter_class("sales_report_exporter")
     exporter = exporter_cls()
     exporter.data = {
@@ -128,4 +130,3 @@ def test_sales_report_customer_mode_calculates_tax_inclusive_sales(exporter_payl
     ]
     assert frame.iloc[0]["Sales With Tax"] == 110.0
     assert exporter._avg_sale == pytest.approx(150.0)
-

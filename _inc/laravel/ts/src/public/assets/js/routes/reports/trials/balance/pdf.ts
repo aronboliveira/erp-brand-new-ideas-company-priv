@@ -3,20 +3,53 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
-  const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const $ = window.jQuery as JQueryStatic;
+  function qs<T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null {
+    return r.querySelector<T>(s);
+  }
+  const qsa = (s: string, r: Document | Element = document) =>
+    Array.from(r.querySelectorAll(s));
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataListenerGuard = "data-listener-guard";
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const getMsg = (el: HTMLElement | null, key: string): string => {
+    let msg = errFb;
+    if (
+      el?.getAttribute(dataSvLocalized) === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    ) {
+      msg = el.getAttribute(dataGuardMsg) || errFb;
+    } else {
+      let lang = (
+        window.sessionStorage.getItem("erp-np-lang") ??
+        document.documentElement.lang ??
+        "en"
+      )
+        .toLowerCase()
+        .replace(/_/g, "-");
+      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      const msgKey = key;
+      msg =
+        window.translations?.[lang]?.[msgKey] ||
+        el?.getAttribute(dataGuardMsg) ||
+        window.translations?.en?.[msgKey] ||
+        errFb;
+      if (el && msg !== errFb) {
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
+      }
+    }
+    return msg;
+  };
   if (!$) {
     try {
       if (
@@ -28,29 +61,27 @@
     scheduleInteractiveError(getMsg(document.body, "print_unavailable"));
     return;
   }
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
+    let c = qs<HTMLElement>("#" + id);
     if (c) {
       return c;
     }
-    c = document.createElement("div");
-    c.id = id;
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
+    const div = document.createElement("div");
+    div.id = id;
+    div.setAttribute("aria-live", "polite");
+    div.setAttribute("aria-atomic", "true");
+    div.style.position = "fixed";
+    div.style.top = "1rem";
+    div.style.right = "1rem";
+    document.body.appendChild(div);
+    return div;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const tid = "np-toast";
@@ -79,9 +110,8 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message) {
+  function scheduleInteractiveError(message: string) {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -102,36 +132,12 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   }
-  const getMsg = (el, key) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
-      if (el && msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
-  const bindWithObserver = (el, evt, handler, flag) => {
+  const bindWithObserver = (
+    el: HTMLElement,
+    evt: string,
+    handler: (e: Event) => void,
+    flag: string,
+  ): void => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
@@ -146,31 +152,33 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
   const printAreaSafely = (): void => {
-    const src = qs("#printableArea");
+    const src = qs<HTMLElement>("#printableArea");
     if (!src) {
       scheduleInteractiveError(getMsg(document.body, "print_unavailable"));
       return;
     }
-    let iframe = qs("#np-print-iframe");
+    let iframe = qs<HTMLIFrameElement>("#np-print-iframe");
     if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.id = "np-print-iframe";
-      iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
-      document.body.appendChild(iframe);
+      const newIframe = document.createElement("iframe");
+      newIframe.id = "np-print-iframe";
+      newIframe.style.position = "fixed";
+      newIframe.style.right = "0";
+      newIframe.style.bottom = "0";
+      newIframe.style.width = "0";
+      newIframe.style.height = "0";
+      newIframe.style.border = "0";
+      document.body.appendChild(newIframe);
+      iframe = newIframe;
     }
     const doc = iframe.contentWindow?.document;
     if (!doc) {
       scheduleInteractiveError(getMsg(src, "print_unavailable"));
       return;
     }
-    const cssNodes = qsa('link[rel="stylesheet"], style', document.head).map(
-      n => n.cloneNode(true)
-    );
+    const cssNodes = qsa(
+      'link[rel="stylesheet"], style',
+      document.head ?? document,
+    ).map(n => n.cloneNode(true));
     doc.open();
     doc.write("<!doctype html><html><head></head><body></body></html>");
     doc.close();
@@ -180,8 +188,8 @@
     doc.body.appendChild(wrapper);
     const done = (): void => {
       try {
-        iframe.contentWindow?.focus?.();
-        iframe.contentWindow?.print?.();
+        iframe?.contentWindow?.focus?.();
+        iframe?.contentWindow?.print?.();
       } catch (_) {
         scheduleInteractiveError(getMsg(src, "print_unavailable"));
       }
@@ -203,11 +211,12 @@
   };
   const init = (): void => {
     const filterBtn = document.getElementById("filter");
+    if (!filterBtn) return;
     bindWithObserver(
       filterBtn,
       "click",
       onFilterClick,
-      dataListenerGuard + "-filter"
+      dataListenerGuard + "-filter",
     );
   };
   if (document.readyState === "loading") {

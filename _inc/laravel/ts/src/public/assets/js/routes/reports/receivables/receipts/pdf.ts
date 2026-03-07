@@ -3,12 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -16,13 +18,13 @@
   const dataErrGuard = "data-err-guard";
   const dataFilterGuard = "data-filter-guard";
   const dataPrintGuard = "data-print-guard";
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) {
-      return c;
+    const existing = qs<HTMLElement>("#" + id);
+    if (existing) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -32,16 +34,14 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLElement>("#np-toast", container);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -53,7 +53,7 @@
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
-      const body = qs(".toast-body", t);
+      const body = qs<HTMLElement>(".toast-body", t);
       if (body) {
         body.textContent = message ?? errFb;
       }
@@ -66,9 +66,11 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message, evt) => {
+  const scheduleInteractiveError = (
+    message: string,
+    evt: keyof HTMLElementEventMap = "click",
+  ) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -80,16 +82,16 @@
         host.removeAttribute(dataErrGuard);
       }
     };
-    document.addEventListener(evt ?? "click", once, { once: true });
+    document.addEventListener(evt, once, { once: true });
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(host)) {
-        document.removeEventListener(evt ?? "click", once);
+        document.removeEventListener(evt, once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     const err = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -98,9 +100,9 @@
       return el.getAttribute(dataGuardMsg) || err;
     }
     let lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       window.sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      document.documentElement.lang ??
+      "en"
     )
       .toLowerCase()
       .replace(/_/g, "-");
@@ -124,8 +126,7 @@
       return;
     }
     const name =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-      ((window.jQuery && $("#filename").val())).toString().trim() ?? "export";
+      String((window.jQuery && $("#filename").val()) || "").trim() || "export";
     const opt = {
       margin: 0.3,
       filename: name,
@@ -152,8 +153,7 @@
   };
   window.saveAsPDF = saveAsPDF;
   const bindFilterToggle = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!$.fn) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -170,7 +170,7 @@
       return;
     }
     btn.setAttribute(dataFilterGuard, "true");
-    const handler = function (): void {
+    const handler = function (this: HTMLElement): void {
       try {
         if (panel) {
           $("#show_filter").toggle();
@@ -181,10 +181,10 @@
         scheduleInteractiveError(getMsg(document.body, "toggle_unavailable"));
       }
     };
-    $(btn).on("click", handler);
+    $?.(btn).on("click", handler);
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(btn)) {
-        $(btn).off("click", handler);
+        $?.(btn).off("click", handler);
         o.disconnect();
       }
     });

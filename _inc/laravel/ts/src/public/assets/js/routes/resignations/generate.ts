@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generate
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -13,10 +12,9 @@
       return;
     }
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       try {
         const href = el.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = el.getAttribute("data-url") ?? "#";
         if (href !== "#" || url !== "#") {
           return;

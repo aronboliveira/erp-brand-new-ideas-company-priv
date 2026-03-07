@@ -3,15 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module purchase
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-template-expressions */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
-  const getMsg = (el, msgKey) => {
+  const getMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -20,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -40,7 +40,7 @@
     }
     return msg;
   };
-  const showFeedback = (el, key, ev = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -54,11 +54,26 @@
         toast.setAttribute("role", "alert");
         toast.setAttribute("aria-live", "assertive");
         toast.setAttribute("aria-atomic", "true");
-        { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = text; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+        {
+          toast.replaceChildren();
+          const _d = document.createElement("div");
+          _d.className = "d-flex";
+          const _b = document.createElement("div");
+          _b.className = "toast-body";
+          _b.textContent = text;
+          const _c = document.createElement("button");
+          _c.type = "button";
+          _c.className = "btn-close btn-close-white me-2 m-auto";
+          _c.dataset.bsDismiss = "toast";
+          _c.setAttribute("aria-label", "Close");
+          _d.append(_b, _c);
+          toast.append(_d);
+        }
         document.body.appendChild(toast);
       }
-      const handler = (): void => { new bootstrap.Toast(toast).show(); };
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      const handler = (): void => {
+        new bootstrap.Toast(toast).show();
+      };
       if (!toast.getAttribute(DATA_LISTENER_ADDED)) {
         toast.setAttribute(DATA_LISTENER_ADDED, "true");
         const mo = new MutationObserver((_, o) => {
@@ -71,13 +86,17 @@
       }
       document.addEventListener(ev, handler, { once: true });
     } else {
-      const handler = (): void => { alert(text); };
+      const handler = (): void => {
+        alert(text);
+      };
       document.addEventListener(ev, handler, { once: true });
     }
   };
-  const guardOnce = (el, key, ev = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-    const handler = (): void => { showFeedback(el, key, ev); };
+    const handler = (): void => {
+      showFeedback(el, key, ev);
+    };
     el.addEventListener(ev, handler, { once: true });
     el.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
@@ -88,9 +107,14 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
   };
-  const routeGuard = (element, alt) => {
+  const routeGuard = (
+    element: HTMLElement | undefined,
+    alt: string | undefined,
+  ) => {
     const url = element?.getAttribute?.("data-url");
-    const href = element?.action ?? element?.href;
+    const href =
+      (element as HTMLFormElement | undefined)?.action ??
+      (element as HTMLAnchorElement | undefined)?.href;
     return (
       (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
     );
@@ -105,7 +129,6 @@
       return;
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.ScrollSpy) {
         new bootstrap.ScrollSpy(document.body, {
           target: "#useradd-sidenav",
@@ -120,19 +143,21 @@
     $(document).on(
       "change",
       "select[name='purchase_template'], input[name='purchase_color']",
-      function (): void {
+      function (this: HTMLElement): void {
         try {
-          const template = $("select[name='purchase_template']").val() ?? "";
-          const color = $("input[name='purchase_color']:checked").val() ?? "";
+          const template = String(
+            $("select[name='purchase_template']").val() ?? "",
+          );
+          const color = String(
+            $("input[name='purchase_color']:checked").val() ?? "",
+          );
           const $frame = $("#purchase_frame");
           const preview = `{{url('/purchase/preview')}}/${template}/${color}`;
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!$frame.length || routeGuard($frame.get(0), preview)) {
             guardOnce(
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
               $frame.get(0) || document.body,
               "purchase_preview_unavailable",
-              "click"
+              "click",
             );
             return;
           }
@@ -140,16 +165,19 @@
         } catch {
           guardOnce(document.body, "purchase_preview_unavailable", "click");
         }
-      }
+      },
     );
     ((): void => {
-      const input = document.getElementById("purchase_logo");
-      const img = document.getElementById("purchase_image");
+      const input = document.getElementById(
+        "purchase_logo",
+      ) as HTMLInputElement | null;
+      const img = document.getElementById(
+        "purchase_image",
+      ) as HTMLImageElement | null;
       if (!input || !img) {
         guardOnce(document.body, "purchase_logo_unavailable", "click");
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!input.getAttribute(DATA_LISTENER_ADDED)) {
         input.addEventListener(
           "change",
@@ -165,7 +193,7 @@
               guardOnce(input, "purchase_logo_unavailable", "click");
             }
           },
-          { once: false }
+          { once: false },
         );
         input.setAttribute(DATA_LISTENER_ADDED, "true");
         const mo = new MutationObserver((_, o) => {
@@ -180,19 +208,19 @@
     $(document).on(
       "change",
       "select[name='pos_template'], input[name='pos_color']",
-      function (): void {
+      function (this: HTMLElement): void {
         try {
-          const template = $("select[name='pos_template']").val() ?? "";
-          const color = $("input[name='pos_color']:checked").val() ?? "";
+          const template = String($("select[name='pos_template']").val() ?? "");
+          const color = String(
+            $("input[name='pos_color']:checked").val() ?? "",
+          );
           const $frame = $("#pos_frame");
           const preview = `{{url('/pos/preview')}}/${template}/${color}`;
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!$frame.length || routeGuard($frame.get(0), preview)) {
             guardOnce(
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
               $frame.get(0) || document.body,
               "pos_preview_unavailable",
-              "click"
+              "click",
             );
             return;
           }
@@ -200,16 +228,19 @@
         } catch {
           guardOnce(document.body, "pos_preview_unavailable", "click");
         }
-      }
+      },
     );
     ((): void => {
-      const input = document.getElementById("pos_logo");
-      const img = document.getElementById("pos_image");
+      const input = document.getElementById(
+        "pos_logo",
+      ) as HTMLInputElement | null;
+      const img = document.getElementById(
+        "pos_image",
+      ) as HTMLImageElement | null;
       if (!input || !img) {
         guardOnce(document.body, "pos_logo_unavailable", "click");
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!input.getAttribute(DATA_LISTENER_ADDED)) {
         input.addEventListener(
           "change",
@@ -225,7 +256,7 @@
               guardOnce(input, "pos_logo_unavailable", "click");
             }
           },
-          { once: false }
+          { once: false },
         );
         input.setAttribute(DATA_LISTENER_ADDED, "true");
         const mo = new MutationObserver((_, o) => {

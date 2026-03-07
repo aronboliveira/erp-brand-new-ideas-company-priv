@@ -3,18 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   const DEFAULT_MSG =
     "The requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       const hasBootstrapToast = !!window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (hasBootstrapToast) {
         let container = document.getElementById("toast-container");
         if (!container) {
@@ -42,7 +39,9 @@
           toastEl.replaceChildren(_b);
         }
         container.appendChild(toastEl);
-        setTimeout((): void => { toastEl.remove(); }, 4000);
+        setTimeout((): void => {
+          toastEl.remove();
+        }, 4000);
       } else {
         alert(message);
       }
@@ -51,11 +50,11 @@
     }
   };
 
-  const attachGuard = form => {
+  const attachGuard = (form: HTMLFormElement | null) => {
     if (!form) return;
     const guardMsg = form.getAttribute("data-guard-msg") || DEFAULT_MSG;
 
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e: Event) => {
       const action = (form.getAttribute("action") ?? "").trim();
       if (!action || action === "#") {
         e.preventDefault();
@@ -66,13 +65,15 @@
 
   document.addEventListener("DOMContentLoaded", (): void => {
     // Primary target by id
-    const mainForm = document.getElementById("label-edit-form");
+    const mainForm = document.getElementById(
+      "label-edit-form",
+    ) as HTMLFormElement | null;
     attachGuard(mainForm);
 
     // Fallback: any form with a guard message
     document
       .querySelectorAll("form[data-guard-msg]")
-      .forEach(f => f !== mainForm && attachGuard(f));
+      .forEach(f => f !== mainForm && attachGuard(f as HTMLFormElement));
   });
 })();
 

@@ -6,6 +6,9 @@ parameters:
         - app/
     level: 3
     tmpDir: storage/phpstan
+    parallel:
+        maximumNumberOfProcesses: 1
+        processTimeout: 7200.0
     ignoreErrors:
         -
             identifier: missingType.iterableValue

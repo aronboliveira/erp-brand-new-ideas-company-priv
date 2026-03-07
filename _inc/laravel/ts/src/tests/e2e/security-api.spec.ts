@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module security-api.spec
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires */
 
 /* global $, jQuery */
 // @ts-check
@@ -63,7 +62,7 @@ test.describe("Security API severity checks", (): void => {
     expect(violations, JSON.stringify(violations)).toEqual([]);
   });
 
-  test("mutating webhook/payment endpoints should reject missing auth and CSRF", async ({ request }) => {
+  test("mutating webhook/payment endpoints should reject: (reason?: unknown) => void missing auth and CSRF", async ({ request }) => {
     const postTargets = [
       "/payment-i-p-n",
       "/apis/stop-tracker",

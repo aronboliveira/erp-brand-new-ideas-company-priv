@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module attachmentEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getLocalizedMsg = (el, msgKey) => {
+  const getLocalizedMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,7 +40,7 @@
     return msg;
   };
 
-  const showFeedback = (el, key, ev = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
     const text = getLocalizedMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -62,7 +61,9 @@
             </div>`;
         document.body.appendChild(toast);
       }
-      const handler = (): void => { new bootstrap.Toast(toast).show(); };
+      const handler = (): void => {
+        new bootstrap.Toast(toast).show();
+      };
       document.addEventListener(ev, handler, { once: true });
       const mo = new MutationObserver((_, o) => {
         if (!document.body.contains(toast)) {
@@ -72,15 +73,23 @@
       });
       mo.observe(document.body, { childList: true, subtree: true });
     } else {
-      const handler = (): void => { alert(text); };
+      const handler = (): void => {
+        alert(text);
+      };
       document.addEventListener(ev, handler, { once: true });
     }
   };
 
-  const guardOnce = (targetEl, key, ev = "click") => {
+  const guardOnce = (
+    targetEl: HTMLElement,
+    key: string,
+    ev: string = "click",
+  ) => {
     if (!targetEl || targetEl.getAttribute(DATA_LISTENER_ADDED) === "true")
       return;
-    const handler = (): void => { showFeedback(targetEl, key, ev); };
+    const handler = (): void => {
+      showFeedback(targetEl, key, ev);
+    };
     document.addEventListener(ev, handler, { once: true });
     targetEl.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
@@ -105,11 +114,9 @@
     const $input = $("#attachment");
     const $img = $("#image");
 
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if ($input.length) {
       const onChange = function (): void {
         const file = this?.files?.[0];
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!file || !$img.length) {
           guardOnce(this, "attachment_preview_unavailable");
           return;

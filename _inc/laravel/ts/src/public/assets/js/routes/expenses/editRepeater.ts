@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editRepeater
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const langSessionKey = "erp-np-lang";
   const errFb = "# ERROR";
 
-  function getMsg(key, el) {
+  function getMsg(key: string, el: HTMLElement) {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem(langSessionKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,13 +40,12 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       const hasBs =
-        Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-          l => /bootstrap/i.test(l.href)
-        ) && window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        Array.from(
+          document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+        ).some(l => /bootstrap/i.test(l.href)) && window.bootstrap.Toast;
       if (hasBs) {
         let container = document.getElementById("bootstrap-toast-container");
         if (!container) {
@@ -59,7 +57,7 @@
         }
         const toast =
           container.querySelector(".toast") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.className = "toast";
             t.setAttribute("role", "alert");
@@ -71,8 +69,9 @@
             container.appendChild(t);
             return t;
           })();
-        toast.querySelector(".toast-body").textContent = message;
-        bootstrap.Toast.getOrCreateInstance(toast).show();
+        const toastBody = toast.querySelector(".toast-body");
+        if (toastBody) toastBody.textContent = message;
+        bootstrap.Toast.getOrCreateInstance(toast as HTMLElement).show();
       } else {
         alert(message);
       }
@@ -82,25 +81,28 @@
   }
 
   const listenerAttr = "data-rep-del-listener";
-  document.querySelectorAll("[data-repeater-delete]").forEach((el: Element): void => {
-    if (el.getAttribute(listenerAttr) === "true") return;
-    el.setAttribute(listenerAttr, "true");
-    el.addEventListener("click", (): void => {
-      try {
-        $(".price").change();
-        $(".discount").change();
-      } catch {
-        showError(getMsg("repeater_delete_failed", el));
-      }
+  document
+    .querySelectorAll("[data-repeater-delete]")
+    .forEach((el: Element): void => {
+      if (el.getAttribute(listenerAttr) === "true") return;
+      el.setAttribute(listenerAttr, "true");
+      const clickHandler = (): void => {
+        try {
+          $(".price").change();
+          $(".discount").change();
+        } catch {
+          showError(getMsg("repeater_delete_failed", el as HTMLElement));
+        }
+      };
+      el.addEventListener("click", clickHandler);
+      const obs = new MutationObserver((mutations, o) => {
+        if (!document.body.contains(el)) {
+          el.removeEventListener("click", clickHandler);
+          o.disconnect();
+        }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
     });
-    const obs = new MutationObserver((mutations, o) => {
-      if (!document.body.contains(el)) {
-        el.removeEventListener("click", null);
-        o.disconnect();
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-  });
 })();
 
 export {};

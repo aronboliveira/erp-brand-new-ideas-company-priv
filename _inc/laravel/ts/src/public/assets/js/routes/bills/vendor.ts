@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module vendor
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,7 +14,7 @@
     s.setAttribute(flag, "true");
     s.addEventListener(
       "change",
-      function (e) {
+      function (e: Event) {
         try {
           const url = s.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
@@ -23,7 +22,6 @@
             s.getAttribute("data-guard-msg") ?? "Bill vendor route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
             window.bootstrap &&
             typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");

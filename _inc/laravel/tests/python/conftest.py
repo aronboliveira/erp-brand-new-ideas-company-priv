@@ -254,17 +254,17 @@ def attendance_payload() -> dict[str, Any]:
     }
 
 
-def load_module(module_name: str):
+def load_module(module_name: str) -> Any:
     return importlib.import_module(module_name)
 
 
-def load_exporter_class(module_name: str):
+def load_exporter_class(module_name: str) -> Any:
     module = load_module(module_name)
     class_name = "".join(part.title() for part in module_name.split("_"))
     return getattr(module, class_name)
 
 
-def load_importer_class(module_name: str):
+def load_importer_class(module_name: str) -> Any:
     module = load_module(module_name)
     class_name = "".join(part.title() for part in module_name.split("_"))
     return getattr(module, class_name)
@@ -276,12 +276,11 @@ def patch_stdin(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> Non
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def exporter_payloads() -> dict[str, Callable[[], dict[str, Any]]]:
     return export_payload_factories()
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def attendance_import_payload() -> dict[str, Any]:
     return attendance_payload()
-

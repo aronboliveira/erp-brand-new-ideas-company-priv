@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -20,18 +19,17 @@
         form.setAttribute(submitFlag, "true");
         form.addEventListener(
           "submit",
-          function (e) {
+          function (e: Event) {
             try {
               const action = form.getAttribute("action") ?? "#";
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               const url = form.getAttribute("data-url") ?? "#";
               if (action !== "#" && url !== "#") return;
               e.preventDefault();
               const msg =
-                form.getAttribute("data-guard-msg") ?? "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
+                form.getAttribute("data-guard-msg") ??
+                "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
               const linkEl = document.querySelector('link[href*="bootstrap"]');
               const hasBootstrapToast =
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
                 window.bootstrap &&
                 typeof window.bootstrap.Toast === "function";
               let container = document.getElementById("toast-container");
@@ -68,7 +66,7 @@
               form.setAttribute("data-failed-route", "true");
             } catch (_) {}
           },
-          { passive: false }
+          { passive: false },
         );
       }
     }
@@ -84,26 +82,23 @@
         apply.setAttribute(clickFlag, "true");
         apply.addEventListener(
           "click",
-          function (e) {
+          function (e: Event) {
             try {
               e.preventDefault();
               const targetId = apply.getAttribute("data-target-form") ?? "";
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               const f = targetId ? document.getElementById(targetId) : null;
               if (!f) return;
               const action = f.getAttribute("action") ?? "#";
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               const url = f.getAttribute("data-url") ?? "#";
               if (action === "#" || url === "#") {
                 const msg =
-                  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
                   apply.getAttribute("data-guard-msg") ??
-                  f.getAttribute("data-guard-msg") ?? "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
+                  f.getAttribute("data-guard-msg") ??
+                  "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
                 const linkEl = document.querySelector(
-                  'link[href*="bootstrap"]'
+                  'link[href*="bootstrap"]',
                 );
                 const hasBootstrapToast =
-                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
                   window.bootstrap &&
                   typeof window.bootstrap.Toast === "function";
                 let container = document.getElementById("toast-container");
@@ -142,15 +137,14 @@
                 f.setAttribute("data-failed-route", "true");
                 return;
               }
-              f.submit();
+              (f as HTMLFormElement).submit();
             } catch (_) {}
           },
-          { passive: false }
+          { passive: false },
         );
       }
     }
     const host = document.documentElement;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (host) {
       const resetFlag = "data-trial-balance-reset-listener";
       if (
@@ -162,26 +156,24 @@
         host.setAttribute(resetFlag, "true");
         document.addEventListener(
           "click",
-          function (e) {
+          function (e: Event) {
             try {
               const a =
                 e.target &&
-                (e.target.closest
-                  ? e.target.closest("a.trial-balance-reset")
+                ((e.target as Element).closest
+                  ? (e.target as Element).closest("a.trial-balance-reset")
                   : null);
               if (!a) return;
               const href = a.getAttribute("href") ?? "#";
-              const url = a.getAttribute("data-url") || href ?? "#";
+              const url = (a.getAttribute("data-url") || href) ?? "#";
               if (href !== "#" || url !== "#") return;
               e.preventDefault();
               const msg =
                 a.getAttribute("data-guard-msg") ||
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
                 (form ? form.getAttribute("data-guard-msg") : "") ||
                 "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
               const linkEl = document.querySelector('link[href*="bootstrap"]');
               const hasBootstrapToast =
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
                 window.bootstrap &&
                 typeof window.bootstrap.Toast === "function";
               let container = document.getElementById("toast-container");
@@ -218,7 +210,7 @@
               a.setAttribute("data-failed-route", "true");
             } catch (_) {}
           },
-          { passive: false }
+          { passive: false },
         );
       }
     }

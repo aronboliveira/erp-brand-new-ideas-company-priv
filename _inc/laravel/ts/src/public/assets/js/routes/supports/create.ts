@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 /* assets/js/routes/supports/create.js */
@@ -15,7 +14,7 @@
       try {
         if (l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             const href = l.getAttribute("href") ?? "#";
             const url = l.getAttribute("data-url") ?? "#";
@@ -26,7 +25,6 @@
               "Create support route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

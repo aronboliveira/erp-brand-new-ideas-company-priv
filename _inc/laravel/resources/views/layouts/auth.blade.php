@@ -251,7 +251,7 @@
                                     <img
                                         class="{{ VC::LOGO }}"
                                         src="{{ asset($srcDark) }}"
-                                        alt="Company Logo"
+                                        alt="{{ __('Company Logo') }}"
                                         loading="lazy"
                                         @if($bgDark)
                                             style="{{ $bgDark }}"
@@ -261,7 +261,7 @@
                                     <img
                                         class="{{ VC::LOGO }}"
                                         src="{{ asset($srcLight) }}"
-                                        alt="Company Logo"
+                                        alt="{{ __('Company Logo') }}"
                                         loading="lazy"
                                         @if($bgLight)
                                             style="{{ $bgLight }}"
@@ -318,12 +318,12 @@
         style="display: none;"
         >
             <div class="toast-header">
-                <strong class="me-auto text-danger">Oops!</strong>
+                <strong class="me-auto text-danger">{{ __('Oops!') }}</strong>
                 <button
                 type="button"
                 class="btn-close"
                 data-bs-dismiss="toast"
-                aria-label="Close"
+                aria-label="{{ __('Close') }}"
                 ></button>
             </div>
             <div class="toast-body">
@@ -351,7 +351,7 @@
                             data-bs-target="#navbarTogglerDemo01"
                             aria-controls="navbarTogglerDemo01"
                             aria-expanded="false"
-                            aria-label="Toggle navigation"
+                            aria-label="{{ __('Toggle navigation') }}"
                         >
                             <span class="{{ VC::NVB_TG_IC }}"></span>
                         </button>

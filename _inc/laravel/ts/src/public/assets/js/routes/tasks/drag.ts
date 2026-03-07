@@ -3,11 +3,33 @@
  * @generated from original JavaScript - manual review recommended
  * @module drag
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-for-of */
 
 /* global bootstrap, $, jQuery */
+interface DragulaInstance {
+  on(event: string, callback: (...args: unknown[]) => void): DragulaInstance;
+  destroy(): void;
+}
+
+type DragulaStatic = (
+  containers: Element[],
+  options?: Record<string, unknown>,
+) => DragulaInstance;
+
+type TranslationsDict = Record<string, Record<string, string>>;
+
+declare global {
+  interface Window {
+    translations?: TranslationsDict;
+    dragula?: DragulaStatic;
+  }
+}
+
 (function (): void {
   const $ = window.jQuery;
+  if (!$) {
+    console.error("jQuery not available");
+    return;
+  }
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,7 +37,7 @@
   const dataErrGuard = "data-error-guard";
   const dataBound = "data-bound-";
   const now = "{{__('Now')}}";
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     let c = document.getElementById("np-toast-container");
     if (c) {
       return c;
@@ -30,12 +52,10 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ??
         document.querySelector('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
       window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
@@ -64,9 +84,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -87,27 +106,27 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
+      msg = el.getAttribute(dataGuardMsg) ?? errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
       msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
+        window.translations?.[lang]?.[msgKey] ??
+        el.getAttribute(dataGuardMsg) ??
+        window.translations?.en?.[msgKey] ??
         errFb;
       if (el && msg !== errFb) {
         el.setAttribute(dataGuardMsg, msg);
@@ -116,12 +135,12 @@
     }
     return msg;
   };
-  const resolveUrl = (el, explicit) => {
-    const url = el?.getAttribute?.("data-url") || "";
+  const resolveUrl = (el: HTMLElement, explicit: string | null) => {
+    const url = el.getAttribute("data-url") ?? "";
     const href = el
       ? el.tagName === "FORM"
-        ? el.getAttribute("action") ?? ""
-        : el.getAttribute("href") ?? ""
+        ? (el.getAttribute("action") ?? "")
+        : (el.getAttribute("href") ?? "")
       : "";
     if (
       (!explicit || explicit === "#") &&
@@ -134,14 +153,20 @@
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
-      ? url
-      : href;
+        ? url
+        : href;
   };
-  const ajaxPost = (endpoint, data, onSuccess, elForMsg, msgKey) => {
+  const ajaxPost = (
+    endpoint: string | null,
+    data: unknown,
+    onSuccess: ((d: unknown) => void) | null,
+    elForMsg: HTMLElement | null,
+    msgKey: string | null,
+  ) => {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
-        getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable")
+        getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
       );
       return;
     }
@@ -150,23 +175,28 @@
       type: "POST",
       data: data || {},
       cache: false,
-      success: function (d) {
+      success: function (d: unknown) {
         if (typeof onSuccess === "function") {
           onSuccess(d);
         }
       },
       error: function (): void {
         scheduleInteractiveError(
-          getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable")
+          getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
         );
       },
     });
   };
-  const ajaxDelete = (endpoint, onSuccess, elForMsg, msgKey) => {
+  const ajaxDelete = (
+    endpoint: string | null,
+    onSuccess: ((d: unknown) => void) | null,
+    elForMsg: HTMLElement | null,
+    msgKey: string | null,
+  ) => {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
-        getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable")
+        getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
       );
       return;
     }
@@ -175,14 +205,14 @@
       type: "DELETE",
       dataType: "JSON",
       cache: false,
-      success: function (d) {
+      success: function (d: unknown) {
         if (typeof onSuccess === "function") {
           onSuccess(d);
         }
       },
       error: function (): void {
         scheduleInteractiveError(
-          getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable")
+          getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
         );
       },
     });
@@ -201,8 +231,8 @@
     }
     $('[data-plugin="dragula"]').each(function (): void {
       const $host = $(this);
-      const containers = $host.data("containers");
-      const nodes = [];
+      const containers = $host.data("containers") as string[] | undefined;
+      const nodes: Element[] = [];
       if (containers?.length) {
         for (let i = 0; i < containers.length; i++) {
           const n = document.getElementById(containers[i]);
@@ -211,73 +241,76 @@
           }
         }
       } else {
-        nodes.push(this);
+        nodes.push(this as Element);
       }
-      const handleClass = $host.data("handleclass");
+      const handleClass = $host.data("handleclass") as string | undefined;
       const drake = handleClass
-        ? window.dragula(nodes, {
-            moves: function (el, c, handle) {
-              return (
-                handle?.classList?.contains(handleClass)
-              );
+        ? window.dragula!(nodes, {
+            moves: function (el: HTMLElement, _c: Element, handle: Element) {
+              return handle.classList.contains(handleClass);
             },
           })
-        : window.dragula(nodes);
-      drake.on("drop", function (el, target, source) {
-        try {
-          if (!target || !source || !el) {
-            scheduleInteractiveError(getMsg(document.body, "drag_unavailable"));
-            return;
-          }
-          const sort = [];
-          $("#" + target.id + " > div").each(function (): void {
-            sort[$(this).index()] = $(this).attr("id");
-          });
-          const id = el.id;
-          const old_stage = $("#" + source.id).data("status");
-          const new_stage = $("#" + target.id).data("status");
-          const project_id = "{{$project->id}}";
-          $("#" + source.id)
-            .parent()
-            .find(".count")
-            .text($("#" + source.id + " > div").length);
-          $("#" + target.id)
-            .parent()
-            .find(".count")
-            .text($("#" + target.id + " > div").length);
-          const explicit =
-            "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}";
-          const endpoint = resolveUrl(target, explicit);
-          if (!endpoint) {
-            scheduleInteractiveError(
-              getMsg(target, "update_order_unavailable")
-            );
-            return;
-          }
-          $.ajax({
-            url: endpoint,
-            type: "PATCH",
-            data: {
-              id: id,
-              sort: sort,
-              new_stage: new_stage,
-              old_stage: old_stage,
-              project_id: project_id,
-            },
-            cache: false,
-            success: function (): void {},
-            error: function (): void {
+        : window.dragula!(nodes);
+      drake.on(
+        "drop",
+        function (el: HTMLElement, target: HTMLElement, source: HTMLElement) {
+          try {
+            if (!target || !source || !el) {
               scheduleInteractiveError(
-                getMsg(target, "update_order_unavailable")
+                getMsg(document.body, "drag_unavailable"),
               );
-            },
-          });
-        } catch (_) {
-          scheduleInteractiveError(
-            getMsg(document.body, "update_order_unavailable")
-          );
-        }
-      });
+              return;
+            }
+            const sort: (string | undefined)[] = [];
+            $("#" + target.id + " > div").each(function (): void {
+              sort[$(this).index()] = $(this).attr("id");
+            });
+            const id = el.id;
+            const old_stage = $("#" + source.id).data("status");
+            const new_stage = $("#" + target.id).data("status");
+            const project_id = "{{$project->id}}";
+            $("#" + source.id)
+              .parent()
+              .find(".count")
+              .text(String($("#" + source.id + " > div").length));
+            $("#" + target.id)
+              .parent()
+              .find(".count")
+              .text(String($("#" + target.id + " > div").length));
+            const explicit =
+              "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}";
+            const endpoint = resolveUrl(target, explicit);
+            if (!endpoint) {
+              scheduleInteractiveError(
+                getMsg(target, "update_order_unavailable"),
+              );
+              return;
+            }
+            $.ajax({
+              url: endpoint,
+              type: "PATCH",
+              data: {
+                id: id,
+                sort: sort,
+                new_stage: new_stage,
+                old_stage: old_stage,
+                project_id: project_id,
+              },
+              cache: false,
+              success: function (): void {},
+              error: function (): void {
+                scheduleInteractiveError(
+                  getMsg(target, "update_order_unavailable"),
+                );
+              },
+            });
+          } catch (_) {
+            scheduleInteractiveError(
+              getMsg(document.body, "update_order_unavailable"),
+            );
+          }
+        },
+      );
       const mo = new MutationObserver((m, o) => {
         if (!document.body.contains($host.get(0))) {
           try {
@@ -289,7 +322,7 @@
       mo.observe(document.body, { childList: true, subtree: true });
     });
   };
-  const bindOnce = (key, binder) => {
+  const bindOnce = (key: string, binder: () => void) => {
     const root = document.documentElement;
     const attr = dataBound + key;
     if (root.getAttribute(attr) === "true") {
@@ -308,7 +341,7 @@
     bindOnce("add-usr", function (): void {
       $(document).on("click.addUsr", ".add_usr", function (): void {
         try {
-          const ids = [];
+          const ids: (string | undefined)[] = [];
           const $btn = $(this);
           $btn.toggleClass("selected");
           const crr_id = $btn.attr("data-id");
@@ -323,7 +356,9 @@
           $(".selected").each(function (): void {
             ids.push($(this).attr("data-id"));
           });
-          $('input[name="assign_to"]').val(ids);
+          $('input[name="assign_to"]').val(
+            ids.filter((id): id is string => id !== undefined),
+          );
         } catch (_) {}
       });
     });
@@ -332,107 +367,118 @@
     bindOnce("del-task", function (): void {
       $(document).on("click.delTask", ".del_task", function (): void {
         const $btn = $(this);
-        const url = resolveUrl(this, $btn.attr("data-url"));
+        const el = this as HTMLElement;
+        const url = resolveUrl(el, $btn.attr("data-url") ?? null);
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "delete_task_unavailable"));
+          scheduleInteractiveError(getMsg(el, "delete_task_unavailable"));
           return;
         }
         ajaxDelete(
           url,
-          function (data) {
-            if (data?.task_id) {
-              $("#" + data.task_id).remove();
+          function (data: unknown) {
+            const d = data as Record<string, unknown>;
+            if (d.task_id) {
+              $("#" + String(d.task_id)).remove();
             }
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
             if (window.show_toastr) {
               window.show_toastr(
                 "{{__('Success')}}",
                 "{{ __('Task Deleted Successfully!')}}",
-                "success"
+                "success",
               );
             }
           },
-          this,
-          "delete_task_unavailable"
+          el,
+          "delete_task_unavailable",
         );
       });
     });
   };
   const addComment = (): void => {
     bindOnce("comment-submit", function (): void {
-      $(document).on("click.commentSubmit", "#comment_submit", function (): void {
-        const curr = $(this);
-        const v = $.trim(
-          $("#form-comment textarea[name='comment']").val() ?? ""
-        );
-        if (!v) {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          if (window.show_toastr) {
-            window.show_toastr(
-              "{{__('Error')}}",
-              "{{ __('Please write comment!')}}",
-              "error"
-            );
+      $(document).on(
+        "click.commentSubmit",
+        "#comment_submit",
+        function (): void {
+          const curr = $(this);
+          const v = String(
+            $("#form-comment textarea[name='comment']").val() ?? "",
+          ).trim();
+          if (!v) {
+            if (window.show_toastr) {
+              window.show_toastr(
+                "{{__('Error')}}",
+                "{{ __('Please write comment!')}}",
+                "error",
+              );
+            }
+            return;
           }
-          return;
-        }
-        const form = document.getElementById("form-comment");
-        const url = resolveUrl(form, $("#form-comment").data("action"));
-        if (!url) {
-          scheduleInteractiveError(getMsg(form, "comment_add_unavailable"));
-          return;
-        }
-        ajaxPost(
-          url,
-          { comment: v },
-          function (data) {
-            try {
-              data = typeof data === "string" ? JSON.parse(data) : data;
-              const html =
-                "<div class='list-group-item px-0'><div class='row align-items-center'><div class='col-auto'><a href='#' class='avatar avatar-sm rounded-circle'><img " +
-                (data.user?.img_avatar
-                  ? data.user.img_avatar
-                  : "") +
-                " alt='" +
-                (data.user?.name ? data.user.name : "") +
-                "'></a></div><div class='col ml-n2'><p class='d-block h6 text-sm font-weight-light mb-0 text-break'>" +
-                (data.comment ?? "") +
-                "</p><small class='d-block'>" +
-                now +
-                "</small></div><div class='col-auto'><a href='#' class='delete-comment' data-url='" +
-                (data.deleteUrl ?? "") +
-                "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
-              $("#comments").prepend(html);
-              $("#form-comment textarea[name='comment']").val("");
-              const sid = curr.closest(".side-modal").attr("id");
-              if (sid != null && sid !== "") {
-                load_task(sid);
-              }
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              if (window.show_toastr) {
-                window.show_toastr(
-                  "{{__('Success')}}",
-                  "{{ __('Comment Added Successfully!')}}",
-                  "success"
+          const form = document.getElementById("form-comment");
+          if (!form) return;
+          const url = resolveUrl(
+            form,
+            String($("#form-comment").data("action") ?? ""),
+          );
+          if (!url) {
+            scheduleInteractiveError(getMsg(form, "comment_add_unavailable"));
+            return;
+          }
+          ajaxPost(
+            url,
+            { comment: v },
+            function (data: unknown) {
+              try {
+                const d = (
+                  typeof data === "string" ? JSON.parse(data) : data
+                ) as Record<string, unknown>;
+                const user = d.user as Record<string, string> | undefined;
+                const html =
+                  "<div class='list-group-item px-0'><div class='row align-items-center'><div class='col-auto'><a href='#' class='avatar avatar-sm rounded-circle'><img " +
+                  (user?.img_avatar ? user.img_avatar : "") +
+                  " alt='" +
+                  (user?.name ? user.name : "") +
+                  "'></a></div><div class='col ml-n2'><p class='d-block h6 text-sm font-weight-light mb-0 text-break'>" +
+                  (d.comment ?? "") +
+                  "</p><small class='d-block'>" +
+                  now +
+                  "</small></div><div class='col-auto'><a href='#' class='delete-comment' data-url='" +
+                  (d.deleteUrl ?? "") +
+                  "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
+                $("#comments").prepend(html);
+                $("#form-comment textarea[name='comment']").val("");
+                const sid = curr.closest(".side-modal").attr("id");
+                if (sid != null && sid !== "") {
+                  load_task(sid);
+                }
+                if (window.show_toastr) {
+                  window.show_toastr(
+                    "{{__('Success')}}",
+                    "{{ __('Comment Added Successfully!')}}",
+                    "success",
+                  );
+                }
+              } catch (_) {
+                scheduleInteractiveError(
+                  getMsg(form, "comment_add_unavailable"),
                 );
               }
-            } catch (_) {
-              scheduleInteractiveError(getMsg(form, "comment_add_unavailable"));
-            }
-          },
-          form,
-          "comment_add_unavailable"
-        );
-      });
+            },
+            form,
+            "comment_add_unavailable",
+          );
+        },
+      );
     });
   };
   const deleteComment = (): void => {
     bindOnce("comment-delete", function (): void {
       $(document).on("click.commentDel", ".delete-comment", function (): void {
         const btn = $(this);
-        const url = resolveUrl(this, btn.attr("data-url"));
+        const el = this as HTMLElement;
+        const url = resolveUrl(el, btn.attr("data-url") ?? null);
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "comment_delete_unavailable"));
+          scheduleInteractiveError(getMsg(el, "comment_delete_unavailable"));
           return;
         }
         ajaxDelete(
@@ -442,89 +488,99 @@
             if (sid != null && sid !== "") {
               load_task(sid);
             }
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
             if (window.show_toastr) {
               window.show_toastr(
                 "{{__('Success')}}",
                 "{{ __('Comment Deleted Successfully!')}}",
-                "success"
+                "success",
               );
             }
             btn.closest(".list-group-item").remove();
           },
-          this,
-          "comment_delete_unavailable"
+          el,
+          "comment_delete_unavailable",
         );
       });
     });
   };
   const addChecklist = (): void => {
     bindOnce("checklist-add", function (): void {
-      $(document).on("click.checklistAdd", "#checklist_submit", function (): void {
-        const name = $("#form-checklist input[name=name]").val() ?? "";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!name) {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          if (window.show_toastr) {
-            window.show_toastr(
-              "{{__('Error')}}",
-              "{{ __('Please write checklist name!')}}",
-              "error"
-            );
-          }
-          return;
-        }
-        const form = document.getElementById("form-checklist");
-        const url = resolveUrl(form, $("#form-checklist").data("action"));
-        if (!url) {
-          scheduleInteractiveError(getMsg(form, "checklist_add_unavailable"));
-          return;
-        }
-        ajaxPost(
-          url,
-          { name: name },
-          function (data) {
-            try {
-              data = typeof data === "string" ? JSON.parse(data) : data;
-              const html =
-                '<div class="card border shadow-none checklist-member"><div class="px-3 py-2 row align-items-center"><div class="col-10"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="check-item-' +
-                (data.id ?? "") +
-                '" value="' +
-                (data.id ?? "") +
-                '" data-url="' +
-                (data.updateUrl ?? "") +
-                '"><label class="custom-control-label h6 text-sm" for="check-item-' +
-                (data.id ?? "") +
-                '">' +
-                (data.name ?? "") +
-                "</label></div></div><div class='col-auto card-meta d-inline-flex align-items-center ml-sm-auto'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
-                (data.deleteUrl ?? "") +
-                "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
-              $("#checklist").append(html);
-              $("#form-checklist input[name=name]").val("");
-              $("#form-checklist").collapse("toggle");
-              const sid = $(".side-modal").attr("id");
-              if (sid != null && sid !== "") {
-                load_task(sid);
-              }
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              if (window.show_toastr) {
-                window.show_toastr(
-                  "{{__('Success')}}",
-                  "{{ __('Checklist Added Successfully!')}}",
-                  "success"
-                );
-              }
-            } catch (_) {
-              scheduleInteractiveError(
-                getMsg(form, "checklist_add_unavailable")
+      $(document).on(
+        "click.checklistAdd",
+        "#checklist_submit",
+        function (): void {
+          const name = $("#form-checklist input[name=name]").val() ?? "";
+          if (!name) {
+            if (window.show_toastr) {
+              window.show_toastr(
+                "{{__('Error')}}",
+                "{{ __('Please write checklist name!')}}",
+                "error",
               );
             }
-          },
-          form,
-          "checklist_add_unavailable"
-        );
-      });
+            return;
+          }
+          const form = document.getElementById("form-checklist");
+          if (!form) return;
+          const url = resolveUrl(
+            form,
+            String($("#form-checklist").data("action") ?? ""),
+          );
+          if (!url) {
+            scheduleInteractiveError(getMsg(form, "checklist_add_unavailable"));
+            return;
+          }
+          ajaxPost(
+            url,
+            { name: name },
+            function (data: unknown) {
+              try {
+                const d = (
+                  typeof data === "string" ? JSON.parse(data) : data
+                ) as Record<string, unknown>;
+                const html =
+                  '<div class="card border shadow-none checklist-member"><div class="px-3 py-2 row align-items-center"><div class="col-10"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="check-item-' +
+                  (d.id ?? "") +
+                  '" value="' +
+                  (d.id ?? "") +
+                  '" data-url="' +
+                  (d.updateUrl ?? "") +
+                  '"><label class="custom-control-label h6 text-sm" for="check-item-' +
+                  (d.id ?? "") +
+                  '">' +
+                  (d.name ?? "") +
+                  "</label></div></div><div class='col-auto card-meta d-inline-flex align-items-center ml-sm-auto'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
+                  (d.deleteUrl ?? "") +
+                  "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
+                $("#checklist").append(html);
+                $("#form-checklist input[name=name]").val("");
+                (
+                  $("#form-checklist") as JQuery<HTMLElement> & {
+                    collapse: (action: string) => void;
+                  }
+                ).collapse("toggle");
+                const sid = $(".side-modal").attr("id");
+                if (sid != null && sid !== "") {
+                  load_task(sid);
+                }
+                if (window.show_toastr) {
+                  window.show_toastr(
+                    "{{__('Success')}}",
+                    "{{ __('Checklist Added Successfully!')}}",
+                    "success",
+                  );
+                }
+              } catch (_) {
+                scheduleInteractiveError(
+                  getMsg(form, "checklist_add_unavailable"),
+                );
+              }
+            },
+            form,
+            "checklist_add_unavailable",
+          );
+        },
+      );
     });
   };
   const updateChecklist = (): void => {
@@ -533,10 +589,11 @@
         "change.checklistToggle",
         "#checklist input[type=checkbox]",
         function (): void {
-          const url = resolveUrl(this, $(this).attr("data-url"));
+          const el = this as HTMLElement;
+          const url = resolveUrl(el, $(this).attr("data-url") ?? null);
           if (!url) {
             scheduleInteractiveError(
-              getMsg(this, "checklist_update_unavailable")
+              getMsg(el, "checklist_update_unavailable"),
             );
             return;
           }
@@ -548,77 +605,82 @@
               if (sid != null && sid !== "") {
                 load_task(sid);
               }
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
               if (window.show_toastr) {
                 window.show_toastr(
                   "{{__('Success')}}",
                   "{{ __('Checklist Updated Successfully!')}}",
-                  "success"
+                  "success",
                 );
               }
             },
-            this,
-            "checklist_update_unavailable"
+            el,
+            "checklist_update_unavailable",
           );
-        }
+        },
       );
     });
   };
   const deleteChecklist = (): void => {
     bindOnce("checklist-delete", function (): void {
-      $(document).on("click.checklistDel", ".delete-checklist", function (): void {
-        const btn = $(this);
-        const url = resolveUrl(this, btn.attr("data-url"));
-        if (!url) {
-          scheduleInteractiveError(
-            getMsg(this, "checklist_delete_unavailable")
+      $(document).on(
+        "click.checklistDel",
+        ".delete-checklist",
+        function (): void {
+          const btn = $(this);
+          const el = this as HTMLElement;
+          const url = resolveUrl(el, btn.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(
+              getMsg(el, "checklist_delete_unavailable"),
+            );
+            return;
+          }
+          ajaxDelete(
+            url,
+            function (): void {
+              const sid = $(".side-modal").attr("id");
+              if (sid != null && sid !== "") {
+                load_task(sid);
+              }
+              if (window.show_toastr) {
+                window.show_toastr(
+                  "{{__('Success')}}",
+                  "{{ __('Checklist Deleted Successfully!')}}",
+                  "success",
+                );
+              }
+              btn.closest(".checklist-member").remove();
+            },
+            el,
+            "checklist_delete_unavailable",
           );
-          return;
-        }
-        ajaxDelete(
-          url,
-          function (): void {
-            const sid = $(".side-modal").attr("id");
-            if (sid != null && sid !== "") {
-              load_task(sid);
-            }
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-            if (window.show_toastr) {
-              window.show_toastr(
-                "{{__('Success')}}",
-                "{{ __('Checklist Deleted Successfully!')}}",
-                "success"
-              );
-            }
-            btn.closest(".checklist-member").remove();
-          },
-          this,
-          "checklist_delete_unavailable"
-        );
-      });
+        },
+      );
     });
   };
   const favToggle = (): void => {
     bindOnce("favorite", function (): void {
       $(document).on("click.favorite", "#add_favourite", function (): void {
         const btn = $(this);
-        const url = resolveUrl(this, btn.attr("data-url"));
+        const el = this as HTMLElement;
+        const url = resolveUrl(el, btn.attr("data-url") ?? null);
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "favorite_unavailable"));
+          scheduleInteractiveError(getMsg(el, "favorite_unavailable"));
           return;
         }
         ajaxPost(
           url,
           {},
-          function (data) {
-            if (data?.fav === 1) {
+          function (data: unknown) {
+            const d = data as Record<string, unknown>;
+            if (d.fav === 1) {
               $("#add_favourite").addClass("action-favorite");
-            } else if (data?.fav === 0) {
+            } else if (d.fav === 0) {
               $("#add_favourite").removeClass("action-favorite");
             }
           },
-          this,
-          "favorite_unavailable"
+          el,
+          "favorite_unavailable",
         );
       });
     });
@@ -627,27 +689,29 @@
     bindOnce("complete", function (): void {
       $(document).on("change.complete", "#complete_task", function (): void {
         const cb = $(this);
-        const url = resolveUrl(this, cb.attr("data-url"));
+        const el = this as HTMLElement;
+        const url = resolveUrl(el, cb.attr("data-url") ?? null);
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "complete_unavailable"));
+          scheduleInteractiveError(getMsg(el, "complete_unavailable"));
           return;
         }
         ajaxPost(
           url,
           {},
-          function (data) {
-            if (data && typeof data.com !== "undefined") {
-              $("#complete_task").prop("checked", !!data.com);
+          function (data: unknown) {
+            const d = data as Record<string, unknown>;
+            if (d && typeof d.com !== "undefined") {
+              $("#complete_task").prop("checked", !!d.com);
             }
-            if (data?.task && data.stage) {
-              $("#" + data.task).insertBefore(
-                $("#task-list-" + data.stage + " .empty-container")
+            if (d.task && d.stage) {
+              $("#" + String(d.task)).insertBefore(
+                $("#task-list-" + String(d.stage) + " .empty-container"),
               );
-              load_task(data.task);
+              load_task(String(d.task));
             }
           },
-          this,
-          "complete_unavailable"
+          el,
+          "complete_unavailable",
         );
       });
     });
@@ -656,43 +720,47 @@
     bindOnce("progress", function (): void {
       $(document).on("change.progress", "#task_progress", function (): void {
         const sel = $(this);
-        const url = resolveUrl(this, sel.attr("data-url"));
+        const el = this as HTMLElement;
+        const url = resolveUrl(el, sel.attr("data-url") ?? null);
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "progress_unavailable"));
+          scheduleInteractiveError(getMsg(el, "progress_unavailable"));
           return;
         }
-        const progress = sel.val();
+        const progress = String(sel.val() ?? "");
         $("#t_percentage").html(progress);
         ajaxPost(
           url,
           { progress: progress },
-          function (data) {
-            if (data?.task_id) {
-              load_task(data.task_id);
+          function (data: unknown) {
+            const d = data as Record<string, unknown>;
+            if (d.task_id) {
+              load_task(String(d.task_id));
             }
           },
-          this,
-          "progress_unavailable"
+          el,
+          "progress_unavailable",
         );
       });
     });
   };
   const ajaxCsrfHeader = (): void => {
-    if (!$.ajaxSetup) {
+    if (!($ as unknown as { ajaxSetup?: unknown }).ajaxSetup) {
       return;
     }
-    $.ajaxSetup({
+    (
+      $ as unknown as { ajaxSetup: (options: Record<string, unknown>) => void }
+    ).ajaxSetup({
       headers: {
         "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") ?? "",
       },
     });
   };
-  const load_task = id => {
+  const load_task = (id: string) => {
     const base = "{{route(VW::PRJ_TSK_C.'.get','_task_id')}}".replace(
       "_task_id",
-      id ?? ""
+      id ?? "",
     );
-    const url = resolveUrl(null, base);
+    const url = resolveUrl(document.body, base);
     if (!url) {
       scheduleInteractiveError(getMsg(document.body, "load_task_unavailable"));
       return;
@@ -701,24 +769,23 @@
       url: url,
       dataType: "html",
       cache: false,
-      success: function (data) {
+      success: function (data: unknown) {
         if (id) {
           const c = document.getElementById(id);
           if (c) {
             $("#" + id).html("");
-            $("#" + id).html(data);
+            $("#" + id).html(String(data ?? ""));
           }
         }
       },
       error: function (): void {
         scheduleInteractiveError(
-          getMsg(document.body, "load_task_unavailable")
+          getMsg(document.body, "load_task_unavailable"),
         );
       },
     });
   };
   const init = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         if (

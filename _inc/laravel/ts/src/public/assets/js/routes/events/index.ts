@@ -3,12 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const bindGuard = el => {
+    const bindGuard = (el: Element | null) => {
       try {
         if (!el) {
           return;
@@ -17,7 +16,7 @@
           return;
         }
         el.setAttribute("data-listener-active", "true");
-        el.addEventListener("click", e => {
+        el.addEventListener("click", (e: Event) => {
           try {
             const href = el.getAttribute("href") ?? "#";
             const url = el.getAttribute("data-url") ?? href ?? "#";
@@ -30,7 +29,6 @@
               "Requested route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");
@@ -63,7 +61,7 @@
       } catch (err) {}
     };
 
-    const bindFormGuard = fm => {
+    const bindFormGuard = (fm: Element) => {
       try {
         if (!fm) {
           return;
@@ -72,7 +70,7 @@
           return;
         }
         fm.setAttribute("data-submit-guarded", "true");
-        fm.addEventListener("submit", e => {
+        fm.addEventListener("submit", (e: Event) => {
           try {
             const action = fm.getAttribute("action") ?? "#";
             const url = fm.getAttribute("data-url") ?? action ?? "#";
@@ -85,7 +83,6 @@
               "Requested route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

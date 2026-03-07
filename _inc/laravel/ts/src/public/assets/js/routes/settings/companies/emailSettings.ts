@@ -3,22 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module emailSettings
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   document.addEventListener("DOMContentLoaded", function (): void {
     document.querySelectorAll(".email-template-toggle").forEach(function (el) {
-      if (el.dataset.guardBound === "1") return;
-      el.dataset.guardBound = "1";
-      el.addEventListener("change", function (e) {
-        const url = el.getAttribute("data-url") ?? "#";
+      const inp = el as HTMLInputElement;
+      if (inp.dataset.guardBound === "1") return;
+      inp.dataset.guardBound = "1";
+      inp.addEventListener("change", function (e: Event) {
+        const url = inp.getAttribute("data-url") ?? "#";
         if (url !== "#") return;
         e.preventDefault();
-        el.checked = !el.checked;
+        inp.checked = !inp.checked;
         const msg = el.getAttribute("data-guard-msg") ?? "";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");

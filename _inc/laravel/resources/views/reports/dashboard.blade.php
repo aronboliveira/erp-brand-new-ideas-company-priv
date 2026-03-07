@@ -41,7 +41,7 @@
                         <div class="page-title">
                             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }} full-calendar">
                                 <div class="col {{ VC::DFL_AIC }}">
-                                    <div class="btn-group" role="group" aria-label="Calendar navigation">
+                                    <div class="btn-group" role="group" aria-label="{{ __('Calendar navigation') }}">
                                         <a href="#" class="fullcalendar-btn-prev {{ VC::BT_SM }} btn-neutral" title="{{ __('Previous') }}">
                                             <i class="ti ti-angle-left"></i>
                                         </a>
@@ -52,7 +52,7 @@
                                     <h5 class="fullcalendar-title h4 d-inline-block font-weight-400 mb-0"></h5>
                                 </div>
                                 <div class="col-lg-6 mt-3 mt-lg-0 text-lg-right">
-                                    <div class="btn-group" role="group" aria-label="Calendar view">
+                                    <div class="btn-group" role="group" aria-label="{{ __('Calendar view') }}">
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="month">{{ __('Month') }}</a>
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="basicWeek">{{ __('Week') }}</a>
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="basicDay">{{ __('Day') }}</a>
@@ -336,7 +336,7 @@
                     <div class="card-header">
                         <div class="{{ VW::RW }}">
                             <div class="col-xl-2 {{ VW::CL3 }} col-md-2 col-sm-2">
-                                <div class="btn-group" role="group" aria-label="Calendar navigation">
+                                <div class="btn-group" role="group" aria-label="{{ __('Calendar navigation') }}">
                                     <a href="#" class="fullcalendar-btn-prev {{ VW::BT_SM }} btn-neutral" title="{{ __('Previous') }}">
                                         <i class="ti ti-angle-left"></i>
                                     </a>
@@ -349,7 +349,7 @@
                                 <h5 class="fullcalendar-title h4 d-inline-block font-weight-600 mb-0">{{ __('Calendar') }}</h5>
                             </div>
                             <div class="col-xl-5 {{ VW::CL5 }} col-md-5 col-sm-4 text-lg-right">
-                                <div class="btn-group" role="group" aria-label="Calendar view">
+                                <div class="btn-group" role="group" aria-label="{{ __('Calendar view') }}">
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="month">{{ __('Month') }}</a>
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="basicWeek">{{ __('Week') }}</a>
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="basicDay">{{ __('Day') }}</a>
@@ -443,7 +443,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);

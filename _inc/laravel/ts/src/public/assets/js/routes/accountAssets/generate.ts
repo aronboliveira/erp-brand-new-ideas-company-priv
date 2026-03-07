@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generate
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -11,10 +10,9 @@
     const l = document.getElementById("account-asset-generate-link");
     if (!l || l.getAttribute("data-listener-active") === "true") return;
     l.setAttribute("data-listener-active", "true");
-    l.addEventListener("click", e => {
+    l.addEventListener("click", (e: Event) => {
       try {
         const href = l.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = l.getAttribute("data-url") ?? "#";
         if (href !== "#" || url !== "#") return;
         e.preventDefault();

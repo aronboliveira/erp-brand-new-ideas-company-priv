@@ -243,9 +243,9 @@
                                                                 </div>
                                                                 <div class="col-auto">
                                                                     <p class="card-text small text-muted">
-                                                                        {{-- <img class="rounded" src="{{ $logo.'/placeholder.png' }}" width="70px" alt="Image placeholder" data-dz-thumbnail=""> --}}
+                                                                        {{-- <img class="rounded" src="{{ $logo.'/placeholder.png' }}" width="70px" alt="{{ __('Image placeholder') }}" data-dz-thumbnail=""> --}}
                                                                         <img src="{{ asset('uploads/landing_page_image/home_logo.png') }}" width="70px"
-                                                                            alt="Image placeholder" data-dz-thumbnail="">
+                                                                            alt="{{ __('Image placeholder') }}" data-dz-thumbnail="">
                                                                     </p>
                                                                 </div>
                                                                 <div class="col-auto actions">
@@ -272,14 +272,14 @@
                                                                 <div class="col ml-n2">
                                                                     <p class="card-text small text-muted">
                                                                         <img src="{{ asset('uploads/landing_page_image/home_logo.png') }}"
-                                                                            width="70px" alt="Image placeholder"
+                                                                            width="70px" alt="{{ __('Image placeholder') }}"
                                                                             data-dz-thumbnail="">
                                                                     </p>
                                                                 </div>
                                                                 <div class="col-auto actions">
                                                                     <a class="action-item {{ ViewClassNamesConstants::BT_SM }} btn-icon btn-light-secondary"
                                                                         href="{{ $logo . '/' . $home_logo }}" download=""
-                                                                        data-toggle="tooltip" data-original-title="Download">
+                                                                        data-toggle="tooltip" data-original-title="{{ __('Download') }}">
                                                                         <i class="{{ ViewClassNamesConstants::TI_DWN }}"></i>
                                                                     </a>
                                                                 </div>
@@ -563,7 +563,7 @@ Object.keys(t).forEach(
                   <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="Close"></button>
+                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                   </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -675,7 +675,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="Close"></button>
+                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -774,7 +774,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="Close"></button>
+                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();

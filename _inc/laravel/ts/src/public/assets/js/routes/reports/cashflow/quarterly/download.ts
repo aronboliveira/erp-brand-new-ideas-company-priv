@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module download
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,12 +14,12 @@
 
     document.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
           const a =
             e.target &&
-            (e.target.closest
-              ? e.target.closest("a.download-quarterly-cashflow")
+            ((e.target as Element).closest
+              ? (e.target as Element).closest("a.download-quarterly-cashflow")
               : null);
           if (!a) return;
 
@@ -31,22 +30,23 @@
 
           const fnName = a.getAttribute("data-func-name") ?? "";
           const fn =
-            typeof window !== "undefined" && fnName ? window[fnName] : null;
+            typeof window !== "undefined" && fnName
+              ? (window as unknown as Record<string, unknown>)[fnName]
+              : null;
 
           if (typeof fn === "function") {
             try {
-              fn();
+              (fn as () => void)();
             } catch (_) {}
             return;
           }
 
           const msg =
-            a.getAttribute("data-guard-msg") ?? "Download function for Quarterly Cashflow report is unavailable. Please contact technical support or your domain administrator.";
+            a.getAttribute("data-guard-msg") ??
+            "Download function for Quarterly Cashflow report is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+            window.bootstrap && typeof window.bootstrap.Toast === "function";
 
           let container = document.getElementById("toast-container");
           if (!container) {
@@ -87,7 +87,7 @@
           a.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();

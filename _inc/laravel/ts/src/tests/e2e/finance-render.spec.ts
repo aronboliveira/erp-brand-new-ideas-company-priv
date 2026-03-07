@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module finance-render.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global $, jQuery */
 // @ts-check
@@ -49,7 +48,7 @@ test.beforeEach(async ({ page }) => {
  *  3. At least one rendering primitive (table / card / canvas / form)
  *  4. Table headers present when a table exists
  */
-async function assertFinanceRenders(page, route, label) {
+async function assertFinanceRenders(page, route, label): Promise<void> {
   await test.step(`Navigate to ${label}`, async (): void => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
@@ -103,7 +102,7 @@ async function assertFinanceRenders(page, route, label) {
 /* ── 1. Payslip Types (previously shadowed by payslips route) ───── */
 
 test.describe("Payslip Types – Fixed Route", (): void => {
-  test("payslip_types index renders correctly", async ({ page }) => {
+  test("payslip_types index: number renders correctly", async ({ page }) => {
     await assertFinanceRenders(page, "payslip_types", "Payslip Types Index");
   });
 
@@ -300,7 +299,7 @@ test.describe("Pricing Plans – Rendering", (): void => {
 /* ── 12. Proposal (singular route) ───────────────────────────────── */
 
 test.describe("Proposal – Rendering", (): void => {
-  test("proposal index renders correctly", async ({ page }) => {
+  test("proposal index: number renders correctly", async ({ page }) => {
     await assertFinanceRenders(page, "proposal", "Proposal Index");
   });
   test("proposals/create renders correctly", async ({ page }) => {
@@ -311,7 +310,7 @@ test.describe("Proposal – Rendering", (): void => {
 /* ── 13. Employee Salary ─────────────────────────────────────────── */
 
 test.describe("Employee Salary – Rendering", (): void => {
-  test("employees/salary index", async ({ page }) => {
+  test("employees/salary index: number", async ({ page }) => {
     await assertFinanceRenders(
       page,
       "employees/salary",

@@ -3,19 +3,17 @@
  * @generated from original JavaScript - manual review recommended
  * @module updateSalary
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("salary-update-form");
-  if (form?.getAttribute("data-listener-active") !== "true") {
+  if (form && form.getAttribute("data-listener-active") !== "true") {
     form.setAttribute("data-listener-active", "true");
     form.addEventListener("submit", event => {
       try {
         const action = form.getAttribute("action");
         const url = form.getAttribute("data-url");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if ((action && action !== "#") ?? (url && url !== "#")) return;
+        if ((action && action !== "#") || (url && url !== "#")) return;
         event.preventDefault();
         const msg = form.getAttribute("data-guard-msg") ?? "# ERROR";
         const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
@@ -28,7 +26,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";

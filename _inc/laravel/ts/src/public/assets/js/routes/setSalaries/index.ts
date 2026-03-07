@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
-  const attachGuard = el => {
+  const attachGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", event => {
@@ -27,7 +26,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -50,10 +48,14 @@
 
   document
     .querySelectorAll('[id^="salary-view-"]')
-    .forEach((el: Element): void => { attachGuard(el); });
+    .forEach((el: Element): void => {
+      attachGuard(el as HTMLElement);
+    });
   document
     .querySelectorAll('[id^="salary-set-"]')
-    .forEach((el: Element): void => { attachGuard(el); });
+    .forEach((el: Element): void => {
+      attachGuard(el as HTMLElement);
+    });
 })();
 
 export {};

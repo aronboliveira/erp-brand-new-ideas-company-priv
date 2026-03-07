@@ -1,0 +1,173 @@
+# JavaScript / TypeScript Coding Style Guidelines
+
+> Lax, natural-language guide for ERP Prestech front-end code.
+> For strict, machine-parseable rules see the sibling `.yml`, `.xml`, and `.json` files.
+
+---
+
+## 1. DRY Repeated Attribute / Property Assignments
+
+When three or more consecutive `setAttribute()` calls target the **same element**, convert them to a loop over key–value pairs:
+
+```ts
+// BEFORE
+overlay.setAttribute("role", "dialog");
+overlay.setAttribute("aria-modal", "true");
+overlay.setAttribute("aria-labelledby", "diagTitle");
+overlay.setAttribute("aria-describedby", "diagDesc");
+
+// AFTER
+for (const [k, v] of Object.entries({
+  role: "dialog",
+  "aria-modal": "true",
+  "aria-labelledby": "diagTitle",
+  "aria-describedby": "diagDesc",
+}))
+  overlay.setAttribute(k, v);
+```
+
+The same principle applies to direct property assignments:
+
+```ts
+// BEFORE
+img.src = "/assets/images/406-art.webp";
+img.alt = "Illustration for error/406";
+img.className = "img-fluid rounded";
+
+// AFTER
+for (const [k, v] of Object.entries({
+  src: "/assets/images/406-art.webp",
+  alt: "Illustration for error/406",
+  className: "img-fluid rounded",
+}))
+  (img as Record<string, unknown>)[k] = v;
+```
+
+If a block mixes `setAttribute` and direct assignments, **reorder** lines so each group is contiguous, and apply the matching loop pattern.
+
+---
+
+## 2. Cache Repeated String Literals
+
+Strings used more than twice in a file (e.g. icon markup) **must** be extracted into a `const`:
+
+```ts
+const infoIcon = '<i class="bi bi-info-circle" aria-hidden="true"></i>';
+```
+
+This makes future edits propagate automatically and keeps the bundle slightly smaller.
+
+---
+
+## 3. Minimal JSDoc
+
+Add JSDoc for every **function declaration** and **named function expression**. Keep it minimal — don't repeat what TypeScript already tells the reader through types.
+
+```ts
+/** Initialises the attendance bulk-import form listeners. */
+function initBulkImport(): void { … }
+```
+
+For short lambdas / inline callbacks you may omit JSDoc if intent is obvious from context.
+
+---
+
+## 4. No Extra Blank Lines Between Related Statements
+
+Remove blank lines between guard clauses, variable declarations, and closely related logic:
+
+```ts
+// BEFORE
+if (!targetElement) return;
+
+const content = targetElement.innerHTML;
+const m = content.match(/^[\s\n\t\r]*[0-9]+</);
+
+if (!m) return;
+
+// AFTER
+if (!targetElement) return;
+const content = targetElement.innerHTML;
+const m = content.match(/^[\s\n\t\r]*[0-9]+</);
+if (!m) return;
+```
+
+---
+
+## 5. Collapse Sequential Declarations
+
+Two to three consecutive `const` (or `let` / `var`) assignments should be merged using the comma operator:
+
+```ts
+// BEFORE
+const content = targetElement.innerHTML;
+const m = content.match(/^[\s\n\t\r]*[0-9]+</);
+
+// AFTER
+const content = targetElement.innerHTML,
+  m = content.match(/^[\s\n\t\r]*[0-9]+</);
+```
+
+Do **not** merge if readability would suffer (e.g., complex destructuring).
+
+---
+
+## 6. Bracketless One-Liners
+
+Single-statement `if`/`else` blocks must drop curly braces. Prefer short-circuit or ternary when it's more expressive:
+
+```ts
+// Option A — short-circuit for guard + single call
+!isModal && document.body.classList.add("overflow-hidden");
+
+// Option B — ternary for symmetric branches
+document.readyState === "loading"
+  ? document.addEventListener("DOMContentLoaded", checkMounted)
+  : checkMounted();
+```
+
+---
+
+## 7. IIFE Try/Catch Wrapping
+
+Every IIFE that starts a `.ts` route/page file must contain a top-level `try { … } catch (e) { … }` around the full body. The `catch` should issue a clean diagnostic:
+
+```ts
+((): void => {
+  try {
+    // … all module code …
+  } catch (e) {
+    console.error(`[module-name] failed to initialise:`, e);
+  }
+})();
+```
+
+This prevents a single broken module from crashing the entire client.
+
+---
+
+## 8. Prefer Performant DOM Queries
+
+Use the **cheapest** DOM query method that applies. Ranked fastest → slowest:
+
+1. `document.getElementById(id)` — fastest
+2. `document.getElementsByClassName(cls)` / `document.getElementsByTagName(tag)` — live HTMLCollection
+3. `HTMLFormElement.elements` / `HTMLFormControlsCollection.namedItem()` — for form fields
+4. `document.querySelector()` / `document.querySelectorAll()` — only when CSS selectors are truly needed
+
+**Do not** swap blindly — only switch when it demonstrably improves performance (measure first).
+
+---
+
+## 9. Observers
+
+`MutationObserver` and `IntersectionObserver` **can** be useful, but are never mandatory. Only add them when they provide a clear benefit over simpler approaches (event listeners, polling, etc.).
+
+---
+
+## 10. General
+
+- Target **ES6+** syntax (arrow functions, template literals, `const`/`let`, destructuring, etc.).
+- Support **Chromium** and **Gecko** (Firefox) engines.
+- Always run `jest + playwright + eslint + tsc` after changes to verify nothing regresses.
+- When choosing between two implementation approaches, **benchmark first** — pick the more performant one.

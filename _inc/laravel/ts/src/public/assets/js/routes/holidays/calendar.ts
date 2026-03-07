@@ -3,52 +3,71 @@
  * @generated from original JavaScript - manual review recommended
  * @module calendar
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+
+interface CalendarHTMLElement extends HTMLElement {
+  _fcInstance?: FullCalendarInstance | null;
+}
+
+interface FullCalendarInstance {
+  render(): void;
+  destroy(): void;
+}
+
+interface FullCalendarStatic {
+  Calendar: new (
+    el: HTMLElement,
+    options: Record<string, unknown>,
+  ) => FullCalendarInstance;
+}
+
 // assets/js/routes/holidays/calendar.js — Calendar-type switching for Holiday calendar
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-holcal-error";
   const dataCalGuard = "data-holcal-bound";
-  const qs = (s, r = document) => r.querySelector(s);
-  const hasBootstrapUi = () =>
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
+  const hasBootstrapUi = (): boolean =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLElement => {
+    let c = qs<HTMLElement>("#np-toast-container");
     if (c) return c;
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
+    const newC = document.createElement("div");
+    newC.id = "np-toast-container";
+    newC.setAttribute("aria-live", "polite");
+    newC.setAttribute("aria-atomic", "true");
+    newC.style.position = "fixed";
+    newC.style.top = "1rem";
+    newC.style.right = "1rem";
+    document.body.appendChild(newC);
+    return newC;
   };
-  const showError = message => {
+  const showError = (message: string): void => {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLElement>("#np-toast", container);
       if (!t) {
-        t = document.createElement("div");
-        t.id = "np-toast";
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        t.innerHTML =
+        const newT = document.createElement("div");
+        newT.id = "np-toast";
+        newT.className = "toast";
+        newT.setAttribute("role", "alert");
+        newT.setAttribute("aria-live", "assertive");
+        newT.setAttribute("aria-atomic", "true");
+        newT.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
-        container.appendChild(t);
+        container.appendChild(newT);
+        t = newT;
       }
       const body = t.querySelector(".toast-body");
       if (body) body.textContent = message ?? errFb;
@@ -61,9 +80,8 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = msg => {
+  const schedulePointerupError = (msg: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -82,7 +100,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -91,9 +109,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -110,29 +128,27 @@
     }
     return msg;
   };
-  const csrf = (): void => {
+  const csrf = (): string => {
     const m = qs('meta[name="csrf-token"]');
     return m?.getAttribute("content") ?? "";
   };
-  const getBase = (): void => {
+  const getBase = (): string => {
     try {
       const v = $("#holiday_calendar").val();
-      return (v ?? "").toString().trim();
+      return String(v ?? "").trim();
     } catch (_) {
-      const el = qs("#holiday_calendar");
+      const el = qs<HTMLInputElement>("#holiday_calendar");
       return (el?.value ?? "").toString().trim();
     }
   };
-  const buildUrl = (): void => {
+  const buildUrl = (): string => {
     const base = getBase();
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     return base && base !== "#"
       ? `${base.replace(/\/$/, "")}/holidays/data`
       : "";
   };
-  const ensureJq = (): void => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    if ($ && $.ajax) return true;
+  const ensureJq = (): boolean => {
+    if (typeof $?.ajax === "function") return true;
     try {
       if (
         window.location.hostname === "localhost" ||
@@ -143,8 +159,9 @@
     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
     return false;
   };
-  const ensureFC = (): void => {
-    if (window.FullCalendar?.Calendar) return true;
+  const ensureFC = (): boolean => {
+    if ((window.FullCalendar as FullCalendarStatic | undefined)?.Calendar)
+      return true;
     try {
       if (
         window.location.hostname === "localhost" ||
@@ -153,29 +170,28 @@
         console.error("FullCalendar unavailable");
     } catch (_) {}
     schedulePointerupError(
-      getMsg(document.body, "calendar_initialization_failed")
+      getMsg(document.body, "calendar_initialization_failed"),
     );
     return false;
   };
-  const getCalendarType = (): void => {
-    const sel = qs("#calendar_type");
+  const getCalendarType = (): string => {
+    const sel = qs<HTMLSelectElement>("#calendar_type");
     if (!sel) return "local_calendar";
-    const opt = sel.querySelector(":scope option:checked");
+    const opt = sel.querySelector<HTMLOptionElement>(":scope option:checked");
     return (opt?.value ?? "local_calendar").toString().trim();
   };
-  const applyCalendarClass = type => {
+  const applyCalendarClass = (type: unknown): void => {
     const cal = qs("#calendar");
     if (!cal) return;
     cal.classList.remove("local_calendar", "google_calendar");
-    cal.classList.add(type ?? "local_calendar");
+    cal.classList.add(String(type ?? "local_calendar"));
   };
-  const renderCalendar = events => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const renderCalendar = (events: unknown): void => {
     if (!ensureFC()) return;
-    const el = qs("#calendar");
+    const el = qs<CalendarHTMLElement>("#calendar");
     if (!el) {
       schedulePointerupError(
-        getMsg(document.body, "calendar_element_unavailable")
+        getMsg(document.body, "calendar_element_unavailable"),
       );
       return;
     }
@@ -186,7 +202,8 @@
       el._fcInstance = null;
     }
     try {
-      const calendar = new window.FullCalendar.Calendar(el, {
+      const FC = window.FullCalendar as FullCalendarStatic;
+      const calendar = new FC.Calendar(el, {
         headerToolbar: {
           left: "prev,next today",
           center: "title",
@@ -224,18 +241,16 @@
       }
     } catch (_) {
       schedulePointerupError(
-        getMsg(el, "calendar_initialization_failed")
+        getMsg(el ?? document.body, "calendar_initialization_failed"),
       );
     }
   };
   const getData = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!ensureJq()) return;
     const url = buildUrl();
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!url) {
       schedulePointerupError(
-        getMsg(document.body, "holiday_fetch_unavailable")
+        getMsg(document.body, "holiday_fetch_unavailable"),
       );
       return;
     }
@@ -245,18 +260,18 @@
       url: url,
       method: "POST",
       data: { _token: csrf(), calendar_type: type },
-      success: function (data) {
+      success: function (data: unknown) {
         try {
           renderCalendar(data);
         } catch (_) {
           schedulePointerupError(
-            getMsg(document.body, "calendar_initialization_failed")
+            getMsg(document.body, "calendar_initialization_failed"),
           );
         }
       },
       error: function (): void {
         schedulePointerupError(
-          getMsg(document.body, "holiday_fetch_unavailable")
+          getMsg(document.body, "holiday_fetch_unavailable"),
         );
       },
     });

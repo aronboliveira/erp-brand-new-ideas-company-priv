@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -11,7 +10,7 @@
   if (!btn || btn.getAttribute("data-listener-active") === "true") return;
   btn.setAttribute("data-listener-active", "true");
 
-  btn.addEventListener("click", e => {
+  btn.addEventListener("click", (e: Event) => {
     try {
       const url = btn.getAttribute("data-url") ?? "#";
       if (url !== "#") return; // valid route, proceed with AJAX popup
@@ -27,7 +26,6 @@
         container.style.zIndex = "1080";
         document.body.appendChild(container);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bsLink && window.bootstrap) {
         const toastEl = document.createElement("div");
         toastEl.className = "toast";

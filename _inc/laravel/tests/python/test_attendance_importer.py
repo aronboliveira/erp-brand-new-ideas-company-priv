@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+from typing import Any
 
 from attendance_importer import AttendanceImporter
 
@@ -35,7 +36,7 @@ def test_validate_row_applies_defaults_and_strict_date_parsing() -> None:
     assert importer._errors == ["Row 1: missing or invalid date"]
 
 
-def test_process_data_counts_imported_and_skipped_rows(attendance_import_payload) -> None:
+def test_process_data_counts_imported_and_skipped_rows(attendance_import_payload: dict[str, Any]) -> None:
     importer = AttendanceImporter()
     importer._data = attendance_import_payload
 
@@ -48,7 +49,7 @@ def test_process_data_counts_imported_and_skipped_rows(attendance_import_payload
     assert "row is not a dict" in importer._errors[1]
 
 
-def test_run_writes_partial_result_for_mixed_payload(monkeypatch, attendance_import_payload) -> None:
+def test_run_writes_partial_result_for_mixed_payload(monkeypatch: Any, attendance_import_payload: dict[str, Any]) -> None:
     importer = AttendanceImporter()
     monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(attendance_import_payload)))
     fake_stdout = io.StringIO()
@@ -62,4 +63,3 @@ def test_run_writes_partial_result_for_mixed_payload(monkeypatch, attendance_imp
     assert result["skipped"] == 3
     assert len(result["errors"]) == 3
     assert len(result["rows"]) == 2
-

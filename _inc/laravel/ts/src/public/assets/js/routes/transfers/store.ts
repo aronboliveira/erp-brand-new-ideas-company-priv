@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -21,7 +20,7 @@
       f.setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
         if (action !== "#") return;
@@ -29,7 +28,6 @@
 
         const guardAttr = f.getAttribute("data-guard-msg") ?? "";
         const msg =
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           guardAttr.trim().length
             ? guardAttr
             : "Store transfer route is unavailable. Please contact technical support or your domain administrator.";

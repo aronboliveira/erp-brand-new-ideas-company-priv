@@ -3,22 +3,20 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   const btn = document.querySelector(
-    'a[data-url][data-guard-msg][data-sv-localized="true"].btn-icon'
+    'a[data-url][data-guard-msg][data-sv-localized="true"].btn-icon',
   );
   if (!btn) return;
 
-  const toast = msg => {
+  const toast = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -45,17 +43,17 @@
 
   btn.addEventListener(
     "click",
-    e => {
+    (e: Event) => {
       const url = btn.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          btn.getAttribute("data-guard-msg") ?? "Generate content route for Product/Service is unavailable. Please contact technical support or your domain administrator.";
+          btn.getAttribute("data-guard-msg") ??
+          "Generate content route for Product/Service is unavailable. Please contact technical support or your domain administrator.";
         toast(msg);
       }
     },
-    { passive: false }
+    { passive: false },
   );
 })();
 

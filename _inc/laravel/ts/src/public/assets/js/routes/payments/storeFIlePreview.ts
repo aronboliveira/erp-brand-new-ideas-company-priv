@@ -3,12 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module storeFIlePreview
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
 ((): void => {
   try {
     const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-preview-target]')
+      document.querySelectorAll('input[type="file"][data-preview-target]'),
     );
     if (inputs.length === 0) return;
     inputs.forEach(inp => {
@@ -17,9 +16,10 @@
       inp.addEventListener("change", (): void => {
         try {
           const targetSel = inp.getAttribute("data-preview-target");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const target = targetSel ? document.querySelector(targetSel) : null;
-          const file = inp.files?.[0] ? inp.files[0] : null;
+          const file = (inp as HTMLInputElement).files?.[0]
+            ? (inp as HTMLInputElement).files![0]
+            : null;
           if (!target || !file) return;
           const url = URL.createObjectURL(file);
           target.setAttribute("src", url);

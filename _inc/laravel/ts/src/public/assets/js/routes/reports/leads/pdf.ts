@@ -3,20 +3,20 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataListenerGuard = "data-listener-guard";
-  const toastContainerId = "np-toast-container";
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
   if (!$) {
     try {
       if (
@@ -26,13 +26,14 @@
         console.error("jQuery unavailable");
     } catch (_) {}
   }
-  const ensureToastContainer = (): void => {
-    let c = qs("#" + toastContainerId);
+  const ensureToastContainer = (): HTMLElement => {
+    const id = "np-toast-container";
+    let c = qs<HTMLElement>("#" + id);
     if (c) {
       return c;
     }
     c = document.createElement("div");
-    c.id = toastContainerId;
+    c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
     c.style.position = "fixed";
@@ -41,19 +42,18 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      const tid = "np-toast";
+      let t = qs<HTMLElement>("#" + tid, container);
       if (!t) {
         t = document.createElement("div");
-        t.id = "np-toast";
+        t.id = tid;
         t.className = "toast";
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
@@ -62,7 +62,7 @@
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
-      const body = qs(".toast-body", t);
+      const body = qs<HTMLElement>(".toast-body", t);
       if (body) {
         body.textContent = message ?? errFb;
       }
@@ -75,9 +75,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -98,7 +97,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -107,9 +106,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -126,15 +125,20 @@
     }
     return msg;
   };
-  const bindWithObserver = (el, evt, handler, flag) => {
+  const bindWithObserver = (
+    el: HTMLElement,
+    evt: string,
+    handler: (this: HTMLElement, e: Event) => void,
+    flag: string,
+  ) => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
     el.setAttribute(flag, "true");
-    $(el).on(evt, handler);
+    $?.(el).on(evt, handler);
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(el)) {
-        $(el).off(evt, handler);
+        $?.(el).off(evt, handler);
         o.disconnect();
       }
     });
@@ -146,8 +150,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name =
-      (($("#filename").val())).toString().trim();
+    const name = String($?.("#filename").val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -175,42 +178,41 @@
   window.saveAsPDF = saveAsPDF;
   const initScrollSpy = (): void => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (window.bootstrap && window.bootstrap.ScrollSpy) {
+      if (window.bootstrap?.ScrollSpy) {
         new window.bootstrap.ScrollSpy(document.body, {
           target: "#useradd-sidenav",
           offset: 300,
         });
       } else {
         scheduleInteractiveError(
-          getMsg(document.body, "first_plugin_unavailable")
+          getMsg(document.body, "first_plugin_unavailable"),
         );
       }
     } catch (_) {
       scheduleInteractiveError(
-        getMsg(document.body, "first_plugin_unavailable")
+        getMsg(document.body, "first_plugin_unavailable"),
       );
     }
   };
-  const onListItemClick = function (): void {
-    $(".list-group-item").parent().removeClass("text-primary");
-    $(this).parent().addClass("text-primary");
+  const onListItemClick = function (this: HTMLElement): void {
+    $?.(".list-group-item").parent().removeClass("text-primary");
+    $?.(this).parent().addClass("text-primary");
   };
   const initListGroup = (): void => {
     document
-      .querySelectorAll(".list-group-item")
-      .forEach((el: Element): void =>
-        { bindWithObserver(
+      .querySelectorAll<HTMLElement>(".list-group-item")
+      .forEach((el): void => {
+        bindWithObserver(
           el,
           "click",
           onListItemClick,
-          dataListenerGuard + "-lgi"
-        ); }
-      );
+          dataListenerGuard + "-lgi",
+        );
+      });
   };
-  const check_theme = color_val => {
-    $("#theme_color").prop("checked", false);
-    $('input[value="' + color_val + '"]').prop("checked", true);
+  const check_theme = (color_val?: unknown): void => {
+    $?.("#theme_color").prop("checked", false);
+    $?.('input[value="' + color_val + '"]').prop("checked", true);
   };
   window.check_theme = check_theme;
   const init = (): void => {

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editToggle
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-template-expressions */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,15 +11,15 @@
   const dataGuardMsg = "data-guard-msg";
   const langKey = "erp-np-lang";
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(dataClientLocalized) === "true") {
       msg = el.getAttribute(dataGuardMsg) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -38,7 +37,7 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -49,7 +48,6 @@
         document.body.appendChild(container);
       }
       const bsLink = document.querySelector('link[href*="bootstrap"]');
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bsLink && window.bootstrap.Toast) {
         const toast = document.createElement("div");
         toast.className = "toast";
@@ -79,131 +77,125 @@
   };
   document.addEventListener("pointerup", onErrorPointerUp);
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { m.removedNodes.forEach(n => {
+    muts.forEach(m => {
+      m.removedNodes.forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   $((): void => {
     const bindIncome = (): void => {
-      $(".income_data").each((_, el) => {
+      $(".income_data").each((_, el: HTMLElement) => {
         const $el = $(el);
         if ($el.data("listener-income") === true) return;
         $el.data("listener-income", true);
-        const handler = e => {
+        const handler = (e?: Event) => {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
-            $row.find(".income_data").each((i, inp) => {
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-              const v = parseFloat($(inp).val()) || 0;
+            $row.find(".income_data").each((i: number, inp) => {
+              const v = parseFloat(String($(inp).val() ?? "")) || 0;
               catTotal += v;
             });
-            $row.find(".totalIncome").text(catTotal);
+            $row.find(".totalIncome").text(String(catTotal));
             const month = $el.data("month") ?? "";
             let mTotal = 0;
             $row
               .parent()
               .find(`.${month}_income`)
-              .each((i, inp) => {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                mTotal += parseFloat($(inp).val()) || 0;
+              .each((i: number, inp) => {
+                mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
-            $row.parent().find(`.${month}_total_income`).text(mTotal);
+            $row.parent().find(`.${month}_total_income`).text(String(mTotal));
             let grand = 0;
             $row
               .parent()
               .find(".totalIncome")
-              .each((i, td) => {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+              .each((i: number, td) => {
                 grand += parseFloat($(td).text()) || 0;
               });
-            $row.parent().find(".income").text(grand);
+            $row.parent().find(".income").text(String(grand));
           } catch {
             errorMessage = getLocalizedMessage("income_calculation_failed", el);
           }
         };
         $el.on("keyup", handler);
         new MutationObserver((ms, obs) => {
-          ms.forEach(m =>
-            { m.removedNodes.forEach(n => {
+          ms.forEach(m => {
+            m.removedNodes.forEach(n => {
               if (n === el) {
                 $el.off("keyup", handler);
                 obs.disconnect();
               }
-            }); }
-          );
+            });
+          });
         }).observe(document.body, { childList: true, subtree: true });
         handler();
       });
     };
 
     const bindExpense = (): void => {
-      $(".expense_data").each((_, el) => {
+      $(".expense_data").each((_, el: HTMLElement) => {
         const $el = $(el);
         if ($el.data("listener-expense") === true) return;
         $el.data("listener-expense", true);
-        const handler = e => {
+        const handler = (e?: Event) => {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
-            $row.find(".expense_data").each((i, inp) => {
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-              catTotal += parseFloat($(inp).val()) || 0;
+            $row.find(".expense_data").each((i: number, inp) => {
+              catTotal += parseFloat(String($(inp).val() ?? "")) || 0;
             });
-            $row.find(".totalExpense").text(catTotal);
+            $row.find(".totalExpense").text(String(catTotal));
             const month = $el.data("month") ?? "";
             let mTotal = 0;
             $row
               .parent()
               .find(`.${month}_expense`)
-              .each((i, inp) => {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                mTotal += parseFloat($(inp).val()) || 0;
+              .each((i: number, inp) => {
+                mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
-            $row.parent().find(`.${month}_total_expense`).text(mTotal);
+            $row.parent().find(`.${month}_total_expense`).text(String(mTotal));
             let grand = 0;
             $row
               .parent()
               .find(".totalExpense")
-              .each((i, td) => {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+              .each((i: number, td) => {
                 grand += parseFloat($(td).text()) || 0;
               });
-            $row.parent().find(".expense").text(grand);
+            $row.parent().find(".expense").text(String(grand));
           } catch {
             errorMessage = getLocalizedMessage(
               "expense_calculation_failed",
-              el
+              el,
             );
           }
         };
         $el.on("keyup", handler);
         new MutationObserver((ms, obs) => {
-          ms.forEach(m =>
-            { m.removedNodes.forEach(n => {
+          ms.forEach(m => {
+            m.removedNodes.forEach(n => {
               if (n === el) {
                 $el.off("keyup", handler);
                 obs.disconnect();
               }
-            }); }
-          );
+            });
+          });
         }).observe(document.body, { childList: true, subtree: true });
         handler();
       });
     };
 
     const bindPeriod = (): void => {
-      $(".period").each((_, el) => {
+      $(".period").each((_, el: HTMLElement) => {
         const $el = $(el);
         if ($el.data("listener-period") === true) return;
         $el.data("listener-period", true);
-        const handler = e => {
+        const handler = (e?: Event) => {
           try {
             const val = $el.val() ?? "";
             $(".budget_plan").addClass("d-none");
@@ -214,14 +206,14 @@
         };
         $el.on("change", handler);
         new MutationObserver((ms, obs) => {
-          ms.forEach(m =>
-            { m.removedNodes.forEach(n => {
+          ms.forEach(m => {
+            m.removedNodes.forEach(n => {
               if (n === el) {
                 $el.off("change", handler);
                 obs.disconnect();
               }
-            }); }
-          );
+            });
+          });
         }).observe(document.body, { childList: true, subtree: true });
         handler();
       });

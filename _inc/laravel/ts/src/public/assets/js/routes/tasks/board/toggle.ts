@@ -3,13 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
     const ids = ["task-view-toggle-list", "task-view-toggle-grid"];
-    const anchors = ids.map(id => document.getElementById(id)).filter(Boolean);
+    const anchors = ids
+      .map(id => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
     if (anchors.length === 0) return;
 
     anchors.forEach(a => {
@@ -20,17 +21,15 @@
         const url = a.getAttribute("data-url") ?? "#";
         if (
           a.hasAttribute("href") &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
           url !== "#"
         ) {
           a.setAttribute("href", url);
         }
 
-        a.addEventListener("click", e => {
+        a.addEventListener("click", (e: Event) => {
           try {
             const href = a.getAttribute("href") ?? "#";
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (href && href !== "#") return;
             e.preventDefault();
 
@@ -48,13 +47,7 @@
             }
 
             const bsLink = document.querySelector('link[href*="bootstrap"]');
-            if (
-              bsLink &&
-              // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-              typeof window.bootstrap !== "undefined" &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              window.bootstrap.Toast
-            ) {
+            if (bsLink && window.bootstrap?.Toast) {
               const toast = document.createElement("div");
               toast.className = "toast";
               toast.setAttribute("role", "alert");
@@ -78,7 +71,7 @@
                   console.error(
                     "[assets/js/routes/taskBoard/viewToggle.js] Bootstrap toast instantiation error:",
                     err?.constructor?.name ?? "Error",
-                    err?.message ?? "Unknown error"
+                    err?.message ?? "Unknown error",
                   );
                 alert(msg);
               }
@@ -95,7 +88,7 @@
               console.error(
                 "[assets/js/routes/taskBoard/viewToggle.js] Click handler error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
           }
         });
@@ -107,7 +100,7 @@
           console.error(
             "[assets/js/routes/taskBoard/viewToggle.js] Link binding error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -119,7 +112,7 @@
       console.error(
         "[assets/js/routes/taskBoard/viewToggle.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

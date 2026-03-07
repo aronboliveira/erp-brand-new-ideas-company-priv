@@ -19,9 +19,10 @@ import os
 import sys
 import time
 from dataclasses import dataclass, field
+from typing import Any
 
 try:
-    from playwright.sync_api import sync_playwright, TimeoutError as PwTimeout  # type: ignore[import-untyped]
+    from playwright.sync_api import sync_playwright, TimeoutError as PwTimeout
     HAS_PLAYWRIGHT = True
 except ImportError:
     HAS_PLAYWRIGHT = False
@@ -39,7 +40,7 @@ class TestResult:
     status: int = 0
     duration_ms: float = 0
     error: str = ""
-    details: dict = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 class PlaywrightHTTPTester:
@@ -97,8 +98,8 @@ class PlaywrightHTTPTester:
 
         return self.results
 
-    def _test_page_load(self, page, path: str, name: str,
-                        expect_status: int = 200, expect_text: str = ""):
+    def _test_page_load(self, page: Any, path: str, name: str,
+                        expect_status: int = 200, expect_text: str = "") -> None:
         start = time.time()
         try:
             resp = page.goto(f"{self.base_url}{path}", wait_until="domcontentloaded", timeout=15000)
@@ -127,8 +128,8 @@ class PlaywrightHTTPTester:
                 name=name, passed=False, error=str(e)
             ))
 
-    def _test_js_rendered(self, page, path: str, name: str,
-                          selector: str = "", expect_element: str = "", wait_ms: int = 5000):
+    def _test_js_rendered(self, page: Any, path: str, name: str,
+                          selector: str = "", expect_element: str = "", wait_ms: int = 5000) -> None:
         start = time.time()
         try:
             page.goto(f"{self.base_url}{path}", wait_until="networkidle", timeout=15000)
@@ -153,7 +154,7 @@ class PlaywrightHTTPTester:
         except Exception as e:
             self.results.append(TestResult(name=name, passed=False, error=str(e)))
 
-    def _test_login(self, page) -> bool:
+    def _test_login(self, page: Any) -> bool:
         start = time.time()
         try:
             page.goto(f"{self.base_url}/login", wait_until="domcontentloaded", timeout=15000)
@@ -184,7 +185,7 @@ class PlaywrightHTTPTester:
             ))
             return False
 
-    def _test_console_errors(self, page, path: str, name: str):
+    def _test_console_errors(self, page: Any, path: str, name: str) -> None:
         errors: list[str] = []
         page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
         try:
@@ -200,8 +201,8 @@ class PlaywrightHTTPTester:
             details={"errors": errors[:10]}
         ))
 
-    def _test_network_perf(self, page, path: str, name: str):
-        requests: list[dict] = []
+    def _test_network_perf(self, page: Any, path: str, name: str) -> None:
+        requests: list[dict[str, Any]] = []
         page.on("request", lambda req: requests.append({
             "url": req.url, "method": req.method,
             "resource_type": req.resource_type,
@@ -227,7 +228,7 @@ class PlaywrightHTTPTester:
         ))
 
 
-def print_results(results: list[TestResult]):
+def print_results(results: list[TestResult]) -> None:
     """Console-friendly output."""
     print(f"\n{'═' * 60}")
     print(f" Playwright HTTP Tests — {BASE_URL}")
@@ -252,7 +253,7 @@ def print_results(results: list[TestResult]):
     print(f"{'═' * 60}\n")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Playwright HTTP smoke tests")
     parser.add_argument("--headed", action="store_true", help="Show browser window")
     parser.add_argument("--slow-mo", type=int, default=0, help="Slow down actions (ms)")

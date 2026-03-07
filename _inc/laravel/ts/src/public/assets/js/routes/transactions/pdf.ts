@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -13,19 +12,19 @@
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-pdf-error";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: Document | Element = document) =>
+    r.querySelector(s);
   const hasBootstrap = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
-    if (c) {
-      return c;
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLDivElement => {
+    const existing = qs("#np-toast-container") as HTMLDivElement | null;
+    if (existing) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -35,7 +34,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -50,12 +49,15 @@
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
-      const body = qs(".toast-body", t);
+      const body = qs(".toast-body", t as Element);
       if (body) {
         body.textContent = message ?? errFb;
       }
       try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+        new window.bootstrap.Toast(t as Element, {
+          autohide: true,
+          delay: 4000,
+        }).show();
       } catch (_) {
         alert(message ?? errFb);
       }
@@ -63,9 +65,8 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = message => {
+  const schedulePointerupError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -86,7 +87,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -95,9 +96,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -115,14 +116,15 @@
     }
     return msg;
   };
-  const filenameFrom = (): void => {
+  const filenameFrom = (): string => {
     try {
-      return ($("#filename").val()).toString().trim();
+      if (!$) return "download";
+      return String($("#filename").val() ?? "").trim() || "download";
     } catch (_) {
       return "download";
     }
   };
-  const ensureHtml2Pdf = (): void => {
+  const ensureHtml2Pdf = (): boolean => {
     if (typeof window.html2pdf === "function") {
       return true;
     }
@@ -136,8 +138,7 @@
     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
     return false;
   };
-  const doSave = el => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  const doSave = (el: HTMLElement | null) => {
     if (!ensureHtml2Pdf()) {
       return;
     }
@@ -154,7 +155,7 @@
       jsPDF: { unit: "in", format: "A4" },
     };
     try {
-      window.html2pdf().set(opt).from(area).save();
+      (window.html2pdf as () => any)().set(opt).from(area).save();
     } catch (_) {
       schedulePointerupError(getMsg(el ?? document.body, "pdf_unavailable"));
     }

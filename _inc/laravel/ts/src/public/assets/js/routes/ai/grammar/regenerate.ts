@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module regenerate
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,7 +13,7 @@
     if (copy.getAttribute("data-listener-active") === "true") return;
     copy.setAttribute("data-listener-active", "true");
 
-    const toast = msg => {
+    const toast = (msg: string) => {
       try {
         if (!msg) return;
         let container = document.getElementById("toast-container");
@@ -27,13 +26,7 @@
           document.body.appendChild(container);
         }
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap?.Toast) {
           const t = document.createElement("div");
           t.className = "toast";
           t.setAttribute("role", "alert");
@@ -53,9 +46,8 @@
       }
     };
 
-    const doCopy = async (text, okMsg, errMsg) => {
+    const doCopy = async (text: string, okMsg: string, errMsg: string) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);
           toast(okMsg);
@@ -78,13 +70,13 @@
           console.error(
             "[assets/js/routes/aiGrammar/clipboard.js] Copy error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
         toast(errMsg);
       }
     };
 
-    copy.addEventListener("click", e => {
+    copy.addEventListener("click", (e: Event) => {
       try {
         e.preventDefault();
         const ok =
@@ -92,7 +84,7 @@
         const err =
           out.getAttribute("data-copy-err-msg") ??
           "Copy failed. Please try again.";
-        void doCopy(out.value ?? "", ok, err);
+        void doCopy((out as HTMLTextAreaElement).value ?? "", ok, err);
       } catch (err2) {
         if (
           window.location.hostname === "localhost" ||
@@ -101,7 +93,7 @@
           console.error(
             "[assets/js/routes/aiGrammar/clipboard.js] Click handler error:",
             err2?.constructor?.name ?? "Error",
-            err2?.message ?? "Unknown error"
+            err2?.message ?? "Unknown error",
           );
       }
     });
@@ -113,7 +105,7 @@
       console.error(
         "[assets/js/routes/aiGrammar/clipboard.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

@@ -51,7 +51,7 @@ def get_public_methods(file_path: str) -> list[str]:
                 methods.append(re.sub(r'[_-]', '', m.group(1).lower()))
     return methods
 
-def main():
+def main() -> None:
     init(autoreset=True)
     print(Fore.GREEN + "You executed the file comparison between two Laravel Modules class methods.\n"
           "Press Ctrl+C to exit, otherwise wait for 5 seconds...")
@@ -63,13 +63,14 @@ def main():
         for d in (first_root, second_root):
             if not os.path.isdir(d):
                 raise TypeError(f"The given path {d!r} is not a directory.")
-        first_php, second_php = [], []
+        first_php: list[str] = []
+        second_php: list[str] = []
         for base, coll in ((first_root, first_php), (second_root, second_php)):
             for root, _, files in os.walk(base):
                 for fn in files:
                     if fn.lower().endswith('.php'):
                         coll.append(os.path.join(root, fn))
-        first_rel  = [os.path.relpath(p, first_root)  for p in first_php]
+        first_rel = [os.path.relpath(p, first_root) for p in first_php]
         second_rel = [os.path.relpath(p, second_root) for p in second_php]
         pairs: list[tuple[str,str,str,str]] = []
         for f in first_rel:
@@ -126,11 +127,11 @@ def main():
         lack = sum(1 for s in statuses.values() if s == "LACKING METHODS")
         err = sum(1 for s in statuses.values() if s == "Error")
         print()
-        for r in (*eqs, 
-                  '-------------### END OF EQUALS ###--------------------------', 
+        for r in (*eqs,
+                  '-------------### END OF EQUALS ###--------------------------',
                   *adds,
-                  '-------------### END OF ADDEDS ###--------------------------', 
-                  *errs, 
+                  '-------------### END OF ADDEDS ###--------------------------',
+                  *errs,
                   '-------------### END OF ERRORS ###--------------------------',
                   *lck,
                   '-------------### END OF LACKING ###--------------------------'

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module list
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el, msgKey) => {
+  const getMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,7 +40,11 @@
     return msg;
   };
 
-  const showFeedback = (el, key, ev = "pointerup") => {
+  const showFeedback = (
+    el: HTMLElement,
+    key: string,
+    ev: string = "pointerup",
+  ) => {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -62,7 +65,9 @@
             </div>`;
         document.body.appendChild(toast);
       }
-      const handler = (): void => { new bootstrap.Toast(toast).show(); };
+      const handler = (): void => {
+        new bootstrap.Toast(toast).show();
+      };
       document.addEventListener(ev, handler, { once: true });
       const mo = new MutationObserver((_, o) => {
         if (!document.body.contains(toast)) {
@@ -72,14 +77,22 @@
       });
       mo.observe(document.body, { childList: true, subtree: true });
     } else {
-      const handler = (): void => { alert(text); };
+      const handler = (): void => {
+        alert(text);
+      };
       document.addEventListener(ev, handler, { once: true });
     }
   };
 
-  const guardOnce = (el, key, ev = "pointerup") => {
+  const guardOnce = (
+    el: HTMLElement,
+    key: string,
+    ev: string = "pointerup",
+  ) => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-    const handler = (): void => { showFeedback(el, key, ev); };
+    const handler = (): void => {
+      showFeedback(el, key, ev);
+    };
     el.addEventListener(ev, handler, { once: true });
     el.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
@@ -91,9 +104,10 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
 
-  const routeGuard = (element, alt) => {
+  const routeGuard = (element: HTMLElement | null, alt: string) => {
     const url = element?.getAttribute?.("data-url");
-    const href = element?.action ?? element?.href;
+    const href =
+      element?.getAttribute?.("action") ?? element?.getAttribute?.("href");
     return (
       (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
     );
@@ -110,7 +124,6 @@
     }
 
     const initChoices = (): void => {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!$(".multi-select").length) return;
       if (typeof window.Choices !== "function") {
         showFeedback(document.body, "choices_unavailable");
@@ -121,12 +134,11 @@
           console.error("Choices library failed to load");
         return;
       }
-      $(".multi-select").each((_, element) => {
+      $(".multi-select").each((_, element: HTMLElement) => {
         const id = element.id;
         if (id === "") return;
         if (element.getAttribute("data-choices-init") === "true") return;
         try {
-           
           new Choices(`#${id}`, { removeItemButton: true });
           element.setAttribute("data-choices-init", "true");
         } catch {
@@ -141,12 +153,13 @@
       });
     };
 
-    const onClientChange = e => {
-      const clientId = $(e.currentTarget).val() ?? "";
-      getParent(clientId, e.currentTarget);
+    const onClientChange = (e: Event) => {
+      const target = e.currentTarget as HTMLElement;
+      const clientId = String($(target).val() ?? "");
+      getParent(clientId, target);
     };
 
-    const getParent = (bid, targetEl) => {
+    const getParent = (bid: string, targetEl: HTMLElement) => {
       const base = `{{ url('contracts/clients/select') }}`;
       const url = `${base}/${encodeURIComponent(bid ?? "")}`;
       if (!bid || routeGuard(null, url)) {
@@ -156,34 +169,30 @@
       $.ajax({
         url,
         type: "GET",
-        success: data => {
+        success: (data: { id?: string | number; name?: string }[]) => {
           try {
             const $select = $("#project_id");
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (!$select.length) {
               guardOnce(document.body, "project_list_unavailable");
               return;
             }
             $select.empty();
-            if (Array.isArray(data) && (data.length > 0)) {
+            if (Array.isArray(data) && data.length > 0) {
               data.forEach(item => {
                 if (!item) return;
                 const val = item.id ?? "";
                 const text = item.name ?? "";
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
                 if (String(val).length)
                   $select.append(
-                    `<option value="${String(val)}">${String(text)}</option>`
+                    `<option value="${String(val)}">${String(text)}</option>`,
                   );
               });
             }
             if (
               typeof window.Choices === "function" &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               !$select[0].getAttribute("data-choices-init")
             ) {
               try {
-                 
                 new Choices("#project_id", { removeItemButton: true });
                 $select[0].setAttribute("data-choices-init", "true");
               } catch {
@@ -194,7 +203,9 @@
             showFeedback(targetEl, "project_list_unavailable");
           }
         },
-        error: (): void => { showFeedback(targetEl, "project_list_unavailable"); },
+        error: (): void => {
+          showFeedback(targetEl, "project_list_unavailable");
+        },
       });
     };
 

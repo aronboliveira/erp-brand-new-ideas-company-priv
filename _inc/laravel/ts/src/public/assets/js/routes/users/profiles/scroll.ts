@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module scroll
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -15,15 +14,14 @@
   const dataBindGuard = "data-scrollspy-bound";
   const dataClickGuard = "data-listgroup-click-bound";
   const dataErrGuard = "data-scrollspy-error";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: ParentNode = document) => r.querySelector(s);
   const hasBS = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToast = (): void => {
-    let c = qs("#np-toast-container");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToast = (): HTMLElement => {
+    let c = qs("#np-toast-container") as HTMLElement | null;
     if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
@@ -35,7 +33,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = msg => {
+  const showErrorNow = (msg: string) => {
     if (hasBS()) {
       const container = ensureToast();
       let t = qs("#np-toast", container);
@@ -61,9 +59,8 @@
       alert(msg ?? errFb);
     }
   };
-  const scheduleClickError = msg => {
+  const scheduleClickError = (msg: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -82,7 +79,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -91,9 +88,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -112,11 +109,11 @@
     return msg;
   };
   const initScrollSpy = (): void => {
-    const target = qs("#useradd-sidenav") || document.body;
+    const target =
+      (qs("#useradd-sidenav") as HTMLElement | null) ?? document.body;
     if (target.getAttribute(dataBindGuard) === "true") return;
     target.setAttribute(dataBindGuard, "true");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!window.bootstrap.ScrollSpy) {
         try {
           if (
@@ -146,8 +143,7 @@
     const root = document.body;
     if (root.getAttribute(dataClickGuard) === "true") return;
     root.setAttribute(dataClickGuard, "true");
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!$.fn) {
+    if (!$ || !$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -162,10 +158,9 @@
       try {
         const href = this.getAttribute("href") ?? "";
         const $all = $(".list-group-item");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        if ($all && $all.length) {
+        if ($all?.length) {
           $all
-            .filter(function (): void {
+            .filter(function (this: HTMLElement): boolean {
               return (this.getAttribute("href") ?? "") === href;
             })
             .parent()

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -12,22 +11,20 @@
 
   form.addEventListener(
     "submit",
-    e => {
+    (e: Event) => {
       const url =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          form.getAttribute("data-guard-msg") ?? "Update route is unavailable. Please contact technical support or your domain administrator.";
+          form.getAttribute("data-guard-msg") ??
+          "Update route is unavailable. Please contact technical support or your domain administrator.";
 
         try {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
           if (window.bootstrap.Toast) {
             const container =
               document.getElementById("toast-container") ??
-              ((): void => {
+              ((): HTMLDivElement => {
                 const c = document.createElement("div");
                 c.id = "toast-container";
                 document.body.appendChild(c);
@@ -45,7 +42,7 @@
             body.textContent = msg;
 
             toastEl.appendChild(body);
-            container.appendChild(toastEl);
+            (container as HTMLElement).appendChild(toastEl);
             window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
           } else {
             alert(msg);
@@ -55,7 +52,7 @@
         }
       }
     },
-    { passive: false }
+    { passive: false },
   );
 })();
 

@@ -58,7 +58,7 @@
                                 var t=document.createElement('div');
                                 t.className='toast align-items-center text-bg-danger border-0';
                                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                                t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
                                 t.querySelector('.toast-body').textContent = msg || '#';
                                 c.appendChild(t);
                                 bootstrap.Toast.getOrCreateInstance(t,{delay:4000}).show();

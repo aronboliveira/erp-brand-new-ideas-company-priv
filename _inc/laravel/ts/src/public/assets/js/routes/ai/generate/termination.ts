@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module termination
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -11,10 +10,9 @@
     const l = document.getElementById("termination-generate-link");
     if (!l || l.getAttribute("data-listener-active") === "true") return;
     l.setAttribute("data-listener-active", "true");
-    l.addEventListener("click", e => {
+    l.addEventListener("click", (e: Event) => {
       try {
         const href = l.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = l.getAttribute("data-url") ?? "#";
         if (href !== "#" || url !== "#") return;
         e.preventDefault();
@@ -22,13 +20,12 @@
           ? l.getAttribute("data-guard-msg")
           : "";
         const msg =
-          msgAttr?.trim().length > 0
+          (msgAttr ?? "").trim().length > 0
             ? msgAttr
             : "Generate termination route is unavailable. Please contact technical support or your domain administrator.";
         const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap = !!(
-          bootstrapLink &&
-          typeof window.bootstrap.Toast !== "undefined"
+          bootstrapLink && typeof window.bootstrap.Toast !== "undefined"
         );
         let container = document.getElementById("toast-container");
         if (!container) {

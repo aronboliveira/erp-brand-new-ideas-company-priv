@@ -118,7 +118,7 @@
                             <nav class="{{ ViewClassNamesConstants::NVB_DEF_TOP }}">
                                 <div class="header-left">
                                     <a class="{{ ViewClassNamesConstants::NVB_BR_TPR }}" href="#">
-                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="logo">
+                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="{{ __('logo') }}">
                                     </a>
                                 </div>
                                 <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarTogglerDemo01">
@@ -202,7 +202,7 @@
                                     </ul>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                        aria-label="Toggle navigation">
+                                        aria-label="{{ __('Toggle navigation') }}">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -221,7 +221,7 @@
                                     </a>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01"
-                                        aria-expanded="false" aria-label="Toggle navigation">
+                                        aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -864,7 +864,7 @@
                                                             </p>
                                                             <div class="d-flex  align-items-center ">
                                                                 <img src="{{ $logo . '/' . $value[LandingPageSettingsConstants::TM_USR_AV] }}"
-                                                                    class="wid-40 rounded-circle me-3" alt="User avatar">
+                                                                    class="wid-40 rounded-circle me-3" alt="{{ __('User avatar') }}">
                                                                 <span>
                                                                     <b class="fw-bold d-block">{{ $value[LandingPageSettingsConstants::TM_USR] ?? 'Anonymous' }}</b>
                                                                     {{ $value[LandingPageSettingsConstants::TM_USR_DSG] ?? 'Customer' }}
@@ -895,7 +895,7 @@
                             <div class="ftr-col cmp-detail">
                                 <div class="footer-logo mb-3">
                                     <a href="#">
-                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="logo">
+                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="{{ __('logo') }}">
                                     </a>
                                 </div>
                                 <p>
@@ -1048,7 +1048,7 @@
                                         <div class="input-wrapper border border-dark">
                                             <input type="email"
                                                 name="email"
-                                                placeholder="Type your email address…"
+                                                placeholder="{{ __('Type your email address…') }}"
                                                 {{ $joinUsRouteExists ? '' : 'disabled' }}>
                                             <button type="submit"
                                                     class="btn btn-dark rounded-pill"
@@ -1059,7 +1059,7 @@
                                     </form>
                                     @if (!$joinUsRouteExists)
                                         <p class="text-muted mt-2">
-                                            Sorry, sign-up is currently unavailable.
+                                            {{ __('Sorry, sign-up is currently unavailable.') }}
                                         </p>
                                     @endif
                                 </div>

@@ -3,16 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module fields
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const toast = msg => {
+    const toast = (msg: string) => {
       const text =
-        msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+        msg ??
+        "Requested route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -40,10 +39,10 @@
       }
     };
 
-    const bindGuard = el => {
+    const bindGuard = (el: HTMLElement | null) => {
       if (!el || el.getAttribute("data-listener-active") === "true") return;
       el.setAttribute("data-listener-active", "true");
-      el.addEventListener("click", e => {
+      el.addEventListener("click", (e: Event) => {
         try {
           const href = (el.getAttribute("href") ?? "#").trim();
           const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
@@ -57,11 +56,11 @@
 
     document
       .querySelectorAll("a[data-guard-msg], a[data-url]")
-      .forEach(bindGuard);
+      .forEach(el => bindGuard(el as HTMLElement));
 
     try {
       const els = [].slice.call(
-        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
       els.forEach((el: Element): void => {
         try {

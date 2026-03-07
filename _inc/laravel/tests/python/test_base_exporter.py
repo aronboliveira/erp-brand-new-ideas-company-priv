@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 from openpyxl import load_workbook
@@ -53,7 +54,7 @@ def test_format_helpers_cover_dates_currency_and_numbers() -> None:
     assert parse_number("invalid", default=None) is None
 
 
-def test_dataframe_to_sheet_currency_format_and_file_output(tmp_path) -> None:
+def test_dataframe_to_sheet_currency_format_and_file_output(tmp_path: Any) -> None:
     exporter = DummyExporter()
     exporter.create_workbook()
     assert exporter.sheet is not None
@@ -70,13 +71,14 @@ def test_dataframe_to_sheet_currency_format_and_file_output(tmp_path) -> None:
     assert saved_path.endswith("dummy.xlsx")
     workbook = load_workbook(output_path)
     sheet = workbook.active
+    assert sheet is not None
     assert sheet["A1"].value == "Name"
     assert sheet["B2"].value == 10.5
     assert sheet["B2"].number_format == "$#,##0.00"
     assert sheet.column_dimensions["A"].width == 18
 
 
-def test_output_to_stdout_writes_binary_workbook(monkeypatch) -> None:
+def test_output_to_stdout_writes_binary_workbook(monkeypatch: Any) -> None:
     exporter = DummyExporter()
     exporter.create_workbook()
     assert exporter.sheet is not None
@@ -109,6 +111,6 @@ def test_chart_and_formula_helpers_add_expected_artifacts() -> None:
     exporter.add_sum_formula(row=6, col=2, range_col="B", start_row=2, end_row=4)
     exporter.add_percentage_formula(row=7, col=2, value_cell="B6", total_cell="B4")
 
-    assert len(exporter.sheet._charts) == 3
+    assert len(exporter.sheet._charts) == 3  # type: ignore[attr-defined]
     assert exporter.sheet["B6"].value == "=SUM(B2:B4)"
     assert exporter.sheet["B7"].value == "=IF(B4=0,0,B6/B4)"

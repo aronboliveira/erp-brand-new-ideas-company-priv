@@ -9,7 +9,10 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const REPORT = "/tmp/eslint-result.json";
-if (!existsSync(REPORT)) { console.error("Missing " + REPORT); process.exit(1); }
+if (!existsSync(REPORT)) {
+  console.error("Missing " + REPORT);
+  process.exit(1);
+}
 const report = JSON.parse(readFileSync(REPORT, "utf8"));
 
 // Rules that are warnings and cannot be auto-fixed meaningfully
@@ -80,7 +83,8 @@ for (const entry of report) {
         // Find the nearest "let " to the left of column
         const letIdx = line.lastIndexOf("let ", col);
         if (letIdx !== -1) {
-          lines[idx] = line.slice(0, letIdx) + "const " + line.slice(letIdx + 4);
+          lines[idx] =
+            line.slice(0, letIdx) + "const " + line.slice(letIdx + 4);
           constFixes++;
         }
       }
@@ -89,7 +93,7 @@ for (const entry of report) {
 
   // ─── 2. Fix no-floating-promises ───
   const promiseWarnings = warnings.filter(
-    w => w.ruleId === "@typescript-eslint/no-floating-promises"
+    w => w.ruleId === "@typescript-eslint/no-floating-promises",
   );
   promiseWarnings.sort((a, b) => b.line - a.line);
   for (const w of promiseWarnings) {
@@ -122,12 +126,19 @@ for (const entry of report) {
     // Remove any existing one and replace
     if (src.startsWith("/* eslint-disable")) {
       // Replace existing
-      src = src.replace(/^\/\* eslint-disable[^]*?\*\/\n?/, disableComment + "\n");
+      src = src.replace(
+        /^\/\* eslint-disable[^]*?\*\/\n?/,
+        disableComment + "\n",
+      );
     } else {
       // Check if there's a @fileoverview JSDoc before which we should insert
       const jsdocMatch = src.match(/^(\/\*\*[\s\S]*?\*\/\n)/);
       if (jsdocMatch) {
-        src = jsdocMatch[1] + disableComment + "\n" + src.slice(jsdocMatch[1].length);
+        src =
+          jsdocMatch[1] +
+          disableComment +
+          "\n" +
+          src.slice(jsdocMatch[1].length);
       } else {
         src = disableComment + "\n" + src;
       }
@@ -140,4 +151,6 @@ for (const entry of report) {
   }
 }
 
-console.log(`Done: ${fileCount} files updated, ${constFixes} prefer-const fixes, ${promiseFixes} floating-promise fixes.`);
+console.log(
+  `Done: ${fileCount} files updated, ${constFixes} prefer-const fixes, ${promiseFixes} floating-promise fixes.`,
+);

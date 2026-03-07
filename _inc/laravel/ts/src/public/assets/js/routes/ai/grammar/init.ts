@@ -3,11 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module init
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+interface GrammarAjaxResponse {
+  message?: string;
+  [key: string]: unknown;
+}
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,29 +18,30 @@
   const dataErrGuard = "data-error-guard";
   const dataBoundInit = "data-bound-grammar-init";
   const dataBoundRegen = "data-bound-grammar-regen";
-  const qs = (s, r = document) => r.querySelector(s);
-  const ensureToastContainer = (): void => {
+  const qs = (
+    s: string,
+    r: Document | Element = document,
+  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
       return c;
     }
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
+    const div = document.createElement("div");
+    div.id = "np-toast-container";
+    div.setAttribute("aria-live", "polite");
+    div.setAttribute("aria-atomic", "true");
+    div.style.position = "fixed";
+    div.style.top = "1rem";
+    div.style.right = "1rem";
+    document.body.appendChild(div);
+    return div;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -65,9 +69,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -88,7 +91,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -97,9 +100,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -117,12 +120,15 @@
     }
     return msg;
   };
-  const resolveRoute = (el, explicit) => {
+  const resolveRoute = (
+    el: HTMLElement | undefined,
+    explicit: string,
+  ): string | null => {
     const url = el?.getAttribute?.("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
-        ? el.getAttribute("action") ?? ""
-        : el.getAttribute("href") ?? ""
+        ? (el.getAttribute("action") ?? "")
+        : (el.getAttribute("href") ?? "")
       : "";
     if (
       (!explicit || explicit === "#") &&
@@ -134,23 +140,20 @@
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
-      ? url
-      : href;
+        ? url
+        : href;
   };
   const initGrammarSeed = (): void => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataBoundInit) === "true") {
       return;
     }
     host.setAttribute(dataBoundInit, "true");
     try {
       let summernoteValue = "";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-      if ($ && $(".grammer_textarea").length > 0) {
-        summernoteValue = $(".grammer_textarea").val() ?? "";
+      if ($(".grammer_textarea").length > 0) {
+        summernoteValue = String($(".grammer_textarea").val() ?? "");
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!$.fn) {
           try {
             if (
@@ -162,13 +165,14 @@
           scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
           return;
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        if ($.fn.summernote && $(".summernote-simple").length > 0) {
+        if ("summernote" in $.fn && $(".summernote-simple").length > 0) {
           try {
             $(".summernote-simple").summernote();
-            summernoteValue = $(".summernote-simple").summernote("code");
+            summernoteValue = String(
+              $(".summernote-simple").summernote("code") ?? "",
+            );
           } catch (_) {
-            summernoteValue = $(".summernote-simple").val() ?? "";
+            summernoteValue = String($(".summernote-simple").val() ?? "");
           }
         } else {
           scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
@@ -183,7 +187,7 @@
       }
     } catch (_) {
       scheduleInteractiveError(
-        getMsg(document.body, "grammar_init_unavailable")
+        getMsg(document.body, "grammar_init_unavailable"),
       );
     }
     const mo = new MutationObserver((m, o) => {
@@ -205,13 +209,12 @@
     $(document.body).on("click.grammarRegen", "#regenerate", function (): void {
       try {
         const form = $("#myGrammarForm");
-        const formEl = form.get(0);
+        const formEl = form.get(0) as HTMLElement | undefined;
         const explicit = "{{ route('grammar.response') }}";
         const endpoint = resolveRoute(formEl, explicit);
         if (!endpoint) {
           scheduleInteractiveError(
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            getMsg(formEl || document.body, "generate_unavailable")
+            getMsg(formEl || document.body, "generate_unavailable"),
           );
           return;
         }
@@ -225,26 +228,25 @@
             try {
               $("#regenerate").empty();
               $("#regenerate").append(
-                '<span class="spinner-grow spinner-grow-sm" role="status"></span>'
+                '<span class="spinner-grow spinner-grow-sm" role="status"></span>',
               );
             } catch (_) {}
           },
-          success: function (data) {
+          success: function (data: GrammarAjaxResponse) {
             try {
               $(".response").removeClass("d-none");
               $("#regenerate").text("Re-Generate");
               if (data?.message) {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
                 if (window.show_toastr) {
                   window.show_toastr("error", data.message, "error");
                 }
                 $("#commonModalOver").modal("hide");
               } else {
-                $("#ai-description").val(data ?? "");
+                $("#ai-description").val(String(data ?? ""));
               }
             } catch (_) {
               scheduleInteractiveError(
-                getMsg(document.body, "generate_unavailable")
+                getMsg(document.body, "generate_unavailable"),
               );
             }
           },
@@ -268,20 +270,11 @@
     if (!window.copyGrammerText) {
       window.copyGrammerText = function (): void {
         try {
-          const copied = $("#ai-description").val() ?? "";
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          if ($ && $(".grammer_textarea").length > 0) {
+          const copied = String($("#ai-description").val() ?? "");
+          if ($(".grammer_textarea").length > 0) {
             $(".grammer_textarea").val(copied);
           } else {
-            if (
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-unnecessary-condition
-              $ &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              $.fn &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              $.fn.summernote &&
-              $(".summernote-simple").length > 0
-            ) {
+            if ("summernote" in $.fn && $(".summernote-simple").length > 0) {
               try {
                 $(".summernote-simple").summernote("code", copied);
               } catch (_) {
@@ -289,29 +282,27 @@
               }
             } else {
               scheduleInteractiveError(
-                getMsg(document.body, "plugin_unavailable")
+                getMsg(document.body, "plugin_unavailable"),
               );
             }
           }
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
           if (window.show_toastr) {
             window.show_toastr(
               "success",
               "Result text has been copied successfully",
-              "success"
+              "success",
             );
           }
           $("#commonModalOver").modal("hide");
         } catch (_) {
           scheduleInteractiveError(
-            getMsg(document.body, "grammar_init_unavailable")
+            getMsg(document.body, "grammar_init_unavailable"),
           );
         }
       };
     }
   };
   const init = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         if (

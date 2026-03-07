@@ -5,4 +5,6 @@ return [
     'sent' => 'Wysłaliśmy link do resetowania hasła e-mailem!',
     'token' => 'Ten token resetowania hasła jest nieprawidłowy.',
     'user' => 'Nie znaleziono użytkownika o podanym adresie e-mail.',
+
+    'throttled' => 'Niedawno poproszono o reset hasła. Sprawdź swoją skrzynkę e-mail.',
 ];

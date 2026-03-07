@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -12,11 +11,10 @@
     if (!a) return;
     if (a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
-    const toast = msg => {
+    const toast = (msg: string) => {
       const text =
         msg ?? "AI generation route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -43,7 +41,7 @@
         alert(text);
       }
     };
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       try {
         const href = (a.getAttribute("href") ?? "#").trim();
         const url = (a.getAttribute("data-url") ?? "#").trim();

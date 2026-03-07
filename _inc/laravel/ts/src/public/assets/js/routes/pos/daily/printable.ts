@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module printable
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -77,16 +76,22 @@
     },
   };
 
-  const toastContainer = ((): void => {
+  let toastContainer: HTMLElement | null = null;
+  const getToastContainer = (): HTMLElement => {
+    if (toastContainer) return toastContainer;
     const existing = document.querySelector<HTMLElement>(".toast-container");
-    if (existing) return existing;
+    if (existing) {
+      toastContainer = existing;
+      return existing;
+    }
     const container = document.createElement("div");
     container.className = "toast-container position-fixed bottom-0 end-0 p-3";
     document.body.append(container);
+    toastContainer = container;
     return container;
-  })();
+  };
 
-  const showError = (key, el = null) => {
+  const showError = (key: string, el: HTMLElement | null = null) => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -98,9 +103,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -111,14 +116,12 @@
         el?.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
       }
     }
     const bs = document.querySelector(BS_LINK);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (bs && window.bootstrap.Toast) {
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
@@ -140,7 +143,7 @@
         _d.append(_b, _c);
         toast.append(_d);
       }
-      toastContainer.append(toast);
+      getToastContainer().append(toast);
       new window.bootstrap.Toast(toast).show();
     } else {
       alert(msg);
@@ -157,18 +160,18 @@
       }
 
       if (typeof $ === "function") {
-        filename = $(FILENAME_INPUT).val() ?? filename;
+        filename = String($(FILENAME_INPUT).val() ?? filename);
       } else {
-        const input = document.querySelector(FILENAME_INPUT);
+        const input = document.querySelector<HTMLInputElement>(FILENAME_INPUT);
         if (input) filename = input.value || filename;
       }
 
-      if (typeof html2pdf !== "function") {
+      if (typeof window.html2pdf !== "function") {
         showError("pdf_save_failed");
         return;
       }
 
-      html2pdf()
+      (window.html2pdf as Function)()
         .set({
           margin: 0.3,
           filename,

@@ -3,15 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module bindStore
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
     const fm = document.getElementById("fm-bind-store-form");
-    if (fm?.getAttribute("data-submit-guarded") !== "true") {
+    if (fm && fm.getAttribute("data-submit-guarded") !== "true") {
       fm.setAttribute("data-submit-guarded", "true");
-      fm.addEventListener("submit", e => {
+      fm.addEventListener("submit", (e: Event) => {
         try {
           const action = (fm.getAttribute("action") ?? "#").trim();
           const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -22,7 +21,6 @@
             "Form bind store route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");
@@ -58,7 +56,9 @@
     const section = document.getElementById("lead_activated");
     const applyLeadToggle = (): void => {
       try {
-        const on = Array.from(radios).find(r => r.checked).value === "1";
+        const on =
+          (Array.from(radios) as HTMLInputElement[]).find(r => r.checked)
+            ?.value === "1";
         if (!section) return;
         if (on) {
           section.classList.remove("d-none");
@@ -68,14 +68,16 @@
       } catch (err) {}
     };
     if (radios.length !== 0) {
-      radios.forEach(r => { r.addEventListener("change", applyLeadToggle); });
+      radios.forEach(r => {
+        r.addEventListener("change", applyLeadToggle);
+      });
       applyLeadToggle();
     }
 
     const empLink = document.getElementById("employee-index-link");
-    if (empLink?.getAttribute("data-listener-active") !== "true") {
+    if (empLink && empLink.getAttribute("data-listener-active") !== "true") {
       empLink.setAttribute("data-listener-active", "true");
-      empLink.addEventListener("click", e => {
+      empLink.addEventListener("click", (e: Event) => {
         try {
           const href = (empLink.getAttribute("href") ?? "#").trim();
           const url = (empLink.getAttribute("data-url") ?? "#").trim();
@@ -86,7 +88,6 @@
             "Employee index route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

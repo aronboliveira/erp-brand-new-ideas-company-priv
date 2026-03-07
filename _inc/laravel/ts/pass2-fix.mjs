@@ -45,7 +45,7 @@ for (const file of files) {
       // Don't convert if already ??
       if (m.includes("??")) return m;
       return `${left} ?? `;
-    }
+    },
   );
 
   // x || "#" → x ?? "#"  (URL defaults)
@@ -55,7 +55,7 @@ for (const file of files) {
   // target || document  → target ?? document
   src = src.replace(
     /((?:target|container|wrapper|el|element|node|parent)\w*)\s*\|\|\s*(document\b)/g,
-    "$1 ?? $2"
+    "$1 ?? $2",
   );
 
   // ──────────────────────────────────────────────────────────────
@@ -66,25 +66,16 @@ for (const file of files) {
   // ──────────────────────────────────────────────────────────────
 
   // Pattern: identifier && identifier.property
-  src = src.replace(
-    /\b(\w+)\s*&&\s*\1\.(\w+)/g,
-    "$1?.$2"
-  );
+  src = src.replace(/\b(\w+)\s*&&\s*\1\.(\w+)/g, "$1?.$2");
 
   // Pattern: identifier !== null && identifier.property
-  src = src.replace(
-    /\b(\w+)\s*!==?\s*null\s*&&\s*\1\.(\w+)/g,
-    "$1?.$2"
-  );
+  src = src.replace(/\b(\w+)\s*!==?\s*null\s*&&\s*\1\.(\w+)/g, "$1?.$2");
   // Pattern: identifier !== undefined && identifier.property
-  src = src.replace(
-    /\b(\w+)\s*!==?\s*undefined\s*&&\s*\1\.(\w+)/g,
-    "$1?.$2"
-  );
+  src = src.replace(/\b(\w+)\s*!==?\s*undefined\s*&&\s*\1\.(\w+)/g, "$1?.$2");
   // Pattern: typeof identifier !== "undefined" && identifier.property
   src = src.replace(
     /typeof\s+(\w+)\s*!==?\s*["']undefined["']\s*&&\s*\1\.(\w+)/g,
-    "$1?.$2"
+    "$1?.$2",
   );
 
   // ──────────────────────────────────────────────────────────────
@@ -120,4 +111,6 @@ for (const file of files) {
   }
 }
 
-console.log(`${DRY ? "[DRY] " : ""}Pass 2 transformed ${changed} / ${files.length} files.`);
+console.log(
+  `${DRY ? "[DRY] " : ""}Pass 2 transformed ${changed} / ${files.length} files.`,
+);

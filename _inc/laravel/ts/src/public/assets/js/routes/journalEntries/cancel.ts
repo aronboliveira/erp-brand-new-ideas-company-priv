@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module cancel
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -17,10 +16,9 @@
     btns.forEach(btn => {
       if (btn.getAttribute("data-click-guarded") === "true") return;
       btn.setAttribute("data-click-guarded", "true");
-      btn.addEventListener("click", e => {
+      btn.addEventListener("click", (e: Event) => {
         try {
           const href = (btn.getAttribute("data-href") ?? "#").trim();
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (href && href !== "#") {
             window.location.assign(href);
             return;
@@ -31,7 +29,6 @@
             "Journal entries index route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

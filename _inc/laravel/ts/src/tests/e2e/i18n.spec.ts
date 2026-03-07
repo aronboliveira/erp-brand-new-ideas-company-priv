@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module i18n.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global $, jQuery */
 // @ts-check
@@ -88,13 +87,18 @@ const RTL_LOCALES = ["ar", "he"];
 /* ------------------------------------------------------------------ */
 /*  Helper: dismiss cookie / consent popups                           */
 /* ------------------------------------------------------------------ */
-function setupDialogAndConsent(page) {
+function setupDialogAndConsent(page: unknown) {
   page.on("dialog", d => d.accept());
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async (): void => {
-    const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
-  });
+  page.addLocatorHandler(
+    page.locator("#cc--main, .c--anim"),
+    async (): void => {
+      const btn = page
+        .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
+        .first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
+        await btn.click({ force: true });
+    },
+  );
 }
 
 /* ================================================================== */
@@ -168,7 +172,7 @@ test.describe("Guest locale – login page with {lang} route param", (): void =>
       expect(text.trim()).toContain(t.password.trim());
     });
 
-    test(`/login/${locale} translates submit button to "${t.login}"`, async ({
+    test(`/login/${locale} translates submit button: HTMLButtonElement to "${t.login}"`, async ({
       page,
     }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
@@ -354,7 +358,7 @@ test.describe("Language dropdown – login page", (): void => {
     setupDialogAndConsent(page);
   });
 
-  test("language dropdown contains links with data-lang-code for all supported locales", async ({
+  test("language dropdown contains links with data: unknown-lang-code for all supported locales", async ({
     page,
   }) => {
     await page.goto(`${BASE_URL}/login/en`, {
@@ -383,7 +387,7 @@ test.describe("Language dropdown – login page", (): void => {
     }
   });
 
-  test("each language link has href pointing to /login/{code}", async ({
+  test("each language link has href: string pointing to /login/{code}", async ({
     page,
   }) => {
     await page.goto(`${BASE_URL}/login/en`, {
@@ -647,14 +651,22 @@ test.describe("Translation JSON files – integrity", (): void => {
 
   test("en.json is valid JSON with > 1000 keys", (): void => {
     const raw = fs.readFileSync(path.join(langDir, "en.json"), "utf-8");
-    try { const data = JSON.parse(raw); } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }
+    try {
+      const data = JSON.parse(raw);
+    } catch (_jsonErr) {
+      console.error("JSON parse failed", _jsonErr);
+    }
     expect(Object.keys(data).length).toBeGreaterThan(1000);
   });
 
   for (const locale of ["pt-br", "es", "fr", "de"]) {
     test(`${locale}.json is valid JSON and covers at least 90% of en.json keys`, (): void => {
       const enRaw = fs.readFileSync(path.join(langDir, "en.json"), "utf-8");
-      try { const enData = JSON.parse(enRaw); } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }
+      try {
+        const enData = JSON.parse(enRaw);
+      } catch (_jsonErr) {
+        console.error("JSON parse failed", _jsonErr);
+      }
       const enKeys = Object.keys(enData);
 
       const localeFile = path.join(langDir, `${locale}.json`);
@@ -664,7 +676,11 @@ test.describe("Translation JSON files – integrity", (): void => {
       }
 
       const localeRaw = fs.readFileSync(localeFile, "utf-8");
-      try { const localeData = JSON.parse(localeRaw); } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }
+      try {
+        const localeData = JSON.parse(localeRaw);
+      } catch (_jsonErr) {
+        console.error("JSON parse failed", _jsonErr);
+      }
       const localeKeys = new Set(Object.keys(localeData));
 
       const covered = enKeys.filter(k => localeKeys.has(k)).length;
@@ -684,7 +700,11 @@ test.describe("Translation JSON files – integrity", (): void => {
       }
 
       const localeRaw = fs.readFileSync(localeFile, "utf-8");
-      try { const localeData = JSON.parse(localeRaw); } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }
+      try {
+        const localeData = JSON.parse(localeRaw);
+      } catch (_jsonErr) {
+        console.error("JSON parse failed", _jsonErr);
+      }
 
       const emptyKeys = Object.entries(localeData)
         .filter(([, v]) => typeof v === "string" && v.trim() === "")

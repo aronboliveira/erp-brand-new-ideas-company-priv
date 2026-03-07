@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 ((): void => {
   "use strict";
@@ -14,16 +13,15 @@
   const guardMsg =
     form.getAttribute("data-guard-msg") ?? "Update route is unavailable.";
   const submitBtn = form.querySelector('input[type="submit"]');
-  const titleEl = form.querySelector("#title");
-  const daysEl = form.querySelector("#days");
+  const titleEl = form.querySelector<HTMLInputElement>("#title");
+  const daysEl = form.querySelector<HTMLInputElement>("#days");
 
-  const actionIsBlocked = (): void => {
+  const actionIsBlocked = (): boolean => {
     const act = form.getAttribute("action") ?? "#";
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return !act || act === "#";
   };
 
-  const showErr = msg => {
+  const showErr = (msg: string) => {
     try {
       alert(msg);
     } catch {
@@ -31,7 +29,7 @@
     }
   };
 
-  const validate = (): void => {
+  const validate = (): boolean => {
     if (titleEl && !titleEl.value.trim()) {
       titleEl.focus();
       return false;
@@ -46,22 +44,19 @@
     return true;
   };
 
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
   if (actionIsBlocked() && submitBtn) {
-    submitBtn.addEventListener("click", e => {
+    submitBtn.addEventListener("click", (e: Event) => {
       e.preventDefault();
       showErr(guardMsg);
     });
   }
 
-  form.addEventListener("submit", e => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+  form.addEventListener("submit", (e: Event) => {
     if (actionIsBlocked()) {
       e.preventDefault();
       showErr(guardMsg);
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!validate()) {
       e.preventDefault();
     }

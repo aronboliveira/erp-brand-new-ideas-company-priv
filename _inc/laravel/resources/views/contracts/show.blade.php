@@ -73,7 +73,7 @@
                         t.setAttribute("aria-live", "assertive");
                         t.setAttribute("aria-atomic", "true");
                         t.innerHTML =
-                        '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                        '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                         container.appendChild(t);
                     }
                     const body = t.querySelector(".toast-body");
@@ -571,7 +571,7 @@
                         t.setAttribute("aria-live", "assertive");
                         t.setAttribute("aria-atomic", "true");
                         t.innerHTML =
-                        '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                        '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                         container.appendChild(t);
                     }
                     const body = t.querySelector(".toast-body");
@@ -943,7 +943,7 @@
                                         t.setAttribute('role','alert');
                                         t.setAttribute('aria-live','assertive');
                                         t.setAttribute('aria-atomic','true');
-                                        t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                        t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
                                         document.body.appendChild(t);
                                     }
                                     var body = t.querySelector('.toast-body');

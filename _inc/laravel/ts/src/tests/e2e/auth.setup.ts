@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module auth.setup
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, no-console */
 
 /* global $, jQuery */
 // @ts-check

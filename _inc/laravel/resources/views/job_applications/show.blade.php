@@ -271,11 +271,11 @@
                     <div class="rating-stars text-right">
                         @php $r = (int)($jobApplication->rating ?? 0); @endphp
                         <ul id="stars">
-                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Poor" data-value="1"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Fair" data-value="2"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Good" data-value="3"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Excellent" data-value="4"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="WOW!!!" data-value="5"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Poor') }}" data-value="1"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Fair') }}" data-value="2"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Good') }}" data-value="3"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Excellent') }}" data-value="4"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('WOW!!!') }}" data-value="5"><i class="fas fa-star fa-fw"></i></li>
                         </ul>
                     </div>
                 </div>
@@ -525,7 +525,7 @@
                                 <button type="button"
                                         class="btn-close btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
+                                        aria-label="{{ __('Close') }}"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }

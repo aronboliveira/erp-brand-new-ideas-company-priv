@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module apply
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -17,10 +16,9 @@
     }
     btn.setAttribute("data-listener-active", "true");
 
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", (e: Event) => {
       try {
         const formId = btn.getAttribute("data-form-id") ?? "";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const form = formId ? document.getElementById(formId) : null;
         if (!form) {
           return;
@@ -34,7 +32,6 @@
             "Apply profit & loss summary route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
 
@@ -69,7 +66,7 @@
         }
 
         e.preventDefault();
-        form.submit();
+        (form as HTMLFormElement).submit();
       } catch (err) {}
     });
   } catch (err) {}

@@ -80,7 +80,7 @@
               n.id='error-toast';
               n.className='toast align-items-center text-bg-danger border-0';
               n.setAttribute('role','alert'); n.setAttribute('aria-live','assertive'); n.setAttribute('aria-atomic','true');
-              n.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+              n.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
               document.body.appendChild(n);
             }
             new bootstrap.Toast(document.querySelector('#error-toast')).show();

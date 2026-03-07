@@ -63,20 +63,21 @@ _None — all audited issues resolved or documented as deferred._
 
 **Context:** Codex runs against a cloned snapshot (isolated env on port 19082, maintenance mode active).
 
-| Suite | Status | Notes |
-| --- | --- | --- |
-| PHPStan | timed_out (20 min) | Requires `--memory-limit=2G`; no `--workers` flag |
-| ESLint public | passed | 758 warnings — pre-fix snapshot; main workspace = 0 ✅ |
-| ESLint frontend | failed (exit 1) | 5 pre-fix warnings — already fixed in main workspace |
-| Playwright main/frontend | failed | webServer/auth setup timeout in isolated env |
-| PHPUnit | timed_out (20 min) | Expected; SQLite compat issue pre-existing |
-| Jest | **10 / 10** | ✅ |
-| pytest (npm script) | failed exit 127 | `source` not available in `/bin/sh`; rerun with bash = 53/53 |
-| pytest (bash rerun) | **53 / 53** | ✅ |
-| curl timing | 503 (all) | Maintenance mode in clone; not a real bug |
-| MySQL | **210 tables, 0 failures** | ✅ |
+| Suite                    | Status                     | Notes                                                        |
+| ------------------------ | -------------------------- | ------------------------------------------------------------ |
+| PHPStan                  | timed_out (20 min)         | Requires `--memory-limit=2G`; no `--workers` flag            |
+| ESLint public            | passed                     | 758 warnings — pre-fix snapshot; main workspace = 0 ✅       |
+| ESLint frontend          | failed (exit 1)            | 5 pre-fix warnings — already fixed in main workspace         |
+| Playwright main/frontend | failed                     | webServer/auth setup timeout in isolated env                 |
+| PHPUnit                  | timed_out (20 min)         | Expected; SQLite compat issue pre-existing                   |
+| Jest                     | **10 / 10**                | ✅                                                           |
+| pytest (npm script)      | failed exit 127            | `source` not available in `/bin/sh`; rerun with bash = 53/53 |
+| pytest (bash rerun)      | **53 / 53**                | ✅                                                           |
+| curl timing              | 503 (all)                  | Maintenance mode in clone; not a real bug                    |
+| MySQL                    | **210 tables, 0 failures** | ✅                                                           |
 
 **Codex findings that need action:**
+
 - `npm run test:pytest` uses `source` — fails under `/bin/sh`; fix: use `. .venv/bin/activate` or `bash -c ...`
 - PHPStan must be run with `--memory-limit=2G` (no `--workers` flag in installed version)
 

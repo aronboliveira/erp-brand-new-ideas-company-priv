@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module viewStore
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -13,7 +12,7 @@
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
 
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const action = (fm.getAttribute("action") ?? "#").trim();
         const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -27,7 +26,6 @@
 
         const hasBootstrap =
           !!document.querySelector('link[href*="bootstrap"]') &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           !!window.bootstrap;
 
         let container = document.getElementById("toast-container");

@@ -3,28 +3,27 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const link = document.getElementById("create-custom-field-link");
+  const link = document.getElementById(
+    "create-custom-field-link",
+  ) as HTMLAnchorElement | null;
   const alias = "data-listening-createclick";
-  if (link.hasAttribute(alias)) return;
+  if (!link || link.hasAttribute(alias)) return;
   link.addEventListener("click", event => {
     if (link.getAttribute(alias) !== "true") return;
     const url = link.getAttribute("data-url");
     if (url !== "#" || link.href !== "#") return;
     const hasBS = Array.from(document.scripts).some(
       s =>
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         s.src &&
         s.src.includes("bootstrap.min.js") &&
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.bootstrap &&
-        typeof window.bootstrap.Modal === "function"
+        typeof window.bootstrap.Modal === "function",
     );
     const msg =
-      event.currentTarget.getAttribute("data-guard-msg") ??
+      (event.currentTarget as HTMLElement)?.getAttribute("data-guard-msg") ??
       "Create route is unavailable. Please contact technical support or your domain administrator.";
     if (hasBS) {
       const wrapper = document.createElement("div");
@@ -44,7 +43,7 @@
                                 </div>
                             </div>`;
       document.body.appendChild(wrapper);
-      new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
+      new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
     } else {
       alert(msg);
     }

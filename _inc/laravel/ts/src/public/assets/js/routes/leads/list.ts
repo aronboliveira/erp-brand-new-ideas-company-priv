@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module list
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -15,17 +14,17 @@
   const dataErrArmed = "data-pipeline-error-armed";
   const dataBound = "data-pipeline-bound";
   const selector = '.change-pipeline select[name="default_pipeline_id"]';
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: Document | Element = document) =>
+    r.querySelector(s);
   const hasBS = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
-    if (c) return c;
-    c = document.createElement("div");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLDivElement => {
+    const existing = qs("#np-toast-container") as HTMLDivElement | null;
+    if (existing) return existing;
+    const c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -35,7 +34,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -61,9 +60,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = msg => {
+  const scheduleClickError = (msg: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrArmed) === "true") return;
     host.setAttribute(dataErrArmed, "true");
     const once = (): void => {
@@ -82,7 +80,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -91,9 +89,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -111,15 +109,14 @@
     }
     return msg;
   };
-  const verifyRoute = form => {
+  const verifyRoute = (form: HTMLFormElement | null) => {
     const url = form?.getAttribute?.("data-url") ?? "";
     const href = form?.action ?? "";
     if ((!url || url === "#") && (!href || href === "#")) return false;
     return true;
   };
   const bind = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-optional-chain
-    if (!($ && $.fn)) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -140,7 +137,7 @@
           scheduleClickError(getMsg(body, "pipeline_unavailable"));
           return;
         }
-        if (!verifyRoute(formEl)) {
+        if (!verifyRoute(formEl as HTMLFormElement)) {
           scheduleClickError(getMsg(body, "route_unavailable"));
           return;
         }
@@ -153,7 +150,7 @@
     const mo = new MutationObserver(function (): void {
       if (!document.querySelector(selector)) {
         try {
-          $(document).off("change", selector, handler);
+          $(document).off("change", selector);
         } catch (_) {}
         body.removeAttribute(dataBound);
       }

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module mock-page-audit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires */
 
 /* global $, jQuery */
 // @ts-check
@@ -41,15 +40,15 @@ function getRouteScriptFiles() {
   ).sort();
 }
 
-function readText(file) {
+function readText(file: unknown) {
   return fs.readFileSync(file, "utf8");
 }
 
-function toRepoRelative(file) {
+function toRepoRelative(file: unknown) {
   return path.relative(APP_ROOT, file).split(path.sep).join("/");
 }
 
-function isLocalReference(ref) {
+function isLocalReference(ref: unknown) {
   if (!ref) {
     return false;
   }
@@ -57,11 +56,11 @@ function isLocalReference(ref) {
   return !/^(?:[a-z]+:|\/\/|#|mailto:|tel:|javascript:|data:)/i.test(ref);
 }
 
-function normaliseReference(ref) {
+function normaliseReference(ref: unknown) {
   return ref.split("#")[0].split("?")[0];
 }
 
-function getHtmlLocalReferences(html) {
+function getHtmlLocalReferences(html: string) {
   const refs = [];
   const regex = /(?:href|src)=["']([^"']+)["']/gi;
 
@@ -90,7 +89,7 @@ function collectLineMatches(files, predicate) {
 
   for (const file of files) {
     const lines = readText(file).split(/\r?\n/);
-    lines.forEach((line, index) => {
+    lines.forEach((line, index: number) => {
       if (predicate(line, file)) {
         matches.push(
           `${toRepoRelative(file)}:${index + 1}: ${line.trim()}`.trim(),

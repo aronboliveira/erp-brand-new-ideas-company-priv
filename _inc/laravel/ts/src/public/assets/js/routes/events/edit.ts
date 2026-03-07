@@ -3,13 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
-const showToast = m => {
+const showToast = (m: string) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    if (window.bootstrap && window.bootstrap.Toast) {
+    if (window.bootstrap?.Toast) {
       let c = document.getElementById("toast-container");
       if (!c) {
         c = document.createElement("div");
@@ -24,7 +22,8 @@ const showToast = m => {
       t.setAttribute("aria-atomic", "true");
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-      t.querySelector(".toast-body").textContent = m;
+      const toastBody = t.querySelector(".toast-body");
+      if (toastBody) toastBody.textContent = m;
       c.appendChild(t);
       bootstrap.Toast.getOrCreateInstance(t, { delay: 4000 }).show();
       return;
@@ -33,15 +32,13 @@ const showToast = m => {
   alert(m);
 };
 const form = document.getElementById("edit_event_form");
-if (form?.getAttribute("data-listener-active") !== "true") {
+if (form && form.getAttribute("data-listener-active") !== "true") {
   form.setAttribute("data-listener-active", "true");
   form.addEventListener(
     "submit",
-    e => {
+    (e: Event) => {
       const a =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         form.getAttribute("action") ?? form.getAttribute("data-action-url");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!a || a === "#") {
         e.preventDefault();
         showToast(form.getAttribute("data-guard-msg") ?? "#");

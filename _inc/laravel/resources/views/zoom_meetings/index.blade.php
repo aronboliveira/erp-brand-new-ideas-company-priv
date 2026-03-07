@@ -124,7 +124,7 @@
                                                             $puAvatar = data_get($projectUser,'avatar');
                                                             $src      = $puAvatar ? ($profile . $puAvatar) : $defaultAvatar;
                                                         @endphp
-                                                        <img alt="image" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $puName }}" src="{{ $src }}" class="{{ VC::AV_CC_SM }} avatar-group" width="25" height="25">
+                                                        <img alt="{{ __('image') }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $puName }}" src="{{ $src }}" class="{{ VC::AV_CC_SM }} avatar-group" width="25" height="25">
                                                     @endforeach
                                                 </div>
                                             @else

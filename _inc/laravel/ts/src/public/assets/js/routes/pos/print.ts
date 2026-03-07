@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -11,8 +10,9 @@
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const guardListener = "data-guard-listener";
-  const getMsg = el => {
+  const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
+    if (!el) return msg;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
       el.getAttribute(dataClientLocalized) === "true"
@@ -20,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -42,9 +42,8 @@
   };
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = el => {
+  const showError = (el: HTMLElement | null) => {
     const message = getMsg(el);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (hasBootstrapCss() && window.bootstrap) {
       const wrapId = "toast-wrap-print-guard";
       if (!document.getElementById(wrapId)) {
@@ -69,9 +68,13 @@
       alert(message);
     }
   };
-  const onClick = e => {
+  const onClick = (e: Event) => {
     const $ = window.jQuery;
-    const btn = e.currentTarget;
+    const btn = e.currentTarget as HTMLElement | null;
+    if (!$) {
+      showError(btn);
+      return;
+    }
     try {
       const $rows = $(".row");
       const $toasts = $(".toast");
@@ -89,7 +92,6 @@
   };
   const attach = (): void => {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$) return;
     const btn = $("#print");
     if (btn.length === 0) return;
@@ -104,14 +106,13 @@
     const observer = new MutationObserver((): void => {
       if (!document.body.contains(btn)) {
         try {
-          window.jQuery("#print").off("click", onClick);
+          if (window.jQuery) window.jQuery("#print").off("click", onClick);
         } catch {}
         observer.disconnect();
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
   };
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
   if (window.jQuery) {
     jQuery((): void => {
       attach();

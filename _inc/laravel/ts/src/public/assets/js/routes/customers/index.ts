@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -13,23 +12,22 @@
   const LANG_KEY = "erp-np-lang";
   let errorMessage = "";
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
       msg = el.getAttribute(GUARD_MSG) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(LANG_KEY) ??
-        document.documentElement.lang ?? "en"
+        (document.documentElement.lang || "en")
       )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
-        translations?.[lang]?.[key] ||
+        window.translations?.[lang]?.[key] ||
         el.getAttribute(GUARD_MSG) ||
-        translations?.en?.[key] ||
+        window.translations?.en?.[key] ||
         msg;
       if (msg !== ERR_FB) {
         el.setAttribute(GUARD_MSG, msg);
@@ -39,7 +37,7 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -52,7 +50,6 @@
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&
         window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (hasBs) {
         const toast = document.createElement("div");
         toast.className = "toast";
@@ -81,14 +78,14 @@
   };
   document.addEventListener("pointerup", onPointerUp);
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { Array.from(m.removedNodes).forEach(n => {
+    muts.forEach(m => {
+      Array.from(m.removedNodes).forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
@@ -110,27 +107,26 @@
         fields.forEach(key => {
           const bill = $(`[name='billing_${key}']`);
           const ship = $(`[name='shipping_${key}']`);
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!bill.length || !ship.length) {
             throw new Error("shipping_copy_failed");
           }
-          ship.val(bill.val());
+          ship.val(bill.val() as string);
         });
-      } catch (e) {
-        errorMessage = getLocalizedMessage(e.message, btn);
+      } catch (err) {
+        errorMessage = getLocalizedMessage((err as Error).message, btn);
       }
     };
 
     btn.addEventListener("click", handler);
     new MutationObserver((muts, obs) => {
-      muts.forEach(m =>
-        { Array.from(m.removedNodes).forEach(n => {
+      muts.forEach(m => {
+        Array.from(m.removedNodes).forEach(n => {
           if (n === btn) {
             btn.removeEventListener("click", handler);
             obs.disconnect();
           }
-        }); }
-      );
+        });
+      });
     }).observe(document.body, { childList: true, subtree: true });
   });
 })();

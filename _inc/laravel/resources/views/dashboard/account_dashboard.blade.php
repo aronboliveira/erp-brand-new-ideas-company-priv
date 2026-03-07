@@ -90,7 +90,7 @@
                             type="button"
                             class="btn-close btn-close-white me-2 m-auto"
                             data-bs-dismiss="toast"
-                            aria-label="Close"
+                            aria-label="{{ __('Close') }}"
                             ></button>
                         </div>`;
                         document.body.append(toast);

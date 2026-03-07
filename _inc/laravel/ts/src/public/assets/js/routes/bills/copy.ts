@@ -3,24 +3,23 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
-  const toastContainer = ((): void => {
+  const toastContainer = ((): HTMLDivElement => {
     const c = document.createElement("div");
     c.className = "toast-container position-fixed bottom-0 end-0 p-3";
     document.body.append(c);
     return c;
   })();
 
-  const showError = key => {
+  const showError = (key: string) => {
     const errFb = "# ERROR";
     let lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       window.sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      document.documentElement.lang ??
+      "en"
     )
       .toLowerCase()
       .replace(/_/g, "-");
@@ -30,7 +29,6 @@
       window.translations?.en?.[key] ||
       errFb;
     if (toastContainer.querySelector(`.toast[data-error-key="${key}"]`)) return;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (document.querySelector(BS_LINK) && window.bootstrap.Toast) {
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
@@ -52,10 +50,10 @@
   };
 
   try {
-    document.querySelectorAll(".copy_link").forEach((el: Element): void => {
+    document.querySelectorAll<HTMLElement>(".copy_link").forEach((el): void => {
       if (el.dataset.copyListener) return;
       el.dataset.copyListener = "true";
-      el.addEventListener("click", e => {
+      el.addEventListener("click", (e: Event) => {
         e.preventDefault();
         const href = el.getAttribute("href") ?? "";
         if (href === "") {
@@ -68,18 +66,19 @@
           return;
         }
         try {
-          const onCopy = evt => {
-            evt.clipboardData.setData("text/plain", href);
+          const onCopy = (evt: ClipboardEvent) => {
+            evt.clipboardData?.setData("text/plain", href);
             evt.preventDefault();
           };
           document.addEventListener("copy", onCopy, true);
           const success = document.execCommand("copy");
           document.removeEventListener("copy", onCopy, true);
           if (!success) throw new Error("execCommand returned false");
-          show_toastr(
+          (
+            window as unknown as { show_toastr: (a: string, b: string) => void }
+          ).show_toastr(
             "success",
             window.translations?.en?.copy_link_success ?? "Link copied",
-            "success"
           );
         } catch (err) {
           if (

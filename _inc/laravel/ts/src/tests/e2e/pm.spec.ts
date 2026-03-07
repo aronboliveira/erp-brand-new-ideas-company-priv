@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pm.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global bootstrap, $, jQuery */
 // @ts-check
@@ -32,7 +31,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-async function assertPageRenders(page, route, label, opts = {}) {
+async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   await test.step(`Navigate to ${label}`, async (): void => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
@@ -102,14 +101,14 @@ test.describe("PM Project Dashboard & Core", (): void => {
     });
   });
 
-  test("projects index renders", async ({ page }) => {
+  test("projects index: number renders", async ({ page }) => {
     await assertPageRenders(page, "projects", "Projects Index", {
       expectCard: true,
       expectText: "project",
     });
   });
 
-  test("projects create renders form", async ({ page }) => {
+  test("projects create renders form: HTMLFormElement", async ({ page }) => {
     await assertPageRenders(page, "projects/create", "Project Create", {});
   });
 });
@@ -119,14 +118,14 @@ test.describe("PM Project Dashboard & Core", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Project Stages", (): void => {
-  test("project stages index renders", async ({ page }) => {
+  test("project stages index: number renders", async ({ page }) => {
     await assertPageRenders(page, "project_stages", "Project Stages Index", {
       expectCard: true,
       expectText: "stage",
     });
   });
 
-  test("project stages create modal form visible", async ({ page }) => {
+  test("project stages create modal form: HTMLFormElement visible", async ({ page }) => {
     await test.step("Navigate to project stages index", async (): void => {
       const resp = await page.goto(`${BASE_URL}/project_stages`, {
         waitUntil: "commit",
@@ -163,14 +162,14 @@ test.describe("PM Project Stages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Task Stages", (): void => {
-  test("task stages index renders", async ({ page }) => {
+  test("task stages index: number renders", async ({ page }) => {
     await assertPageRenders(page, "project_task_stages", "Task Stages Index", {
       expectCard: true,
       expectText: "stage",
     });
   });
 
-  test("task stages create modal form visible", async ({ page }) => {
+  test("task stages create modal form: HTMLFormElement visible", async ({ page }) => {
     await test.step("Navigate to task stages index", async (): void => {
       const resp = await page.goto(`${BASE_URL}/project_task_stages`, {
         waitUntil: "commit",
@@ -207,14 +206,14 @@ test.describe("PM Task Stages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Bug Status", (): void => {
-  test("bug status index renders", async ({ page }) => {
+  test("bug status index: number renders", async ({ page }) => {
     await assertPageRenders(page, "bug_status", "Bug Status Index", {
       expectCard: true,
       expectText: "bug",
     });
   });
 
-  test("bug statuses create modal form visible", async ({ page }) => {
+  test("bug statuses create modal form: HTMLFormElement visible", async ({ page }) => {
     await test.step("Navigate to bug status index", async (): void => {
       const resp = await page.goto(`${BASE_URL}/bug_status`, {
         waitUntil: "commit",
@@ -251,14 +250,14 @@ test.describe("PM Bug Status", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Contracts", (): void => {
-  test("contracts index renders", async ({ page }) => {
+  test("contracts index: number renders", async ({ page }) => {
     await assertPageRenders(page, "contracts", "Contracts Index", {
       expectCard: true,
       expectText: "contract",
     });
   });
 
-  test("contracts create renders form", async ({ page }) => {
+  test("contracts create renders form: HTMLFormElement", async ({ page }) => {
     // Modal partial (no @extends) – only a form is rendered.
     await assertPageRenders(page, "contracts/create", "Contract Create", {
       expectForm: true,
@@ -274,14 +273,14 @@ test.describe("PM Contracts", (): void => {
 });
 
 test.describe("PM Contract Types", (): void => {
-  test("contract types index renders", async ({ page }) => {
+  test("contract types index: number renders", async ({ page }) => {
     await assertPageRenders(page, "contract_types", "Contract Types Index", {
       expectCard: true,
       expectText: "type",
     });
   });
 
-  test("contract types create modal form visible", async ({ page }) => {
+  test("contract types create modal form: HTMLFormElement visible", async ({ page }) => {
     await test.step("Navigate to contract types index", async (): void => {
       const resp = await page.goto(`${BASE_URL}/contract_types`, {
         waitUntil: "commit",
@@ -318,14 +317,14 @@ test.describe("PM Contract Types", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Proposals", (): void => {
-  test("proposals index renders", async ({ page }) => {
+  test("proposals index: number renders", async ({ page }) => {
     await assertPageRenders(page, "proposal", "Proposals Index", {
       expectCard: true,
       expectText: "proposal",
     });
   });
 
-  test("proposals create renders form", async ({ page }) => {
+  test("proposals create renders form: HTMLFormElement", async ({ page }) => {
     await assertPageRenders(page, "proposals/create", "Proposal Create", {
       expectForm: true,
       expectCard: true,
@@ -338,7 +337,7 @@ test.describe("PM Proposals", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Time Trackers", (): void => {
-  test("time trackers index renders", async ({ page }) => {
+  test("time trackers index: number renders", async ({ page }) => {
     await assertPageRenders(page, "time_trackers", "Time Trackers Index", {
       expectCard: true,
       expectText: "track",
@@ -351,14 +350,14 @@ test.describe("PM Time Trackers", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Project Reports", (): void => {
-  test("project reports index renders", async ({ page }) => {
+  test("project reports index: number renders", async ({ page }) => {
     await assertPageRenders(page, "project_reports", "Project Reports Index", {
       expectCard: true,
       expectText: "report",
     });
   });
 
-  test("project reports create renders form", async ({ page }) => {
+  test("project reports create renders form: HTMLFormElement", async ({ page }) => {
     await test.step("Navigate to project reports index", async (): void => {
       const resp = await page.goto(`${BASE_URL}/project_reports`, {
         waitUntil: "commit",
@@ -421,7 +420,7 @@ test.describe("PM Task Board & Bug Reports", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("PM Timesheets", (): void => {
-  test("timesheet list renders", async ({ page }) => {
+  test("timesheet list: unknown[] renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "projects.timesheets/list",

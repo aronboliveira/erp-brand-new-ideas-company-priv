@@ -3,12 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const fm = document.getElementById("product-service-filter-form");
+    const fm = document.getElementById(
+      "product-service-filter-form",
+    ) as HTMLFormElement | null;
     if (!fm) {
       return;
     }
@@ -16,7 +17,7 @@
     // Guard form submission (e.g., user presses Enter)
     if (fm.getAttribute("data-submit-guarded") !== "true") {
       fm.setAttribute("data-submit-guarded", "true");
-      fm.addEventListener("submit", e => {
+      fm.addEventListener("submit", (e: Event) => {
         try {
           const action = (fm.getAttribute("action") ?? "#").trim();
           const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -29,7 +30,6 @@
             "Product & Service index route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");
@@ -63,9 +63,9 @@
 
     // Apply button (submit)
     const applyBtn = document.getElementById("product-service-apply-btn");
-    if (applyBtn?.getAttribute("data-listener-active") !== "true") {
+    if (applyBtn && applyBtn.getAttribute("data-listener-active") !== "true") {
       applyBtn.setAttribute("data-listener-active", "true");
-      applyBtn.addEventListener("click", e => {
+      applyBtn.addEventListener("click", (e: Event) => {
         try {
           const href = (applyBtn.getAttribute("href") ?? "#").trim();
           const url = (applyBtn.getAttribute("data-url") ?? "#").trim();
@@ -76,7 +76,6 @@
               "Product & Service index route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");
@@ -107,7 +106,6 @@
             return;
           }
           e.preventDefault();
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
           if (fm && typeof fm.submit === "function") {
             fm.submit();
           }
@@ -118,14 +116,14 @@
     // Reset link (navigate to index)
     const resetLink = document.getElementById("product-service-reset-link");
     if (
-      resetLink?.getAttribute("data-listener-active") !== "true"
+      resetLink &&
+      resetLink.getAttribute("data-listener-active") !== "true"
     ) {
       resetLink.setAttribute("data-listener-active", "true");
-      resetLink.addEventListener("click", e => {
+      resetLink.addEventListener("click", (e: Event) => {
         try {
           const href = (resetLink.getAttribute("href") ?? "#").trim();
           const url = (
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             resetLink.getAttribute("data-url") ??
             href ??
             "#"
@@ -139,7 +137,6 @@
             "Product & Service index route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

@@ -39,7 +39,7 @@
                                         : asset('/storage/uploads/avatar/avatar.png');
                                 @endphp
                                 <img src="{{ $avatarSrc }}"
-                                     alt="avatar"
+                                     alt="{{ __('avatar') }}"
                                      class="img-user"
                                      onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
                             </div>

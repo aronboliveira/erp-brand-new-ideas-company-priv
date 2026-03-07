@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module products.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global bootstrap, $, jQuery */
 // @ts-check
@@ -32,7 +31,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-async function assertPageRenders(page, route, label, opts = {}) {
+async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   await test.step(`Navigate to ${label}`, async (): void => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
@@ -105,7 +104,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Product Services", (): void => {
-  test("product_services index renders", async ({ page }) => {
+  test("product_services index: number renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "product_services",
@@ -144,7 +143,7 @@ test.describe("Product Services", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Product Service Categories", (): void => {
-  test("product_service_categories index renders", async ({ page }) => {
+  test("product_service_categories index: number renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "product_service_categories",
@@ -172,7 +171,7 @@ test.describe("Product Service Categories", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Product Service Units", (): void => {
-  test("product_service_units index renders", async ({ page }) => {
+  test("product_service_units index: number renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "product_service_units",
@@ -200,7 +199,7 @@ test.describe("Product Service Units", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Product Stocks", (): void => {
-  test("product_stocks index renders", async ({ page }) => {
+  test("product_stocks index: number renders", async ({ page }) => {
     await assertPageRenders(page, "product_stocks", "Product Stocks Index", {
       expectCard: true,
     });
@@ -223,7 +222,7 @@ test.describe("Product Stocks", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Warehouses", (): void => {
-  test("warehouses index renders", async ({ page }) => {
+  test("warehouses index: number renders", async ({ page }) => {
     await assertPageRenders(page, "warehouses", "Warehouses Index", {
       expectCard: true,
     });
@@ -241,7 +240,7 @@ test.describe("Warehouses", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Warehouse Transfers", (): void => {
-  test("warehouse_transfers index renders", async ({ page }) => {
+  test("warehouse_transfers index: number renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "warehouse_transfers",
@@ -270,7 +269,7 @@ test.describe("Warehouse Transfers", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("Proposal Products", (): void => {
-  test("proposal_products index renders", async ({ page }) => {
+  test("proposal_products index: number renders", async ({ page }) => {
     await assertPageRenders(
       page,
       "proposal_products",

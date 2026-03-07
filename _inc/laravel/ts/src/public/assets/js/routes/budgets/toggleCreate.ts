@@ -3,9 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggleCreate
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-template-expressions */
 
 /* global bootstrap, $, jQuery */
+const $ = window.jQuery as JQueryStatic;
 ((): void => {
   const errFb = "# ERROR";
   const guardMsg = "data-guard-msg";
@@ -13,19 +13,23 @@
   const langKey = "erp-np-lang";
   let errorMessage = "";
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
       msg = el.getAttribute(guardMsg) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      const translations = TRANSLATIONS as Record<
+        string,
+        Record<string, string>
+      >;
       msg =
         translations?.[lang]?.[key] ||
         el.getAttribute(guardMsg) ||
@@ -39,7 +43,7 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -80,19 +84,24 @@
   };
   document.addEventListener("pointerup", onErrorPointerUp);
   new MutationObserver((ms, obs) => {
-    ms.forEach(m =>
-      { Array.from(m.removedNodes).forEach(n => {
+    ms.forEach(m => {
+      Array.from(m.removedNodes).forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   $((): void => {
-    const bindHandler = (selector, event, handler, errorKey) => {
-      $(document).on(event, selector, function (): void {
+    const bindHandler = (
+      selector: string,
+      event: string,
+      handler: (this: HTMLElement) => void,
+      errorKey: string,
+    ) => {
+      $(document).on(event, selector, function (this: HTMLElement): void {
         try {
           handler.call(this);
         } catch {
@@ -104,72 +113,74 @@
     bindHandler(
       ".income_data",
       "keyup",
-      function (): void {
+      function (this: HTMLElement): void {
         const $row = $(this).closest("tr");
         let cat = 0;
-        $row
-          .find(".income_data")
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (cat += parseFloat($(i).val()) || 0));
-        $row.find(".totalIncome").text(cat);
-        const m = $(this).data("month") ?? "";
+        $row.find(".income_data").each((_: number, el: HTMLElement) => {
+          cat += parseFloat($(el).val() as string) || 0;
+        });
+        $row.find(".totalIncome").text(String(cat));
+        const m = String($(this).data("month") ?? "");
         let mt = 0;
         $row
           .parent()
           .find(`.${m}_income`)
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (mt += parseFloat($(i).val()) || 0));
-        $row.parent().find(`.${m}_total_income`).text(mt);
+          .each((_: number, el: HTMLElement) => {
+            mt += parseFloat($(el).val() as string) || 0;
+          });
+        $row.parent().find(`.${m}_total_income`).text(String(mt));
         let grand = 0;
         $row
           .parent()
           .find(".totalIncome")
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (grand += parseFloat($(i).text()) || 0));
-        $row.parent().find(".income").text(grand);
+          .each((_: number, el: HTMLElement) => {
+            grand += parseFloat($(el).text()) || 0;
+          });
+        $row.parent().find(".income").text(String(grand));
       },
-      "income_calculation_failed"
+      "income_calculation_failed",
     );
 
     bindHandler(
       ".expense_data",
       "keyup",
-      function (): void {
+      function (this: HTMLElement): void {
         const $row = $(this).closest("tr");
         let cat = 0;
-        $row
-          .find(".expense_data")
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (cat += parseFloat($(i).val()) || 0));
-        $row.find(".totalExpense").text(cat);
-        const m = $(this).data("month") ?? "";
+        $row.find(".expense_data").each((_: number, el: HTMLElement) => {
+          cat += parseFloat($(el).val() as string) || 0;
+        });
+        $row.find(".totalExpense").text(String(cat));
+        const m = String($(this).data("month") ?? "");
         let mt = 0;
         $row
           .parent()
           .find(`.${m}_expense`)
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (mt += parseFloat($(i).val()) || 0));
-        $row.parent().find(`.${m}_total_expense`).text(mt);
+          .each((_: number, el: HTMLElement) => {
+            mt += parseFloat($(el).val() as string) || 0;
+          });
+        $row.parent().find(`.${m}_total_expense`).text(String(mt));
         let grand = 0;
         $row
           .parent()
           .find(".totalExpense")
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          .each((_, i) => (grand += parseFloat($(i).text()) || 0));
-        $row.parent().find(".expense").text(grand);
+          .each((_: number, el: HTMLElement) => {
+            grand += parseFloat($(el).text()) || 0;
+          });
+        $row.parent().find(".expense").text(String(grand));
       },
-      "expense_calculation_failed"
+      "expense_calculation_failed",
     );
 
     bindHandler(
       ".period",
       "change",
-      function (): void {
-        const v = $(this).val() ?? "";
+      function (this: HTMLElement): void {
+        const v = String($(this).val() ?? "");
         $(".budget_plan").addClass("d-none");
         $(`#${v}`).removeClass("d-none").addClass("d-block");
       },
-      "period_toggle_failed"
+      "period_toggle_failed",
     );
 
     $(".period").trigger("change");

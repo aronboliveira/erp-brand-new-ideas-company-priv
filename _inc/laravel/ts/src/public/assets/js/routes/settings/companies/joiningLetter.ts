@@ -3,18 +3,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module joiningLetter
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
     const links = document.querySelectorAll(".joining-letter-language-link");
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!links || links.length === 0) return;
     links.forEach(l => {
       if (l.getAttribute("data-listener-active") === "true") return;
       l.setAttribute("data-listener-active", "true");
-      l.addEventListener("click", e => {
+      l.addEventListener("click", (e: Event) => {
         try {
           const url = l.getAttribute("data-url") ?? "#";
           if (url !== "#") return;

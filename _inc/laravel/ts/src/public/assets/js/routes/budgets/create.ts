@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -15,7 +14,6 @@
     try {
       const href = btn.getAttribute("href");
       const url = btn.getAttribute("data-url");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if ((href && href !== "#") ?? (url && url !== "#")) return;
       event.preventDefault();
       const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -28,7 +26,6 @@
         container.style.zIndex = "1080";
         document.body.appendChild(container);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bootstrapLink && window.bootstrap) {
         const toastEl = document.createElement("div");
         toastEl.className = "toast";

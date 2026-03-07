@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -16,7 +15,7 @@
       return;
     }
     fm.setAttribute("data-listener-active", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const action = fm.getAttribute("action") ?? "#";
         const url = fm.getAttribute("data-url") ?? "#";
@@ -28,7 +27,6 @@
           fm.getAttribute("data-guard-msg") ??
           "Login submit route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");
@@ -59,9 +57,9 @@
       } catch (err) {}
     });
     const pwd = document.getElementById("password-request-link");
-    if (pwd?.getAttribute("data-listener-active") !== "true") {
+    if (pwd && pwd.getAttribute("data-listener-active") !== "true") {
       pwd.setAttribute("data-listener-active", "true");
-      pwd.addEventListener("click", e => {
+      pwd.addEventListener("click", (e: Event) => {
         try {
           const href = pwd.getAttribute("href") ?? "#";
           const url = pwd.getAttribute("data-url") ?? "#";
@@ -74,7 +72,6 @@
             "Password request route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");
@@ -106,9 +103,9 @@
       });
     }
     const reg = document.getElementById("register-link");
-    if (reg?.getAttribute("data-listener-active") !== "true") {
+    if (reg && reg.getAttribute("data-listener-active") !== "true") {
       reg.setAttribute("data-listener-active", "true");
-      reg.addEventListener("click", e => {
+      reg.addEventListener("click", (e: Event) => {
         try {
           const href = reg.getAttribute("href") ?? "#";
           const url = reg.getAttribute("data-url") ?? "#";
@@ -121,7 +118,6 @@
             "Register route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

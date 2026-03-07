@@ -500,5 +500,5 @@ if (isset($pos) && !empty($pos)) {
     </html>
 <?php
 } else {
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div class="alert alert-warning">No POS data available.</div></body></html>';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div class="alert alert-warning">{{ __('No POS data available.') }}</div></body></html>';
 }

@@ -3,12 +3,28 @@
  * @generated from original JavaScript - manual review recommended
  * @module reorder
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
+
+interface JQuerySortableUI {
+  item: JQuery<HTMLElement>;
+}
+
+interface JQueryExtended extends JQuery<HTMLElement> {
+  sortable(options?: Record<string, unknown>): this;
+  sortable(method: "destroy"): this;
+  disableSelection(): this;
+}
+
+interface JQueryStaticFn {
+  sortable?: unknown;
+}
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: ParentNode = document,
+  ): T | null => r.querySelector(s) as T | null;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -16,9 +32,9 @@
   const dataErrGuard = "data-error-guard";
   const dataSortGuard = "data-sort-guard";
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
+    let c = qs<HTMLElement>("#" + id);
     if (c) {
       return c;
     }
@@ -33,16 +49,14 @@
     return c;
   };
 
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLElement>("#np-toast", container);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -68,9 +82,8 @@
     }
   };
 
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -92,7 +105,7 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -101,9 +114,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -123,7 +136,6 @@
   };
 
   const initSortable = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         if (
@@ -135,7 +147,7 @@
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
-    if (!$.fn.sortable) {
+    if (!($.fn as JQueryStaticFn).sortable) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -147,46 +159,48 @@
       return;
     }
     const $lists = $(".sortable");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$lists.length) {
       return;
     }
-    $lists.each(function (): void {
+    $lists.each(function (this: HTMLElement): void {
       const el = this;
       if (el.getAttribute(dataSortGuard) === "true") {
         return;
       }
       el.setAttribute(dataSortGuard, "true");
       try {
-        const $el = $(el);
+        const $el = $(el) as JQueryExtended;
         if (typeof $el.disableSelection === "function") {
           $el.disableSelection();
         }
         $el.sortable({
-          stop: function (): void {
+          stop: function (this: HTMLElement): void {
             try {
-              const order = [];
+              const order: string[] = [];
               $(this)
                 .find("li")
-                .each(function (i, li) {
-                  order[i] = $(li).attr("data-id") ?? $(li).data("id") ?? "";
+                .each(function (this: HTMLElement, i: number) {
+                  order[i] = String(
+                    $(this).attr("data-id") ?? $(this).data("id") ?? "",
+                  );
                 });
               const urlAttr = el.getAttribute("data-url") ?? "";
               const href =
                 el.tagName === "FORM"
-                  ? el.getAttribute("action") ?? ""
-                  : el.getAttribute("href") ?? "";
+                  ? (el.getAttribute("action") ?? "")
+                  : (el.getAttribute("href") ?? "");
               if ((!urlAttr || urlAttr === "#") && (!href || href === "#")) {
                 scheduleInteractiveError(getMsg(el, "reorder_unavailable"));
                 return;
               }
               const endpoint = urlAttr && urlAttr !== "#" ? urlAttr : href;
-              const token = $('meta[name="csrf-token"]').attr("content") ?? "";
+              const token = String(
+                $('meta[name="csrf-token"]').attr("content") ?? "",
+              );
               $.ajax({
                 url: endpoint,
                 type: "POST",
-                data: { order: order },
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                data: { order },
                 headers: token ? { "X-CSRF-TOKEN": token } : undefined,
                 cache: false,
                 success: function (): void {},
@@ -202,7 +216,7 @@
         const mo = new MutationObserver((m, o) => {
           if (!document.body.contains(el)) {
             try {
-              $(el).sortable("destroy");
+              ($(el) as JQueryExtended).sortable("destroy");
             } catch (_) {}
             o.disconnect();
           }

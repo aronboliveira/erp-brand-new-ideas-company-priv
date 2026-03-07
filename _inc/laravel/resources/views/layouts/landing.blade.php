@@ -116,7 +116,7 @@
             <nav class="{{ ViewClassNamesConstants::NVB_DEF_TOP }} navbar-dark">
                 <div class="{{ ViewClassNamesConstants::CT }}">
                     <a class="{{ ViewClassNamesConstants::NVB_BR_TPR }}" href="">
-                        <img src="{{ $logo .'/'.SettingsConstants::CPN_LG_LT_DEF }}" alt="logo" width="40%"/>
+                        <img src="{{ $logo .'/'.SettingsConstants::CPN_LG_LT_DEF }}" alt="{{ __('logo') }}" width="40%"/>
                     </a>
                     <button
                         class="{{ ViewClassNamesConstants::NVB_TG }}"
@@ -125,7 +125,7 @@
                         data-bs-target="#navbarTogglerDemo01"
                         aria-controls="navbarTogglerDemo01"
                         aria-expanded="false"
-                        aria-label="Toggle navigation"
+                        aria-label="{{ __('Toggle navigation') }}"
                     >
                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                     </button>
@@ -199,7 +199,7 @@
                         <div class="col-sm-5">
                             <img
                                 src="{{asset('assets/images/front/header-mokeup.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Datta Able Admin Template') }}"
                                 class="img-fluid header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -265,7 +265,7 @@
                         <div class="col-sm-6">
                             <img
                                 src="{{asset('landing/images/dashboard.png')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Datta Able Admin Template') }}"
                                 class="img-fluid header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -275,7 +275,7 @@
                         <div class="col-sm-6">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-2.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Datta Able Admin Template') }}"
                                 class="img-fluid header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
@@ -445,7 +445,7 @@
                         <div class="col-sm-6">
                             <img
                                 src="{{asset('landing/images/dash-2.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Datta Able Admin Template') }}"
                                 class="img-fluid header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -455,7 +455,7 @@
                         <div class="col-sm-6">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-4.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Datta Able Admin Template') }}"
                                 class="img-fluid header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
@@ -751,7 +751,7 @@
                                             src="{{ asset('landing/images/' . $img['image']) }}"
                                             class="img-fluid header-img wow animate__fadeInRight"
                                             data-wow-delay="{{ $img['delay'] }}"
-                                            alt="Admin"
+                                            alt="{{ __('Admin') }}"
                                         />
                                     </div>
                                 @endforeach
@@ -766,10 +766,10 @@
                         <div class="col-lg-6 col-sm-12">
                             @if($colorSettings[SettingsConstants::CST_DRK] && $colorSettings[SettingsConstants::CST_DRK] == 'on' )
                                 <img src="{{ $logo . '/' . (isset($company_logos) && !empty($company_logos) ? $company_logos : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="logo" style="width: 150px;" >
+                                    alt="{{ __('logo') }}" style="width: 150px;" >
                             @else
                                 <img src="{{ $logo . '/' . (isset($company_logo) && !empty($company_logo) ? $company_logo : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="logo" style="width: 150px;" >
+                                    alt="{{ __('logo') }}" style="width: 150px;" >
                             @endif
                         </div>
                         <div class="col-lg-6 col-sm-12 text-end">

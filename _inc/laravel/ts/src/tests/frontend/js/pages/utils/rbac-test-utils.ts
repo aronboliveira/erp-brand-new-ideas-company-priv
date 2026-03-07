@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module rbac-test-utils
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 /**
  * Shared RBAC test utilities for mock pages.
@@ -221,7 +220,7 @@ export function userCan(user, permission) {
 // setUserContext(user)
 // Stores session data in localStorage / window.__mockUser.
 // ---------------------------------------------------------------------------
-export function setUserContext(user) {
+export function setUserContext(user: unknown) {
   window.__mockUser = user;
   if (user) {
     localStorage.setItem("auth_token", user.session_token ?? "");
@@ -242,20 +241,18 @@ export function setUserContext(user) {
 // Hides [data-permission] elements the user lacks and [data-role] elements
 // (except <body>) that don't match the user's role.
 // ---------------------------------------------------------------------------
-export function hideElementsWithoutPermission(user) {
-  document.querySelectorAll("[data-permission]").forEach(function (el) {
+export function hideElementsWithoutPermission(user: unknown) {
+  document.querySelectorAll("[data-permission]").forEach(function (el: HTMLElement) {
     const req = el.getAttribute("data-permission");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (req && !userCan(user, req)) {
       el.style.display = "none";
       el.setAttribute("aria-hidden", "true");
     }
   });
-  document.querySelectorAll("[data-role]").forEach(function (el) {
+  document.querySelectorAll("[data-role]").forEach(function (el: HTMLElement) {
     if (el === document.body) return;
     const reqRole = el.getAttribute("data-role");
     if (
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       reqRole &&
       user?.role.name.toLowerCase() !== reqRole.toLowerCase()
     ) {
@@ -272,7 +269,7 @@ export function hideElementsWithoutPermission(user) {
 export function createTestRunner() {
   const results = [];
   return {
-    test: function (name, fn) {
+    test: function (name: string, fn: (...args: unknown[]) => unknown) {
       const start = performance.now();
       try {
         const result = fn();
@@ -286,7 +283,7 @@ export function createTestRunner() {
                 duration: performance.now() - start,
               });
             })
-            .catch(function (err) {
+            .catch(function (err: Error) {
               results.push({
                 name: name,
                 passed: false,
@@ -312,10 +309,10 @@ export function createTestRunner() {
         return Promise.resolve();
       }
     },
-    assert: function (cond, msg) {
+    assert: function (cond, msg: string) {
       if (!cond) throw new Error("Assertion failed: " + msg);
     },
-    assertEqual: function (a, b, msg) {
+    assertEqual: function (a, b, msg: string) {
       if (a !== b)
         throw new Error(
           msg ?? "Expected " + JSON.stringify(b) + ", got " + JSON.stringify(a),
@@ -355,7 +352,7 @@ export function createTestRunner() {
         failed: results.filter(function (r) {
           return !r.passed;
         }).length,
-        duration: results.reduce(function (s, r) {
+        duration: results.reduce(function (s: string, r) {
           return s + r.duration;
         }, 0),
       };

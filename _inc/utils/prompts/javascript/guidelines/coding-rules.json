@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ERP Prestech JS/TS Coding Guidelines",
+  "version": "1.0.0",
+  "updated": "2026-03-06",
+  "description": "Deep nested complex entries for automated tooling and linters.",
+  "rules": {
+    "dry": {
+      "setAttribute": {
+        "enabled": true,
+        "threshold": 3,
+        "description": "Refactor ≥3 consecutive setAttribute on same element to Object.entries loop",
+        "pattern": {
+          "type": "loop",
+          "iterator": "Object.entries",
+          "body": "element.setAttribute(k, v)"
+        }
+      },
+      "propertyAssign": {
+        "enabled": true,
+        "threshold": 3,
+        "description": "Refactor ≥3 consecutive property assignments on same element to Object.entries loop",
+        "pattern": {
+          "type": "loop",
+          "iterator": "Object.entries",
+          "body": "(element as Record<string, unknown>)[k] = v"
+        }
+      },
+      "cachedStrings": {
+        "enabled": true,
+        "threshold": 2,
+        "description": "Extract string literals used >2 times into named constants",
+        "naming": ["camelCase", "UPPER_SNAKE_CASE"],
+        "scope": "file-level or nearest shared scope"
+      }
+    },
+    "formatting": {
+      "blankLines": {
+        "betweenRelatedStatements": false,
+        "betweenTopLevelFunctions": true,
+        "afterImports": true,
+        "description": "No blank lines between guards, declarations, and tightly coupled statements"
+      },
+      "declarations": {
+        "collapseSequential": true,
+        "maxMerge": 3,
+        "keywords": ["const", "let", "var"],
+        "separator": ",",
+        "skipWhen": ["complex-destructuring", "multiline-initializers", "readability-concern"]
+      },
+      "braces": {
+        "singleStatementIf": "omit",
+        "singleStatementElse": "omit",
+        "preferredPatterns": {
+          "guardPlusCall": {
+            "style": "short-circuit",
+            "example": "!cond && action()"
+          },
+          "symmetricBranches": {
+            "style": "ternary",
+            "example": "cond ? actionA() : actionB()"
+          }
+        }
+      }
+    },
+    "jsdoc": {
+      "functionDeclarations": {
+        "required": true,
+        "minContent": "one-line summary"
+      },
+      "namedFunctionExpressions": {
+        "required": true,
+        "minContent": "one-line summary"
+      },
+      "arrowCallbacks": {
+        "required": false,
+        "note": "Omit when intent is obvious from context"
+      },
+      "doNotRepeat": [
+        "parameterTypes",
+        "returnType",
+        "generic constraints"
+      ]
+    },
+    "iife": {
+      "tryCatch": {
+        "required": true,
+        "scope": "entire IIFE body",
+        "catchBehavior": {
+          "action": "console.error",
+          "messageTemplate": "[{moduleName}] failed to initialise:",
+          "includeError": true
+        }
+      }
+    },
+    "dom": {
+      "queryPreference": [
+        { "rank": 1, "method": "document.getElementById", "returns": "Element | null" },
+        { "rank": 2, "method": "document.getElementsByClassName", "returns": "HTMLCollection" },
+        { "rank": 3, "method": "document.getElementsByTagName", "returns": "HTMLCollection" },
+        { "rank": 4, "method": "HTMLFormElement.elements", "returns": "HTMLFormControlsCollection" },
+        { "rank": 5, "method": "document.querySelector", "returns": "Element | null" },
+        { "rank": 6, "method": "document.querySelectorAll", "returns": "NodeList" }
+      ],
+      "observers": {
+        "MutationObserver": { "required": false, "note": "Use only when demonstrably beneficial" },
+        "IntersectionObserver": { "required": false, "note": "Use only when demonstrably beneficial" }
+      },
+      "formElements": {
+        "preferHTMLFormControlsCollection": true,
+        "namedItemForRadios": true,
+        "description": "Use form.elements and namedItem() for form field access when applicable"
+      }
+    },
+    "es": {
+      "target": "ES6+",
+      "preferredFeatures": [
+        "arrow-functions",
+        "template-literals",
+        "const-let",
+        "destructuring",
+        "spread-operator",
+        "optional-chaining",
+        "nullish-coalescing",
+        "Object.entries",
+        "Array.from",
+        "for-of"
+      ]
+    },
+    "browser": {
+      "support": ["chromium", "gecko"],
+      "avoidWebkitOnly": true
+    },
+    "testing": {
+      "afterChanges": {
+        "required": true,
+        "suites": ["jest", "playwright", "eslint", "tsc --noEmit"],
+        "mockHtmlPages": "when necessary for DOM tests"
+      },
+      "performance": {
+        "benchmarkBeforeSwitching": true,
+        "criteria": "most performant implementation wins"
+      }
+    }
+  }
+}

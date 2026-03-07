@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateEdit
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -11,11 +10,9 @@
     const links = document.querySelectorAll(
       'a[data-ajax-popup-over="true"][data-url][data-guard-msg]'
     );
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!links || links.length === 0) return;
     links.forEach(l => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!l || l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
         const url = l.getAttribute("data-url") ?? "#";
@@ -23,16 +20,14 @@
         if (href === "#" && url !== "#") {
           l.setAttribute("href", url);
         }
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             const u =
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               l.getAttribute("data-url") ?? l.getAttribute("href") ?? "#";
             if (u !== "#") return;
             e.preventDefault();
             const msgAttr = l.getAttribute("data-guard-msg") ?? "";
             const msg =
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               msgAttr.trim().length
                 ? msgAttr
                 : "Generate transfer content route is unavailable. Please contact technical support or your domain administrator.";

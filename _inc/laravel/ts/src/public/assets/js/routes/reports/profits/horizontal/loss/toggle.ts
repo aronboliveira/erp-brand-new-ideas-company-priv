@@ -3,17 +3,17 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
   const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: Document | Element = document) =>
+    r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataFilterGuard = "data-filter-guard";
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -22,9 +22,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -42,11 +42,11 @@
     }
     return msg;
   };
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) return c;
-    c = document.createElement("div");
+    const existing = qs("#" + id);
+    if (existing) return existing as HTMLDivElement;
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -56,13 +56,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -88,9 +86,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute("data-error-guard") === "true") return;
     host.setAttribute("data-error-guard", "true");
     const once = (): void => {
@@ -109,8 +106,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-  if (!$.fn) {
+  if (!$ || !$.fn) {
     try {
       if (
         window.location.hostname === "localhost" ||

@@ -3,12 +3,27 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
+
+interface DataTablesStaticExt {
+  (options?: DataTablesSettings): DataTablesApi;
+  isDataTable(selector: JQuery | string): boolean;
+}
+
+interface DataTablesJQueryFnExtension {
+  dataTable?: {
+    Buttons?: unknown;
+  };
+}
+
+type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = Element>(
+    s: string,
+    r: ParentNode = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -16,13 +31,13 @@
   const dataErrGuard = "data-error-guard";
   const dataListenerGuard = "data-listener-guard";
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) {
-      return c;
+    const existing = qs<HTMLDivElement>("#" + id);
+    if (existing) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -33,16 +48,14 @@
     return c;
   };
 
-  const showErrorNow = message => {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLDivElement>("#np-toast", container);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -59,7 +72,10 @@
         body.textContent = message ?? errFb;
       }
       try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+        new window.bootstrap.Toast(t as HTMLElement, {
+          autohide: true,
+          delay: 4000,
+        }).show();
       } catch (_) {
         alert(message ?? errFb);
       }
@@ -68,9 +84,8 @@
     }
   };
 
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -92,7 +107,7 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -101,9 +116,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -121,15 +136,20 @@
     return msg;
   };
 
-  const bindWithObserver = (el, evt, handler, flag) => {
+  const bindWithObserver = (
+    el: HTMLElement,
+    evt: string,
+    handler: EventHandler,
+    flag: string,
+  ): void => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
     el.setAttribute(flag, "true");
-    $(el).on(evt, handler);
-    const mo = new MutationObserver((m, o) => {
+    $(el).on(evt, handler as unknown as (e: JQueryEventObject) => void);
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(el)) {
-        $(el).off(evt, handler);
+        $(el).off(evt);
         o.disconnect();
       }
     });
@@ -142,8 +162,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name =
-      (($("#filename").val())).toString().trim();
+    const name = String($("#filename").val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -173,12 +192,11 @@
 
   const initDataTable = (): void => {
     const $table = $("#report-dataTable");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$table.length) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!$.fn.DataTable) {
+    const dtFn = $.fn.DataTable as DataTablesStaticExt | undefined;
+    if (!dtFn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -186,16 +204,17 @@
         )
           console.error("DataTables unavailable");
       } catch (_) {}
-      scheduleInteractiveError(getMsg($table.get(0), "plugin_unavailable"));
+      scheduleInteractiveError(
+        getMsg($table.get(0) as HTMLElement, "plugin_unavailable"),
+      );
       return;
     }
-    if ($.fn.DataTable.isDataTable($table)) {
+    if (dtFn.isDataTable($table)) {
       return;
     }
-    const title =
-      (($("#filename").val())).toString().trim();
-    const hasButtons = $.fn.dataTable.Buttons;
-    const opts = hasButtons
+    const title = ($("#filename").val() ?? "").toString().trim();
+    const hasButtons = ($.fn as DataTablesJQueryFnExtension).dataTable?.Buttons;
+    const opts: DataTablesSettings = hasButtons
       ? {
           dom: "lBfrtip",
           buttons: [
@@ -213,16 +232,20 @@
         )
           console.error("DataTables Buttons unavailable");
       } catch (_) {}
-      scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"));
+      scheduleInteractiveError(
+        getMsg($table.get(0) as HTMLElement, "datatable_unavailable"),
+      );
     }
     try {
       $table.DataTable(opts);
     } catch (_) {
-      scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"));
+      scheduleInteractiveError(
+        getMsg($table.get(0) as HTMLElement, "datatable_unavailable"),
+      );
     }
   };
 
-  const onTypeChange = function (): void {
+  const onTypeChange = function (this: HTMLElement): void {
     const v = $(this).val();
     if (v === "monthly") {
       $(".month").addClass("d-block").removeClass("d-none");
@@ -234,19 +257,19 @@
   };
 
   const initTypeRadios = (): void => {
-    const radios = document.querySelectorAll(
-      'input[name="type"][type="radio"]'
+    const radios = document.querySelectorAll<HTMLInputElement>(
+      'input[name="type"][type="radio"]',
     );
-    radios.forEach((el, i) =>
-      { bindWithObserver(
+    radios.forEach((el: HTMLInputElement, i: number) => {
+      bindWithObserver(
         el,
         "change",
-        onTypeChange,
-        dataListenerGuard + "-type-" + i
-      ); }
-    );
-    const checked = document.querySelector(
-      'input[name="type"][type="radio"]:checked'
+        onTypeChange as EventHandler,
+        dataListenerGuard + "-type-" + i,
+      );
+    });
+    const checked = document.querySelector<HTMLInputElement>(
+      'input[name="type"][type="radio"]:checked',
     );
     if (checked) {
       onTypeChange.call(checked);

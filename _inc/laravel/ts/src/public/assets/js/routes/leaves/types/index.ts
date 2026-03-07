@@ -3,18 +3,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const DEFAULT_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_MSG;
     const hasBs =
       !!document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       !!window.bootstrap;
     let box = document.getElementById("toast-container");
     if (!box) {
@@ -39,10 +37,10 @@
     }
   };
 
-  const bindLinkGuard = el => {
+  const bindLinkGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       try {
         const href = (el.getAttribute("href") ?? "#").trim();
         const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
@@ -54,10 +52,10 @@
     });
   };
 
-  const bindFormGuard = fm => {
+  const bindFormGuard = (fm: Element | null) => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const action = (fm.getAttribute("action") ?? "#").trim();
         const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
@@ -71,17 +69,19 @@
 
   document
     .querySelectorAll("a[data-guard-msg], a[data-url]")
-    .forEach(bindLinkGuard);
+    .forEach(el => bindLinkGuard(el as HTMLElement));
   document
     .querySelectorAll("form[data-guard-msg], form[data-url]")
     .forEach(bindFormGuard);
 
   try {
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
-      try {
-        bootstrap.Tooltip.getOrCreateInstance(el);
-      } catch (_) {}
-    });
+    document
+      .querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach((el: Element): void => {
+        try {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        } catch (_) {}
+      });
   } catch (_) {}
 })();
 

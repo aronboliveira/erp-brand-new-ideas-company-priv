@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module rbac-test-utils
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 
 /* global $, jQuery */
 /**
@@ -374,7 +373,7 @@ export function userCanAll(user, permissions) {
  * @param {Object|null} user - Mock user object
  * @returns {boolean}
  */
-export function isSessionValid(user) {
+export function isSessionValid(user: unknown) {
   if (!user?.session_expires_at) return false;
   return new Date() < user.session_expires_at;
 }
@@ -389,7 +388,7 @@ export function isSessionValid(user) {
  * @param {number} status - HTTP status code
  * @returns {Object} API response object
  */
-export function createSuccessResponse(data, status = 200) {
+export function createSuccessResponse(data: unknown, status = 200) {
   return {
     status,
     statusText: getStatusText(status),
@@ -406,7 +405,7 @@ export function createSuccessResponse(data, status = 200) {
  * @param {Object} errors - Field-level errors
  * @returns {Object} API response object
  */
-export function createErrorResponse(status, message, errors = null) {
+export function createErrorResponse(status, message: string, errors = null) {
   return {
     status,
     statusText: getStatusText(status),
@@ -420,7 +419,7 @@ export function create401Response() {
   return createErrorResponse(401, "Unauthenticated. Please log in.");
 }
 
-export function create403Response(permission) {
+export function create403Response(permission: boolean) {
   return createErrorResponse(
     403,
     permission
@@ -433,15 +432,15 @@ export function create404Response(resource = "Resource") {
   return createErrorResponse(404, `${resource} not found.`);
 }
 
-export function create422Response(errors) {
+export function create422Response(errors: unknown) {
   return createErrorResponse(422, "The given data was invalid.", errors);
 }
 
-export function create500Response(message = "Internal server error.") {
+export function create500Response(message: string = "Internal server error: Error.") {
   return createErrorResponse(500, message);
 }
 
-function getStatusText(status) {
+function getStatusText(status: unknown) {
   const statusTexts = {
     200: "OK",
     201: "Created",
@@ -471,7 +470,7 @@ function getStatusText(status) {
  * @param {Object} config.routes - Route-specific handlers
  * @returns {Function} Mock fetch function
  */
-export function createMockFetch(config = {}) {
+export function createMockFetch(config: Record<string, unknown> = {}) {
   const {
     delay = 100,
     requireAuth = false,
@@ -480,7 +479,7 @@ export function createMockFetch(config = {}) {
     user = null,
   } = config;
 
-  return async function mockFetch(url, options = {}) {
+  return async function mockFetch(url: string, options: Record<string, unknown> = {}): Promise<void> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, delay));
 
@@ -532,7 +531,7 @@ let __mockUser = null;
  * Set the current user context
  * @param {Object|null} user - Mock user object
  */
-export function setUserContext(user) {
+export function setUserContext(user: unknown) {
   __mockUser = user;
   if (typeof window !== "undefined") {
     window.__mockUser = user;
@@ -566,7 +565,7 @@ export function getUserContext() {
  * Hide DOM elements that require permissions the user doesn't have
  * @param {Object|null} user - Mock user object
  */
-export function hideElementsWithoutPermission(user) {
+export function hideElementsWithoutPermission(user: unknown) {
   if (typeof document === "undefined") return;
 
   // Handle data-permission attribute
@@ -618,7 +617,7 @@ export function hideElementsWithoutPermission(user) {
  * @param {HTMLElement} container - Container element
  * @param {string} permission - Optional permission that was denied
  */
-export function showAccessDeniedMessage(container, permission) {
+export function showAccessDeniedMessage(container: HTMLElement, permission) {
   container.innerHTML = `
     <div class="access-denied" role="alert">
       <h2>Access Denied</h2>
@@ -645,7 +644,7 @@ export function createTestRunner() {
      * @param {string} name - Test name
      * @param {Function} fn - Test function (can be async)
      */
-    test: async (name, fn) => {
+    test: async (name: string, fn: (...args: unknown[]) => unknown) => {
       const start = performance.now();
       try {
         await fn();
@@ -670,7 +669,7 @@ export function createTestRunner() {
      * @param {boolean} condition - Condition to check
      * @param {string} message - Error message if fails
      */
-    assert: (condition, message) => {
+    assert: (condition, message: string) => {
       if (!condition) throw new Error(`Assertion failed: ${message}`);
     },
 
@@ -680,7 +679,7 @@ export function createTestRunner() {
      * @param {*} expected - Expected value
      * @param {string} message - Optional error message
      */
-    assertEqual: (actual, expected, message) => {
+    assertEqual: (actual, expected, message: string) => {
       if (actual !== expected) {
         throw new Error(
           message ?? `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
@@ -693,7 +692,7 @@ export function createTestRunner() {
      * @param {*} value - Value to check
      * @param {string} message - Optional error message
      */
-    assertNotNull: (value, message) => {
+    assertNotNull: (value: unknown, message: string) => {
       if (value === null || value === undefined) {
         throw new Error(message ?? `Expected non-null value, got ${value}`);
       }

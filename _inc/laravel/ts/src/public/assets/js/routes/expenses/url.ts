@@ -3,18 +3,17 @@
  * @generated from original JavaScript - manual review recommended
  * @module url
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+declare const show_toastr: (type: string, msg: string, status: string) => void;
 ((): void => {
   const SUCCESS_KEY = "url_copy_success";
   const ERROR_KEY = "url_copy_failed";
   const ATTR_ACTIVE = "data-listener-active";
   const SELECTOR = ".copy_link";
 
-  const showError = msg => {
+  const showError = (msg: string) => {
     const hasBs = window.bootstrap.Toast;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (hasBs) {
       const toast = document.createElement("div");
       toast.className =
@@ -32,13 +31,15 @@
     }
   };
 
-  const showSuccess = msg => { show_toastr("success", msg, "success"); };
+  const showSuccess = (msg: string) => {
+    show_toastr("success", msg, "success");
+  };
 
-  const getMsg = key => {
+  const getMsg = (key: string) => {
     let lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      document.documentElement.lang ??
+      "en"
     )
       .toLowerCase()
       .replace(/_/g, "-");
@@ -53,11 +54,13 @@
   const els = document.querySelectorAll(SELECTOR);
   if (els.length === 0) return;
 
-  els.forEach((el: Element): void => {
+  const handlers = new WeakMap<Element, (e: Event) => Promise<void>>();
+
+  els.forEach((el): void => {
     if (el.getAttribute(ATTR_ACTIVE) === "true") return;
     el.setAttribute(ATTR_ACTIVE, "true");
 
-    el.addEventListener("click", async e => {
+    const handler = async (e: Event): Promise<void> => {
       e.preventDefault();
       try {
         const href = el.getAttribute("href");
@@ -67,12 +70,17 @@
       } catch {
         showError(getMsg(ERROR_KEY));
       }
-    });
+    };
+    handlers.set(el, handler);
+    el.addEventListener("click", handler);
   });
 
   const mo = new MutationObserver((_, obs) => {
     if (![...els].some(el => document.body.contains(el))) {
-      els.forEach((el: Element): void => { el.removeEventListener("click"); });
+      els.forEach((el): void => {
+        const h = handlers.get(el);
+        if (h) el.removeEventListener("click", h);
+      });
       obs.disconnect();
     }
   });

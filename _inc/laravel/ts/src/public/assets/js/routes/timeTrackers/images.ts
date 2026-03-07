@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module images
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
+  const $ = window.jQuery as JQueryStatic;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,14 +14,14 @@
   const dataErrGuard = "data-error-guard";
   const dataBoundView = "data-view-images-bound";
   const dataBoundConfirm = "data-confirm-bound";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (
+    s: string,
+    r: Document | HTMLElement = document,
+  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      window.bootstrap &&
-      window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
+    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+  const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
       return c;
@@ -37,7 +36,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -65,9 +64,8 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = message => {
+  const schedulePointerupError = (message: string) => {
     const target = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!target || target.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -88,7 +86,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -97,9 +95,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -117,12 +115,12 @@
     }
     return msg;
   };
-  const routeFrom = (el, explicit) => {
+  const routeFrom = (el: HTMLElement, explicit: string): string | null => {
     const url = el?.getAttribute?.("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
-        ? el.getAttribute("action") ?? ""
-        : el.getAttribute("href") ?? ""
+        ? (el.getAttribute("action") ?? "")
+        : (el.getAttribute("href") ?? "")
       : "";
     if (
       (!explicit || explicit === "#") &&
@@ -134,21 +132,22 @@
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
-      ? url
-      : href;
+        ? url
+        : href;
   };
   const initSlider = (): void => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!$ || !window.Swiper) {
         schedulePointerupError(getMsg(document.body, "slider_unavailable"));
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!$(".product-left").length) {
         return;
       }
-      const productSlider = new window.Swiper(".product-slider", {
+      const productSlider = new (window.Swiper as new (
+        selector: string,
+        options: Record<string, unknown>,
+      ) => { controller?: { control: unknown } })(".product-slider", {
         spaceBetween: 0,
         centeredSlides: false,
         loop: false,
@@ -160,7 +159,10 @@
         },
         resizeObserver: true,
       });
-      const productThumbs = new window.Swiper(".product-thumbs", {
+      const productThumbs = new (window.Swiper as new (
+        selector: string,
+        options: Record<string, unknown>,
+      ) => { controller?: { control: unknown } })(".product-thumbs", {
         spaceBetween: 0,
         centeredSlides: true,
         loop: false,
@@ -177,18 +179,22 @@
       schedulePointerupError(getMsg(document.body, "slider_unavailable"));
     }
   };
-  const safePost = (url, data, cb) => {
+  const safePost = (
+    url: string,
+    data: unknown,
+    cb: (res?: unknown) => void,
+  ) => {
     try {
       if (typeof window.postAjax === "function") {
-        window.postAjax(url, data, cb);
+        window.postAjax(url, data as Record<string, unknown>, cb);
         return;
       }
       $.ajax({
         url: url,
         method: "POST",
-        data: data,
+        data: data as Record<string, unknown>,
         cache: false,
-        success: function (res) {
+        success: function (res: unknown) {
           cb?.(res);
         },
         error: function (): void {
@@ -199,18 +205,22 @@
       schedulePointerupError(getMsg(document.body, "ajax_unavailable"));
     }
   };
-  const safeDelete = (url, data, cb) => {
+  const safeDelete = (
+    url: string,
+    data: unknown,
+    cb: (res?: unknown) => void,
+  ) => {
     try {
       if (typeof window.deleteAjax === "function") {
-        window.deleteAjax(url, data, cb);
+        window.deleteAjax(url, data as Record<string, unknown>, cb);
         return;
       }
       $.ajax({
         url: url,
         method: "DELETE",
-        data: data,
+        data: data as Record<string, unknown>,
         cache: false,
-        success: function (res) {
+        success: function (res: unknown) {
           cb?.(res);
         },
         error: function (): void {
@@ -230,15 +240,17 @@
     $(document).on("click.viewImages", ".view-images", function (): void {
       try {
         const explicit = "{{route('time_trackers.image.view')}}";
-        const endpoint = routeFrom(this, explicit);
+        const endpoint = routeFrom(this as HTMLElement, explicit);
         if (!endpoint) {
-          schedulePointerupError(getMsg(this, "img_preview_unavailable"));
+          schedulePointerupError(
+            getMsg(this as HTMLElement, "img_preview_unavailable"),
+          );
           return;
         }
         const id = $(this).attr("data-id") ?? "";
-        safePost(endpoint, { id: id }, function (res) {
+        safePost(endpoint, { id: id }, function (res: unknown) {
           try {
-            $(".image_sider_div").html(res ?? "");
+            $(".image_sider_div").html(String(res ?? ""));
             $("#exampleModalCenter").modal("show");
             setTimeout(function (): void {
               const total =
@@ -249,13 +261,13 @@
             }, 200);
           } catch (_) {
             schedulePointerupError(
-              getMsg(document.body, "img_preview_unavailable")
+              getMsg(document.body, "img_preview_unavailable"),
             );
           }
         });
       } catch (_) {
         schedulePointerupError(
-          getMsg(document.body, "img_preview_unavailable")
+          getMsg(document.body, "img_preview_unavailable"),
         );
       }
     });
@@ -282,7 +294,7 @@
           $(".confirm_yes").addClass("image_remove").attr("image_id", rid);
           $("#cModal").modal("show");
         } catch (_) {}
-      }
+      },
     );
     $(document).on(
       "click.trackRemoveConfirm",
@@ -291,14 +303,19 @@
         try {
           const id = $(this).attr("image_id") ?? "";
           const explicit = "{{route('time_trackers.image.remove')}}";
-          const endpoint = routeFrom(this, explicit);
+          const endpoint = routeFrom(this as HTMLElement, explicit);
           if (!endpoint) {
-            schedulePointerupError(getMsg(this, "img_remove_unavailable"));
+            schedulePointerupError(
+              getMsg(this as HTMLElement, "img_remove_unavailable"),
+            );
             return;
           }
-          safeDelete(endpoint, { id: id }, function (res) {
+          safeDelete(endpoint, { id: id }, function (res: unknown) {
             try {
-              if (res?.flag) {
+              const response = res as
+                | { flag?: boolean; msg?: string }
+                | undefined;
+              if (response?.flag) {
                 $("#slide-thum-" + id).remove();
                 $("#slide-" + id).remove();
                 setTimeout(function (): void {
@@ -310,29 +327,28 @@
                     const msg = getMsg(document.body, "images_empty_label");
                     $(".product-left").html(
                       '<div class="no-image"><h5 class="text-muted">' +
-                        (msg) +
-                        "</h5></div>"
+                        msg +
+                        "</h5></div>",
                     );
                   }
                 }, 200);
               }
               $("#cModal").modal("hide");
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
               if (window.show_toastr) {
-                window.show_toastr("error", res?.msg ?? "", "error");
+                window.show_toastr("error", response?.msg ?? "", "error");
               }
             } catch (_) {
               schedulePointerupError(
-                getMsg(document.body, "img_remove_unavailable")
+                getMsg(document.body, "img_remove_unavailable"),
               );
             }
           });
         } catch (_) {
           schedulePointerupError(
-            getMsg(document.body, "img_remove_unavailable")
+            getMsg(document.body, "img_remove_unavailable"),
           );
         }
-      }
+      },
     );
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(root)) {
@@ -344,7 +360,6 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
   const init = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
       return;

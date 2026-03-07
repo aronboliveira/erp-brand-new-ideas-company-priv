@@ -6,7 +6,10 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const REPORT = "/tmp/eslint-result.json";
-if (!existsSync(REPORT)) { console.error("Missing " + REPORT); process.exit(1); }
+if (!existsSync(REPORT)) {
+  console.error("Missing " + REPORT);
+  process.exit(1);
+}
 
 const report = JSON.parse(readFileSync(REPORT, "utf8"));
 
@@ -69,24 +72,19 @@ for (const entry of report) {
         case "@typescript-eslint/prefer-optional-chain": {
           // Match: identifier && identifier.prop  or  identifier !== null/undefined && identifier.prop
           const match = line.match(
-            /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/
+            /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/,
           );
           if (match) {
             line = line.replace(
               /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/,
-              "$1?.$2"
+              "$1?.$2",
             );
             fixCount++;
           } else {
             // Try: foo && foo[key] → foo?.[key]
-            const match2 = line.match(
-              /(\b\w+)\s*&&\s*\1\[/
-            );
+            const match2 = line.match(/(\b\w+)\s*&&\s*\1\[/);
             if (match2) {
-              line = line.replace(
-                /(\b\w+)\s*&&\s*\1\[/,
-                "$1?.["
-              );
+              line = line.replace(/(\b\w+)\s*&&\s*\1\[/, "$1?.[");
               fixCount++;
             }
           }
@@ -110,13 +108,13 @@ for (const entry of report) {
             if (negMatch) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 == null || $1 === "")`
+                `if ($1 == null || $1 === "")`,
               );
               fixCount++;
             } else if (posMatch) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 != null && $1 !== "")`
+                `if ($1 != null && $1 !== "")`,
               );
               fixCount++;
             }
@@ -128,13 +126,13 @@ for (const entry of report) {
             if (negMatch) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 === 0)`
+                `if ($1 === 0)`,
               );
               fixCount++;
             } else if (posMatch) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 !== 0)`
+                `if ($1 !== 0)`,
               );
               fixCount++;
             }
@@ -145,41 +143,57 @@ for (const entry of report) {
             if (negMatch) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 === "")`
+                `if ($1 === "")`,
               );
               fixCount++;
             } else if (posMatch) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                `if ($1 !== "")`
+                `if ($1 !== "")`,
               );
               fixCount++;
             }
-          } else if (msg.includes("Unexpected object value") && msg.includes("always true")) {
+          } else if (
+            msg.includes("Unexpected object value") &&
+            msg.includes("always true")
+          ) {
             // Non-nullable object: if (obj) → always true, remove condition
             // BUT we shouldn't remove — just mark it safe
             // Add eslint-disable-next-line for this specific pattern
             // (Object is guaranteed non-null by TS, the check is redundant)
             const indent = line.match(/^(\s*)/)?.[1] ?? "";
-            lines.splice(idx, 0, `${indent}// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- TS guarantees non-null`);
+            lines.splice(
+              idx,
+              0,
+              `${indent}// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- TS guarantees non-null`,
+            );
             fixCount++;
             break; // don't update lines[idx] since we inserted above
-          } else if (msg.includes("always false") || msg.includes("Unexpected nullish")) {
+          } else if (
+            msg.includes("always false") ||
+            msg.includes("Unexpected nullish")
+          ) {
             // Condition is always false (dead code) or nullish type
             const indent = line.match(/^(\s*)/)?.[1] ?? "";
-            lines.splice(idx, 0, `${indent}// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- migration`);
+            lines.splice(
+              idx,
+              0,
+              `${indent}// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- migration`,
+            );
             fixCount++;
             break;
           } else if (msg.includes("A boolean expression is required")) {
             // Generic: non-boolean in condition
             // Wrap in Boolean()
-            const condMatch = line.match(/if\s*\(\s*(!?)(\w+(?:\.\w+)*(?:\([^)]*\))?)\s*\)/);
+            const condMatch = line.match(
+              /if\s*\(\s*(!?)(\w+(?:\.\w+)*(?:\([^)]*\))?)\s*\)/,
+            );
             if (condMatch) {
               const neg = condMatch[1];
               const expr = condMatch[2];
               line = line.replace(
                 /if\s*\(\s*!?(\w+(?:\.\w+)*(?:\([^)]*\))?)\s*\)/,
-                neg ? `if (!Boolean(${expr}))` : `if (Boolean(${expr}))`
+                neg ? `if (!Boolean(${expr}))` : `if (Boolean(${expr}))`,
               );
               fixCount++;
             }
@@ -197,21 +211,41 @@ for (const entry of report) {
             // LHS of ?? is always non-null → remove ?? fallback
             // x ?? default → x
             // Be careful: only remove the ?? and RHS if we can identify them
-            const nnMatch = line.match(/(\S+)\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\w+)/);
+            const nnMatch = line.match(
+              /(\S+)\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\w+)/,
+            );
             if (nnMatch) {
-              line = line.replace(/\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\w+)/, "");
+              line = line.replace(
+                /\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\w+)/,
+                "",
+              );
               fixCount++;
             }
-          } else if (msg.includes("always truthy") || msg.includes("always falsy")) {
+          } else if (
+            msg.includes("always truthy") ||
+            msg.includes("always falsy")
+          ) {
             // Condition is always truthy/falsy — the check is redundant
             // This is fine to disable per-line; TS guarantees the value
             const indent = line.match(/^(\s*)/)?.[1] ?? "";
-            lines.splice(idx, 0, `${indent}// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- TS guarantees`);
+            lines.splice(
+              idx,
+              0,
+              `${indent}// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- TS guarantees`,
+            );
             fixCount++;
             break;
-          } else if (msg.includes("no overlap") || msg.includes("literal values") || msg.includes("never")) {
+          } else if (
+            msg.includes("no overlap") ||
+            msg.includes("literal values") ||
+            msg.includes("never")
+          ) {
             const indent = line.match(/^(\s*)/)?.[1] ?? "";
-            lines.splice(idx, 0, `${indent}// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- migration`);
+            lines.splice(
+              idx,
+              0,
+              `${indent}// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- migration`,
+            );
             fixCount++;
             break;
           }
@@ -225,7 +259,11 @@ for (const entry of report) {
           // Add { after case xxx: and } before next case/default/closing }
           // Too complex for single-line fix; add eslint-disable
           const indent = line.match(/^(\s*)/)?.[1] ?? "";
-          lines.splice(idx, 0, `${indent}// eslint-disable-next-line no-case-declarations`);
+          lines.splice(
+            idx,
+            0,
+            `${indent}// eslint-disable-next-line no-case-declarations`,
+          );
           fixCount++;
           break;
         }

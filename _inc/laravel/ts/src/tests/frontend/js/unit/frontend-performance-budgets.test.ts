@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module frontend-performance-budgets.test
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires */
 
 /* global $, jQuery */
 // @ts-check
@@ -66,9 +65,7 @@ describe("Frontend performance and stability budgets", (): void => {
     );
 
     const missingAutocomplete = passwordInputs
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       .filter(input => !input.getAttribute("autocomplete"))
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       .map(input => input.id || input.name ?? "<anonymous>");
 
     expect(missingAutocomplete).toEqual([]);

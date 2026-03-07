@@ -3,16 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const toast = msg => {
+    const toast = (msg: string) => {
       const text =
-        msg ?? "Update route is unavailable. Please contact technical support or your domain administrator.";
+        msg ??
+        "Update route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -41,9 +40,9 @@
     };
 
     const fm = document.getElementById("goal-tracking-edit-form");
-    if (fm?.getAttribute("data-submit-guarded") !== "true") {
+    if (fm && fm.getAttribute("data-submit-guarded") !== "true") {
       fm.setAttribute("data-submit-guarded", "true");
-      fm.addEventListener("submit", e => {
+      fm.addEventListener("submit", (e: Event) => {
         try {
           const action = (fm.getAttribute("action") ?? "#").trim();
           const url = (fm.getAttribute("data-url") ?? "#").trim();
@@ -56,7 +55,9 @@
       });
     }
 
-    const range = document.getElementById("goal-progress-range");
+    const range = document.getElementById(
+      "goal-progress-range",
+    ) as HTMLInputElement | null;
     const out = document.getElementById("goal-progress-output");
     if (range && out) {
       const sync = (): void => {
@@ -71,7 +72,7 @@
 
     try {
       const els = [].slice.call(
-        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
       els.forEach((el: Element): void => {
         try {

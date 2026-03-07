@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module changeAction
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 // assets/js/routes/leaves/changeAction.js
@@ -18,12 +17,11 @@
       return;
     f.setAttribute("data-submit-listener", "true");
 
-    const showNotice = msg => {
+    const showNotice = (msg: string) => {
       try {
         const linkEl = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-          linkEl !== null && window.bootstrap && window.bootstrap.Toast;
+          linkEl !== null && window.bootstrap?.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -34,7 +32,6 @@
           container.className = "position-fixed top-0 end-0 p-3";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
@@ -64,7 +61,7 @@
 
     f.addEventListener(
       "submit",
-      e => {
+      (e: Event) => {
         try {
           const action = f.getAttribute("action") ?? "#";
           if (action !== "#") return;

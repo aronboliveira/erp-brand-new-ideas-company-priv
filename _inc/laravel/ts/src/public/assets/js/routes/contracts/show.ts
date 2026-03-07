@@ -3,17 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, no-inner-declarations */
 
 /* global bootstrap */
 (function (): void {
   try {
     if (!window.svToastOrAlert) {
-      window.svToastOrAlert = function (msg) {
+      window.svToastOrAlert = function (msg: string) {
         try {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-          const ok = !!(window.bootstrap && window.bootstrap.Toast);
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          const ok = !!window.bootstrap?.Toast;
           if (!ok) {
             alert(msg);
             return;
@@ -40,45 +37,47 @@
       };
     }
 
-    function guardByAction(formSelector, anchorSelector) {
+    function guardByAction(formSelector: string, anchorSelector: string) {
       const forms = document.querySelectorAll(formSelector);
-      Array.prototype.forEach.call(forms, function (f) {
+      Array.prototype.forEach.call(forms, function (f: Element) {
         const act = (f.getAttribute("action") ?? "").trim();
         if (!act || act === "#") {
           const a = f.querySelector(anchorSelector);
           if (!a) return;
           const msg =
             a.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-          a.addEventListener("click", function (e) {
+          a.addEventListener("click", function (e: Event) {
             e.preventDefault();
-            window.svToastOrAlert(msg);
+            window.svToastOrAlert!(msg);
           });
         }
       });
     }
 
-    function guardByHref(anchor) {
+    function guardByHref(anchor: HTMLElement) {
       if (!anchor) return;
       const href = (anchor.getAttribute("href") ?? "").trim();
       if (!href || href === "#") {
         const msg =
-          anchor.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-        anchor.addEventListener("click", function (e) {
+          anchor.getAttribute("data-guard-msg") ??
+          "This action is unavailable.";
+        anchor.addEventListener("click", function (e: Event) {
           e.preventDefault();
-          window.svToastOrAlert(msg);
+          window.svToastOrAlert!(msg);
         });
       }
     }
 
-    function guardByDataUrl(anchor) {
+    function guardByDataUrl(anchor: HTMLElement) {
       if (!anchor) return;
       const url = (anchor.getAttribute("data-url") ?? "").trim();
       if (!url || url === "#") {
         const msg =
-          anchor.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-        anchor.addEventListener("click", function (e) {
+          anchor.getAttribute("data-guard-msg") ??
+          "This action is unavailable.";
+        anchor.addEventListener("click", function (e: Event) {
           e.preventDefault();
-          window.svToastOrAlert(msg);
+          window.svToastOrAlert!(msg);
         });
       }
     }
@@ -91,18 +90,18 @@
     const cBtn = document.getElementById("comment_submit");
     if (cForm && cBtn) {
       const act = (cForm.getAttribute("data-action") ?? "").trim();
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!act || act === "#") {
         const msg =
           cForm.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-        cBtn.addEventListener("click", function (e) {
+        cBtn.addEventListener("click", function (e: Event) {
           e.preventDefault();
-          window.svToastOrAlert(msg);
+          window.svToastOrAlert!(msg);
         });
       }
     }
 
-    guardByHref(document.querySelector<HTMLElement>("#grammarCheck"));
+    const grammarEl = document.querySelector<HTMLElement>("#grammarCheck");
+    if (grammarEl) guardByHref(grammarEl);
   } catch (_) {}
 })();
 

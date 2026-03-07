@@ -3,16 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
+
+declare const bootstrap: {
+  Toast: { getOrCreateInstance(el: Element): { show(): void } };
+  Modal: { getOrCreateInstance(el: Element): { show(): void; hide(): void } };
+  Tooltip: { getOrCreateInstance(el: Element): void };
+};
+
 (function (): void {
   const listened = "data-listener-active";
-  function toast(message) {
+  function toast(message: string) {
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
     if (hasBs) {
@@ -37,81 +42,89 @@
       alert(text);
     }
   }
-  function guardLink(a) {
+  function guardLink(a: Element): void {
     if (!a || a.getAttribute(listened) === "true") return;
     a.setAttribute(listened, "true");
-    a.addEventListener("click", function (e) {
+    a.addEventListener("click", function (e: Event): void {
       const href = (a.getAttribute("href") ?? "#").trim();
-      const url = (a.getAttribute("data-url") || href ?? "#").trim();
+      const url = ((a.getAttribute("data-url") || href) ?? "#").trim();
       if (url !== "#" && href !== "#") return;
       e.preventDefault();
       toast(a.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function guardForm(f) {
+  function guardForm(f: Element): void {
     if (!f || f.getAttribute(listened) === "true") return;
     f.setAttribute(listened, "true");
-    f.addEventListener("submit", function (e) {
+    f.addEventListener("submit", function (e: Event): void {
       const action = (f.getAttribute("action") ?? "#").trim();
-      const url = (f.getAttribute("data-url") || action ?? "#").trim();
+      const url = ((f.getAttribute("data-url") || action) ?? "#").trim();
       if (url !== "#" && action !== "#") return;
       e.preventDefault();
       toast(f.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function hookConfirm(el) {
+  function hookConfirm(el: HTMLElement) {
     if (!el || el.getAttribute("data-confirm-hooked") === "true") return;
     el.setAttribute("data-confirm-hooked", "true");
-    el.addEventListener("click", function (e) {
+    el.addEventListener("click", function (e: Event) {
       const txt = el.getAttribute("data-confirm");
       if (!txt) return;
       e.preventDefault();
       const parts = String(txt).split("|");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       const title = parts[0] || "";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       const body = parts[1] || "";
       const yes = el.getAttribute("data-confirm-yes");
       const hasBs = !!(
         document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         window.bootstrap
       );
       if (hasBs) {
-        let modal = document.getElementById("confirm-modal");
+        let modal: HTMLElement | null =
+          document.getElementById("confirm-modal");
         if (!modal) {
           const wrap = document.createElement("div");
           wrap.innerHTML =
             '<div class="modal fade" id="confirm-modal" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><p></p></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal"></button><button type="button" class="btn btn-primary" id="confirm-yes-btn"></button></div></div></div></div>';
-          document.body.appendChild(wrap.firstChild);
+          const firstChild = wrap.firstChild;
+          if (firstChild instanceof HTMLElement) {
+            document.body.appendChild(firstChild);
+          }
         }
         modal = document.getElementById("confirm-modal");
-        modal.querySelector(".modal-title").textContent = title;
-        modal.querySelector(".modal-body p").textContent = body;
-        modal.querySelector(".modal-footer .btn-light").textContent = "Cancel";
-        modal.querySelector("#confirm-yes-btn").textContent = "OK";
+        if (!modal) return;
+        const modalTitle = modal.querySelector(".modal-title");
+        const modalBody = modal.querySelector(".modal-body p");
+        const modalCancel = modal.querySelector(".modal-footer .btn-light");
+        const yesBtn = modal.querySelector<HTMLElement>("#confirm-yes-btn");
+        if (modalTitle) modalTitle.textContent = title;
+        if (modalBody) modalBody.textContent = body;
+        if (modalCancel) modalCancel.textContent = "Cancel";
+        if (yesBtn) yesBtn.textContent = "OK";
         const inst = bootstrap.Modal.getOrCreateInstance(modal);
-        const yesBtn = modal.querySelector("#confirm-yes-btn");
         const handler = function (): void {
           try {
             if (yes) {
               // SECURITY: Safe handler dispatch instead of new Function()
-              window.__confirmHandlers?.[yes]?.() ||
-                safeFormAction(yes, yesBtn);
+              const handlers = window.__confirmHandlers as
+                | Record<string, (() => void) | undefined>
+                | undefined;
+              handlers?.[yes]?.() || safeFormAction(yes, yesBtn);
             }
           } catch (_) {}
           inst.hide();
         };
-        yesBtn.addEventListener("click", handler, { once: true });
+        if (yesBtn) yesBtn.addEventListener("click", handler, { once: true });
         inst.show();
       } else {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (confirm((title ? title + "\n\n" : "") + body)) {
           try {
             if (yes) {
               // SECURITY: Safe handler dispatch instead of new Function()
-              window.__confirmHandlers?.[yes]?.() ||
-                safeFormAction(yes, document.body);
+              const handlers = window.__confirmHandlers as
+                | Record<string, (() => void) | undefined>
+                | undefined;
+              handlers?.[yes]?.() || safeFormAction(yes, document.body);
             }
           } catch (_) {}
         }
@@ -119,11 +132,14 @@
     });
   }
   // SECURITY: Safe fallback for confirm handlers instead of new Function()
-  function safeFormAction(actionStr, element) {
+  function safeFormAction(
+    actionStr: string,
+    element: HTMLElement | null,
+  ): void {
     if (!actionStr) return;
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
       const form = document.querySelector(actionStr);
-      if (form?.tagName === "FORM") {
+      if (form?.tagName === "FORM" && form instanceof HTMLFormElement) {
         form.submit();
       }
       return;
@@ -136,22 +152,24 @@
       return;
     }
   }
-  function init() {
+  function init(): void {
     document
       .querySelectorAll("a[data-guard-msg],a[data-url]")
-      .forEach(guardLink);
+      .forEach((el: Element): void => guardLink(el));
     document
       .querySelectorAll("form[data-guard-msg],form[data-url]")
-      .forEach(guardForm);
-    document.querySelectorAll(".bs-pass-para").forEach(hookConfirm);
+      .forEach((el: Element): void => guardForm(el));
+    document
+      .querySelectorAll<HTMLElement>(".bs-pass-para")
+      .forEach((el: HTMLElement): void => hookConfirm(el));
     try {
-      document
-        .querySelectorAll('[data-bs-toggle="tooltip"]')
-        .forEach(function (el) {
-          try {
-            bootstrap.Tooltip.getOrCreateInstance(el);
-          } catch (_) {}
-        });
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (
+        el: Element,
+      ): void {
+        try {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        } catch (_) {}
+      });
     } catch (_) {}
   }
   document.addEventListener("DOMContentLoaded", function (): void {

@@ -3,16 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+declare const html2pdf: () => {
+  set: (opt: unknown) => { from: (el: HTMLElement) => { save: () => void } };
+};
 ((): void => {
   const DATA_LISTENER_ADDED = "data-listener-added";
   const ERR_FB = "# ERROR";
   const DATA_CLIENT_LOCALIZED = "data-client-localized";
   const DATA_GUARD_MSG = "data-guard-msg";
 
-  const getLocalizedMessage = (el, key) => {
+  const getLocalizedMessage = (el: HTMLElement, key: string) => {
     let msg = ERR_FB;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +23,9 @@
       msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,7 +43,7 @@
     return msg;
   };
 
-  const handleErrorDisplay = (el, key) => {
+  const handleErrorDisplay = (el: HTMLElement, key: string) => {
     const message = getLocalizedMessage(el ?? document.body, key);
     const hasBootstrap =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -54,18 +56,36 @@
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        { t.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = message; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); t.append(_d); }
+        {
+          t.replaceChildren();
+          const _d = document.createElement("div");
+          _d.className = "d-flex";
+          const _b = document.createElement("div");
+          _b.className = "toast-body";
+          _b.textContent = message;
+          const _c = document.createElement("button");
+          _c.type = "button";
+          _c.className = "btn-close btn-close-white me-2 m-auto";
+          _c.dataset.bsDismiss = "toast";
+          _c.setAttribute("aria-label", "Close");
+          _d.append(_b, _c);
+          t.append(_d);
+        }
         document.body.appendChild(t);
       }
-      new bootstrap.Toast(document.querySelector<HTMLElement>("#error-toast")).show();
+      new bootstrap.Toast(
+        document.querySelector<HTMLElement>("#error-toast")!,
+      ).show();
     } else {
       alert(message);
     }
   };
 
-  const attachPointerGuard = (el, key) => {
+  const attachPointerGuard = (el: HTMLElement, key: string) => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-    const onceHandler = (): void => { handleErrorDisplay(el, key); };
+    const onceHandler = (): void => {
+      handleErrorDisplay(el, key);
+    };
     el.addEventListener("pointerup", onceHandler, { once: true });
     el.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
@@ -93,7 +113,6 @@
       try {
         if (!el || typeof html2pdf === "undefined")
           throw new Error("html2pdf missing or target not found");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const currentName = $("#filename").val() ?? initialFilename;
         const opt = {
           margin: 0.3,
@@ -115,10 +134,8 @@
 
     $((): void => {
       const $table = $("#reportTable");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!$table.length) return;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!$.fn.DataTable) {
           if (
             window.location.hostname === "localhost" ||
@@ -128,9 +145,15 @@
           attachPointerGuard($table.get(0), "datatable_unavailable");
           return;
         }
-        if ($.fn.DataTable.isDataTable($table)) return;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        const currentName = $("#filename").val() ?? initialFilename;
+        if (
+          (
+            $.fn.DataTable as unknown as {
+              isDataTable: (el: unknown) => boolean;
+            }
+          ).isDataTable($table)
+        )
+          return;
+        const currentName = ($("#filename").val() ?? initialFilename) as string;
         $table.DataTable({
           dom: "Bfrtip",
           buttons: [
@@ -140,11 +163,17 @@
           ],
           language:
             typeof window.dataTabelLang !== "undefined" && window.dataTabelLang
-              ? window.dataTabelLang
+              ? (window.dataTabelLang as Record<
+                  string,
+                  string | Record<string, string>
+                >)
               : {},
         });
       } catch {
-        attachPointerGuard($table.get(0), "datatable_unavailable");
+        attachPointerGuard(
+          $table.get(0) as HTMLElement,
+          "datatable_unavailable",
+        );
       }
     });
   } catch (e) {

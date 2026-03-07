@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module date
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -13,23 +12,23 @@
   const langKey = "erp-np-lang";
   let errorMessage = "";
 
-  const getLocalizedMessage = (key, el) => {
+  const getLocalizedMessage = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
       msg = el.getAttribute(guardMsgKey) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
-        translations?.[lang]?.[key] ||
+        window.translations?.[lang]?.[key] ||
         el.getAttribute(guardMsgKey) ||
-        translations?.en?.[key] ||
+        window.translations?.en?.[key] ||
         msg;
       if (msg !== errFb) {
         el.setAttribute(guardMsgKey, msg);
@@ -39,7 +38,7 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -80,25 +79,26 @@
   };
   document.addEventListener("pointerup", onErrorPointerUp);
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { Array.from(m.removedNodes).forEach(n => {
+    muts.forEach(m => {
+      Array.from(m.removedNodes).forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    const typeEl = document.getElementById("type");
-    if (typeEl?.dataset.listenerAttached !== "true") {
+    const typeEl = document.getElementById("type") as HTMLSelectElement | null;
+    if (!typeEl) return;
+    if (typeEl.dataset.listenerAttached !== "true") {
       typeEl.dataset.listenerAttached = "true";
       const onTypeChange = (): void => {
         try {
-          const url = '{{ route("charofAccount.subType") }}';
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (url === "") throw new Error("char_of_account_subtype_unavailable");
+          const url: string = '{{ route("charofAccount.subType") }}';
+          if (url === "")
+            throw new Error("char_of_account_subtype_unavailable");
           const val = typeEl.value ?? "";
           $.ajax({
             url,
@@ -106,16 +106,18 @@
             dataType: "json",
             data: { type: val, _token: "{{ csrf_token() }}" },
           })
-            .done(data => {
+            .done((data: unknown) => {
               const sub = document.getElementById("sub_type");
               if (!sub) return;
               sub.innerHTML = "";
-              Object.entries(data).forEach(([k, v]) => {
-                const o = document.createElement("option");
-                o.value = k;
-                o.textContent = v;
-                sub.appendChild(o);
-              });
+              Object.entries(data as Record<string, string>).forEach(
+                ([k, v]) => {
+                  const o = document.createElement("option");
+                  o.value = k;
+                  o.textContent = v;
+                  sub.appendChild(o);
+                },
+              );
             })
             .fail((): void => {
               throw new Error("char_of_account_subtype_unavailable");
@@ -126,25 +128,33 @@
       };
       typeEl.addEventListener("change", onTypeChange);
       new MutationObserver((ms, obs) => {
-        ms.forEach(m =>
-          { Array.from(m.removedNodes).forEach(n => {
+        ms.forEach(m => {
+          Array.from(m.removedNodes).forEach(n => {
             if (n === typeEl) {
               typeEl.removeEventListener("change", onTypeChange);
               obs.disconnect();
             }
-          }); }
-        );
+          });
+        });
       }).observe(document.body, { childList: true, subtree: true });
     }
 
     try {
       const copyDates = (): void => {
-        const start = document.querySelector<HTMLElement>(".startDate")?.value ?? "";
-        const end = document.querySelector<HTMLElement>(".endDate")?.value ?? "";
+        const start =
+          document.querySelector<HTMLInputElement>(".startDate")?.value ?? "";
+        const end =
+          document.querySelector<HTMLInputElement>(".endDate")?.value ?? "";
         document
-          .querySelectorAll(".start_date")
-          .forEach((el: Element): void => (el.value = start));
-        document.querySelectorAll(".end_date").forEach((el: Element): void => (el.value = end));
+          .querySelectorAll<HTMLInputElement>(".start_date")
+          .forEach((el): void => {
+            el.value = start;
+          });
+        document
+          .querySelectorAll<HTMLInputElement>(".end_date")
+          .forEach((el): void => {
+            el.value = end;
+          });
       };
       copyDates();
     } catch {

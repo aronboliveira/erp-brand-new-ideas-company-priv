@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module hrm.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global bootstrap, $, jQuery */
 // @ts-check
@@ -32,7 +31,7 @@ test.beforeEach(async ({ page }) => {
 	});
 });
 
-async function assertPageRenders(page, route, label, opts = {}) {
+async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
 	await test.step(`Navigate to ${label}`, async (): void => {
 		const resp = await page.goto(`${BASE_URL}/${route}`, {
 			waitUntil: "commit",
@@ -94,7 +93,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("HRM Employee pages", (): void => {
-	test("employee index renders table", async ({ page }) => {
+	test("employee index: number renders table", async ({ page }) => {
 		await assertPageRenders(page, "employees", "Employees Index", {
 			expectTable: true,
 			expectCard: true,
@@ -103,7 +102,7 @@ test.describe("HRM Employee pages", (): void => {
 		});
 	});
 
-	test("employee create renders form", async ({ page }) => {
+	test("employee create renders form: HTMLFormElement", async ({ page }) => {
 		await assertPageRenders(page, "employees/create", "Employee Create", {
 			expectForm: true,
 			expectCard: true,
@@ -123,14 +122,14 @@ test.describe("HRM Employee pages", (): void => {
 
 test.describe("HRM Org Structure pages", (): void => {
 	for (const slug of ["departments", "designations"]) {
-		test(`${slug} index renders table`, async ({ page }) => {
+		test(`${slug} index: number renders table`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
 			});
 		});
 
-		test(`${slug} create modal form visible`, async ({ page }) => {
+		test(`${slug} create modal form: HTMLFormElement visible`, async ({ page }) => {
 			await test.step(`Navigate to ${slug} index`, async (): void => {
 				const resp = await page.goto(`${BASE_URL}/${slug}`, {
 					waitUntil: "commit",
@@ -156,13 +155,13 @@ test.describe("HRM Org Structure pages", (): void => {
 		});
 	}
 
-	test("branches index renders", async ({ page }) => {
+	test("branches index: number renders", async ({ page }) => {
 		await assertPageRenders(page, "branches", "Branches Index", {
 			expectText: "branch",
 		});
 	});
 
-	test("branches create modal form visible", async ({ page }) => {
+	test("branches create modal form: HTMLFormElement visible", async ({ page }) => {
 		await test.step(`Navigate to branches index`, async (): void => {
 			const resp = await page.goto(`${BASE_URL}/branches`, {
 				waitUntil: "commit",
@@ -205,7 +204,7 @@ test.describe("HRM Payroll pages", (): void => {
 	];
 
 	for (const slug of payrollSlugs) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -219,7 +218,7 @@ test.describe("HRM Payroll pages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("HRM Payslip pages", (): void => {
-	test("payslips index renders table", async ({ page }) => {
+	test("payslips index: number renders table", async ({ page }) => {
 		await assertPageRenders(page, "payslips", "Payslips Index", {
 			expectTable: true,
 			expectCard: true,
@@ -227,7 +226,7 @@ test.describe("HRM Payslip pages", (): void => {
 		});
 	});
 
-	test("payslip_types index renders", async ({ page }) => {
+	test("payslip_types index: number renders", async ({ page }) => {
 		await assertPageRenders(page, "payslip_types", "Payslip Types Index", {
 			expectTable: true,
 			expectCard: true,
@@ -240,7 +239,7 @@ test.describe("HRM Payslip pages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("HRM Leave pages", (): void => {
-	test("leaves index renders table", async ({ page }) => {
+	test("leaves index: number renders table", async ({ page }) => {
 		await assertPageRenders(page, "leave", "Leaves Index", {
 			expectTable: true,
 			expectCard: true,
@@ -248,7 +247,7 @@ test.describe("HRM Leave pages", (): void => {
 		});
 	});
 
-	test("leave types index renders", async ({ page }) => {
+	test("leave types index: number renders", async ({ page }) => {
 		await assertPageRenders(page, "leave_types", "Leave Types Index", {
 			expectTable: true,
 			expectCard: true,
@@ -261,7 +260,7 @@ test.describe("HRM Leave pages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("HRM Attendance pages", (): void => {
-	test("attendance index renders table", async ({ page }) => {
+	test("attendance index: number renders table", async ({ page }) => {
 		await assertPageRenders(page, "employee_attendances", "Attendance Index", {
 			expectTable: true,
 			expectCard: true,
@@ -284,7 +283,7 @@ test.describe("HRM Attendance pages", (): void => {
 
 test.describe("HRM Activity pages", (): void => {
 	for (const slug of ["meetings", "trainings", "trainers", "training_types"]) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -292,7 +291,7 @@ test.describe("HRM Activity pages", (): void => {
 		});
 	}
 
-	test("events index renders", async ({ page }) => {
+	test("events index: number renders", async ({ page }) => {
 		await assertPageRenders(page, "events", "Events Index", {
 			expectText: "event",
 		});
@@ -324,7 +323,7 @@ test.describe("HRM HR Module pages", (): void => {
 	];
 
 	for (const slug of hrSlugs) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -332,7 +331,7 @@ test.describe("HRM HR Module pages", (): void => {
 		});
 	}
 
-	test("termination types index renders", async ({ page }) => {
+	test("termination types index: number renders", async ({ page }) => {
 		await assertPageRenders(page, "terminationtype", "Termination Types Index", {
 			expectTable: true,
 			expectCard: true,
@@ -352,7 +351,7 @@ test.describe("HRM Performance pages", (): void => {
 		"goal_types",
 		"goal_trackings",
 	]) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -367,7 +366,7 @@ test.describe("HRM Performance pages", (): void => {
 
 test.describe("HRM Documents & Misc pages", (): void => {
 	for (const slug of ["documents", "document_uploads", "transfers", "holidays"]) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -402,7 +401,7 @@ test.describe("HRM Reports", (): void => {
 
 test.describe("HRM Recruitment pages", (): void => {
 	for (const slug of ["jobs", "job-category"]) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectTable: true,
 				expectCard: true,
@@ -411,7 +410,7 @@ test.describe("HRM Recruitment pages", (): void => {
 	}
 
 	for (const slug of ["job-stage", "job-application"]) {
-		test(`${slug} index renders`, async ({ page }) => {
+		test(`${slug} index: number renders`, async ({ page }) => {
 			await assertPageRenders(page, slug, `${slug} Index`, {
 				expectText: slug.replace("-", " "),
 			});

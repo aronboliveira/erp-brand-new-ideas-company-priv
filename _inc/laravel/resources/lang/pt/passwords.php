@@ -5,4 +5,6 @@ return [
 	'sent' => 'Enviamos o seu link de redefinição de palavra-passe por e-mail!',
 	'token' => 'Este token de redefinição de palavra-passe é inválido.',
 	'user' => 'Não encontramos um utilizador com esse endereço de e-mail.',
+
+	'throttled' => 'Solicitou recentemente a reposição da palavra-passe. Verifique o seu e-mail.',
 ];

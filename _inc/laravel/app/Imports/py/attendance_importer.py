@@ -2,12 +2,9 @@
 """Attendance Importer — parses attendance spreadsheets via Python."""
 
 import logging
-import sys
 from typing import Any, Dict, List, Optional
 
-import pandas as pd
-
-from base_importer import BaseImporter, parse_date, safe_get
+from base_importer import BaseImporter, parse_date
 
 logger: logging.Logger = logging.getLogger(__name__)
 

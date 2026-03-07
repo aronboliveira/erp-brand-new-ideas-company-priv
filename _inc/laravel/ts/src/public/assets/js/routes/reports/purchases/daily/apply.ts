@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module apply
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,12 +13,12 @@
     host.setAttribute(flag, "true");
     document.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
           const a =
             e.target &&
-            (e.target.closest
-              ? e.target.closest("a.apply-daily-purchase-link")
+            ((e.target as Element).closest
+              ? (e.target as Element).closest("a.apply-daily-purchase-link")
               : null);
           if (!a) return;
           e.preventDefault();
@@ -27,23 +26,20 @@
           const f = formId ? document.getElementById(formId) : null;
           if (!f) return;
           const action = f.getAttribute("action") ?? "#";
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const url = f.getAttribute("data-url") ?? "#";
           if (url !== "#") {
             try {
-              f.submit();
+              (f as HTMLFormElement).submit();
             } catch (_) {}
             return;
           }
           const msg =
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             f.getAttribute("data-guard-msg") ??
-            a.getAttribute("data-guard-msg") ?? "Daily purchase apply route is unavailable. Please contact technical support or your domain administrator.";
+            a.getAttribute("data-guard-msg") ??
+            "Daily purchase apply route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+            window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -78,7 +74,7 @@
           f.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();

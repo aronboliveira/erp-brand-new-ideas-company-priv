@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module createList
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const btn = document.getElementById("deal-create-btn");
   if (!btn || btn.getAttribute("data-listener-active") === "true") return;
   btn.setAttribute("data-listener-active", "true");
-  btn.addEventListener("click", e => {
+  btn.addEventListener("click", (e: Event) => {
     try {
       const url = btn.getAttribute("data-url") ?? "#";
       if (url !== "#") return;

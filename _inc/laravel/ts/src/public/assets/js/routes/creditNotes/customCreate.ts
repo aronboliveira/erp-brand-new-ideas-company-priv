@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module customCreate
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("invoice_custom_credit_note_form");
   if (!form || form.getAttribute("data-listener-active") === "true") return;
   form.setAttribute("data-listener-active", "true");
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", (e: Event) => {
     try {
       const url = form.getAttribute("data-url") ?? "#";
       if (url !== "#") return;
@@ -25,7 +24,6 @@
         container.style.zIndex = "1080";
         document.body.appendChild(container);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bootstrapLink && window.bootstrap) {
         const toastEl = document.createElement("div");
         toastEl.className = "toast";

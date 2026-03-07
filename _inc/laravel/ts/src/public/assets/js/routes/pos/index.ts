@@ -3,34 +3,48 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
+
+interface PosCartResponse {
+  ok?: boolean;
+  subtotal_formatted?: string;
+  total_formatted?: string;
+}
+
+interface ProductItem {
+  id: string | number;
+  name?: string;
+  price?: string | number;
+  price_formatted?: string;
+  add_label?: string;
+}
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const q = (s, r = document) => r.querySelector(s);
-  const qa = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const q = (s: string, r: Document | Element = document): HTMLElement | null =>
+    r.querySelector(s) as HTMLElement | null;
+  const qa = (s: string, r: Document | Element = document): Element[] =>
+    Array.from(r.querySelectorAll(s));
 
-  const getLangCode = () =>
+  const getLangCode = (): string =>
     (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      (document.documentElement.lang || "en")
     )
       .toLowerCase()
       .replace(/_/g, "-");
 
-  const translate = (key, fallback) => {
+  const translate = (key: string, fallback: string): string => {
     const lc = getLangCode();
     const base = lc.slice(0, 2);
     return (
-      (window.translations?.[lc]?.[key]) ||
-      (window.translations?.[base]?.[key]) ||
-      (window.translations?.en?.[key]) ||
+      window.translations?.[lc]?.[key] ||
+      window.translations?.[base]?.[key] ||
+      window.translations?.en?.[key] ||
       fallback
     );
   };
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const wrapId = "toast-wrap-guard";
     let wrap = q("#" + wrapId);
     if (!wrap) {
@@ -43,7 +57,7 @@
     return wrap;
   };
 
-  const toast = (msg, variant = "danger") => {
+  const toast = (msg: string, variant = "danger") => {
     const wrap = ensureToastContainer();
     const node = document.createElement("div");
     node.className = `toast align-items-center text-bg-${variant} border-0`;
@@ -54,13 +68,12 @@
       `<div class="d-flex"><div class="toast-body">${msg}</div>` +
       `<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
     wrap.appendChild(node);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (window.bootstrap.Toast)
       new window.bootstrap.Toast(node, { autohide: true, delay: 3000 }).show();
     else alert(msg);
   };
 
-  const guardMsg = (el, key) =>
+  const guardMsg = (el: HTMLElement, key: string) =>
     el?.getAttribute("data-guard-msg") || translate(key, "# ERROR");
 
   // --- Search products
@@ -74,7 +87,7 @@
           toast(guardMsg(searchInput, "search_products_unavailable"));
           return;
         }
-        const qv = e.target.value.trim();
+        const qv = (e.target as HTMLInputElement | null)?.value?.trim();
         const list = q("#product-listing");
         if (!qv) {
           if (list) list.innerHTML = "";
@@ -95,7 +108,7 @@
           list.innerHTML = items.length
             ? items
                 .map(
-                  p => `
+                  (p: ProductItem) => `
             <div class="col-md-4 mb-2">
               <div class="card h-100">
                 <div class="card-body">
@@ -103,7 +116,7 @@
                     <strong class="d-block text-truncate" title="${
                       p.name ?? ""
                     }">${p.name ?? "-"}</strong>
-                    <span>${p.price_formatted || p.price ?? ""}</span>
+                    <span>${p.price_formatted || (p.price ?? "")}</span>
                   </div>
                   <button class="btn btn-sm btn-primary mt-2" data-action="add-product" data-id="${
                     p.id
@@ -122,9 +135,13 @@
     );
   }
 
-  const csrf = q('meta[name="csrf-token"]')?.content ?? "";
+  const csrf =
+    (q('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? "";
 
-  const postForm = async (url, body) => {
+  const postForm = async (
+    url: string,
+    body: Record<string, string> | URLSearchParams,
+  ): Promise<PosCartResponse> => {
     const form =
       body instanceof URLSearchParams ? body : new URLSearchParams(body);
     const res = await fetch(url, {
@@ -136,7 +153,10 @@
     return res.json();
   };
 
-  const updateRowTotals = (row, payload) => {
+  const updateRowTotals = (
+    row: HTMLElement,
+    payload: PosCartResponse,
+  ): void => {
     if (payload?.subtotal_formatted) {
       const s = row.querySelector(".subtotal");
       if (s) s.textContent = payload.subtotal_formatted;
@@ -144,12 +164,13 @@
     if (payload?.total_formatted) {
       const totalDom = q("#displaytotal");
       if (totalDom) totalDom.textContent = payload.total_formatted;
-      qa(".totalamount").forEach((el: Element): void => (el.textContent = payload.total_formatted),
-      );
+      qa(".totalamount").forEach((el: Element): void => {
+        el.textContent = payload.total_formatted ?? "";
+      });
     }
   };
 
-  const changeQty = async (input, delta = 0) => {
+  const changeQty = async (input: HTMLInputElement, delta = 0) => {
     const row = input.closest("tr[data-product-id]");
     const url = input.getAttribute("data-url") ?? "#";
     if (url === "#") {
@@ -163,39 +184,54 @@
       toast(translate("nothing_to_update", "Nothing to update."), "secondary");
       return;
     }
-    input.value = next;
+    input.value = String(next);
     try {
-      const data = await postForm(url, { id, quantity: String(next) });
+      const data = await postForm(url, {
+        id: id ?? "",
+        quantity: String(next),
+      });
       if (!data?.ok) throw new Error("bad");
-      if (row) updateRowTotals(row, data);
+      if (row) updateRowTotals(row as HTMLElement, data);
     } catch {
       toast(guardMsg(input, "update_cart_unavailable"));
     }
   };
 
   qa("#tbody").forEach(tbody => {
-    tbody.addEventListener("click", e => {
-      const minus = e.target.closest(".minus");
-      const plus = e.target.closest(".plus");
+    tbody.addEventListener("click", (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const minus = target.closest(".minus");
+      const plus = target.closest(".plus");
       if (!minus && !plus) return;
-      const input = e.target
+      const input = target
         .closest("tr")
-        ?.querySelector('input[name="quantity"]');
+        ?.querySelector('input[name="quantity"]') as HTMLInputElement | null;
       if (input) void changeQty(input, minus ? -1 : 1);
     });
-    tbody.addEventListener("change", e => {
-      const input = e.target.closest('input[name="quantity"]');
+    tbody.addEventListener("change", (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const input = target.closest(
+        'input[name="quantity"]',
+      ) as HTMLInputElement | null;
       if (input) void changeQty(input, 0);
     });
   });
 
-  const bindConfirm = (anchor, modalId, okId) => {
+  const bindConfirm = (
+    anchor: HTMLElement,
+    modalId: string,
+    okId: string,
+  ): void => {
     if (anchor.dataset.bound === "1") return;
     anchor.dataset.bound = "1";
-    anchor.addEventListener("click", ev => {
+    anchor.addEventListener("click", (ev: Event) => {
       ev.preventDefault();
       const targetFormId = anchor.getAttribute("data-confirm-yes");
-      const form = targetFormId ? document.getElementById(targetFormId) : null;
+      const form = targetFormId
+        ? (document.getElementById(targetFormId) as HTMLFormElement | null)
+        : null;
       if (!form) {
         toast(guardMsg(anchor, "remove_from_cart_unavailable"));
         return;
@@ -204,7 +240,6 @@
       const title = parts[0] || "Are you sure?";
       const body = parts[1] || "";
 
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Modal) {
         let modal = q("#" + modalId);
         if (!modal) {
@@ -217,30 +252,37 @@
             `<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>` +
             `<button type="button" class="btn btn-danger" id="${okId}">OK</button></div>` +
             `</div></div></div>`;
-          document.body.appendChild(tpl.firstChild);
+          const firstChild = tpl.firstChild;
+          if (firstChild) document.body.appendChild(firstChild);
           modal = q("#" + modalId);
         }
-        modal.querySelector(".modal-title").textContent = title;
-        modal.querySelector(".modal-body").textContent = body;
+        if (modal) {
+          const modalTitle = modal.querySelector(".modal-title");
+          const modalBody = modal.querySelector(".modal-body");
+          if (modalTitle) modalTitle.textContent = title;
+          if (modalBody) modalBody.textContent = body;
+        }
         const yes = q("#" + okId);
-        const handler = (): void => {
-          yes.removeEventListener("click", handler);
-          form.submit();
-        };
-        yes.addEventListener("click", handler);
-        new window.bootstrap.Modal(modal).show();
+        if (yes) {
+          const handler = (): void => {
+            yes.removeEventListener("click", handler);
+            form.submit();
+          };
+          yes.addEventListener("click", handler);
+        }
+        if (modal) new window.bootstrap.Modal(modal).show();
       } else {
         if (confirm(`${title}\n${body}`)) form.submit();
       }
     });
   };
 
-  qa(".bs-pass-para-pos").forEach(a =>
-    { bindConfirm(a, "confirm-modal-row", "confirm-row-yes"); },
-  );
+  qa(".bs-pass-para-pos").forEach(a => {
+    bindConfirm(a as HTMLElement, "confirm-modal-row", "confirm-row-yes");
+  });
   const payBtn = q("#btn-pur button.btn-primary[data-url]");
   if (payBtn) {
-    payBtn.addEventListener("click", e => {
+    payBtn.addEventListener("click", (e: Event) => {
       const u = payBtn.getAttribute("data-url") ?? "#";
       if (u === "#") {
         e.preventDefault();

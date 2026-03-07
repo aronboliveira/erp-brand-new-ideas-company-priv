@@ -18,8 +18,8 @@ def are_equivalent_paths(rel1: str, rel2: str) -> bool:
     name2 = os.path.basename(rel2).lower()
     if name1 != name2:
         return False
-    dirs1 = map(lambda d: d.lower(), os.path.normpath(rel1).split(os.path.sep)[:-1])
-    dirs2 = map(lambda d: d.lower(), os.path.normpath(rel2).split(os.path.sep)[:-1])
+    dirs1 = list(map(lambda d: d.lower(), os.path.normpath(rel1).split(os.path.sep)[:-1]))
+    dirs2 = list(map(lambda d: d.lower(), os.path.normpath(rel2).split(os.path.sep)[:-1]))
     if dirs2[:len(dirs1)] == dirs1 or dirs1[:len(dirs2)] == dirs2:
         return True
     return False
@@ -49,7 +49,7 @@ def get_public_methods(file_path: str) -> list[str]:
                 methods.append(re.sub(r'[_-]', '', m.group(1).lower()))
     return methods
 
-def main():
+def main() -> None:
     init(autoreset=True)
     print(Fore.GREEN + "You executed the file comparison between two Laravel Modules class methods.\n"
           "Press Ctrl+C to exit, otherwise wait for 5 seconds...")
@@ -61,7 +61,8 @@ def main():
         for d in (first_root, second_root):
             if not os.path.isdir(d):
                 raise TypeError(f"The given path {d!r} is not a directory.")
-        first_php, second_php = [], []
+        first_php: list[str] = []
+        second_php: list[str] = []
         for base, coll in ((first_root, first_php), (second_root, second_php)):
             for root, _, files in os.walk(base):
                 for fn in files:

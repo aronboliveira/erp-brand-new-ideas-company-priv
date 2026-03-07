@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generateStore
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -17,10 +16,9 @@
     anchors.forEach(a => {
       if (a.getAttribute("data-click-guarded") === "true") return;
       a.setAttribute("data-click-guarded", "true");
-      a.addEventListener("click", e => {
+      a.addEventListener("click", (e: Event) => {
         try {
           const dataUrl = (a.getAttribute("data-url") ?? "#").trim();
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (dataUrl && dataUrl !== "#") return;
           e.preventDefault();
           const msg =
@@ -28,7 +26,6 @@
             "AI generate route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

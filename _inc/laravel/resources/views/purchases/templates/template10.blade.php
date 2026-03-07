@@ -48,7 +48,7 @@ if (empty($purchase)) {
     echo '<!DOCTYPE html>
     <html lang="' . e($docLang) . '">
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Purchase</title></head>
-    <body><div class="alert alert-warning">No purchase data available.</div></body></html>';
+    <body><div class="alert alert-warning">{{ __('No purchase data available.') }}</div></body></html>';
     return;
 }
 

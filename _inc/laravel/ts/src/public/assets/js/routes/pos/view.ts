@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module view
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -16,16 +15,15 @@
   function hasBootstrapCss() {
     try {
       return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]'
+        'link[rel~="stylesheet"][href*="bootstrap"]',
       );
     } catch (_) {
       return false;
     }
   }
-  function toast(msg) {
+  function toast(msg: string) {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
+      if (hasBootstrapCss() && window.bootstrap?.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -50,16 +48,16 @@
       alert(msg);
     }
   }
-  function getMsg(el, key) {
+  function getMsg(el: HTMLElement, key: string) {
     try {
       let msg = ERR;
       if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
         msg = el.getAttribute(DGM) || ERR;
       else {
         let lang = (
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
           window.sessionStorage.getItem("erp-np-lang") ??
-          document.documentElement.lang ?? "en"
+          document.documentElement.lang ??
+          "en"
         )
           .toLowerCase()
           .replace(/_/g, "-");
@@ -74,17 +72,18 @@
           el.setAttribute(DCL, "true");
         }
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return msg || ERR;
     } catch (_) {
       return ERR;
     }
   }
-  function bindLink(a) {
+  function bindLink(a: HTMLAnchorElement) {
     if (!a || a.getAttribute(L) === "true") return;
     a.setAttribute(L, "true");
-    const $a = window.jQuery(a);
-    const handler = function (e) {
+    const jQuery = window.jQuery;
+    if (!jQuery) return;
+    const $a = jQuery(a);
+    const handler = function (e: Event) {
       try {
         const url = a.getAttribute("data-url");
         const href = a.href;
@@ -112,7 +111,6 @@
   }
   try {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$) {
       try {
         if (
@@ -126,10 +124,10 @@
     $(function (): void {
       try {
         const links = document.querySelectorAll(
-          "a[data-guard-msg], a[data-url]"
+          "a[data-guard-msg], a[data-url]",
         );
         links.forEach(function (el) {
-          bindLink(el);
+          bindLink(el as HTMLAnchorElement);
         });
       } catch (_) {}
     });

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -13,10 +12,9 @@
       return;
     }
     form.setAttribute("data-listener-active", "true");
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e: Event) => {
       try {
         const action = form.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = form.getAttribute("data-action-url") ?? "#";
         if (action !== "#" && url !== "#") {
           return;

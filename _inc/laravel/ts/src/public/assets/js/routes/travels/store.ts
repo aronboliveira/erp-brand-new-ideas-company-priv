@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
@@ -13,14 +12,14 @@
     if (form.getAttribute("data-listener-active") === "true") return;
     form.setAttribute("data-listener-active", "true");
 
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", function (e: Event) {
       try {
         const action = form.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!action || action === "#") {
           e.preventDefault();
           const msg =
-            form.getAttribute("data-guard-msg") ?? "Store travel route is unavailable. Please contact technical support or your domain administrator.";
+            form.getAttribute("data-guard-msg") ??
+            "Store travel route is unavailable. Please contact technical support or your domain administrator.";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -49,8 +48,12 @@
           }
           return;
         }
-        const sd = form.querySelector('input[name="start_date"]');
-        const ed = form.querySelector('input[name="end_date"]');
+        const sd = form.querySelector(
+          'input[name="start_date"]',
+        ) as HTMLInputElement | null;
+        const ed = form.querySelector(
+          'input[name="end_date"]',
+        ) as HTMLInputElement | null;
         if (sd && ed && sd.value && ed.value) {
           const s = new Date(sd.value);
           const en = new Date(ed.value);

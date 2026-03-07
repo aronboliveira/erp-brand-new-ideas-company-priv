@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -16,17 +15,15 @@
     const resolved = f.getAttribute("data-resolved-action") ?? "#";
     if (
       f.hasAttribute("action") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
       resolved !== "#"
     ) {
       f.setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (action && action !== "#") return;
         e.preventDefault();
 
@@ -45,10 +42,7 @@
         const bsLink = document.querySelector('link[href*="bootstrap"]');
         if (
           bsLink &&
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          window.bootstrap.Toast
+          window.bootstrap?.Toast
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";

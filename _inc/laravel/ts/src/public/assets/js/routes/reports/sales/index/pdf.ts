@@ -3,12 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends HTMLElement = HTMLElement>(
+    s: string,
+    r: Document | HTMLElement = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -17,30 +19,28 @@
   const dataFilterGuard = "data-filter-guard";
   const dataNavGuard = "data-nav-guard";
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
+    let c = qs<HTMLDivElement>("#" + id);
     if (c) {
       return c;
     }
-    c = document.createElement("div");
-    c.id = id;
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
+    const div = document.createElement("div");
+    div.id = id;
+    div.setAttribute("aria-live", "polite");
+    div.setAttribute("aria-atomic", "true");
+    div.style.position = "fixed";
+    div.style.top = "1rem";
+    div.style.right = "1rem";
+    document.body.appendChild(div);
+    return div;
   };
 
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -60,7 +60,10 @@
         body.textContent = message ?? errFb;
       }
       try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+        new window.bootstrap.Toast(t as HTMLElement, {
+          autohide: true,
+          delay: 4000,
+        }).show();
       } catch (_) {
         alert(message ?? errFb);
       }
@@ -69,9 +72,8 @@
     }
   };
 
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -93,7 +95,7 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -102,9 +104,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -128,9 +130,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-      ((window.jQuery && $("#filename").val())).toString().trim() ?? "export";
+    const name = String($("#filename").val() ?? "").trim() || "export";
     const opt = {
       margin: 0.3,
       filename: name,
@@ -159,7 +159,6 @@
   window.saveAsPDF = saveAsPDF;
 
   const bindFilterToggle = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn) {
       try {
         if (
@@ -177,7 +176,7 @@
       return;
     }
     btn.setAttribute(dataFilterGuard, "true");
-    const handler = function (): void {
+    const handler = function (this: HTMLElement): void {
       try {
         if (panel) {
           $("#show_filter").toggle();
@@ -200,8 +199,8 @@
 
   const syncDates = (): void => {
     try {
-      const startVal = $(".startDate").val() ?? "";
-      const endVal = $(".endDate").val() ?? "";
+      const startVal = String($(".startDate").val() ?? "");
+      const endVal = String($(".endDate").val() ?? "");
       $(".start_date").val(startVal);
       $(".end_date").val(endVal);
     } catch (_) {
@@ -210,38 +209,40 @@
   };
 
   const initReportTab = (): void => {
-    const setReport = href => {
+    const setReport = (href: unknown) => {
       if (!href) {
         scheduleInteractiveError(getMsg(document.body, "report_unavailable"));
         return;
       }
-      $(".report").val(href);
+      $(".report").val(String(href));
     };
     const initial =
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       $(".nav-item .active").attr("href") ??
-      $("ul.nav-pills > li > a.active").attr("href") ?? "";
+      $("ul.nav-pills > li > a.active").attr("href") ??
+      "";
     if (initial !== "") {
       setReport(initial);
     }
-    document.querySelectorAll("ul.nav-pills > li > a").forEach((el, i) => {
-      if (el.getAttribute(dataNavGuard) === "true") {
-        return;
-      }
-      el.setAttribute(dataNavGuard, "true");
-      const h = function (): void {
-        const href = $(this).attr("href");
-        setReport(href);
-      };
-      $(el).on("click", h);
-      const mo = new MutationObserver((m, o) => {
-        if (!document.body.contains(el)) {
-          $(el).off("click", h);
-          o.disconnect();
+    document
+      .querySelectorAll<HTMLElement>("ul.nav-pills > li > a")
+      .forEach((el: HTMLElement, i: number) => {
+        if (el.getAttribute(dataNavGuard) === "true") {
+          return;
         }
+        el.setAttribute(dataNavGuard, "true");
+        const h = function (this: HTMLElement): void {
+          const href = $(this).attr("href");
+          setReport(href);
+        };
+        $(el).on("click", h);
+        const mo = new MutationObserver((m, o) => {
+          if (!document.body.contains(el)) {
+            $(el).off("click", h);
+            o.disconnect();
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
       });
-      mo.observe(document.body, { childList: true, subtree: true });
-    });
   };
 
   const init = (): void => {

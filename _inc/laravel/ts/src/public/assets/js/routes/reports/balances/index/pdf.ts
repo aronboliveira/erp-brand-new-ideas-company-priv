@@ -3,19 +3,49 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
   const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s) as T | null;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataListenerGuard = "data-listener-guard";
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  function getMsg(el: HTMLElement | null, key: string): string {
+    let msg = errFb;
+    if (
+      el?.getAttribute(dataSvLocalized) === "true" ||
+      el?.getAttribute(dataClientLocalized) === "true"
+    ) {
+      msg = el.getAttribute(dataGuardMsg) || errFb;
+    } else {
+      let lang = (
+        window.sessionStorage.getItem("erp-np-lang") ??
+        document.documentElement.lang ??
+        "en"
+      )
+        .toLowerCase()
+        .replace(/_/g, "-");
+      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+      const msgKey = key;
+      msg =
+        window.translations?.[lang]?.[msgKey] ||
+        el?.getAttribute(dataGuardMsg) ||
+        window.translations?.en?.[msgKey] ||
+        errFb;
+      if (el && msg !== errFb) {
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
+      }
+    }
+    return msg;
+  }
   if (!$) {
     try {
       if (
@@ -27,13 +57,13 @@
     scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
     return;
   }
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) {
-      return c;
+    const existing = qs<HTMLDivElement>("#" + id);
+    if (existing) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -43,13 +73,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const toastId = "np-toast";
@@ -78,9 +106,8 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message) {
+  function scheduleInteractiveError(message: string) {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -101,36 +128,12 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   }
-  const getMsg = (el, key) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
-      if (el && msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
-  const bindWithObserver = (el, evt, handler, flag) => {
+  const bindWithObserver = (
+    el: HTMLElement | null,
+    evt: string,
+    handler: (e: Event) => void,
+    flag: string,
+  ) => {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
@@ -150,7 +153,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name = ($("#filename").val()).toString().trim();
+    const name = String($("#filename").val() ?? "").trim() || "export";
     const opt = {
       margin: 0.3,
       filename: name,
@@ -191,7 +194,7 @@
       filterBtn,
       "click",
       onFilterClick,
-      dataListenerGuard + "-filter"
+      dataListenerGuard + "-filter",
     );
     copyDatesOnce();
   };

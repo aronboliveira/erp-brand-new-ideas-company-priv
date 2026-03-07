@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module createSelect
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -13,7 +12,7 @@
   const langKey = "erp-np-lang";
   let errorMessage = "";
 
-  const getMsg = (key, el) => {
+  const getMsg = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -22,9 +21,9 @@
       msg = el.getAttribute(guardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,11 +40,10 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       const bs = document.querySelector('link[href*="bootstrap"]');
       let c = document.getElementById("toast-container");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bs && window.bootstrap) {
         if (!c) {
           c = document.createElement("div");
@@ -88,14 +86,14 @@
       r.setAttribute("data-listener-active", "true");
       r.addEventListener("change", onTypeChange);
       new MutationObserver((m, o) => {
-        m.forEach(mut =>
-          { mut.removedNodes.forEach(n => {
+        m.forEach(mut => {
+          mut.removedNodes.forEach(n => {
             if (n === r) {
               r.removeEventListener("change", onTypeChange);
               o.disconnect();
             }
-          }); },
-        );
+          });
+        });
       }).observe(document.body, { childList: true, subtree: true });
     });
     onTypeChange.call(document.querySelector('input[name="type"]:checked'));
@@ -111,8 +109,8 @@
     });
   };
 
-  const setupAjax = type => {
-    const sel = document.getElementById(type);
+  const setupAjax = (type: string) => {
+    const sel = document.getElementById(type) as HTMLSelectElement | null;
     if (!sel || sel.getAttribute("data-listener-active") === "true") return;
     sel.setAttribute("data-listener-active", "true");
     const detail = document.getElementById(`${type}_detail`);
@@ -134,10 +132,10 @@
         },
         data: { id },
       })
-        .done(data => {
+        .done((data: unknown) => {
           if (data && detail) {
             // SECURITY: Use safe HTML insertion instead of innerHTML
-            safeSethtmlContent(detail, data);
+            safeSethtmlContent(detail, data as string);
           } else if (box && detail) {
             box.classList.replace("d-none", "d-block");
             detail.classList.replace("d-block", "d-none");
@@ -148,14 +146,14 @@
         });
     });
     new MutationObserver((m, o) => {
-      m.forEach(mut =>
-        { mut.removedNodes.forEach(n => {
+      m.forEach(mut => {
+        mut.removedNodes.forEach(n => {
           if (n === sel) {
             sel.removeEventListener("change", (): void => {});
             o.disconnect();
           }
-        }); },
-      );
+        });
+      });
     }).observe(document.body, { childList: true, subtree: true });
   };
 
@@ -173,7 +171,7 @@
   });
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el, html) {
+  function safeSethtmlContent(el: HTMLElement, html: string) {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");

@@ -75,7 +75,7 @@
                         @endphp
                         <a href="#" class="btn btn-sm mr-1 p-0 rounded-circle">
                             <img
-                                alt="image"
+                                alt="{{ __('image') }}"
                                 data-bs-toggle="tooltip"
                                 title="{{ $name }}"
                                 src="{{ $avatar }}"

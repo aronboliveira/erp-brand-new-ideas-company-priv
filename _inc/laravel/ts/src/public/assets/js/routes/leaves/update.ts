@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -16,12 +15,11 @@
     )
       return;
     f.setAttribute("data-submit-listener", "true");
-    const toast = msg => {
+    const toast = (msg: string) => {
       try {
         const linkEl = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-          !!linkEl && window.bootstrap && window.bootstrap.Toast;
+          !!linkEl && window.bootstrap?.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -32,7 +30,6 @@
           container.className = "position-fixed top-0 end-0 p-3";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (hasBootstrap) {
           const t = document.createElement("div");
           t.className = "toast";
@@ -61,7 +58,7 @@
     };
     f.addEventListener(
       "submit",
-      function (e) {
+      function (e: Event) {
         try {
           const action = f.getAttribute("action") ?? "#";
           if (action !== "#") return;

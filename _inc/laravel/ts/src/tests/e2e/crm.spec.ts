@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module crm.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global bootstrap, $, jQuery */
 // @ts-check
@@ -32,7 +31,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-async function assertPageRenders(page, route, label, opts = {}) {
+async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   await test.step(`Navigate to ${label}`, async (): void => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
@@ -105,7 +104,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Deals", (): void => {
-  test("deals index renders", async ({ page }) => {
+  test("deals index: number renders", async ({ page }) => {
     // Pipeline-dependent – when no pipeline exists the controller redirects.
     await assertPageRenders(page, "deals", "Deals Index", {
       expectCard: true,
@@ -125,7 +124,7 @@ test.describe("CRM Deals", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Leads", (): void => {
-  test("leads index renders", async ({ page }) => {
+  test("leads index: number renders", async ({ page }) => {
     await assertPageRenders(page, "leads", "Leads Index", {
       expectText: "lead",
     });
@@ -168,7 +167,7 @@ test.describe("CRM Leads", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Pipelines", (): void => {
-  test("pipelines index renders", async ({ page }) => {
+  test("pipelines index: number renders", async ({ page }) => {
     await assertPageRenders(page, "pipelines", "Pipelines Index", {
       expectCard: true,
       expectTable: true,
@@ -213,7 +212,7 @@ test.describe("CRM Pipelines", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Stages", (): void => {
-  test("stages index renders", async ({ page }) => {
+  test("stages index: number renders", async ({ page }) => {
     await assertPageRenders(page, "stages", "Stages Index", {
       expectCard: true,
       expectText: "stage",
@@ -234,7 +233,7 @@ test.describe("CRM Stages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Lead Stages", (): void => {
-  test("lead_stages index renders", async ({ page }) => {
+  test("lead_stages index: number renders", async ({ page }) => {
     await assertPageRenders(page, "lead_stages", "Lead Stages Index", {
       expectCard: true,
       expectText: "stage",
@@ -254,7 +253,7 @@ test.describe("CRM Lead Stages", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Clients", (): void => {
-  test("clients index renders", async ({ page }) => {
+  test("clients index: number renders", async ({ page }) => {
     await assertPageRenders(page, "clients", "Clients Index", {
       expectCard: true,
       expectText: "client",
@@ -274,7 +273,7 @@ test.describe("CRM Clients", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Customers", (): void => {
-  test("customers index renders", async ({ page }) => {
+  test("customers index: number renders", async ({ page }) => {
     await assertPageRenders(page, "customers", "Customers Index", {
       expectCard: true,
       expectTable: true,
@@ -319,14 +318,14 @@ test.describe("CRM Customers", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Deal Subresources", (): void => {
-  test("deal_calls index renders", async ({ page }) => {
+  test("deal_calls index: number renders", async ({ page }) => {
     await assertPageRenders(page, "deal_calls", "Deal Calls Index", {
       expectCard: true,
       expectTable: true,
     });
   });
 
-  test("deal_emails index renders", async ({ page }) => {
+  test("deal_emails index: number renders", async ({ page }) => {
     await assertPageRenders(page, "deal_emails", "Deal Emails Index", {
       expectCard: true,
       expectTable: true,
@@ -339,14 +338,14 @@ test.describe("CRM Deal Subresources", (): void => {
    ═══════════════════════════════════════════════════════════════════ */
 
 test.describe("CRM Lead Subresources", (): void => {
-  test("lead_calls index renders", async ({ page }) => {
+  test("lead_calls index: number renders", async ({ page }) => {
     await assertPageRenders(page, "lead_calls", "Lead Calls Index", {
       expectCard: true,
       expectTable: true,
     });
   });
 
-  test("lead_emails index renders", async ({ page }) => {
+  test("lead_emails index: number renders", async ({ page }) => {
     await assertPageRenders(page, "lead_emails", "Lead Emails Index", {
       expectCard: true,
       expectTable: true,
@@ -375,7 +374,7 @@ test.describe("CRM Module Navigation", (): void => {
     }
   });
 
-  test("pipeline selector changes view", async ({ page }) => {
+  test("pipeline selector: string changes view", async ({ page }) => {
     await page.goto(`${BASE_URL}/deals`, {
       waitUntil: "domcontentloaded",
       timeout: 45000,

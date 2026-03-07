@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, no-console */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -11,7 +10,7 @@
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const defaultLangSessionKey = "erp-np-lang";
-  const getLocalizedMessage = (msgKey, el) => {
+  const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -20,7 +19,6 @@
       msg = el.getAttribute(dataGuardMsg) ?? errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         window.sessionStorage.getItem(defaultLangSessionKey) ??
         document.documentElement.lang ??
         "en"
@@ -40,7 +38,7 @@
     }
     return msg;
   };
-  const el = document.querySelector<HTMLElement>("#disable_lang");
+  const el = document.querySelector<HTMLInputElement>("#disable_lang");
   if (!el || el.getAttribute("data-listener-attached") === "true") return;
   const observer = new MutationObserver((mutations, obs) => {
     for (const m of mutations) {
@@ -56,23 +54,22 @@
   el.setAttribute("data-listener-attached", "true");
   el.addEventListener("pointerup", handler);
   function handler() {
+    if (!el) return;
     try {
       const isChecked = el.checked ?? false;
       const mode = isChecked ? "on" : "off";
       const url = el.getAttribute("data-url");
       const href = el.form?.action ?? el.getAttribute("href");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if ((!url || url === "#") && (!href || href === "#")) {
         showError(getLocalizedMessage("disable_lang_unavailable", el));
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       const requestUrl = url ?? href;
       const token =
         window.csrfToken ??
         document
           .querySelector('meta[name="csrf-token"]')
-          .getAttribute("content") ??
+          ?.getAttribute("content") ??
         "";
       if (!token) console.log("CSRF token missing");
       $.ajax({
@@ -81,21 +78,32 @@
         dataType: "json",
         data: { _token: token, mode, lang: el.getAttribute("data-lang") ?? "" },
       })
-        .done(data => { show_toastr("success", data.message, "success"); })
-        .fail((): void => { showError(getLocalizedMessage("disable_lang_failed", el)); });
+        .done((data: unknown) => {
+          window.show_toastr?.(
+            "success",
+            (data as { message: string }).message,
+            "success",
+          );
+        })
+        .fail((): void => {
+          showError(getLocalizedMessage("disable_lang_failed", el));
+        });
     } catch {
       showError(getLocalizedMessage("disable_lang_failed", el));
     }
   }
-  function showError(message) {
+  function showError(message: string) {
     try {
-      let container = document.querySelector<HTMLElement>("#bootstrap-toast-container");
+      let container = document.querySelector<HTMLElement>(
+        "#bootstrap-toast-container",
+      );
       if (!container) {
         const hasBootstrap =
-          Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-            l => /bootstrap/i.test(l.href)
-          ) && window.bootstrap.Toast;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          Array.from(
+            document.querySelectorAll<HTMLLinkElement>(
+              'link[rel="stylesheet"]',
+            ),
+          ).some(l => /bootstrap/i.test(l.href)) && window.bootstrap.Toast;
         if (hasBootstrap) {
           container = document.createElement("div");
           container.id = "bootstrap-toast-container";
@@ -104,7 +112,6 @@
           document.body.appendChild(container);
         }
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (container && window.bootstrap.Toast) {
         let toast = container.querySelector(".toast");
         if (!toast) {
@@ -122,12 +129,13 @@
             toast.setAttribute("data-click-listener", "true");
           }
         }
-        toast.querySelector(".toast-body").textContent = message;
+        const toastBody = toast.querySelector(".toast-body");
+        if (toastBody) toastBody.textContent = message;
         new bootstrap.Toast(toast).show();
       } else {
         alert(message);
       }
-      el.setAttribute("data-failed-route", "true");
+      el?.setAttribute("data-failed-route", "true");
     } catch {
       alert(message);
     }

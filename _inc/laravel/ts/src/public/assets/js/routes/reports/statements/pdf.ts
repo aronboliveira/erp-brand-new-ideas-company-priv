@@ -3,12 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
-  const $ = window.jQuery;
-  const qs = (s, r = document) => r.querySelector(s);
+  const $ = window.jQuery as JQueryStatic;
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector<T>(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -17,13 +19,13 @@
   const dataFilterGuard = "data-filter-guard";
   const dataNavGuard = "data-nav-guard";
 
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs("#" + id);
-    if (c) {
-      return c;
+    const existing = qs<HTMLElement>("#" + id);
+    if (existing) {
+      return existing;
     }
-    c = document.createElement("div");
+    const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -34,16 +36,14 @@
     return c;
   };
 
-  const showErrorNow = message => {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
-      (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      (qs<HTMLLinkElement>('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs<HTMLLinkElement>('link[href*="bootstrap"]')) &&
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
+      let t = qs<HTMLElement>("#np-toast", container);
       if (!t) {
         t = document.createElement("div");
         t.id = "np-toast";
@@ -55,12 +55,15 @@
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
-      const body = qs(".toast-body", t);
+      const body = qs<HTMLElement>(".toast-body", t);
       if (body) {
         body.textContent = message ?? errFb;
       }
       try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+        new window.bootstrap.Toast(t as Element, {
+          autohide: true,
+          delay: 4000,
+        }).show();
       } catch (_) {
         alert(message ?? errFb);
       }
@@ -69,9 +72,8 @@
     }
   };
 
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -93,7 +95,7 @@
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -102,9 +104,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -129,8 +131,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name =
-      (($("#filename").val())).toString().trim();
+    const name = String($("#filename").val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -161,8 +162,7 @@
   };
 
   const bindFilterToggle = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!$.fn) {
+    if (!$ || !$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -179,7 +179,7 @@
       return;
     }
     btn.setAttribute(dataFilterGuard, "true");
-    const handler = function (): void {
+    const handler = function (this: HTMLElement): void {
       try {
         if (panel) {
           $("#show_filter").toggle();
@@ -201,9 +201,10 @@
   };
 
   const syncDates = (): void => {
+    if (!$) return;
     try {
-      const s = $(".startDate").val() ?? "";
-      const e = $(".endDate").val() ?? "";
+      const s = String($(".startDate").val() ?? "");
+      const e = String($(".endDate").val() ?? "");
       $(".start_date").val(s);
       $(".end_date").val(e);
     } catch (_) {
@@ -212,7 +213,8 @@
   };
 
   const initReportTab = (): void => {
-    const setReport = href => {
+    if (!$) return;
+    const setReport = (href: string | undefined): void => {
       if (!href) {
         scheduleInteractiveError(getMsg(document.body, "report_unavailable"));
         return;
@@ -220,38 +222,42 @@
       $(".report").val(href);
     };
     const initial =
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       $(".nav-item .active").attr("href") ??
-      $("ul.nav-pills > li > a.active").attr("href") ?? "";
+      $("ul.nav-pills > li > a.active").attr("href") ??
+      "";
     if (initial !== "") {
       setReport(initial);
     }
-    document.querySelectorAll("ul.nav-pills > li > a").forEach((el: Element): void => {
-      if (el.getAttribute(dataNavGuard) === "true") {
-        return;
-      }
-      el.setAttribute(dataNavGuard, "true");
-      const h = function (): void {
-        const href = $(this).attr("href");
-        setReport(href);
-      };
-      $(el).on("click", h);
-      const mo = new MutationObserver((m, o) => {
-        if (!document.body.contains(el)) {
-          $(el).off("click", h);
-          o.disconnect();
+    document
+      .querySelectorAll("ul.nav-pills > li > a")
+      .forEach((el: Element): void => {
+        if (el.getAttribute(dataNavGuard) === "true") {
+          return;
         }
+        el.setAttribute(dataNavGuard, "true");
+        const h = function (this: HTMLElement): void {
+          const href = $(this).attr("href");
+          setReport(href);
+        };
+        $(el).on("click", h);
+        const mo = new MutationObserver(
+          (m: MutationRecord[], o: MutationObserver): void => {
+            if (!document.body.contains(el)) {
+              $(el).off("click", h);
+              o.disconnect();
+            }
+          },
+        );
+        mo.observe(document.body, { childList: true, subtree: true });
       });
-      mo.observe(document.body, { childList: true, subtree: true });
-    });
   };
 
   const initDataTable = (): void => {
+    if (!$) return;
     const table = document.getElementById("report-dataTable");
     if (!table) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$.fn.DataTable) {
       try {
         if (
@@ -263,12 +269,17 @@
       scheduleInteractiveError(getMsg(table, "plugin_unavailable"));
       return;
     }
-    if ($.fn.dataTable.isDataTable(table)) {
+    if (
+      (
+        $.fn.DataTable as unknown as {
+          isDataTable(el: Element | string): boolean;
+        }
+      ).isDataTable(table)
+    ) {
       return;
     }
     try {
-      const name =
-        (($("#filename").val())).toString().trim();
+      const name = String($("#filename").val() ?? "").trim();
       $(table).DataTable({
         dom: "lBfrtip",
         buttons: [

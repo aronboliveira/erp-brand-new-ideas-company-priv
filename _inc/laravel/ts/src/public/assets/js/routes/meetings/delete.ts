@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module delete
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -15,20 +14,17 @@
       el.setAttribute(alias, "true");
       el.addEventListener("click", event => {
         const url = el.getAttribute("data-url");
-        const href = el.href
+        const href = (el as HTMLAnchorElement).href
           .replace(window.location.origin, "")
           .replace(window.location.pathname, "");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ((!url || url === "#") && (!href || href === "#")) {
           event.preventDefault();
           const hasBS = Array.from(document.scripts).some(
             s =>
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               s.src &&
               s.src.includes("bootstrap.min.js") &&
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
               window.bootstrap &&
-              typeof window.bootstrap.Modal === "function"
+              typeof window.bootstrap.Modal === "function",
           );
           const errFb = "# ERROR";
           const dataClientLocalized = "data-client-localized";
@@ -38,13 +34,12 @@
             el.getAttribute("data-sv-localized") === "true" ||
             el.getAttribute(dataClientLocalized) === "true"
           )
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             msg = el.getAttribute(dataGuardMsg) ?? errFb;
           else {
             let lang = (
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
               window.sessionStorage.getItem("erp-np-lang") ??
-              document.documentElement.lang ?? "en"
+              document.documentElement.lang ??
+              "en"
             )
               .toLowerCase()
               .replace(/_/g, "-");
@@ -52,7 +47,6 @@
             const msgKey = "delete_meeting_route_unavailable";
             msg =
               window.translations?.[lang]?.[msgKey] ||
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               el.getAttribute(dataGuardMsg) ||
               window.translations?.en?.[msgKey] ||
               errFb;
@@ -79,7 +73,7 @@
 															</div>
 													</div>`;
             document.body.appendChild(wrapper);
-            new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
+            new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
           } else {
             alert(msg);
           }

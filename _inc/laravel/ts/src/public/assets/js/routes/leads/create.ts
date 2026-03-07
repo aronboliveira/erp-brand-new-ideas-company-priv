@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -12,7 +11,7 @@
   const dataGuardMsg = "data-guard-msg";
   const dataGuardListener = "data-guard-listener";
   const msgKey = "ld_unavailable";
-  const getMsg = el => {
+  const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
     try {
       if (!el) return msg;
@@ -23,9 +22,9 @@
         msg = el.getAttribute(dataGuardMsg) || errFb;
       } else {
         let lang = (
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
           window.sessionStorage.getItem("erp-np-lang") ??
-          document.documentElement.lang ?? "en"
+          document.documentElement.lang ??
+          "en"
         )
           .toLowerCase()
           .replace(/_/g, "-");
@@ -47,10 +46,9 @@
   };
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = el => {
+  const showError = (el: HTMLElement | null) => {
     try {
       const message = getMsg(el);
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let wrap = document.getElementById("toast-container");
         if (!wrap) {
@@ -80,9 +78,7 @@
     }
   };
   try {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-    const jq = window.jQuery || (window.$.fn ? window.$ : null);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+    const jq = window.jQuery ?? (window.$?.fn ? window.$ : null);
     if (!jq) {
       if (
         window.location.hostname === "localhost" ||
@@ -92,11 +88,11 @@
       return;
     }
     jq((): void => {
-      const bindClick = el => {
+      const bindClick = (el: HTMLElement | null) => {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = e => {
+        const handler = (e: Event) => {
           try {
             const url = el.getAttribute("data-url");
             const href = el.getAttribute("href");
@@ -120,15 +116,15 @@
         });
         obs.observe(document.body, { childList: true, subtree: true });
       };
-      const bindPointerUp = el => {
+      const bindPointerUp = (el: HTMLElement | null) => {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = e => {
+        const handler = (e: Event) => {
           try {
             const url = el.getAttribute("data-url");
-            const href = el.form
-              ? el.form.getAttribute("action")
+            const href = (el as HTMLInputElement).form
+              ? (el as HTMLInputElement).form!.getAttribute("action")
               : el.getAttribute("action");
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
@@ -151,7 +147,9 @@
         obs.observe(document.body, { childList: true, subtree: true });
       };
       try {
-        document.querySelectorAll(".ld-route-guard").forEach(bindClick);
+        document
+          .querySelectorAll(".ld-route-guard")
+          .forEach(el => bindClick(el as HTMLElement));
       } catch {
         jq(".ld-route-guard").toArray().forEach(bindClick);
       }

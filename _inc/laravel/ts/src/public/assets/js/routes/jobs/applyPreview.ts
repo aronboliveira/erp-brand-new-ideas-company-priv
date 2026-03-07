@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module applyPreview
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
 ((): void => {
   try {
-    const safeURL = file => {
+    const safeURL = (file: Blob) => {
       try {
         return URL.createObjectURL(file);
       } catch (e) {
@@ -15,7 +14,7 @@
       }
     };
 
-    const wirePreview = (inputId, imgId) => {
+    const wirePreview = (inputId: string, imgId: string) => {
       const input = document.getElementById(inputId);
       const img = document.getElementById(imgId);
       if (!input || !img) {
@@ -28,7 +27,8 @@
 
       input.addEventListener("change", (): void => {
         try {
-          const f = input.files?.[0] ? input.files[0] : null;
+          const inputEl = input as HTMLInputElement;
+          const f = inputEl.files?.[0] ? inputEl.files[0] : null;
           const url = f ? safeURL(f) : null;
           if (url == null || url === "") {
             img.style.display = "none";

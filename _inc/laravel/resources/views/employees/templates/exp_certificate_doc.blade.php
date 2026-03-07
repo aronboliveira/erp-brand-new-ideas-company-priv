@@ -82,7 +82,7 @@ ViewClassNamesConstants
                     t.setAttribute("aria-live", "assertive");
                     t.setAttribute("aria-atomic", "true");
                     t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                    '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                     container.appendChild(t);
                 }
                 const body = t.querySelector(".toast-body");
@@ -196,7 +196,7 @@ ViewClassNamesConstants
                 return;
                 }
                 const preHtml =
-                "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+                "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>{{ __('Export HTML To Doc') }}</title></head><body>";
                 const postHtml = "</body></html>";
                 const inner = el.innerHTML ?? "";
                 const html = preHtml + inner + postHtml;

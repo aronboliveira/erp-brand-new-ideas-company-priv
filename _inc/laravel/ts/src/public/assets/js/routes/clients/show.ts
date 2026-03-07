@@ -3,19 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const bindGuard = (
-    el,
-    event,
+    el: HTMLElement | null,
+    eventType: string,
     urlAttr = "data-url",
-    msgAttr = "data-guard-msg"
+    msgAttr = "data-guard-msg",
   ) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener(event, e => {
+    el.addEventListener(eventType, e => {
       try {
         const url = el.getAttribute(urlAttr) ?? "#";
         if (url !== "#") return;
@@ -31,7 +30,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -54,13 +52,19 @@
 
   document
     .querySelectorAll('[data-listener-alias="view-estimate"]')
-    .forEach((el: Element): void => { bindGuard(el, "click"); });
+    .forEach((el: Element): void => {
+      bindGuard(el as HTMLElement, "click");
+    });
   document
     .querySelectorAll('[data-listener-alias="edit-estimate"]')
-    .forEach((el: Element): void => { bindGuard(el, "click"); });
+    .forEach((el: Element): void => {
+      bindGuard(el as HTMLElement, "click");
+    });
   document
     .querySelectorAll('[data-listener-alias="delete-estimate"]')
-    .forEach((el: Element): void => { bindGuard(el, "click"); });
+    .forEach((el: Element): void => {
+      bindGuard(el as HTMLElement, "click");
+    });
 })();
 
 export {};

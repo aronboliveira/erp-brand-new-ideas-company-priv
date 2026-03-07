@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module product
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,21 +13,22 @@
     host.setAttribute(flag, "true");
     document.addEventListener(
       "change",
-      function (e) {
+      function (e: Event) {
         try {
           const sel =
             e.target &&
-            (e.target.closest ? e.target.closest("select.item") : null);
+            ((e.target as Element).closest
+              ? (e.target as Element).closest("select.item")
+              : null);
           if (!sel) return;
           const url = sel.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           const msg =
-            sel.getAttribute("data-guard-msg") ?? "Purchase product route is unavailable. Please contact technical support or your domain administrator.";
+            sel.getAttribute("data-guard-msg") ??
+            "Purchase product route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+            window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -63,7 +63,7 @@
           sel.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: true }
+      { passive: true },
     );
   } catch (_) {}
 })();

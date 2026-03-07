@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reset
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -16,7 +15,7 @@
       return;
     }
     btn.setAttribute("data-listener-active", "true");
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", (e: Event) => {
       try {
         const href = btn.getAttribute("href") ?? "#";
         const url = btn.getAttribute("data-url") ?? "#";
@@ -28,7 +27,6 @@
           btn.getAttribute("data-guard-msg") ??
           "Reset receivables route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");

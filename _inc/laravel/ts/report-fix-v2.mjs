@@ -79,12 +79,12 @@ for (const entry of report) {
         // ═══════════════════════════════════════════════════════
         case "@typescript-eslint/prefer-optional-chain": {
           const m1 = line.match(
-            /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/
+            /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/,
           );
           if (m1) {
             line = line.replace(
               /(\b\w+)\s*(?:&&|!==?\s*(?:null|undefined)\s*&&)\s*\1\.(\w+)/,
-              "$1?.$2"
+              "$1?.$2",
             );
             edited = true;
             fixCount++;
@@ -117,14 +117,14 @@ for (const entry of report) {
             if (neg) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                'if ($1 == null || $1 === "")'
+                'if ($1 == null || $1 === "")',
               );
               edited = true;
               fixCount++;
             } else if (pos) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                'if ($1 != null && $1 !== "")'
+                'if ($1 != null && $1 !== "")',
               );
               edited = true;
               fixCount++;
@@ -138,14 +138,14 @@ for (const entry of report) {
             if (neg) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                "if ($1 === 0)"
+                "if ($1 === 0)",
               );
               edited = true;
               fixCount++;
             } else if (pos) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                "if ($1 !== 0)"
+                "if ($1 !== 0)",
               );
               edited = true;
               fixCount++;
@@ -159,14 +159,14 @@ for (const entry of report) {
             if (neg) {
               line = line.replace(
                 /if\s*\(\s*!(\w+(?:\.\w+)*)\s*\)/,
-                'if ($1 === "")'
+                'if ($1 === "")',
               );
               edited = true;
               fixCount++;
             } else if (pos) {
               line = line.replace(
                 /if\s*\(\s*(\w+(?:\.\w+)*)\s*\)/,
-                'if ($1 !== "")'
+                'if ($1 !== "")',
               );
               edited = true;
               fixCount++;
@@ -199,12 +199,12 @@ for (const entry of report) {
           if (msg.includes("left-hand side of `??`")) {
             // Remove ?? and its RHS
             const nnMatch = line.match(
-              /\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\d+|\w+|\[[^\]]*\]|\{[^}]*\})/
+              /\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\d+|\w+|\[[^\]]*\]|\{[^}]*\})/,
             );
             if (nnMatch) {
               line = line.replace(
                 /\s*\?\?\s*("[^"]*"|'[^']*'|`[^`]*`|\d+|\w+|\[[^\]]*\]|\{[^}]*\})/,
-                ""
+                "",
               );
               edited = true;
               fixCount++;

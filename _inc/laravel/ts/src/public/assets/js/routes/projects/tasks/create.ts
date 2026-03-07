@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -16,29 +15,30 @@
     const resolved = f.getAttribute("data-resolved-action") ?? "#";
     if (
       f.hasAttribute("action") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
       resolved !== "#"
     ) {
       f.setAttribute("action", resolved);
     }
 
-    const assigneesInput = document.getElementById("project-task-assignees");
+    const assigneesInput = document.getElementById(
+      "project-task-assignees",
+    ) as HTMLInputElement | null;
+    if (!assigneesInput) return;
     const toSet = new Set(
       (assigneesInput.value ?? "")
         .split(",")
-        .map(s => s.trim())
-        .filter(Boolean)
+        .map((s: string) => s.trim())
+        .filter(Boolean),
     );
 
     document.querySelectorAll(".add_usr").forEach(wrap => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!wrap || wrap.getAttribute("data-listener-active") === "true")
           return;
         wrap.setAttribute("data-listener-active", "true");
 
-        wrap.addEventListener("click", e => {
+        wrap.addEventListener("click", (e: Event) => {
           try {
             const id = wrap.getAttribute("data-id") ?? "";
             if (id === "") return;
@@ -74,7 +74,7 @@
               console.error(
                 "[assets/js/routes/projects/tasks/create.js] add_usr click error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
           }
         });
@@ -86,13 +86,15 @@
           console.error(
             "[assets/js/routes/projects/tasks/create.js] bind add_usr error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
 
-    const ta = f.querySelector('textarea[data-toggle="autosize"]');
-    if (ta?.getAttribute("data-autosize-active") !== "true") {
+    const ta = f.querySelector<HTMLTextAreaElement>(
+      'textarea[data-toggle="autosize"]',
+    );
+    if (ta && ta.getAttribute("data-autosize-active") !== "true") {
       ta.setAttribute("data-autosize-active", "true");
       const auto = (): void => {
         try {
@@ -101,11 +103,13 @@
           ta.style.height = `${ta.scrollHeight}px`;
         } catch (_) {}
       };
-      ["input", "change"].forEach(ev => { ta.addEventListener(ev, auto); });
+      ["input", "change"].forEach(ev => {
+        ta.addEventListener(ev, auto);
+      });
       auto();
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
         if (action !== "#") return;
@@ -125,13 +129,7 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap?.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -155,7 +153,7 @@
               console.error(
                 "[assets/js/routes/projects/tasks/create.js] Bootstrap toast instantiation error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
             alert(msg);
           }
@@ -172,7 +170,7 @@
           console.error(
             "[assets/js/routes/projects/tasks/create.js] Submit handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -184,7 +182,7 @@
       console.error(
         "[assets/js/routes/projects/tasks/create.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module cache
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("cache-settings-store-form");
   if (!form || form.getAttribute("data-listener-active") === "true") return;
   form.setAttribute("data-listener-active", "true");
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", (e: Event) => {
     try {
       const url = form.getAttribute("data-url") ?? "#";
       const action = form.getAttribute("action") ?? "#";

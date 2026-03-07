@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module settings
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -21,7 +20,7 @@
     }
     billTemplateSettingsForm.setAttribute("data-listener-active", "true");
 
-    billTemplateSettingsForm.addEventListener("submit", e => {
+    billTemplateSettingsForm.addEventListener("submit", (e: Event) => {
       try {
         const actionUrl =
           billTemplateSettingsForm.getAttribute("action") ?? "#";
@@ -36,7 +35,6 @@
           billTemplateSettingsForm.getAttribute("data-guard-msg") ??
           "Bill template settings route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
 

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module page
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -79,7 +78,7 @@
     },
   };
 
-  const toastContainer = ((): void => {
+  const toastContainer = ((): HTMLElement => {
     let container = document.querySelector<HTMLElement>(".toast-container");
     if (!container) {
       container = document.createElement("div");
@@ -89,7 +88,7 @@
     return container;
   })();
 
-  const showError = (key, el = null) => {
+  const showError = (key: string, el: HTMLElement | null = null) => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -101,9 +100,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -114,14 +113,12 @@
         el?.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
       }
     }
     const bs = document.querySelector(BS_LINK);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (bs && window.bootstrap.Toast) {
       const existingToast = toastContainer.querySelector(
         '.toast[data-error-key="' + key + '"]',
@@ -156,19 +153,25 @@
     }
   };
 
-  const handleToggle = target => {
+  const handleToggle = (e: Event) => {
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
+      const target = e.target as HTMLInputElement | null;
+      if (!target) return;
       const type = target.value ?? "";
       const showMonth = type === "monthly";
-      document.querySelectorAll(`.${MONTH_CLASS}`).forEach((el: Element): void => {
-        el.classList.toggle("d-block", showMonth);
-        el.classList.toggle("d-none", !showMonth);
-      });
-      document.querySelectorAll(`.${DATE_CLASS}`).forEach((el: Element): void => {
-        el.classList.toggle("d-block", !showMonth);
-        el.classList.toggle("d-none", showMonth);
-      });
+      document
+        .querySelectorAll(`.${MONTH_CLASS}`)
+        .forEach((el: Element): void => {
+          el.classList.toggle("d-block", showMonth);
+          el.classList.toggle("d-none", !showMonth);
+        });
+      document
+        .querySelectorAll(`.${DATE_CLASS}`)
+        .forEach((el: Element): void => {
+          el.classList.toggle("d-block", !showMonth);
+          el.classList.toggle("d-none", showMonth);
+        });
     } catch (err) {
       showError("toggle_failed");
     }
@@ -177,8 +180,8 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (node.nodeType === 1 && node.matches(TYPE_RADIO)) {
-          node.removeEventListener("change", handleToggle);
+        if (node.nodeType === 1 && (node as HTMLElement).matches(TYPE_RADIO)) {
+          (node as HTMLElement).removeEventListener("change", handleToggle);
         }
       });
     });
@@ -191,10 +194,9 @@
     observer.observe(document.body, { childList: true, subtree: true });
 
     radios.forEach(radio => {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (radio.getAttribute(TOGGLER_ATTR)) return;
       radio.setAttribute(TOGGLER_ATTR, "true");
-      radio.addEventListener("change", ({ target }) => { handleToggle(target); });
+      radio.addEventListener("change", handleToggle);
     });
 
     const checked = document.querySelector(`${TYPE_RADIO}:checked`);

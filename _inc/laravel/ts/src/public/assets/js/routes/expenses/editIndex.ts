@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editIndex
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -16,7 +15,7 @@
       return;
     }
     a.setAttribute("data-listener-active", "true");
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       try {
         const href = (a.getAttribute("href") ?? "#").trim();
         const url = (a.getAttribute("data-url") ?? "#").trim();
@@ -28,7 +27,6 @@
           a.getAttribute("data-guard-msg") ??
           "Expense index route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let container = document.getElementById("toast-container");

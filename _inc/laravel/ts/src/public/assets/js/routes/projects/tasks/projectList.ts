@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module projectList
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-for-of */
 
 /* global bootstrap */
 ((): void => {
@@ -18,10 +17,9 @@
         el.setAttribute(flag, "true");
         el.addEventListener(
           "click",
-          function (e) {
+          function (e: Event) {
             try {
               const href = el.getAttribute("href") ?? "#";
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               const url = el.getAttribute("data-url") ?? "#";
               if (href !== "#" || url !== "#") return;
               e.preventDefault();
@@ -29,9 +27,7 @@
                 el.getAttribute("data-guard-msg") ?? "View project tasks route is unavailable. Please contact technical support or your domain administrator.";
               const hasBootstrap =
                 document.querySelector('link[href*="bootstrap"]') &&
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-                window.bootstrap &&
-                window.bootstrap.Toast;
+                window.bootstrap?.Toast;
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");

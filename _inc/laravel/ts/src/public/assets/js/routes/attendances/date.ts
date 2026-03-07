@@ -3,24 +3,23 @@
  * @generated from original JavaScript - manual review recommended
  * @module date
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
-  const toastContainer = ((): void => {
+  const toastContainer = ((): HTMLDivElement => {
     const c = document.createElement("div");
     c.className = "toast-container position-fixed bottom-0 end-0 p-3";
     document.body.append(c);
     return c;
   })();
 
-  const showError = key => {
+  const showError = (key: string) => {
     const errFb = "# ERROR";
     let lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       window.sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      document.documentElement.lang ??
+      "en"
     )
       .toLowerCase()
       .replace(/_/g, "-");
@@ -31,11 +30,10 @@
       errFb;
 
     const existing = toastContainer.querySelector(
-      `.toast[data-error-key="${key}"]`
+      `.toast[data-error-key="${key}"]`,
     );
     if (existing) return;
 
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (document.querySelector(BS_LINK) && window.bootstrap.Toast) {
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
@@ -57,8 +55,8 @@
   };
 
   try {
-    const pickers = document.querySelectorAll(".daterangepicker");
-    pickers.forEach((el: Element): void => {
+    const pickers = document.querySelectorAll<HTMLElement>(".daterangepicker");
+    pickers.forEach((el): void => {
       if (el.dataset.dpListener) return;
       el.dataset.dpListener = "true";
       el.addEventListener("click", (): void => {
@@ -72,7 +70,10 @@
             showError("date_picker_unavailable");
             return;
           }
-          if (typeof $.fn.daterangepicker !== "function") {
+          if (
+            typeof ($.fn as unknown as Record<string, unknown>)
+              .daterangepicker !== "function"
+          ) {
             if (
               window.location.hostname === "localhost" ||
               window.location.hostname === "127.0.0.1"
@@ -81,7 +82,9 @@
             showError("date_picker_unavailable");
             return;
           }
-          $(el).daterangepicker({
+          (
+            $(el) as unknown as JQuery & { daterangepicker: Function }
+          ).daterangepicker({
             format: "yyyy-mm-dd",
             locale: { format: "YYYY-MM-DD" },
           });

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module apply
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -14,7 +13,7 @@
       try {
         if (l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             e.preventDefault();
             const formId = l.getAttribute("data-form-id") ?? "";
@@ -23,7 +22,7 @@
             if (!form) return;
             const action = form.getAttribute("action") ?? "#";
             if (action !== "#") {
-              form.submit();
+              (form as HTMLFormElement).submit();
               return;
             }
             const msg =
@@ -31,7 +30,6 @@
               "Apply bulk attendance route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

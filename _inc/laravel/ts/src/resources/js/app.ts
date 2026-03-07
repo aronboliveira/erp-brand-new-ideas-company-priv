@@ -3,12 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module app
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
-import './bootstrap';
+import "./bootstrap";
 
-import Alpine from 'alpinejs';
+// @ts-expect-error - alpinejs is a runtime dependency without type declarations
+import Alpine from "alpinejs";
 
 window.Alpine = Alpine;
 

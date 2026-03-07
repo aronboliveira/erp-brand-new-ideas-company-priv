@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,23 +13,21 @@
     host.setAttribute(flag, "true");
     document.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
-          const a =
-            e.target &&
-            (e.target.closest ? e.target.closest("a.edit-purchase") : null);
+          const target = e.target as Element | null;
+          const a = target?.closest?.("a.edit-purchase") ?? null;
           if (!a) return;
           const href = a.getAttribute("href") ?? "#";
-          const url = a.getAttribute("data-url") || href ?? "#";
+          const url = (a.getAttribute("data-url") || href) ?? "#";
           if (href !== "#" || url !== "#") return;
           e.preventDefault();
           const msg =
-            a.getAttribute("data-guard-msg") ?? "Edit purchase route is unavailable. Please contact technical support or your domain administrator.";
+            a.getAttribute("data-guard-msg") ??
+            "Edit purchase route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+            window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -65,7 +62,7 @@
           a.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();
@@ -77,23 +74,21 @@
     host.setAttribute(flag, "true");
     document.addEventListener(
       "click",
-      function (e) {
+      function (e: Event) {
         try {
-          const a =
-            e.target &&
-            (e.target.closest ? e.target.closest("a.edit-purchase") : null);
+          const target = e.target as Element | null;
+          const a = target?.closest?.("a.edit-purchase") ?? null;
           if (!a) return;
           const href = a.getAttribute("href") ?? "#";
-          const url = a.getAttribute("data-url") || href ?? "#";
+          const url = (a.getAttribute("data-url") || href) ?? "#";
           if (href !== "#" || url !== "#") return;
           e.preventDefault();
           const msg =
-            a.getAttribute("data-guard-msg") ?? "Edit purchase route is unavailable. Please contact technical support or your domain administrator.";
+            a.getAttribute("data-guard-msg") ??
+            "Edit purchase route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+            window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -128,7 +123,7 @@
           a.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();

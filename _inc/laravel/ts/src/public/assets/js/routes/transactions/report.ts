@@ -3,24 +3,22 @@
  * @generated from original JavaScript - manual review recommended
  * @module report
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
     const f = document.getElementById("transaction_report");
-    if (f?.getAttribute("data-listener-active") !== "true") {
+    if (f && f.getAttribute("data-listener-active") !== "true") {
       f.setAttribute("data-listener-active", "true");
       const resolved = f.getAttribute("data-resolved-action") ?? "#";
       if (
         f.hasAttribute("action") &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
         resolved !== "#"
       ) {
         f.setAttribute("action", resolved);
       }
-      f.addEventListener("submit", e => {
+      f.addEventListener("submit", (e: Event) => {
         try {
           const action = f.getAttribute("action") ?? "#";
           if (action !== "#") {
@@ -28,7 +26,8 @@
           }
           e.preventDefault();
           const msg =
-            f.getAttribute("data-guard-msg") ?? "Transaction index route is unavailable. Please contact technical support or your domain administrator.";
+            f.getAttribute("data-guard-msg") ??
+            "Transaction index route is unavailable. Please contact technical support or your domain administrator.";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -60,18 +59,17 @@
     }
 
     const reset = document.getElementById("transaction-report-reset");
-    if (reset?.getAttribute("data-listener-active") !== "true") {
+    if (reset && reset.getAttribute("data-listener-active") !== "true") {
       reset.setAttribute("data-listener-active", "true");
       const url = reset.getAttribute("data-url") ?? "#";
       if (
         reset.hasAttribute("href") &&
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         (reset.getAttribute("href") === "#" || !reset.getAttribute("href")) &&
         url !== "#"
       ) {
         reset.setAttribute("href", url);
       }
-      reset.addEventListener("click", e => {
+      reset.addEventListener("click", (e: Event) => {
         try {
           const href = reset.getAttribute("href") ?? "#";
           if (href !== "#") {
@@ -79,7 +77,8 @@
           }
           e.preventDefault();
           const msg =
-            reset.getAttribute("data-guard-msg") ?? "Transaction index route is unavailable. Please contact technical support or your domain administrator.";
+            reset.getAttribute("data-guard-msg") ??
+            "Transaction index route is unavailable. Please contact technical support or your domain administrator.";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");

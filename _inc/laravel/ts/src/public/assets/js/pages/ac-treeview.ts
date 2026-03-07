@@ -3,69 +3,102 @@
  * @generated from original JavaScript - manual review recommended
  * @module ac-treeview
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
-'use strict';
+"use strict";
+
+interface VanillaTreeInstance {
+  add: (options: {
+    label: string;
+    id?: string;
+    parent?: string;
+    opened?: boolean;
+    selected?: boolean;
+  }) => void;
+}
+interface VanillaTreeEvent extends Event {
+  detail: { id: string };
+}
+declare var VanillaTree: new (
+  el: Element | null,
+  options?: unknown,
+) => VanillaTreeInstance;
 
 // [ html-demo ]
-const main = document.querySelector<HTMLElement>("#tree-demo");
-const info = document.querySelector<HTMLElement>("#tree-msg");
-const tree = new VanillaTree(main, {
-    contextmenu: [{
-        label: 'Hey',
-        action: function (id) {
-            alert('Hey ' + id);
-        }
-    }, {
-        label: 'Blah',
-        action: function (id) {
-            alert('Blah ' + id);
-        }
-    }]
-});
+(function (): void {
+  const treeMain = document.querySelector<HTMLElement>("#tree-demo");
+  const treeInfo = document.querySelector<HTMLElement>("#tree-msg");
 
-tree.add({
-    label: 'Label A',
-    id: 'a',
-    opened: true
-});
+  if (treeMain) {
+    const tree = new VanillaTree(treeMain, {
+      contextmenu: [
+        {
+          label: "Hey",
+          action: function (id: string | number) {
+            alert("Hey " + id);
+          },
+        },
+        {
+          label: "Blah",
+          action: function (id: string | number) {
+            alert("Blah " + id);
+          },
+        },
+      ],
+    });
 
-tree.add({
-    label: 'Label B',
-    id: 'b'
-});
+    tree.add({
+      label: "Label A",
+      id: "a",
+      opened: true,
+    });
 
-tree.add({
-    label: 'Label A.A',
-    parent: 'a',
-    id: 'a.a',
-    opened: true,
-    selected: true
-});
+    tree.add({
+      label: "Label B",
+      id: "b",
+    });
 
-tree.add({
-    label: 'Label A.A.A',
-    parent: 'a.a'
-});
+    tree.add({
+      label: "Label A.A",
+      parent: "a",
+      id: "a.a",
+      opened: true,
+      selected: true,
+    });
 
-tree.add({
-    label: 'Label A.A.B',
-    parent: 'a.a'
-});
+    tree.add({
+      label: "Label A.A.A",
+      parent: "a.a",
+    });
 
-tree.add({
-    label: 'Label B.A',
-    parent: 'b'
-});
+    tree.add({
+      label: "Label A.A.B",
+      parent: "a.a",
+    });
 
-main.addEventListener('vtree-open', function (evt) {
-    info.innerHTML = evt.detail.id + ' is opened';
-});
+    tree.add({
+      label: "Label B.A",
+      parent: "b",
+    });
 
-main.addEventListener('vtree-close', function (evt) {
-    info.innerHTML = evt.detail.id + ' is closed';
-});
+    treeMain.addEventListener("vtree-open", function (evt: Event) {
+      if (treeInfo) {
+        treeInfo.innerHTML = (evt as VanillaTreeEvent).detail.id + " is opened";
+      }
+    });
 
-main.addEventListener('vtree-select', function (evt) {
-    info.innerHTML = evt.detail.id + ' is selected';
-});
+    treeMain.addEventListener("vtree-close", function (evt: Event) {
+      if (treeInfo) {
+        treeInfo.innerHTML = (evt as VanillaTreeEvent).detail.id + " is closed";
+      }
+    });
+
+    treeMain.addEventListener("vtree-select", function (evt: Event) {
+      if (treeInfo) {
+        treeInfo.innerHTML =
+          (evt as VanillaTreeEvent).detail.id + " is selected";
+      }
+    });
+  }
+})();
+
+export {};

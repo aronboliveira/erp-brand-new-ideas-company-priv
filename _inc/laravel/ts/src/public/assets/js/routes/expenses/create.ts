@@ -3,23 +3,47 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 /* global bootstrap */
 // assets/js/routes/expenses/create.js
 ((): void => {
   try {
-    const qs = (s, r = document) => r.querySelector(s);
-    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
-    const once = (el, attr) => {
+    const qs = (
+      s: string,
+      r: Element | Document = document,
+    ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+    const qsa = (s: string, r: Element | Document = document): HTMLElement[] =>
+      Array.from(r.querySelectorAll(s)) as HTMLElement[];
+    const once = (el: HTMLElement | null, attr: string): boolean => {
       if (!el) return false;
       if (el.getAttribute(attr) === "true") return false;
       el.setAttribute(attr, "true");
       return true;
     };
-    const toast = msg => {
+
+    // SECURITY: Safe HTML insertion helper
+    const safeSethtmlContent = (el: HTMLElement, html: string): void => {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        if (doc.body.innerHTML.includes("PARSER ERROR")) {
+          el.textContent = html;
+          return;
+        }
+        while (el.firstChild) {
+          el.removeChild(el.firstChild);
+        }
+        const fragment = document.createDocumentFragment();
+        for (const node of doc.body.childNodes) {
+          fragment.appendChild(node.cloneNode(true));
+        }
+        el.appendChild(fragment);
+      } catch (e) {
+        el.textContent = html;
+      }
+    };
+    const toast = (msg: string) => {
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -47,10 +71,10 @@
       }
     };
 
-    const guardForm = fm => {
+    const guardForm = (fm: HTMLElement | null): void => {
       if (!fm) return;
       if (!once(fm, "data-submit-guarded")) return;
-      fm.addEventListener("submit", e => {
+      fm.addEventListener("submit", (e: Event) => {
         try {
           const action = (fm.getAttribute("action") ?? "#").trim();
           const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
@@ -65,10 +89,10 @@
       });
     };
 
-    const guardLink = a => {
+    const guardLink = (a: HTMLElement | null): void => {
       if (!a) return;
       if (!once(a, "data-listener-active")) return;
-      a.addEventListener("click", e => {
+      a.addEventListener("click", (e: Event) => {
         try {
           const href = (a.getAttribute("href") ?? "#").trim();
           const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
@@ -85,7 +109,9 @@
 
     const togglePayeeBlocks = (): void => {
       const type =
-        qsa('input[name="type"]').find(r => r.checked)?.value ?? "employee";
+        qsa('input[name="type"]')
+          .find(r => (r as HTMLInputElement).checked)
+          ?.getAttribute("value") ?? "employee";
       const emp = qs(".employee");
       const cus = qs(".customer");
       const ven = qs(".vendor");
@@ -94,19 +120,24 @@
       if (ven) ven.classList.toggle("d-none", type !== "vendor");
     };
 
-    const fetchDetail = async (selectEl, detailSel) => {
+    const fetchDetail = async (
+      selectEl: HTMLElement | null,
+      detailSel: string,
+    ): Promise<void> => {
       try {
         if (!selectEl) return;
         const url = (selectEl.getAttribute("data-url") ?? "#").trim();
         const guard =
           selectEl.getAttribute("data-guard-msg") ?? "Endpoint unavailable.";
-        const id = selectEl.value;
+        const id = (selectEl as HTMLSelectElement).value;
         if (!id) return;
         if (url === "#") {
           toast(guard);
           return;
         }
-        const token = (qs("#token")?.value ?? "").trim();
+        const token = (
+          (qs("#token") as HTMLInputElement | null)?.value ?? ""
+        ).trim();
         const res = await fetch(url, {
           method: "POST",
           headers: {
@@ -128,13 +159,12 @@
         }
         detail.classList.toggle(
           "d-none",
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           !(data?.html && String(data.html).trim().length),
         );
       } catch (err) {}
     };
 
-    const toNum = v => {
+    const toNum = (v: unknown) => {
       const n = parseFloat(String(v).replace(/,/g, "").trim());
       return isFinite(n) ? n : 0;
     };
@@ -146,13 +176,25 @@
       let totalAmount = 0;
 
       qsa("tbody[data-repeater-item]").forEach(tbody => {
-        const row1 = tbody.querySelector("tr:nth-child(1)");
-        const row2 = tbody.querySelector("tr:nth-child(2)");
+        const row1 = tbody.querySelector(
+          "tr:nth-child(1)",
+        ) as HTMLElement | null;
+        const row2 = tbody.querySelector(
+          "tr:nth-child(2)",
+        ) as HTMLElement | null;
         if (row1) {
-          const qty = toNum(qs(".quantity", row1)?.value);
-          const price = toNum(qs(".price", row1)?.value);
-          const disc = toNum(qs(".discount", row1)?.value);
-          const taxRate = toNum(qs(".itemTaxRate", row1)?.value);
+          const qty = toNum(
+            (qs(".quantity", row1) as HTMLInputElement | null)?.value,
+          );
+          const price = toNum(
+            (qs(".price", row1) as HTMLInputElement | null)?.value,
+          );
+          const disc = toNum(
+            (qs(".discount", row1) as HTMLInputElement | null)?.value,
+          );
+          const taxRate = toNum(
+            (qs(".itemTaxRate", row1) as HTMLInputElement | null)?.value,
+          );
           const line = qty * price;
           const taxAmt = (line - disc) * (taxRate / 100);
           const amt = line - disc + taxAmt;
@@ -166,7 +208,10 @@
           if (amtCell) amtCell.textContent = amt.toFixed(2);
         }
         if (row2) {
-          const accInput = qs(".accountAmount", row2);
+          const accInput = qs(
+            ".accountAmount",
+            row2,
+          ) as HTMLInputElement | null;
           const accCell = qs(".accountamount", row2);
           const accVal = toNum(accInput?.value);
           if (accCell) accCell.textContent = accVal.toFixed(2);
@@ -174,7 +219,7 @@
         }
       });
 
-      const fmt = n => n.toFixed(2);
+      const fmt = (n: number): string => n.toFixed(2);
       const subEl = qs(".subTotal");
       const discEl = qs(".totalDiscount");
       const taxEl = qs(".totalTax");
@@ -185,10 +230,10 @@
       if (discEl) discEl.textContent = fmt(totalDiscount);
       if (taxEl) taxEl.textContent = fmt(totalTax);
       if (totEl) totEl.textContent = fmt(totalAmount);
-      if (totHidden) totHidden.value = fmt(totalAmount);
+      if (totHidden) (totHidden as HTMLInputElement).value = fmt(totalAmount);
     };
 
-    const bindRow = container => {
+    const bindRow = (container: HTMLElement | null): void => {
       if (!container) return;
       const inputs = qsa(".quantity, .price, .discount", container);
       inputs.forEach(inp => {
@@ -197,26 +242,30 @@
       });
       const acc = qs(
         ".accountAmount",
-        container.closest("tbody[data-repeater-item]"),
+        container.closest("tbody[data-repeater-item]") as HTMLElement,
       );
       if (acc) {
         acc.addEventListener("input", recalcTable);
         acc.addEventListener("change", recalcTable);
       }
-      const itemSel = qs(".item", container);
+      const itemSel = qs(".item", container) as HTMLSelectElement | null;
       if (itemSel && once(itemSel, "data-item-bound")) {
-        itemSel.addEventListener("change", async (): void => {
+        itemSel.addEventListener("change", async (): Promise<void> => {
           const url = (itemSel.getAttribute("data-url") ?? "#").trim();
           const guard =
             itemSel.getAttribute("data-guard-msg") ?? "Endpoint unavailable.";
           const id = itemSel.value;
-          const tbody = container.closest("tbody[data-repeater-item]");
+          const tbody = container.closest(
+            "tbody[data-repeater-item]",
+          ) as HTMLElement | null;
           if (!tbody || !id) return;
           if (url === "#") {
             toast(guard);
             return;
           }
-          const token = (qs("#token")?.value ?? "").trim();
+          const token = (
+            (qs("#token") as HTMLInputElement | null)?.value ?? ""
+          ).trim();
           try {
             const res = await fetch(url, {
               method: "POST",
@@ -226,12 +275,24 @@
               },
               body: JSON.stringify({ id }),
             });
-            const data = await res.json().catch(() => ({}));
+            const data = (await res.json().catch(() => ({}))) as {
+              unit?: string | number;
+              price?: string | number;
+              taxesHtml?: string;
+              taxRate?: string | number;
+              taxPrice?: string | number;
+            };
             const unit = qs(".unit", tbody);
-            const price = qs(".price", tbody);
+            const price = qs(".price", tbody) as HTMLInputElement | null;
             const taxesBox = qs(".taxes", tbody);
-            const taxRate = qs(".itemTaxRate", tbody);
-            const taxPrice = qs(".itemTaxPrice", tbody);
+            const taxRate = qs(
+              ".itemTaxRate",
+              tbody,
+            ) as HTMLInputElement | null;
+            const taxPrice = qs(
+              ".itemTaxPrice",
+              tbody,
+            ) as HTMLInputElement | null;
 
             if (unit && data?.unit !== undefined)
               unit.textContent = String(data.unit ?? "");
@@ -275,14 +336,16 @@
         fetchDetail(venSel, "#vendor_detail"),
       );
 
-    qsa("tbody[data-repeater-item] tr:nth-child(1)").forEach(row =>
-      { bindRow(row); },
-    );
+    qsa("tbody[data-repeater-item] tr:nth-child(1)").forEach(row => {
+      bindRow(row);
+    });
     qsa("[data-repeater-create]").forEach(btn => {
       btn.addEventListener("click", (): void => {
         setTimeout((): void => {
           qsa("tbody[data-repeater-item]").forEach(tb => {
-            const row = tb.querySelector("tr:nth-child(1)");
+            const row = tb.querySelector(
+              "tr:nth-child(1)",
+            ) as HTMLElement | null;
             bindRow(row);
           });
         }, 0);

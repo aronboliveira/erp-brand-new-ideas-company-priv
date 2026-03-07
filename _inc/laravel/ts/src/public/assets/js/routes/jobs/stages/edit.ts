@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -12,20 +11,17 @@
     if (!fm) return;
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const url = (
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           fm.getAttribute("data-url") ??
           fm.getAttribute("action") ?? "#"
         ).trim();
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!url || url === "#") {
           e.preventDefault();
           const msg = fm.getAttribute("data-guard-msg") ?? "Route unavailable.";
           const hasBs =
             !!document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             !!window.bootstrap.Toast;
           if (hasBs) {
             let c = document.getElementById("toast-container");

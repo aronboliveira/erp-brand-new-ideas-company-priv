@@ -95,7 +95,7 @@
                     <div class="{{ VC::CT }}">
                         @php $companyLogo = !empty($company_logos) ? $company_logos : SC::CPN_LG_LT_DEF; @endphp
                         <a class="{{ VC::NVB_BR }}" href="#">
-                            <img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="logo" style="width:90px">
+                            <img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="{{ __('logo') }}" style="width:90px">
                         </a>
                     </div>
                 </nav>
@@ -279,7 +279,7 @@
             <div id="liveToast" class="toast text-white fade" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body"></div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>

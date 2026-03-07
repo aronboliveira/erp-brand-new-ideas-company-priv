@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reset
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -13,15 +12,13 @@
     a.setAttribute("data-listener-active", "true");
     const url = a.getAttribute("data-url") ?? "#";
     if (
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
     ) {
       a.setAttribute("href", url);
     }
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       const href = a.getAttribute("href") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (href && href !== "#") return;
       e.preventDefault();
       const msg =
@@ -34,9 +31,7 @@
       }
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-        window.bootstrap &&
-        window.bootstrap.Toast;
+        window.bootstrap?.Toast;
       if (hasBS) {
         const t = document.createElement("div");
         t.className = "toast";

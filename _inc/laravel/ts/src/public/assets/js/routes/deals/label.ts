@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module label
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("labels-store-form");
   if (!form || form.getAttribute("data-listener-active") === "true") return;
   form.setAttribute("data-listener-active", "true");
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", (e: Event) => {
     try {
       const action =
         form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";

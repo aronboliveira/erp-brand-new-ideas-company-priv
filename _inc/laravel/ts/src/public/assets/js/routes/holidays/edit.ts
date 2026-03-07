@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -12,11 +11,10 @@
     if (!fm) return;
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    const toast = msg => {
+    const toast = (msg: string) => {
       const text =
         msg ?? "Update route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
       let container = document.getElementById("toast-container");
@@ -43,7 +41,7 @@
         alert(text);
       }
     };
-    fm.addEventListener("submit", e => {
+    fm.addEventListener("submit", (e: Event) => {
       try {
         const action = (fm.getAttribute("action") ?? "#").trim();
         const url = (fm.getAttribute("data-url") ?? "#").trim();

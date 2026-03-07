@@ -3,17 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module action
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const DEFAULT_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_MSG;
     const hasBs =
       !!document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       !!window.bootstrap;
     let box = document.getElementById("toast-container");
     if (!box) {
@@ -37,10 +35,10 @@
       alert(text);
     }
   };
-  const guardLink = el => {
+  const guardLink = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
+    el.addEventListener("click", (e: Event) => {
       const href = (el.getAttribute("href") ?? "#").trim();
       const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
       if (url !== "#" && href !== "#") return;
@@ -51,17 +49,21 @@
   };
   const tooltips = (): void => {
     try {
-      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
-        try {
-          bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch {}
-      });
+      document
+        .querySelectorAll('[data-bs-toggle="tooltip"]')
+        .forEach((el: Element): void => {
+          try {
+            bootstrap.Tooltip.getOrCreateInstance(el);
+          } catch {}
+        });
     } catch {}
   };
   document.addEventListener("DOMContentLoaded", (): void => {
     document
       .querySelectorAll("a[data-guard-msg],a[data-url]")
-      .forEach(guardLink);
+      .forEach((el: Element): void => {
+        guardLink(el as HTMLElement);
+      });
     tooltips();
   });
 })();

@@ -3,18 +3,19 @@
  * @generated from original JavaScript - manual review recommended
  * @module apply
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const btn = document.getElementById("filter-apply-btn");
   if (!btn || btn.getAttribute("data-listener-active") === "true") return;
   btn.setAttribute("data-listener-active", "true");
-  btn.addEventListener("click", e => {
+  btn.addEventListener("click", (e: Event) => {
     try {
       const url = btn.getAttribute("data-url") ?? "#";
       if (url !== "#") {
-        document.getElementById("frm_submit")?.submit();
+        (
+          document.getElementById("frm_submit") as HTMLFormElement | null
+        )?.submit();
         return;
       }
       e.preventDefault();

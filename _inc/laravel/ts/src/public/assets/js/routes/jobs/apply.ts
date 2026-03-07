@@ -3,20 +3,20 @@
  * @generated from original JavaScript - manual review recommended
  * @module apply
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
-  const Q = s => document.querySelector(s);
-  const QA = s => Array.from(document.querySelectorAll(s));
+  const Q = <T extends Element = Element>(s: string): T | null =>
+    document.querySelector<T>(s);
+  const QA = <T extends Element = Element>(s: string): T[] =>
+    Array.from(document.querySelectorAll<T>(s));
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
     let box = document.getElementById("toast-container");
@@ -42,30 +42,36 @@
     }
   };
 
-  const bindLinkGuard = a => {
+  const bindLinkGuard = (a: HTMLAnchorElement): void => {
     if (!a || a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
-    a.addEventListener("click", e => {
-      const href = (a.getAttribute("href") ?? "#").trim();
-      const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
-      if (url !== "#" && href !== "#") return;
-      e.preventDefault();
-      toast(a.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
-      a.setAttribute("data-failed-route", "true");
-    });
+    a.addEventListener(
+      "click",
+      function (this: HTMLAnchorElement, e: Event): void {
+        const href = (this.getAttribute("href") ?? "#").trim();
+        const url = (this.getAttribute("data-url") ?? href ?? "#").trim();
+        if (url !== "#" && href !== "#") return;
+        e.preventDefault();
+        toast(this.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+        this.setAttribute("data-failed-route", "true");
+      },
+    );
   };
 
-  const bindFormGuard = fm => {
+  const bindFormGuard = (fm: HTMLFormElement): void => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
-      const action = (fm.getAttribute("action") ?? "#").trim();
-      const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
-      if (url !== "#" && action !== "#") return;
-      e.preventDefault();
-      toast(fm.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
-      fm.setAttribute("data-failed-route", "true");
-    });
+    fm.addEventListener(
+      "submit",
+      function (this: HTMLFormElement, e: Event): void {
+        const action = (this.getAttribute("action") ?? "#").trim();
+        const url = (this.getAttribute("data-url") ?? action ?? "#").trim();
+        if (url !== "#" && action !== "#") return;
+        e.preventDefault();
+        toast(this.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+        this.setAttribute("data-failed-route", "true");
+      },
+    );
   };
 
   const initTooltips = (): void => {
@@ -78,17 +84,17 @@
     } catch {}
   };
 
-  const filenameFromInput = inp => {
+  const filenameFromInput = (inp: HTMLInputElement): string => {
     if (!inp?.files) return "";
     if (inp.files.length === 0) return "";
     if (inp.files.length === 1) return inp.files[0].name ?? "";
     return Array.from(inp.files)
-      .map(f => f.name ?? "")
+      .map((f: File) => f.name ?? "")
       .filter(Boolean)
       .join(", ");
   };
 
-  const previewImage = (file, imgEl) => {
+  const previewImage = (file: Blob, imgEl: HTMLImageElement | null): void => {
     if (!file || !imgEl) return;
     try {
       const url = URL.createObjectURL(file);
@@ -102,24 +108,34 @@
   };
 
   const bindFileInputs = (): void => {
-    QA('input[type="file"][data-filename]').forEach(inp => {
-      if (inp.getAttribute("data-file-listener") === "true") return;
-      inp.setAttribute("data-file-listener", "true");
-      const outClass = inp.getAttribute("data-filename") ?? "";
-      const out = outClass ? Q(`.${CSS.escape(outClass)}`) : null;
-      inp.addEventListener("change", (): void => {
-        const txt = filenameFromInput(inp);
-        if (out) out.textContent = txt ?? "";
-        const id = inp.id ?? "";
-        if (id === "profile") previewImage(inp.files?.[0], Q("#blah"));
-        if (id === "resume") previewImage(inp.files?.[0], Q("#blah1"));
-      });
-    });
+    QA<HTMLInputElement>('input[type="file"][data-filename]').forEach(
+      (inp: HTMLInputElement): void => {
+        if (inp.getAttribute("data-file-listener") === "true") return;
+        inp.setAttribute("data-file-listener", "true");
+        const outClass = inp.getAttribute("data-filename") ?? "";
+        const out = outClass ? Q(`.${CSS.escape(outClass)}`) : null;
+        inp.addEventListener("change", function (this: HTMLInputElement): void {
+          const txt = filenameFromInput(this);
+          if (out) out.textContent = txt ?? "";
+          const id = this.id ?? "";
+          if (this.files?.[0]) {
+            if (id === "profile")
+              previewImage(this.files[0], Q<HTMLImageElement>("#blah"));
+            if (id === "resume")
+              previewImage(this.files[0], Q<HTMLImageElement>("#blah1"));
+          }
+        });
+      },
+    );
   };
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    QA("a[data-guard-msg], a[data-url]").forEach(bindLinkGuard);
-    QA("form[data-guard-msg], form[data-url]").forEach(bindFormGuard);
+    QA<HTMLAnchorElement>("a[data-guard-msg], a[data-url]").forEach(
+      bindLinkGuard,
+    );
+    QA<HTMLFormElement>("form[data-guard-msg], form[data-url]").forEach(
+      bindFormGuard,
+    );
     initTooltips();
     bindFileInputs();
   });

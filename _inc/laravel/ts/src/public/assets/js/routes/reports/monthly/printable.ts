@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module printable
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -93,9 +92,8 @@
     },
   };
 
-  let toastContainer = null;
-  const getToastContainer = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+  let toastContainer: HTMLElement | null = null;
+  const getToastContainer = (): HTMLElement => {
     if (!toastContainer) {
       toastContainer =
         document.querySelector<HTMLElement>(".toast-container") ??
@@ -107,7 +105,7 @@
     return toastContainer;
   };
 
-  const showError = (key, el = null) => {
+  const showError = (key: string, el: HTMLElement | null = null) => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -119,9 +117,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -132,7 +130,6 @@
         el?.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
@@ -173,8 +170,8 @@
   const saveAsPDF = (): void => {
     try {
       if (
-        typeof html2pdf !== "object" ||
-        typeof html2pdf().set !== "function"
+        typeof window.html2pdf !== "object" ||
+        typeof (window.html2pdf as Function)().set !== "function"
       ) {
         showError("no_lib");
         return;
@@ -188,14 +185,13 @@
 
       let filename = "document.pdf";
       try {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        filename = $(FILENAME_INPUT).val() ?? filename;
+        filename = String($(FILENAME_INPUT).val() ?? filename);
       } catch {
         const input = document.querySelector(FILENAME_INPUT);
-        if (input) filename = input.value || filename;
+        if (input) filename = (input as HTMLInputElement).value || filename;
       }
 
-      html2pdf()
+      (window.html2pdf as Function)()
         .set({
           margin: 0.3,
           filename,

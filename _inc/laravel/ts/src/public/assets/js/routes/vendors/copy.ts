@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -13,17 +12,19 @@
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataBindGuard = "data-copy-billing-bound";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s) as T | null;
   const hasBootstrapUi = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
-    if (c) return c;
-    c = document.createElement("div");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLDivElement => {
+    const existing = qs<HTMLDivElement>("#np-toast-container");
+    if (existing) return existing;
+    const c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -33,7 +34,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -59,7 +60,7 @@
       alert(message ?? errFb);
     }
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -68,9 +69,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -88,19 +89,18 @@
     }
     return msg;
   };
-  const copyValue = (from, to) => {
+  const copyValue = (from: unknown, to: unknown) => {
+    if (!$) return false;
     const $from = $(`[name='${from}']`);
     const $to = $(`[name='${to}']`);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!$from.length || !$to.length) return false;
-    const v = ($from.val() ?? "").toString();
+    const v = String($from.val() ?? "");
     $to.val(v);
     return true;
   };
-  const handler = function (): void {
+  const handler = function (this: HTMLElement): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-      if (!$.fn) {
+      if (!$ || !$.fn) {
         try {
           console.error("jQuery unavailable");
         } catch (_) {}
@@ -131,20 +131,18 @@
     const host = document.body;
     if (host.getAttribute(dataBindGuard) === "true") return;
     host.setAttribute(dataBindGuard, "true");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    if ($ && $.fn) {
+    if ($?.fn) {
       $(document).on("click._npCopy", "#billing_data", handler);
     } else {
-      document.addEventListener("click", function (e) {
-        const t = e.target;
+      document.addEventListener("click", function (e: Event) {
+        const t = e.target as HTMLElement | null;
         if (t && (t.id === "billing_data" || t.closest?.("#billing_data")))
           handler.call(t);
       });
     }
     const mo = new MutationObserver(function (): void {
       if (!document.querySelector<HTMLElement>("#billing_data")) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-        if ($ && $.fn) {
+        if ($?.fn) {
           $(document).off("click._npCopy", "#billing_data");
         }
         host.removeAttribute(dataBindGuard);

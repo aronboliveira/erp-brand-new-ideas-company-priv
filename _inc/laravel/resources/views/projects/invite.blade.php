@@ -16,7 +16,7 @@
                                         @endphp
                                         <img src="{{ $avatarSrc }}"
                                              class="wid-40 rounded-circle ml-3"
-                                             alt="avatar"
+                                             alt="{{ __('avatar') }}"
                                              onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
                                     </div>
                                     <div class="col">

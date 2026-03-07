@@ -3,15 +3,19 @@
  * @generated from original JavaScript - manual review recommended
  * @module tasks
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global $, jQuery */
+declare global {
+  interface JQuery {
+    daterangepicker(options?: Record<string, unknown>): JQuery;
+    timepicker(options?: Record<string, unknown>): JQuery;
+  }
+}
 ((): void => {
-  const getMsg = key => {
+  const getMsg = (key: string) => {
     const lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      (document.documentElement.lang || "en")
     )
       .toLowerCase()
       .replace(/_/g, "-");
@@ -22,14 +26,14 @@
       "# ERROR"
     );
   };
-  const toast = msg =>
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-    { window.show_toastr ? window.show_toastr("error", msg, "error") : alert(msg); };
+  const toast = (msg: string) => {
+    window.show_toastr ? window.show_toastr("error", msg, "error") : alert(msg);
+  };
 
   document.addEventListener("DOMContentLoaded", (): void => {
     try {
       const dateInput = document.getElementById("date");
-      if (dateInput && $.fn.daterangepicker) {
+      if (dateInput && typeof $.fn.daterangepicker === "function") {
         $("#date").daterangepicker({
           locale: { format: "YYYY-MM-DD" },
           singleDatePicker: true,
@@ -41,7 +45,7 @@
 
     try {
       const timeInput = document.getElementById("time");
-      if (timeInput && $.fn.timepicker) {
+      if (timeInput && typeof $.fn.timepicker === "function") {
         $("#time").timepicker({
           icons: { up: "ti ti-chevron-up", down: "ti ti-chevron-down" },
         });

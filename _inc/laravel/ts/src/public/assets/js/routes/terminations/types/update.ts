@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,10 +13,9 @@
     }
     f.setAttribute("data-listener-active", "true");
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         const url = f.getAttribute("data-url") ?? "#";
         if (action !== "#" && url !== "#") {
           return;
@@ -29,14 +27,13 @@
           ? f.getAttribute("data-guard-msg")
           : "";
         const msg =
-          msgAttr?.trim().length > 0
+          (msgAttr ?? "").trim().length > 0
             ? msgAttr
             : "Update termination type route is unavailable. Please contact technical support or your domain administrator.";
 
         const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          bootstrapLink &&
-          typeof window.bootstrap.Toast !== "undefined";
+          bootstrapLink && typeof window.bootstrap.Toast !== "undefined";
 
         let container = document.getElementById("toast-container");
         if (!container) {

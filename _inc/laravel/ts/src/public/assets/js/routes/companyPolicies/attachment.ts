@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module attachment
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -15,26 +14,25 @@
   if (!el || el.getAttribute("data-listener-active") === "true") return;
   el.setAttribute("data-listener-active", "true");
 
-  el.addEventListener("change", function (e) {
+  el.addEventListener("change", function (e: Event) {
     try {
-      const file = e.target.files?.[0];
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       const img = document.getElementById("image");
       if (!img) throw new Error("noIMG");
-      img.src = URL.createObjectURL(file);
+      (img as HTMLImageElement).src = URL.createObjectURL(file);
     } catch {
       let msg = errFb;
       if (
         el.getAttribute("data-sv-localized") === "true" ||
         el.getAttribute(dataClientLocalized) === "true"
       ) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         msg = el.getAttribute(dataGuardMsg) ?? errFb;
       } else {
         let lang = (
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
           window.sessionStorage.getItem("erp-np-lang") ??
-          document.documentElement.lang ?? "en"
+          document.documentElement.lang ??
+          "en"
         )
           .toLowerCase()
           .replace(/_/g, "-");
@@ -42,7 +40,6 @@
         const key = "preview_failed";
         msg =
           window.translations?.[lang]?.[key] ||
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           el.getAttribute(dataGuardMsg) ||
           window.translations?.en?.[key] ||
           errFb;
@@ -52,7 +49,6 @@
         }
       }
       const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bootstrapLink && window.bootstrap) {
         let container = document.getElementById("toast-container");
         if (!container) {

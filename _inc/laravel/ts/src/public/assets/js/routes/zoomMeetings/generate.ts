@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module generate
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,16 +13,14 @@
     const url = a.getAttribute("data-url") ?? "#";
     if (
       a.hasAttribute("href") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
     ) {
       a.setAttribute("href", url);
     }
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       try {
         const href = a.getAttribute("href") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (href && href !== "#") return;
         e.preventDefault();
         const msg =
@@ -39,9 +36,7 @@
           document.body.appendChild(container);
         }
         const hasBs =
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" && window.bootstrap.Toast;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          window.bootstrap?.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";

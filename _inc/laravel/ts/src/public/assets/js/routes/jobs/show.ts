@@ -3,17 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
-  const showMsg = msg => {
+  const showMsg = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -43,19 +41,18 @@
 
   link.addEventListener(
     "click",
-    e => {
+    (e: Event) => {
       const url =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         link.getAttribute("href") ?? link.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          link.getAttribute("data-guard-msg") ?? "Edit Job route is unavailable. Please contact technical support or your domain administrator.";
+          link.getAttribute("data-guard-msg") ??
+          "Edit Job route is unavailable. Please contact technical support or your domain administrator.";
         showMsg(msg);
       }
     },
-    { passive: false }
+    { passive: false },
   );
 })();
 

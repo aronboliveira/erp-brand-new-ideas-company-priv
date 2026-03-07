@@ -3,20 +3,19 @@
  * @generated from original JavaScript - manual review recommended
  * @module checkMounted
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const checkMounted = (): void => {
     const isModal =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       !document.body ||
-      document.querySelector<HTMLElement>(".modal-body, .modal-header, .modal-content");
+      document.querySelector<HTMLElement>(
+        ".modal-body, .modal-header, .modal-content",
+      );
     const targetElement = isModal
       ? document.documentElement.querySelector<HTMLFormElement>("form, div")
       : document.body;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!targetElement) return;
 
     const content = targetElement.innerHTML;
@@ -24,7 +23,7 @@
 
     if (!m) return;
 
-    const ensureCss = (href, selector) => {
+    const ensureCss = (href: string, selector: string): void => {
       if (!document.querySelector(selector)) {
         const l = document.createElement("link");
         l.rel = "stylesheet";
@@ -34,7 +33,7 @@
       }
     };
 
-    const ensureJs = (src, selector) => {
+    const ensureJs = (src: string, selector: string): void => {
       if (!document.querySelector(selector)) {
         const s = document.createElement("script");
         s.src = src;
@@ -46,15 +45,15 @@
 
     ensureCss(
       "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
-      'link[rel="stylesheet"][href*="bootstrap"][href$=".css"]:not([href*="icons"])'
+      'link[rel="stylesheet"][href*="bootstrap"][href$=".css"]:not([href*="icons"])',
     );
     ensureCss(
       "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css",
-      'link[rel="stylesheet"][href*="bootstrap-icons"]'
+      'link[rel="stylesheet"][href*="bootstrap-icons"]',
     );
     ensureJs(
       "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js",
-      'script[src*="bootstrap"][src*="bundle"]'
+      'script[src*="bootstrap"][src*="bundle"]',
     );
 
     if (document.getElementById("manual-recovery-overlay")) return;
@@ -147,7 +146,12 @@
         if (modalElement) {
           const modal = bootstrap.Modal.getInstance(modalElement);
           if (modal) modal.hide();
-          else modalElement.querySelector('[data-bs-dismiss="modal"]').click();
+          else
+            (
+              modalElement.querySelector(
+                '[data-bs-dismiss="modal"]',
+              ) as HTMLElement | null
+            )?.click();
         }
         overlay.remove();
       };
@@ -159,7 +163,9 @@
       reloadBtn.setAttribute("aria-label", "Reload this page");
       reloadBtn.innerHTML =
         '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Reload Page';
-      reloadBtn.onclick = (): void => { location.reload(); };
+      reloadBtn.onclick = (): void => {
+        location.reload();
+      };
 
       actions.append(closeBtn, reloadBtn);
     } else {
@@ -169,7 +175,9 @@
       backBtn.setAttribute("aria-label", "Go back to previous page");
       backBtn.innerHTML =
         '<i class="bi bi-arrow-left" aria-hidden="true"></i> Go Back';
-      backBtn.onclick = (): void => { history.back(); };
+      backBtn.onclick = (): void => {
+        history.back();
+      };
 
       const homeA = document.createElement("a");
       homeA.className = "btn btn-info";
@@ -185,7 +193,9 @@
       reloadBtn.setAttribute("aria-label", "Reload this page");
       reloadBtn.innerHTML =
         '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Reload';
-      reloadBtn.onclick = (): void => { location.reload(); };
+      reloadBtn.onclick = (): void => {
+        location.reload();
+      };
 
       actions.append(backBtn, homeA, reloadBtn);
     }
@@ -205,9 +215,11 @@
       document.body.classList.add("overflow-hidden");
     }
 
-    setTimeout((): void => { overlay.focus(); }, 0);
+    setTimeout((): void => {
+      overlay.focus();
+    }, 0);
 
-    const onEsc = e => {
+    const onEsc = (e: KeyboardEvent): void => {
       if (e.key === "Escape") {
         document.removeEventListener("keydown", onEsc);
         overlay.remove();

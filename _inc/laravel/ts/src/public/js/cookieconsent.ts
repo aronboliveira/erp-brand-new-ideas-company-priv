@@ -4,7 +4,6 @@
  * @module cookieconsent
  */
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-for-of, no-cond-assign, no-var, prefer-const */
 /* global $, jQuery */
 /*
  CookieConsent v2.8.0
@@ -55,27 +54,27 @@
             ra = document.documentElement,
             L, sa, x, aa,
             ta, W, S, T, ba, E, M, ua, ka, la, y, ca, da, ea, fa, Va = function (a) {
-                function b(n) {
+                function b(n: number) {
                     return (a || document).querySelectorAll('a[data-cc="' + n + '"], button[data-cc="' + n + '"]')
                 }
 
-                function c(n, p) {
+                function c(n: number, p) {
                     n.preventDefault ? n.preventDefault() : n.returnValue = !1;
                     m.accept(p);
                     m.hideSettings();
                     m.hide()
                 }
-                for (var d = b("c-settings"), f = b("accept-all"), l = b("accept-necessary"), q = b("accept-selection"), h = 0; h < d.length; h++) d[h].setAttribute("aria-haspopup", "dialog"), z(d[h], "click", function (n) {
+                for (var d = b("c-settings"), f = b("accept-all"), l = b("accept-necessary"), q = b("accept-selection"), h = 0; h < d.length; h++) d[h].setAttribute("aria-haspopup", "dialog"), z(d[h], "click", function (n: number) {
                     n.preventDefault ? n.preventDefault() : n.returnValue = !1;
                     m.showSettings(0)
                 });
-                for (h = 0; h < f.length; h++) z(f[h], "click", function (n) {
+                for (h = 0; h < f.length; h++) z(f[h], "click", function (n: number) {
                     c(n, "all")
                 });
-                for (h = 0; h < q.length; h++) z(q[h], "click", function (n) {
+                for (h = 0; h < q.length; h++) z(q[h], "click", function (n: number) {
                     c(n)
                 });
-                for (h = 0; h < l.length; h++) z(l[h], "click", function (n) {
+                for (h = 0; h < l.length; h++) z(l[h], "click", function (n: number) {
                     c(n, [])
                 })
             },
@@ -434,7 +433,7 @@
                 }, !0)
             },
             db = function (a, b) {
-                function c(f, l, q, h, n, p, F) {
+                function c(f, l, q, h, n: number, p, F) {
                     p = p?.split(" ") || [];
                     if (-1 < H(l, n) && (J(f, n), ("bar" !== n || "middle" !== p[0]) &&
                             -1 < H(q, p[0])))

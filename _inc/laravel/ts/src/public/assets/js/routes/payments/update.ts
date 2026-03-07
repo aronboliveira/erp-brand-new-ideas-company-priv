@@ -3,20 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("payment-update-form");
   if (!form) return;
 
-  const toast = msg => {
+  const toast = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const d = document.createElement("div");
             d.id = "toast-container";
             document.body.appendChild(d);
@@ -43,28 +41,31 @@
 
   form.addEventListener(
     "submit",
-    e => {
+    (e: Event) => {
       const url =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!url || url === "#") {
         e.preventDefault();
         const msg =
-          form.getAttribute("data-guard-msg") ?? "Update route is unavailable. Please contact technical support or your domain administrator.";
+          form.getAttribute("data-guard-msg") ??
+          "Update route is unavailable. Please contact technical support or your domain administrator.";
         toast(msg);
       }
     },
-    { passive: false }
+    { passive: false },
   );
 
-  const fileInput = document.getElementById("payment-files");
-  const img = document.getElementById("payment-image");
+  const fileInput = document.getElementById(
+    "payment-files",
+  ) as HTMLInputElement | null;
+  const img = document.getElementById(
+    "payment-image",
+  ) as HTMLImageElement | null;
 
   if (fileInput && img) {
     fileInput.addEventListener("change", function (): void {
-      if (this.files?.[0]) {
-        const src = URL.createObjectURL(this.files[0]);
+      if (fileInput.files?.[0]) {
+        const src = URL.createObjectURL(fileInput.files[0]);
         img.src = src;
         img.style.display = "";
       }

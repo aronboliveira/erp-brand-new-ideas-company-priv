@@ -3,17 +3,24 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
+type SvLang = {
+  zoomMeetings?: {
+    store?: {
+      routeGuardDefault?: string;
+    };
+  };
+};
 ((): void => {
   (function (): void {
     try {
-      window.svLang = window.svLang || {};
-      window.svLang.zoomMeetings = window.svLang.zoomMeetings || {};
-      window.svLang.zoomMeetings.store = window.svLang.zoomMeetings.store || {};
-      window.svLang.zoomMeetings.store.routeGuardDefault =
+      const svLang = (window.svLang || {}) as SvLang;
+      svLang.zoomMeetings = svLang.zoomMeetings || {};
+      svLang.zoomMeetings.store = svLang.zoomMeetings.store || {};
+      svLang.zoomMeetings.store.routeGuardDefault =
         "Store zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
+      (window as unknown as { svLang: SvLang }).svLang = svLang;
     } catch {}
   })();
   try {
@@ -23,27 +30,26 @@
 
     const resolved = f.getAttribute("data-resolved-action") ?? "#";
     if (
-      f.hasAttribute("action") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      (!f.getAttribute("action") || f.getAttribute("action") === "#") &&
+      (f as HTMLFormElement).hasAttribute("action") &&
+      (!(f as HTMLFormElement).getAttribute("action") ||
+        (f as HTMLFormElement).getAttribute("action") === "#") &&
       resolved !== "#"
     ) {
-      f.setAttribute("action", resolved);
+      (f as HTMLFormElement).setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (action && action !== "#") return;
         e.preventDefault();
         const fallback =
-          (window.svLang?.zoomMeetings?.store?.routeGuardDefault) ||
-          "";
+          (window as unknown as { svLang?: SvLang }).svLang?.zoomMeetings?.store
+            ?.routeGuardDefault || "";
         const msg =
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           f.getAttribute("data-guard-msg") ??
-          fallback ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+          (fallback ||
+            "Requested route is unavailable. Please contact technical support or your domain administrator.");
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -53,10 +59,7 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        const hasBs =
-          // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-          typeof window.bootstrap !== "undefined" && window.bootstrap.Toast;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        const hasBs = window.bootstrap?.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";

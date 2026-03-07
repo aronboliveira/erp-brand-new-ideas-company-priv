@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module selectItem
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -14,7 +13,6 @@
   selectEl.addEventListener("change", event => {
     try {
       const url = selectEl.getAttribute("data-url");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (url && url !== "#") return;
       event.preventDefault();
       const msg = selectEl.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -27,7 +25,6 @@
         container.style.zIndex = "1080";
         document.body.appendChild(container);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (bootstrapLink && window.bootstrap) {
         const toastEl = document.createElement("div");
         toastEl.className = "toast";

@@ -3,18 +3,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   const form = document.getElementById("award-store-form");
-  if (form?.getAttribute("data-listener-active") !== "true") {
+  if (form && form.getAttribute("data-listener-active") !== "true") {
     form.setAttribute("data-listener-active", "true");
     form.addEventListener("submit", event => {
       try {
         const action = form.getAttribute("action");
         const url = form.getAttribute("data-url");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ((action && action !== "#") ?? (url && url !== "#")) return;
         event.preventDefault();
         const msg = form.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -28,7 +26,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
@@ -49,13 +46,12 @@
     });
   }
   const link = document.getElementById("award-generate-link");
-  if (link?.getAttribute("data-listener-active") !== "true") {
+  if (link && link.getAttribute("data-listener-active") !== "true") {
     link.setAttribute("data-listener-active", "true");
     link.addEventListener("click", event => {
       try {
         const href = link.getAttribute("href");
         const url = link.getAttribute("data-url");
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if ((href && href !== "#") ?? (url && url !== "#")) return;
         event.preventDefault();
         const msg = link.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -69,7 +65,6 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";

@@ -3,7 +3,22 @@
  * @generated from original JavaScript - manual review recommended
  * @module calendar
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
+
+interface FullCalendarInstance {
+  render(): void;
+  destroy(): void;
+}
+
+interface FullCalendarStatic {
+  Calendar: new (
+    el: HTMLElement,
+    options: Record<string, unknown>,
+  ) => FullCalendarInstance;
+}
+
+interface CalendarHTMLElement extends HTMLElement {
+  _fcInstance?: FullCalendarInstance | null;
+}
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -14,7 +29,7 @@
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
   const dataCalGuard = "data-cal-guard";
-  const ensureToastContainer = (): void => {
+  const ensureToastContainer = (): HTMLElement => {
     let c = document.getElementById("np-toast-container");
     if (c) {
       return c;
@@ -29,13 +44,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     const hasBootstrap =
       (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ??
         document.querySelector('link[href*="bootstrap"]')) &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-      window.bootstrap &&
-      window.bootstrap.Toast;
+      window.bootstrap?.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = document.getElementById("np-toast");
@@ -63,9 +76,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = message => {
+  const scheduleInteractiveError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -86,7 +98,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute(dataSvLocalized) === "true" ||
@@ -95,9 +107,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -115,14 +127,19 @@
     }
     return msg;
   };
-  const initCalendar = events => {
-    const el = document.getElementById("calendar");
+  const initCalendar = (events: unknown) => {
+    const el = document.getElementById(
+      "calendar",
+    ) as CalendarHTMLElement | null;
     if (!el) {
       scheduleInteractiveError(getMsg(document.body, "calendar_unavailable"));
       return;
     }
     try {
-      if (!window.FullCalendar?.Calendar) {
+      const FullCalendar = window.FullCalendar as
+        | FullCalendarStatic
+        | undefined;
+      if (!FullCalendar?.Calendar) {
         try {
           if (
             window.location.hostname === "localhost" ||
@@ -139,7 +156,7 @@
         } catch (_) {}
         el._fcInstance = null;
       }
-      const calendar = new window.FullCalendar.Calendar(el, {
+      const calendar = new FullCalendar.Calendar(el, {
         headerToolbar: {
           left: "prev,next today",
           center: "title",
@@ -180,8 +197,7 @@
     }
   };
   const getData = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    if (!window.jQuery || !$.ajax) {
+    if (!window.jQuery || !$ || !$.ajax) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -192,44 +208,41 @@
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
-    const $calendar = $("#calendar");
-    const $sel = $("#calendar_type");
+    const jQ = $;
+    const $calendar = jQ("#calendar");
+    const $sel = jQ("#calendar_type");
     const calendar_type = $sel.find(":selected").val();
     $calendar.removeClass("local_calendar");
     $calendar.removeClass("google_calendar");
     if (calendar_type === undefined) {
       $calendar.addClass("local_calendar");
     }
-    $calendar.addClass(calendar_type ?? "");
-    const base = ($("#task_calendar").val() ?? "").toString().trim();
+    const calType = typeof calendar_type === "string" ? calendar_type : "";
+    $calendar.addClass(calType);
+    const base = String(jQ("#task_calendar").val() ?? "").trim();
     const endpoint =
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       base && base !== "#"
         ? base.replace(/\/$/, "") + "/calendar/get_task_data"
         : "";
     const urlAttr = $calendar.attr("data-url");
     const hrefAttr = $calendar.is("form")
-      ? $calendar.attr("action") ?? ""
-      : $calendar.attr("href") ?? "";
+      ? ($calendar.attr("action") ?? "")
+      : ($calendar.attr("href") ?? "");
     if (
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (!endpoint || endpoint === "#") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (!urlAttr || urlAttr === "#") &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (!hrefAttr || hrefAttr === "#")
     ) {
       scheduleInteractiveError(getMsg($calendar.get(0), "fetch_unavailable"));
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    const url = endpoint || urlAttr ?? hrefAttr;
-    $.ajax({
+    const url = endpoint || (urlAttr ?? hrefAttr);
+    jQ.ajax({
       url: url,
       method: "POST",
       data: { _token: "{{ csrf_token() }}", calendar_type: calendar_type },
       cache: false,
-      success: function (data) {
+      success: function (data: unknown) {
         initCalendar(data);
       },
       error: function (): void {
@@ -239,7 +252,7 @@
   };
   const init = (): void => {
     if (document.readyState === "loading") {
-      $(getData);
+      if ($) $(getData);
     } else {
       getData();
     }

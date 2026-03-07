@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function (): void {
   const togglePassword = document.getElementById("togglePassword"),
     passwordInput = document.getElementById("pw-input"),
     toggleIcon = document.getElementById("toggleIcon");
+  if (!togglePassword || !passwordInput || !toggleIcon) return;
   togglePassword.addEventListener("click", function (): void {
     const type =
       passwordInput.getAttribute("type") === "password" ? "text" : "password";

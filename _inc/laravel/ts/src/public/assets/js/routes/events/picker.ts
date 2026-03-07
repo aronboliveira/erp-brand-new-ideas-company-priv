@@ -3,9 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module picker
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
+declare global {
+  interface JQuery {
+    daterangepicker(options?: Record<string, unknown>): JQuery;
+  }
+}
 ((): void => {
   const errFb = "# ERROR";
   const dataClient = "data-client-localized";
@@ -13,26 +17,26 @@
   const langKey = "erp-np-lang";
   const toastId = "toast-box";
 
-  const getMsg = key => {
+  const getMsg = (key: string) => {
     let lang = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       sessionStorage.getItem(langKey) ??
-      document.documentElement.lang ?? "en"
+      (document.documentElement.lang || "en")
     )
       .toLowerCase()
       .replace(/_/g, "-");
     lang = lang === "pt-br" ? lang : lang.slice(0, 2);
     return (
-      window.translations?.[lang]?.[key] || window.translations.en[key] || errFb
+      window.translations?.[lang]?.[key] ||
+      window.translations?.en?.[key] ||
+      errFb
     );
   };
 
-  const showToast = msg => {
+  const showToast = (msg: string) => {
     const hasBs =
       Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l =>
-        /bootstrap/i.test(l.href),
+        /bootstrap/i.test((l as HTMLLinkElement).href),
       ) && window.bootstrap.Toast;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (hasBs) {
       let box = document.getElementById(toastId);
       if (!box) {
@@ -77,7 +81,6 @@
   }).observe(document.body, { childList: true, subtree: true });
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!window.$ || !$.fn.daterangepicker) throw 0;
     const els = document.querySelectorAll(".datepicker");
     if (els.length === 0) return;
@@ -85,7 +88,9 @@
       singleDatePicker: true,
       locale: window.date_picker_locale ?? { format: "YYYY-MM-DD" },
     };
-    els.forEach((el: Element): void => $(el).daterangepicker(opts));
+    els.forEach((el): void => {
+      $(el).daterangepicker(opts);
+    });
   } catch {
     queued = getMsg("date_picker_init_failed");
   }

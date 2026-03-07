@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module frontend-risk-audit.test
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires */
 
 // @ts-check
 const {

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pusher
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 (function (): void {
@@ -14,17 +13,17 @@
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-pusher-error";
   const dataInitGuard = "data-pusher-initialized";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r: Document | HTMLElement = document) =>
+    r.querySelector(s);
   const hasBootstrap = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const ensureToastContainer = (): void => {
-    let c = qs("#np-toast-container");
-    if (c) return c;
-    c = document.createElement("div");
+    ) && !!window.bootstrap?.Toast;
+  const ensureToastContainer = (): HTMLDivElement => {
+    const existing = qs("#np-toast-container") as HTMLDivElement | null;
+    if (existing) return existing;
+    const c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
@@ -34,7 +33,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = message => {
+  const showErrorNow = (message: string) => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -60,9 +59,8 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = message => {
+  const schedulePointerupError = (message: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -81,7 +79,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const getMsg = (el, key) => {
+  const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -90,9 +88,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -110,14 +108,13 @@
     }
     return msg;
   };
-  const getCsrf = (): void => {
+  const getCsrf = (): string => {
     try {
-      const t = $('meta[name="csrf-token"]').attr("content");
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      const t = $?.('meta[name="csrf-token"]').attr("content");
       return t ? String(t) : "";
     } catch (_) {
       const m = document.querySelector('meta[name="csrf-token"]');
-      return m.getAttribute("content") ?? "";
+      return m?.getAttribute("content") ?? "";
     }
   };
   const initPusher = (): void => {
@@ -132,25 +129,27 @@
         return;
       }
       try {
-        window.Pusher.logToConsole = true;
+        (window.Pusher as Record<string, unknown>).logToConsole = true;
       } catch (_) {}
-      const key = "{{ config('chatify.pusher.key') }}";
-      const cluster = "{{ config('chatify.pusher.options.cluster') }}";
-      const authEndpoint = '{{route("pusher.auth")}}';
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+      const key: string = "{{ config('chatify.pusher.key') }}";
+      const cluster: string = "{{ config('chatify.pusher.options.cluster') }}";
+      const authEndpoint: string = '{{route("pusher.auth")}}';
       if (!key || key === "#" || !cluster || cluster === "#") {
         schedulePointerupError(getMsg(document.body, "pusher_unavailable"));
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!authEndpoint || authEndpoint === "#") {
         schedulePointerupError(
-          getMsg(document.body, "pusher_auth_unavailable")
+          getMsg(document.body, "pusher_auth_unavailable"),
         );
         return;
       }
       const headers = { "X-CSRF-TOKEN": getCsrf() };
-      const pusher = new window.Pusher(key, {
+      const PusherCtor = window.Pusher as unknown as new (
+        key: string,
+        opts: Record<string, unknown>,
+      ) => { connection?: { bind: (event: string, cb: () => void) => void } };
+      const pusher = new PusherCtor(key, {
         encrypted: true,
         cluster: cluster,
         authEndpoint: authEndpoint,

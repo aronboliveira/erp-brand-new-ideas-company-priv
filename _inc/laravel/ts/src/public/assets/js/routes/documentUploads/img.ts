@@ -3,30 +3,31 @@
  * @generated from original JavaScript - manual review recommended
  * @module img
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 ((): void => {
-  const fileInput = document.getElementById("document");
-  const imgEl = document.getElementById("image");
+  const fileInput = document.getElementById(
+    "document",
+  ) as HTMLInputElement | null;
+  const imgEl = document.getElementById("image") as HTMLImageElement | null;
   if (!fileInput || !imgEl) return;
 
-  const langShort = (): void => {
+  const langShort = (): string => {
     const l = (
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       sessionStorage.getItem("erp-np-lang") ??
-      document.documentElement.lang ?? "en"
+      document.documentElement.lang ??
+      "en"
     )
       .toLowerCase()
       .replace(/_/g, "-");
     return l === "pt-br" ? l : l.slice(0, 2);
   };
-  const t = k =>
+  const t = (k: string) =>
     window.translations?.[langShort()]?.[k] ??
     window.translations?.en?.[k] ??
     "# ERROR";
-  const toast = m =>
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-    { window.show_toastr ? window.show_toastr("error", m, "error") : alert(m); };
+  const toast = (m: string) => {
+    window.show_toastr ? window.show_toastr("error", m, "error") : alert(m);
+  };
 
   let lastUrl = "";
 
@@ -44,15 +45,15 @@
 
   fileInput.addEventListener("change", previewHandler);
   new MutationObserver((ms, obs) => {
-    ms.forEach(m =>
-      { m.removedNodes.forEach(n => {
+    ms.forEach(m => {
+      m.removedNodes.forEach(n => {
         if (n === fileInput) {
           fileInput.removeEventListener("change", previewHandler);
           if (lastUrl !== "") URL.revokeObjectURL(lastUrl);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 })();
 

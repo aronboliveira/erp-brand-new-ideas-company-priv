@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module editSelect
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,7 +11,7 @@
   const langKey = "erp-np-lang";
   const errFb = "# ERROR";
 
-  const getMsg = (key, el) => {
+  const getMsg = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -21,9 +20,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -41,13 +40,12 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       const hasBs =
-        Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-          l => /bootstrap/i.test(l.href),
-        ) && window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        Array.from(
+          document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+        ).some(l => /bootstrap/i.test(l.href)) && window.bootstrap.Toast;
       if (hasBs) {
         let c = document.getElementById("bootstrap-toast-container");
         if (!c) {
@@ -69,7 +67,8 @@
           t.appendChild(b);
           c.appendChild(t);
         }
-        t.querySelector(".toast-body").textContent = message;
+        const toastBody = t.querySelector(".toast-body");
+        if (toastBody) toastBody.textContent = message;
         bootstrap.Toast.getOrCreateInstance(t).show();
       } else alert(message);
     } catch {
@@ -77,12 +76,19 @@
     }
   };
 
-  const delegate = (event, selector, handler, key) => {
-    document.addEventListener(event, e => {
-      const el = e.target.closest(selector);
+  const delegate = <T extends HTMLElement>(
+    eventType: string,
+    selector: string,
+    handler: (el: T) => void,
+    key: string,
+  ) => {
+    document.addEventListener(eventType, e => {
+      const target = e.target as Element | null;
+      if (!target) return;
+      const el = target.closest<T>(selector);
       if (!el) return;
       try {
-        handler(el, e);
+        handler(el);
       } catch {
         showError(getMsg(key, el));
       }
@@ -95,7 +101,7 @@
     });
   };
 
-  delegate(
+  delegate<HTMLInputElement>(
     "change",
     'input[name="type"]:radio',
     el => {
@@ -114,80 +120,109 @@
     "selection_failed",
   );
 
-  delegate("change", "#employee", el => {
-    $("#employee_detail").addClass("d-block").removeClass("d-none");
-    $("#employee-box").addClass("d-none").removeClass("d-block");
-    $.ajax({
-      url: el.getAttribute("data-url"),
-      type: "POST",
-      headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
-      data: { id: el.value },
-      success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("employee_detail"), data);
-        } else {
-          $("#employee-box").addClass("d-block").removeClass("d-none");
-          $("#employee_detail").addClass("d-none").removeClass("d-block");
-        }
-      },
-      error: (): void => { showError(getMsg("employee_fetch_failed", el)); },
-    });
-  });
+  delegate<HTMLSelectElement>(
+    "change",
+    "#employee",
+    el => {
+      $("#employee_detail").addClass("d-block").removeClass("d-none");
+      $("#employee-box").addClass("d-none").removeClass("d-block");
+      $.ajax({
+        url: el.getAttribute("data-url"),
+        type: "POST",
+        headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
+        data: { id: el.value },
+        success: (data: string) => {
+          if (data) {
+            // SECURITY: Use safe HTML insertion instead of innerHTML
+            const employeeDetail = document.getElementById("employee_detail");
+            if (employeeDetail) safeSethtmlContent(employeeDetail, data);
+          } else {
+            $("#employee-box").addClass("d-block").removeClass("d-none");
+            $("#employee_detail").addClass("d-none").removeClass("d-block");
+          }
+        },
+        error: (): void => {
+          showError(getMsg("employee_fetch_failed", el));
+        },
+      });
+    },
+    "employee_change_failed",
+  );
 
-  delegate("change", "#customer", el => {
-    $("#customer_detail").addClass("d-block").removeClass("d-none");
-    $("#customer-box").addClass("d-none").removeClass("d-block");
-    $.ajax({
-      url: el.getAttribute("data-url"),
-      type: "POST",
-      headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
-      data: { id: el.value },
-      success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("customer_detail"), data);
-        } else {
-          $("#customer-box").addClass("d-block").removeClass("d-none");
-          $("#customer_detail").addClass("d-none").removeClass("d-block");
-        }
-      },
-      error: (): void => { showError(getMsg("customer_fetch_failed", el)); },
-    });
-  });
+  delegate<HTMLSelectElement>(
+    "change",
+    "#customer",
+    el => {
+      $("#customer_detail").addClass("d-block").removeClass("d-none");
+      $("#customer-box").addClass("d-none").removeClass("d-block");
+      $.ajax({
+        url: el.getAttribute("data-url"),
+        type: "POST",
+        headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
+        data: { id: el.value },
+        success: (data: string) => {
+          if (data) {
+            // SECURITY: Use safe HTML insertion instead of innerHTML
+            const customerDetail = document.getElementById("customer_detail");
+            if (customerDetail) safeSethtmlContent(customerDetail, data);
+          } else {
+            $("#customer-box").addClass("d-block").removeClass("d-none");
+            $("#customer_detail").addClass("d-none").removeClass("d-block");
+          }
+        },
+        error: (): void => {
+          showError(getMsg("customer_fetch_failed", el));
+        },
+      });
+    },
+    "customer_change_failed",
+  );
 
-  delegate("change", "#vendor", el => {
-    $("#vendor_detail").addClass("d-block").removeClass("d-none");
-    $("#vendor-box").addClass("d-none").removeClass("d-block");
-    $.ajax({
-      url: el.getAttribute("data-url"),
-      type: "POST",
-      headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
-      data: { id: el.value },
-      success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("vendor_detail"), data);
-        } else {
-          $("#vendor-box").addClass("d-block").removeClass("d-none");
-          $("#vendor_detail").addClass("d-none").removeClass("d-block");
-        }
-      },
-      error: (): void => { showError(getMsg("vendor_fetch_failed", el)); },
-    });
-  });
+  delegate<HTMLSelectElement>(
+    "change",
+    "#vendor",
+    el => {
+      $("#vendor_detail").addClass("d-block").removeClass("d-none");
+      $("#vendor-box").addClass("d-none").removeClass("d-block");
+      $.ajax({
+        url: el.getAttribute("data-url"),
+        type: "POST",
+        headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
+        data: { id: el.value },
+        success: (data: string) => {
+          if (data) {
+            // SECURITY: Use safe HTML insertion instead of innerHTML
+            const vendorDetail = document.getElementById("vendor_detail");
+            if (vendorDetail) safeSethtmlContent(vendorDetail, data);
+          } else {
+            $("#vendor-box").addClass("d-block").removeClass("d-none");
+            $("#vendor_detail").addClass("d-none").removeClass("d-block");
+          }
+        },
+        error: (): void => {
+          showError(getMsg("vendor_fetch_failed", el));
+        },
+      });
+    },
+    "vendor_change_failed",
+  );
 
-  delegate("click", "#remove", el => {
-    $(".vendor, .customer, .employee")
-      .addClass("d-block")
-      .removeClass("d-none");
-    $("#vendor_detail, #customer_detail, #employee_detail")
-      .addClass("d-none")
-      .removeClass("d-block");
-  });
+  delegate<HTMLElement>(
+    "click",
+    "#remove",
+    _el => {
+      $(".vendor, .customer, .employee")
+        .addClass("d-block")
+        .removeClass("d-none");
+      $("#vendor_detail, #customer_detail, #employee_detail")
+        .addClass("d-none")
+        .removeClass("d-block");
+    },
+    "remove_failed",
+  );
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el, html) {
+  function safeSethtmlContent(el: HTMLElement, html: string) {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reports.spec
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, @typescript-eslint/require-await */
 
 /* global ApexCharts, $, jQuery */
 // @ts-check
@@ -51,7 +50,7 @@ test.beforeEach(async ({ page }) => {
  * For pages whose tables are populated via AJAX (DataTables), we give extra
  * wait-time for rows (tbody tr) to appear.
  */
-async function assertReportRenders(page, route, label) {
+async function assertReportRenders(page, route, label): Promise<void> {
   await test.step(`Navigate to ${label}`, async (): void => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",

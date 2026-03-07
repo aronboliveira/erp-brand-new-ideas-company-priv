@@ -3,12 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module report
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const $ = window.jQuery;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
   if (!$) {
     try {
       if (
@@ -27,15 +25,16 @@
   const MSG_KEY = "pos_route_unavailable";
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const getMsg = el => {
+  const getMsg = (el: HTMLElement | null) => {
     let msg = ERR_FB;
+    if (!el) return msg;
     if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
       msg = el.getAttribute(DGM) || ERR_FB;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -52,9 +51,8 @@
     }
     return msg;
   };
-  const showError = el => {
+  const showError = (el: HTMLElement | null) => {
     const msg = getMsg(el);
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-pos-guard");
       if (!wrap) {
@@ -80,7 +78,7 @@
     }
   };
   const handlers = new WeakMap();
-  const onClick = el => e => {
+  const onClick = (el: HTMLElement) => (e: Event) => {
     try {
       const url = el.getAttribute("data-url");
       const href = el.getAttribute("href");
@@ -90,24 +88,26 @@
       }
     } catch (_) {}
   };
-  const bind = el => {
+  const bind = (el: HTMLElement | null) => {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
     const h = onClick(el);
     handlers.set(el, h);
-    $(el).on("click", h);
+    $(el as Element).on("click", h);
   };
-  const unbind = el => {
+  const unbind = (el: HTMLElement | null) => {
+    if (!el) return;
     const h = handlers.get(el);
     if (h) {
-      $(el).off("click", h);
+      $(el as Element).off("click", h);
       handlers.delete(el);
     }
-    el?.removeAttribute?.(DLA);
+    el.removeAttribute(DLA);
   };
-  const scan = root => {
-    const list = (root || document).querySelectorAll(
-      "a[" + DGM + "]:not([" + DLA + '="true"])'
+  const scan = (root?: Element | Document) => {
+    const r = root || document;
+    const list = r.querySelectorAll<HTMLElement>(
+      "a[" + DGM + "]:not([" + DLA + '="true"])',
     );
     list.forEach(bind);
   };
@@ -123,17 +123,18 @@
   }
   const mo = new MutationObserver(muts => {
     muts.forEach(m => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       m.addedNodes &&
         m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) scan(n);
+          if (n.nodeType === 1) scan(n as Element);
         });
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       m.removedNodes &&
         m.removedNodes.forEach(n => {
           if (n.nodeType === 1) {
-            if (n.hasAttribute?.(DLA)) unbind(n);
-            n.querySelectorAll?.("a[" + DLA + "]").forEach(unbind);
+            const el = n as HTMLElement;
+            if (el.hasAttribute?.(DLA)) unbind(el);
+            el.querySelectorAll?.<HTMLElement>("a[" + DLA + "]").forEach(
+              unbind,
+            );
           }
         });
     });
@@ -141,7 +142,6 @@
   mo.observe(document.documentElement, { childList: true, subtree: true });
   ((): void => {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!$) {
       try {
         if (
@@ -154,12 +154,11 @@
     }
     const init = (): void => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (!$.fn.DataTable) return;
         const $t = $(".datatable").filter(
-          (i, el) => el.getAttribute("data-dt-init") !== "true"
+          (i: number, el: HTMLElement) =>
+            el.getAttribute("data-dt-init") !== "true",
         );
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!$t.length) return;
         $t.each(function (): void {
           $(this).attr("data-dt-init", "true").DataTable({ order: [] });

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module destroy
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -22,7 +21,7 @@
           return;
         }
         l.setAttribute("data-click-guarded", "true");
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             const url = (l.getAttribute("data-url") ?? "#").trim();
             if (url !== "#") {
@@ -34,7 +33,6 @@
               "Delete document route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");

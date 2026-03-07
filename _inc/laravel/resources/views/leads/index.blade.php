@@ -136,7 +136,7 @@
                     el.setAttribute('role','alert');
                     el.setAttribute('aria-live','assertive');
                     el.setAttribute('aria-atomic','true');
-                    el.innerHTML = '<div class="d-flex"><div class="toast-body" data-sv-localized="true">'+m+'</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                    el.innerHTML = '<div class="d-flex"><div class="toast-body" data-sv-localized="true">'+m+'</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
                     c.appendChild(el);
                     new bootstrap.Toast(el, {delay: 4000}).show();
                 } else {
@@ -325,7 +325,7 @@
                                                                         $uAvatar = data_get($u,'avatar');
                                                                         $src = $uAvatar ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('storage/uploads/avatar/avatar.png');
                                                                     @endphp
-                                                                    <img src="{{ $src }}" alt="image" data-bs-toggle="tooltip" title="{{ $uName }}">
+                                                                    <img src="{{ $src }}" alt="{{ __('image') }}" data-bs-toggle="tooltip" title="{{ $uName }}">
                                                                 @endforeach
                                                             @endif
                                                         </div>

@@ -1,0 +1,69 @@
+# JavaScript / TypeScript — Objective Coding Rules
+# Concise, machine-friendly. See coding-style.md for rationale.
+
+formatting:
+  blank_lines:
+    between_related_statements: false          # no extra blank lines inside tight blocks
+    between_function_declarations: true        # one blank line between top-level fns
+  braces:
+    single_statement_if: omit                  # never wrap one-liners in { }
+    single_statement_else: omit
+  declaration_collapsing:
+    enabled: true
+    max_declarations: 3                        # merge up to 3 sequential const/let/var
+  semicolons: always
+
+naming:
+  cached_strings: UPPER_SNAKE or camelCase     # e.g. INFO_ICON or infoIcon
+  modules: kebab-case                          # file names
+  functions: camelCase
+  classes: PascalCase
+
+dom:
+  preferred_query_order:
+    - getElementById
+    - getElementsByClassName
+    - getElementsByTagName
+    - HTMLFormElement.elements
+    - querySelector
+    - querySelectorAll
+  observers:
+    mutation: optional
+    intersection: optional
+
+patterns:
+  dry_setAttribute:
+    threshold: 3                               # loop when ≥3 calls on same element
+    style: "Object.entries loop"
+  dry_property_assign:
+    threshold: 3
+    style: "Object.entries loop with bracket access"
+  cached_strings:
+    threshold: 2                               # extract when used >2 times
+  iife_try_catch:
+    required: true
+    catch_message: "[<module>] failed to initialise"
+  one_liner_guards:
+    prefer: short-circuit                      # !cond && action()
+  symmetric_branches:
+    prefer: ternary                            # cond ? a : b
+
+jsdoc:
+  function_declarations: required              # at least one-line summary
+  named_function_expressions: required
+  arrow_callbacks: optional
+  do_not_repeat_types: true                    # TS handles params/return types
+
+es_target: ES6+
+browser_support:
+  - chromium
+  - gecko
+
+testing:
+  after_changes:
+    - jest
+    - playwright
+    - eslint
+    - tsc --noEmit
+  performance:
+    benchmark_before_switching: true

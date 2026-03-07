@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module order
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
@@ -12,14 +11,15 @@
   const clientFlag = "data-client-localized";
   const langKey = "erp-np-lang";
   let errorMessage = "";
+  const translations = (window as unknown as Record<string, unknown>)
+    .translations as Record<string, Record<string, string>> | undefined;
 
-  function getLocalizedMessage(key, el) {
+  function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
       msg = el.getAttribute(guardMsgKey) ?? msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         sessionStorage.getItem(langKey) ??
         document.documentElement.lang ??
         "en"
@@ -40,7 +40,7 @@
     return msg;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -80,18 +80,18 @@
   };
   document.addEventListener("pointerup", onErrorPointerUp);
   new MutationObserver((muts, obs) => {
-    muts.forEach(m =>
-      { m.removedNodes.forEach(n => {
+    muts.forEach(m => {
+      m.removedNodes.forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    document.querySelectorAll(".sortable").forEach((el: Element): void => {
+    document.querySelectorAll<HTMLElement>(".sortable").forEach((el): void => {
       if (el.dataset.listenerAttached === "true") return;
       el.dataset.listenerAttached = "true";
       try {
@@ -100,12 +100,13 @@
           .disableSelection()
           .on("sortstop", function (): void {
             try {
-              const order = [];
-              this.querySelectorAll("li").forEach((li, idx) => {
-                order[idx] = li.getAttribute("data-id");
-              });
-              const url = "{{route(ViewsConstants::BUG_STT.'.order')}}";
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              const order: (string | null)[] = [];
+              this.querySelectorAll("li").forEach(
+                (li: Element, idx: number) => {
+                  order[idx] = li.getAttribute("data-id");
+                },
+              );
+              const url: string = "{{route(ViewsConstants::BUG_STT.'.order')}}";
               if (url === "") throw new Error("bugstatus_order_failed");
               $.ajax({
                 url,
@@ -125,14 +126,14 @@
         errorMessage = getLocalizedMessage("bugstatus_order_failed", el);
       }
       const obsEl = new MutationObserver((m, o) => {
-        m.forEach(mut =>
-          { mut.removedNodes.forEach(node => {
+        m.forEach(mut => {
+          mut.removedNodes.forEach(node => {
             if (node === el) {
               $(el).sortable("destroy");
               obsEl.disconnect();
             }
-          }); }
-        );
+          });
+        });
       });
       obsEl.observe(document.body, { childList: true, subtree: true });
     });

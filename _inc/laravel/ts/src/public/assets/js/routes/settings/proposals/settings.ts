@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module settings
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -16,7 +15,7 @@
       return;
     }
     formEl.setAttribute("data-listener-active", "true");
-    formEl.addEventListener("submit", e => {
+    formEl.addEventListener("submit", (e: Event) => {
       try {
         const actionUrl = formEl.getAttribute("action") ?? "#";
         const dataUrl = formEl.getAttribute("data-url") ?? "#";
@@ -28,7 +27,6 @@
           formEl.getAttribute("data-guard-msg") ??
           "Proposal template settings route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
         let toastContainer = document.getElementById("toast-container");

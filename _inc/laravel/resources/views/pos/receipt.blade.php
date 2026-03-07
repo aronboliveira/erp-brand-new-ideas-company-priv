@@ -41,7 +41,7 @@
                     @endforeach
                 @else
                     <div class="col-12 text-center text-dark">
-                        <p>No product barcodes available.</p>
+                        <p>{{ __('No product barcodes available.') }}</p>
                     </div>
                 @endif
             </div>

@@ -129,7 +129,7 @@
                             type="button"
                             class="btn-close float-end"
                             data-bs-dismiss="modal"
-                            aria-label="Close"
+                            aria-label="{{ __('Close') }}"
                         ></button>
                         <h6 class="mt-2">
                             <i data-feather="monitor" class="me-2"></i>Desktop settings
@@ -235,7 +235,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="body">
                     </div>
@@ -248,7 +248,7 @@
                     <div class="modal-header">
                         <h5 class="modal-title" id="commonModalLabel"></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                                aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
                     </div>
@@ -260,7 +260,7 @@
                 <div class="d-flex">
                     <div class="toast-body"></div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
+                            aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>

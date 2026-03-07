@@ -3,14 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module _
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap, $, jQuery */
 ((): void => {
   const link = document.getElementById("{{ $projectReportExportLinkId }}");
   if (!link || link.getAttribute("data-listener-active") === "true") return;
   link.setAttribute("data-listener-active", "true");
-  link.addEventListener("click", e => {
+  link.addEventListener("click", (e: Event) => {
     try {
       const url = link.getAttribute("data-url") ?? "#";
       if (url !== "#") return;
@@ -50,7 +49,7 @@
   const link = document.getElementById("{{ $projectTaskShowLinkId }}");
   if (!link || link.getAttribute("data-listener-active") === "true") return;
   link.setAttribute("data-listener-active", "true");
-  link.addEventListener("click", e => {
+  link.addEventListener("click", (e: Event) => {
     try {
       const url = link.getAttribute("data-url") ?? "#";
       if (url !== "#") return;

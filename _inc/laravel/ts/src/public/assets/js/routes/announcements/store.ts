@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -18,12 +17,11 @@
         try {
           const url = el.getAttribute("data-url");
           const action = el.getAttribute("action");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if ((!action || action === "#") && (!url || url === "#")) {
             event.preventDefault();
             const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
             const bootstrapLink = document.querySelector(
-              'link[href*="bootstrap"]'
+              'link[href*="bootstrap"]',
             );
             let container = document.getElementById("toast-container");
             if (!container) {
@@ -34,7 +32,6 @@
               container.style.zIndex = "1080";
               document.body.appendChild(container);
             }
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
             if (bootstrapLink && window.bootstrap) {
               const toastEl = document.createElement("div");
               toastEl.className = "toast";
@@ -57,15 +54,14 @@
       el.addEventListener("click", event => {
         try {
           const url = el.getAttribute("data-url");
-          const href = el.href
+          const href = (el as HTMLAnchorElement).href
             .replace(window.location.origin, "")
             .replace(window.location.pathname, "");
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if ((!url || url === "#") && (!href || href === "#")) {
             event.preventDefault();
             const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
             const bootstrapLink = document.querySelector(
-              'link[href*="bootstrap"]'
+              'link[href*="bootstrap"]',
             );
             let container = document.getElementById("toast-container");
             if (!container) {
@@ -76,7 +72,6 @@
               container.style.zIndex = "1080";
               document.body.appendChild(container);
             }
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
             if (bootstrapLink && window.bootstrap) {
               const toastEl = document.createElement("div");
               toastEl.className = "toast";

@@ -202,7 +202,7 @@
                                             <td class="Action">
                                                 <span>
                                                     @if ((int) data_get($Vendor,'is_active',0) === 0)
-                                                        <i class="fa fa-lock" title="Inactive"></i>
+                                                        <i class="fa fa-lock" title="{{ __('Inactive') }}"></i>
                                                     @else
                                                         @can('show vendor')
                                                             @php

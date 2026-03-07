@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module dismiss
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
@@ -13,15 +12,17 @@
   const dataSvLocalized = "data-sv-localized";
   const dataBindGuard = "data-dismiss-bound";
   const dataErrGuard = "data-dismiss-error";
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = <T extends Element = HTMLElement>(
+    s: string,
+    r: Document | Element = document,
+  ): T | null => r.querySelector(s) as T | null;
   const hasBS = () =>
     !!(
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-    ) && !!(window.bootstrap && window.bootstrap.Toast);
-  const toastContainer = (): void => {
-    let c = qs("#np-toast-container");
+    ) && !!window.bootstrap?.Toast;
+  const toastContainer = (): HTMLDivElement => {
+    let c = qs<HTMLDivElement>("#np-toast-container");
     if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
@@ -33,7 +34,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showError = message => {
+  const showError = (message: string) => {
     if (hasBS()) {
       const container = toastContainer();
       let t = qs("#np-toast", container);
@@ -59,9 +60,8 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = msg => {
+  const scheduleClickError = (msg: string) => {
     const host = document.body;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
@@ -80,7 +80,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  const localize = (el, key) => {
+  const localize = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
       el?.getAttribute?.(dataSvLocalized) === "true" ||
@@ -89,9 +89,9 @@
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -109,7 +109,7 @@
     }
     return msg;
   };
-  const hideAlert = closeEl => {
+  const hideAlert = (closeEl: HTMLElement) => {
     try {
       const target = qs("#error_alert");
       if (!target) {
@@ -126,7 +126,7 @@
     if (!closeEl) return;
     if (closeEl.getAttribute(dataBindGuard) === "true") return;
     closeEl.setAttribute(dataBindGuard, "true");
-    const onClick = function (e) {
+    const onClick = function (this: HTMLElement, e: Event) {
       e.preventDefault();
       hideAlert(this);
     };

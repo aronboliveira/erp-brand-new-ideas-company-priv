@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module preview
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -25,7 +24,6 @@
       previewFrame.getAttribute("data-guard-msg") ??
       "Bill preview route is unavailable. Please contact technical support or your domain administrator.";
     const hasBootstrap = !!(
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       document.querySelector('link[href*="bootstrap"]') && window.bootstrap
     );
     let container = document.getElementById("toast-container");

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,11 +14,10 @@
     }
     f.setAttribute("data-listener-active", "true");
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       try {
-        const action = (f.getAttribute("action")).trim();
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        const url = (f.getAttribute("data-url")).trim() || action;
+        const action = (f.getAttribute("action") ?? "").trim();
+        const url = (f.getAttribute("data-url") ?? "").trim() || action;
         if (action !== "#" || url !== "#") {
           return;
         }
@@ -27,7 +25,8 @@
         e.preventDefault();
 
         const msg =
-          f.getAttribute("data-guard-msg") ?? "Create termination type route is unavailable. Please contact technical support or your domain administrator.";
+          f.getAttribute("data-guard-msg") ??
+          "Create termination type route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -39,7 +38,7 @@
         }
 
         const hasBootstrapCss = !!document.querySelector(
-          'link[href*="bootstrap"]'
+          'link[href*="bootstrap"]',
         );
         const hasBootstrapJs = typeof window.bootstrap !== "undefined";
         if (hasBootstrapCss && hasBootstrapJs) {

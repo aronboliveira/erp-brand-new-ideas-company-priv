@@ -3,15 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
   try {
     const fm = document.getElementById("transfer_form");
-    if (fm?.getAttribute("data-submit-guarded") !== "true") {
+    if (fm && fm.getAttribute("data-submit-guarded") !== "true") {
       fm.setAttribute("data-submit-guarded", "true");
-      fm.addEventListener("submit", e => {
+      fm.addEventListener("submit", (e: Event) => {
         try {
           const action = fm.getAttribute("action") ?? "#";
           const url = fm.getAttribute("data-url") ?? "#";
@@ -24,7 +23,6 @@
             "Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");
@@ -56,9 +54,9 @@
       });
     }
     const apply = document.getElementById("transfer-apply");
-    if (apply?.getAttribute("data-listener-active") !== "true") {
+    if (apply && apply.getAttribute("data-listener-active") !== "true") {
       apply.setAttribute("data-listener-active", "true");
-      apply.addEventListener("click", e => {
+      apply.addEventListener("click", (e: Event) => {
         try {
           e.preventDefault();
           const fid = apply.getAttribute("data-form-id") ?? "";
@@ -77,7 +75,6 @@
               "Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.";
             const hasBootstrap = !!(
               document.querySelector('link[href*="bootstrap"]') &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
               window.bootstrap
             );
             let container = document.getElementById("toast-container");
@@ -108,14 +105,14 @@
             form.setAttribute("data-failed-route", "true");
             return;
           }
-          form.submit();
+          (form as HTMLFormElement).submit();
         } catch (err) {}
       });
     }
     const reset = document.getElementById("transfer-reset");
-    if (reset?.getAttribute("data-listener-active") !== "true") {
+    if (reset && reset.getAttribute("data-listener-active") !== "true") {
       reset.setAttribute("data-listener-active", "true");
-      reset.addEventListener("click", e => {
+      reset.addEventListener("click", (e: Event) => {
         try {
           const href = reset.getAttribute("href") ?? "#";
           const url = reset.getAttribute("data-url") ?? "#";
@@ -128,7 +125,6 @@
             "Reset bank transfer route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             window.bootstrap
           );
           let container = document.getElementById("toast-container");

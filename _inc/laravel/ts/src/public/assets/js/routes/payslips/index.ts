@@ -3,17 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
-  const showMsg = msg => {
+  const showMsg = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -38,42 +36,46 @@
     }
   };
 
-  const guardSubmit = (form, fallbackMsg) => {
+  const guardSubmit = (form: HTMLFormElement | null, fallbackMsg: string) => {
     if (!form) return;
     form.addEventListener(
       "submit",
-      e => {
+      (e: Event) => {
         const url =
-          form.getAttribute("action") || form.getAttribute("data-url") ?? "#";
+          form.getAttribute("action") || form.getAttribute("data-url") || "#";
         if (!url || url === "#") {
           e.preventDefault();
           const msg = form.getAttribute("data-guard-msg") || fallbackMsg;
           showMsg(msg);
         }
       },
-      { passive: false }
+      { passive: false },
     );
   };
 
-  const gForm = document.getElementById("payslip-generate-form");
+  const gForm = document.getElementById(
+    "payslip-generate-form",
+  ) as HTMLFormElement | null;
   const gBtn = document.getElementById("payslip-generate-btn");
   if (gBtn && gForm) {
-    gBtn.addEventListener("click", e => {
+    gBtn.addEventListener("click", (e: Event) => {
       e.preventDefault();
       gForm.requestSubmit();
     });
   }
   guardSubmit(
     gForm,
-    "Generate Payslip route is unavailable. Please contact technical support or your domain administrator."
+    "Generate Payslip route is unavailable. Please contact technical support or your domain administrator.",
   );
 
-  const eForm = document.getElementById("payslip-export-form");
-  const monthSel = document.querySelector<HTMLElement>(".month_date");
-  const yearSel = document.querySelector<HTMLElement>(".year_date");
+  const eForm = document.getElementById(
+    "payslip-export-form",
+  ) as HTMLFormElement | null;
+  const monthSel = document.querySelector<HTMLSelectElement>(".month_date");
+  const yearSel = document.querySelector<HTMLSelectElement>(".year_date");
   if (eForm) {
-    const fm = eForm.querySelector("input.filter_month");
-    const fy = eForm.querySelector("input.filter_year");
+    const fm = eForm.querySelector<HTMLInputElement>("input.filter_month");
+    const fy = eForm.querySelector<HTMLInputElement>("input.filter_year");
     const syncHidden = (): void => {
       if (fm && monthSel) fm.value = monthSel.value ?? "";
       if (fy && yearSel) fy.value = yearSel.value ?? "";
@@ -85,20 +87,19 @@
   }
   guardSubmit(
     eForm,
-    "Export Payslip route is unavailable. Please contact technical support or your domain administrator."
+    "Export Payslip route is unavailable. Please contact technical support or your domain administrator.",
   );
 
   const bc = document.getElementById("bc-payslip-index-link");
   if (bc) {
-    bc.addEventListener("click", e => {
+    bc.addEventListener("click", (e: Event) => {
       const href =
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         bc.getAttribute("href") ?? bc.getAttribute("data-url") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!href || href === "#") {
         e.preventDefault();
         const msg =
-          bc.getAttribute("data-guard-msg") ?? "Payslip index route is unavailable. Please contact technical support or your domain administrator.";
+          bc.getAttribute("data-guard-msg") ??
+          "Payslip index route is unavailable. Please contact technical support or your domain administrator.";
         showMsg(msg);
       }
     });

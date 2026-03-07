@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -13,23 +12,22 @@
   const LANG_KEY = "erp-np-lang";
   let errorMessage = "";
 
-  const getMsg = (key, el) => {
+  const getMsg = (key: string, el: HTMLElement) => {
     let msg = ERR_FB;
     if (el.getAttribute(FL_CLIENT) === "true") {
       msg = el.getAttribute(FL_GUARD) || msg;
     } else {
       let lang = (
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         sessionStorage.getItem(LANG_KEY) ??
-        document.documentElement.lang ?? "en"
+        (document.documentElement.lang || "en")
       )
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
-        translations?.[lang]?.[key] ??
+        window.translations?.[lang]?.[key] ??
         el.getAttribute(FL_GUARD) ??
-        translations?.en?.[key] ??
+        window.translations?.en?.[key] ??
         msg;
       if (msg !== ERR_FB) {
         el.setAttribute(FL_GUARD, msg);
@@ -39,7 +37,7 @@
     return msg;
   };
 
-  const showError = message => {
+  const showError = (message: string) => {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -50,7 +48,6 @@
       const bs =
         !!document.querySelector('link[href*="bootstrap"]') &&
         window.bootstrap.Toast;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (bs) {
         const t = document.createElement("div");
         t.className = "toast";
@@ -79,18 +76,20 @@
   };
   document.addEventListener("pointerup", onUp);
   new MutationObserver((m, obs) => {
-    m.forEach(mut =>
-      { Array.from(mut.removedNodes).forEach(n => {
+    m.forEach(mut => {
+      Array.from(mut.removedNodes).forEach(n => {
         if (n === document.documentElement) {
           document.removeEventListener("pointerup", onUp);
           obs.disconnect();
         }
-      }); }
-    );
+      });
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    const sel = document.querySelector<HTMLElement>(".change-pipeline select[name=default_pipeline_id]");
+    const sel = document.querySelector<HTMLElement>(
+      ".change-pipeline select[name=default_pipeline_id]",
+    );
     if (!sel) return;
     if (sel.dataset.listenerAttached === "true") return;
     sel.dataset.listenerAttached = "true";
@@ -99,7 +98,7 @@
       try {
         const form = document.getElementById("change-pipeline");
         if (!form) throw new Error("pipeline_change_failed");
-        form.submit();
+        (form as HTMLFormElement).submit();
       } catch (e) {
         errorMessage = getMsg("pipeline_change_failed", sel);
       }
@@ -107,14 +106,14 @@
 
     sel.addEventListener("change", handler);
     new MutationObserver((m, obs) => {
-      m.forEach(mut =>
-        { Array.from(mut.removedNodes).forEach(n => {
+      m.forEach(mut => {
+        Array.from(mut.removedNodes).forEach(n => {
           if (n === sel) {
             sel.removeEventListener("change", handler);
             obs.disconnect();
           }
-        }); }
-      );
+        });
+      });
     }).observe(document.body, { childList: true, subtree: true });
   });
 })();

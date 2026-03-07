@@ -895,7 +895,7 @@
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="paymentModalLabel">{{ __('Add Payment') }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
+                                        aria-label="{{ __('Close') }}"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="card bg-none card-box">
@@ -3465,7 +3465,7 @@
                         <button type="button"
                                 class="btn-close btn-close-white me-2 m-auto"
                                 data-bs-dismiss="toast"
-                                aria-label="Close">
+                                aria-label="{{ __('Close') }}">
                         </button>
                     </div>
                 </div>
@@ -3598,7 +3598,7 @@
                                         <button type="button"
                                                 class="btn-close btn-close-white me-2 m-auto"
                                                 data-bs-dismiss="toast"
-                                                aria-label="Close"></button>
+                                                aria-label="{{ __('Close') }}"></button>
                                     </div>`;
                                 document.body.appendChild(toast);
                             }

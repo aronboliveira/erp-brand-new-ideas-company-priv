@@ -183,6 +183,8 @@ export default [
       "vendor/**",
       "frontend/**",
       "Modules/**",
+      /* TypeScript migration folder - has its own eslint config */
+      "ts/**",
       ".venv/**",
       "tailwind.config.js",
       "webpack.mix.js",

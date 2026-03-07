@@ -3,13 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module viewImages
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, no-inner-declarations */
 
 /* global bootstrap */
 ((): void => {
   try {
     const items = document.querySelectorAll(".view-images");
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!items || items.length === 0) return;
 
     items.forEach(img => {
@@ -22,10 +20,10 @@
             e.preventDefault();
 
             const url = img.getAttribute("data-url") ?? "#";
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (!url || url === "#") {
               const msg =
-                img.getAttribute("data-guard-msg") ?? "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
+                img.getAttribute("data-guard-msg") ??
+                "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
@@ -36,13 +34,7 @@
                 document.body.appendChild(container);
               }
               const bsLink = document.querySelector('link[href*="bootstrap"]');
-              if (
-                bsLink &&
-                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-                typeof window.bootstrap !== "undefined" &&
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-                window.bootstrap.Toast
-              ) {
+              if (bsLink && window.bootstrap?.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 toast.setAttribute("role", "alert");
@@ -82,14 +74,9 @@
               if (!rsp.ok) throw new Error("HTTP " + rsp.status);
               const html = await rsp.text();
               // SECURITY: Use textContent for any user data, or use a sanitizer for arbitrary HTML
-              safeSethtmlContent(content, html);
+              safeSethtmlContent(content as HTMLElement, html);
 
-              if (
-                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-                typeof window.bootstrap !== "undefined" &&
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-                window.bootstrap.Modal
-              ) {
+              if (window.bootstrap?.Modal) {
                 const m = window.bootstrap.Modal.getOrCreateInstance(modal);
                 m.show();
               }
@@ -106,13 +93,7 @@
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }
-              if (
-                bsLink &&
-                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-                typeof window.bootstrap !== "undefined" &&
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-                window.bootstrap.Toast
-              ) {
+              if (bsLink && window.bootstrap?.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 toast.setAttribute("role", "alert");
@@ -138,7 +119,7 @@
     });
 
     // SECURITY: Safe HTML insertion helper
-    function safeSethtmlContent(el, html) {
+    function safeSethtmlContent(el: HTMLElement, html: string) {
       try {
         // Use DOMParser to safely parse HTML, then clone nodes to prevent scripts
         const parser = new DOMParser();

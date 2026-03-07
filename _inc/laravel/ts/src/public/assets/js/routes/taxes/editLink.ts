@@ -3,13 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module editLink
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
     const links = document.querySelectorAll(".tax-edit-link, .dashboard-link");
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
     if (!links || links.length === 0) return;
 
     links.forEach(l => {
@@ -20,17 +18,15 @@
         const url = l.getAttribute("data-url") ?? "#";
         if (
           l.hasAttribute("href") &&
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           (l.getAttribute("href") === "#" || !l.getAttribute("href")) &&
           url !== "#"
         ) {
           l.setAttribute("href", url);
         }
 
-        l.addEventListener("click", e => {
+        l.addEventListener("click", (e: Event) => {
           try {
             const href = l.getAttribute("href") ?? "#";
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (href && href !== "#") return;
             e.preventDefault();
 
@@ -50,10 +46,7 @@
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (
               bsLink &&
-              // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-              typeof window.bootstrap !== "undefined" &&
-              // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-              window.bootstrap.Toast
+              window.bootstrap?.Toast
             ) {
               const toast = document.createElement("div");
               toast.className = "toast";

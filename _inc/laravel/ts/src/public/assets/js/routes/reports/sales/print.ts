@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 /* global bootstrap */
 ((): void => {
@@ -17,7 +16,7 @@
     }
     form.setAttribute("data-listener-active", "true");
 
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e: Event) => {
       try {
         const url = form.getAttribute("data-url") ?? "#";
         if (url !== "#") {
@@ -29,7 +28,6 @@
           form.getAttribute("data-guard-msg") ??
           "Print sales report route is unavailable. Please contact technical support or your domain administrator.";
         const hasBootstrap = !!(
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           document.querySelector('link[href*="bootstrap"]') && window.bootstrap
         );
 

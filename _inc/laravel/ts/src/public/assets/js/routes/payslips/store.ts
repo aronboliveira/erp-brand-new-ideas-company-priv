@@ -3,11 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 (function (): void {
-  function toast(msg) {
+  function toast(msg: string) {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -15,8 +14,7 @@
         c.id = "toast-container";
         document.body.appendChild(c);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (window.bootstrap && window.bootstrap.Toast) {
+      if (window.bootstrap?.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
@@ -49,10 +47,9 @@
       f.setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", function (e) {
+    f.addEventListener("submit", function (e: Event) {
       try {
         const action = f.getAttribute("action") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (action && action !== "#") return;
         e.preventDefault();
         const msg =

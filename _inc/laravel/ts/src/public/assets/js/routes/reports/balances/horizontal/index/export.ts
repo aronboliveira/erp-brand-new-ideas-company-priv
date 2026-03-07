@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module export
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -15,10 +14,9 @@
     f.setAttribute(flag, "true");
     f.addEventListener(
       "submit",
-      function (e) {
+      function (e: Event) {
         try {
           const action = f.getAttribute("action") ?? "#";
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           const url = f.getAttribute("data-url") ?? "#";
           if (action !== "#" && url !== "#") return;
           e.preventDefault();
@@ -26,7 +24,6 @@
             f.getAttribute("data-guard-msg") ?? "Export balance sheet route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBootstrapToast =
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
             window.bootstrap &&
             typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");

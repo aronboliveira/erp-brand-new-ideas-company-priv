@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module helpers
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global $, jQuery */
 /** @requires ERPGuard, ERPUtils */
@@ -13,14 +12,28 @@
  * Delegates to ERPGuard/ERPUtils singletons where possible.
  * @module contracts/shared/helpers
  */
-(function (global) {
+(function (global: typeof globalThis & Record<string, unknown>) {
   "use strict";
 
   // Avoid re-initialization
   if (global.ContractHelpers) return;
 
-  const { guard } = global.ERPBootstrap
-    ? global.ERPBootstrap.require("ERPGuard", "ERPUtils")
+  const ERPBootstrap = global.ERPBootstrap as
+    | { require?: (...args: string[]) => Record<string, unknown> }
+    | undefined;
+  const { guard } = ERPBootstrap
+    ? ((ERPBootstrap.require?.("ERPGuard", "ERPUtils") ?? { guard: null }) as {
+        guard: {
+          hasBootstrap: () => boolean;
+          error: (msg: string) => void;
+          showToast: (msg: string, type: string) => void;
+          scheduleInteractiveError: (msg: string) => void;
+          getMsg: (key: string) => string | undefined;
+          resolveUrl: (el: HTMLElement | null) => string | undefined;
+          isInvalidUrl: (url: string | null | undefined) => boolean;
+          getCsrfToken: () => string;
+        } | null;
+      })
     : { guard: null };
 
   const ERR_FALLBACK = "# ERROR";
@@ -29,20 +42,23 @@
   const DATA_SV_LOCALIZED = "data-sv-localized";
 
   /** @param {string} s @param {Element|Document} r @returns {Element|null} */
-  const qs = (s, r = document) => r.querySelector(s);
+  const qs = (s: string, r = document) => r.querySelector(s);
 
   /** @param {string} s @param {Element|Document} r @returns {NodeList} */
-  const qsa = (s, r = document) => r.querySelectorAll(s);
+  const qsa = (s: string, r = document) => r.querySelectorAll(s);
 
   /** Delegates to guard.hasBootstrap() */
   const hasBootstrap = () => (guard ? guard.hasBootstrap() : false);
 
   /** Kept for backward-compat API; guard handles toasts internally */
-  const ensureToastContainer = (id = "np-toast-container") => {
-    let c = qs("#" + id);
+  const ensureToastContainer = (
+    id: string | number = "np-toast-container",
+  ): HTMLElement => {
+    const stringId = String(id);
+    let c = qs("#" + stringId) as HTMLElement | null;
     if (c) return c;
     c = document.createElement("div");
-    c.id = id;
+    c.id = stringId;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
     Object.assign(c.style, {
@@ -56,7 +72,7 @@
   };
 
   /** Delegates to guard.error() */
-  const showError = message => {
+  const showError = (message: string) => {
     if (guard) {
       guard.error(message ?? ERR_FALLBACK);
     } else {
@@ -65,7 +81,7 @@
   };
 
   /** Delegates to guard.showToast() */
-  const svToastOrAlert = msg => {
+  const svToastOrAlert = (msg: string) => {
     if (guard) {
       guard.showToast(msg, "danger");
     } else {
@@ -74,7 +90,7 @@
   };
 
   /** Delegates to guard.scheduleInteractiveError() */
-  const scheduleErrorOnEvent = msg => {
+  const scheduleErrorOnEvent = (msg: string) => {
     if (guard) {
       guard.scheduleInteractiveError(msg);
     } else {
@@ -83,13 +99,13 @@
   };
 
   /** Delegates to guard.getMsg() */
-  const getLocalizedMessage = (_el, key) => {
+  const getLocalizedMessage = (_el: unknown, key: string) => {
     if (guard) return guard.getMsg(key) || ERR_FALLBACK;
     return ERR_FALLBACK;
   };
 
   /** Resolves URL from element data-url/href. Delegates to guard.resolveUrl() */
-  const verifyRouteFromElement = el => {
+  const verifyRouteFromElement = (el: HTMLElement | null) => {
     if (guard) return guard.resolveUrl(el) ?? "";
     const url = el?.getAttribute?.("data-url");
     const href = el?.getAttribute?.("href");
@@ -98,7 +114,7 @@
   };
 
   /** Verifies URL validity. Delegates to guard.isInvalidUrl() */
-  const verifyRoute = candidate =>
+  const verifyRoute = (candidate: string | null | undefined) =>
     guard ? !guard.isInvalidUrl(candidate) : !!(candidate && candidate !== "#");
 
   /** Delegates to guard.getCsrfToken() */
@@ -107,15 +123,15 @@
       ? guard.getCsrfToken()
       : (document
           .querySelector('meta[name="csrf-token"]')
-          .getAttribute("content") ?? "");
+          ?.getAttribute("content") ?? "");
 
   /**
    * Checks if jQuery is available
    * @param {Function} onError - Callback on error
    * @returns {boolean}
    */
-  const ensureJQuery = onError => {
-    const $ = global.jQuery;
+  const ensureJQuery = (onError: unknown) => {
+    const $ = global.jQuery as { fn?: unknown } | undefined;
     if (!$?.fn) {
       try {
         if (isLocalhost()) console.error("jQuery unavailable");
@@ -131,7 +147,7 @@
    * @param {Function} onError - Callback on error
    * @returns {boolean}
    */
-  const ensureDropzone = onError => {
+  const ensureDropzone = (onError: unknown) => {
     if (!global.Dropzone) {
       try {
         if (isLocalhost()) console.error("Dropzone unavailable");
@@ -155,7 +171,7 @@
    * @param {Element} anchor - Anchor element
    * @param {boolean} useDataUrl - Check data-url instead of href
    */
-  const guardAnchor = (anchor, useDataUrl = false) => {
+  const guardAnchor = (anchor: HTMLElement | null, useDataUrl = false) => {
     if (!anchor) return;
 
     const msg =
@@ -164,7 +180,7 @@
     const value = (anchor.getAttribute(attr) ?? "").trim();
 
     if (!value || value === "#") {
-      anchor.addEventListener("click", e => {
+      anchor.addEventListener("click", (e: Event) => {
         e.preventDefault();
         svToastOrAlert(msg);
       });
@@ -176,17 +192,18 @@
    * @param {string} formSelector - Form CSS selector
    * @param {string} anchorSelector - Anchor inside form selector
    */
-  const guardFormAction = (formSelector, anchorSelector) => {
+  const guardFormAction = (formSelector: string, anchorSelector: string) => {
     const forms = document.querySelectorAll(formSelector);
-    Array.prototype.forEach.call(forms, form => {
+    Array.prototype.forEach.call(forms, (form: Element) => {
       const action = (form.getAttribute("action") ?? "").trim();
       if (!action || action === "#") {
         const anchor = form.querySelector(anchorSelector);
         if (!anchor) return;
 
         const msg =
-          anchor.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-        anchor.addEventListener("click", e => {
+          anchor.getAttribute("data-guard-msg") ??
+          "This action is unavailable.";
+        anchor.addEventListener("click", (e: Event) => {
           e.preventDefault();
           svToastOrAlert(msg);
         });
@@ -200,7 +217,11 @@
    * @param {Function} setup - Setup function
    * @param {Function} cleanup - Cleanup function
    */
-  const createBoundHandler = (bindAttr, setup, cleanup) => {
+  const createBoundHandler = (
+    bindAttr: string,
+    setup: () => void,
+    cleanup: () => boolean,
+  ) => {
     const host = document.body;
     if (host.getAttribute(bindAttr) === "true") return;
     host.setAttribute(bindAttr, "true");

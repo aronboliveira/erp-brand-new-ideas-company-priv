@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module import
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
@@ -14,21 +13,20 @@
 
     const resolved = f.getAttribute("data-resolved-action") ?? "#";
     if (
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
       resolved !== "#"
     ) {
       f.setAttribute("action", resolved);
     }
 
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       const action = f.getAttribute("action") ?? "#";
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (action && action !== "#") return;
       e.preventDefault();
 
       const msg =
-        f.getAttribute("data-guard-msg") ?? "Import vendor route is unavailable. Please contact technical support or your domain administrator.";
+        f.getAttribute("data-guard-msg") ??
+        "Import vendor route is unavailable. Please contact technical support or your domain administrator.";
       let c = document.getElementById("toast-container");
       if (!c) {
         c = document.createElement("div");
@@ -38,9 +36,7 @@
 
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-        window.bootstrap &&
-        window.bootstrap.Toast;
+        window.bootstrap?.Toast;
       if (hasBS) {
         const t = document.createElement("div");
         t.className = "toast";
@@ -64,11 +60,13 @@
       f.setAttribute("data-failed-route", "true");
     });
 
-    const fileInput = document.getElementById("file");
+    const fileInput = document.getElementById(
+      "file",
+    ) as HTMLInputElement | null;
     if (fileInput) {
       fileInput.addEventListener("change", (): void => {
         const target = document.querySelector(
-          "." + (fileInput.getAttribute("data-filename") ?? "upload_file")
+          "." + (fileInput.getAttribute("data-filename") ?? "upload_file"),
         );
         if (target) target.textContent = fileInput.files?.[0]?.name ?? "";
       });

@@ -3,19 +3,17 @@
  * @generated from original JavaScript - manual review recommended
  * @module career
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
-  const Q = s => document.querySelector(s);
-  const QA = s => Array.from(document.querySelectorAll(s));
+  const Q = (s: string) => document.querySelector(s);
+  const QA = (s: string) => Array.from(document.querySelectorAll(s));
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const toast = message => {
+  const toast = (message: string) => {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       window.bootstrap
     );
     let box = document.getElementById("toast-container");
@@ -44,10 +42,10 @@
       alert(text);
     }
   };
-  const bindLinkGuard = a => {
+  const bindLinkGuard = (a: Element) => {
     if (!a || a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
-    a.addEventListener("click", e => {
+    a.addEventListener("click", (e: Event) => {
       const href = (a.getAttribute("href") ?? "#").trim();
       const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
       if (url !== "#" && href !== "#") return;
@@ -56,10 +54,10 @@
       a.setAttribute("data-failed-route", "true");
     });
   };
-  const bindFormGuard = f => {
+  const bindFormGuard = (f: Element) => {
     if (!f || f.getAttribute("data-submit-guarded") === "true") return;
     f.setAttribute("data-submit-guarded", "true");
-    f.addEventListener("submit", e => {
+    f.addEventListener("submit", (e: Event) => {
       const action = (f.getAttribute("action") ?? "#").trim();
       const url = (f.getAttribute("data-url") ?? action ?? "#").trim();
       if (url !== "#" && action !== "#") return;

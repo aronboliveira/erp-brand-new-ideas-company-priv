@@ -3,18 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
   try {
-    const guardToast = msg => {
+    const guardToast = (msg: string) => {
       try {
         const hasBootstrap =
           document.querySelector('link[href*="bootstrap"]') &&
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
-          window.bootstrap &&
-          window.bootstrap.Toast;
+          window.bootstrap?.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -63,7 +60,7 @@
       f.setAttribute("data-submit-listener", "true");
       f.addEventListener(
         "submit",
-        function (e) {
+        function (e: Event) {
           try {
             const action = f.getAttribute("action") ?? "#";
             if (action !== "#") return;
@@ -89,10 +86,9 @@
       ai.setAttribute("data-ai-listener", "true");
       ai.addEventListener(
         "click",
-        function (e) {
+        function (e: Event) {
           try {
             const href = ai.getAttribute("href") ?? "#";
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             const url = ai.getAttribute("data-url") ?? "#";
             if (href !== "#" || url !== "#") return;
             e.preventDefault();

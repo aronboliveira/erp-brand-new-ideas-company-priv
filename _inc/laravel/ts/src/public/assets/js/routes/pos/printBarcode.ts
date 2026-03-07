@@ -3,17 +3,15 @@
  * @generated from original JavaScript - manual review recommended
  * @module printBarcode
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
 
 /* global bootstrap */
 ((): void => {
-  const toast = msg => {
+  const toast = (msg: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
       if (window.bootstrap.Toast) {
         const c =
           document.getElementById("toast-container") ??
-          ((): void => {
+          ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.id = "toast-container";
             document.body.appendChild(t);
@@ -38,11 +36,12 @@
     }
   };
 
-  const bindGuard = el => {
+  const bindGuard = (el: HTMLElement | null) => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", e => {
-      const url = el.getAttribute("href") || el.getAttribute("data-url") ?? "#";
+    el.addEventListener("click", (e: Event) => {
+      const url =
+        (el.getAttribute("href") || el.getAttribute("data-url")) ?? "#";
       if (!url || url === "#") {
         e.preventDefault();
         const msg = el.getAttribute("data-guard-msg") ?? "Action unavailable.";
@@ -56,7 +55,7 @@
 })();
 
 (function (): void {
-  function toast(msg) {
+  function toast(msg: string) {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -64,8 +63,7 @@
         c.id = "toast-container";
         document.body.appendChild(c);
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
-      if (window.bootstrap && window.bootstrap.Toast) {
+      if (window.bootstrap?.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");
@@ -87,14 +85,12 @@
 
   try {
     const links = document.querySelectorAll(
-      'a[data-guard-msg]:not([data-listener-active="true"])'
+      'a[data-guard-msg]:not([data-listener-active="true"])',
     );
     links.forEach(function (a) {
       a.setAttribute("data-listener-active", "true");
-      a.addEventListener("click", function (e) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      a.addEventListener("click", function (e: Event) {
         const url = a.getAttribute("href") ?? a.getAttribute("data-url") ?? "#";
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!url || url === "#") {
           e.preventDefault();
           const msg = a.getAttribute("data-guard-msg") ?? "Action unavailable.";
