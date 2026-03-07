@@ -7,8 +7,9 @@ parameters:
     level: 3
     tmpDir: storage/phpstan
     parallel:
-        maximumNumberOfProcesses: 1
-        processTimeout: 7200.0
+        maximumNumberOfProcesses: 8
+        processTimeout: 3600.0
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         -
             identifier: missingType.iterableValue

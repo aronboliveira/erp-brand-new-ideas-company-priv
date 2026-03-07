@@ -1,0 +1,1532 @@
+=== ContractController.php === TIMEOUT (300s)
+=== ContractTypeController.php === DONE (143s, 0 errors)
+=== GoalController.php === DONE (3s, 0 errors)
+=== GoalTrackingController.php === DONE (39s, 4 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   GoalTrackingController.php                                                
+ ------ -------------------------------------------------------------------------- 
+  :50    Relation 'branches' is not found in App\Models\GoalTracking model.        
+  :50    Relation 'goal_type' is not found in App\Models\GoalTracking model.       
+  :54    Relation 'branches' is not found in App\Models\GoalTracking model.        
+  :178   Access to an undefined property App\Models\GoalTracking::$rating.         
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 4 errors                                                         
+=== GoalTypeController.php === DONE (9s, 4 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   GoalTypeController.php                                                    
+ ------ -------------------------------------------------------------------------- 
+  :64    Anonymous function has an unused use $action.                             
+  :115   Anonymous function has an unused use $action.                             
+  :121   Access to an undefined property App\Models\GoalType::$name.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :137   Access to an undefined property App\Models\GoalType::$created_by.         
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 4 errors                                                         
+=== HolidayController.php === DONE (60s, 13 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   HolidayController.php                                                     
+ ------ -------------------------------------------------------------------------- 
+  :85    Static method App\Models\Utility::settings() invoked with 1               
+         parameter, 0 required.                                                    
+  :86    Access to an undefined property App\Models\Holiday::$date.                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :86    Access to an undefined property App\Models\Holiday::$occasion.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :109   Access to an undefined property App\Models\Holiday::$created_by.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :126   Access to an undefined property App\Models\Holiday::$created_by.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :142   Access to an undefined property App\Models\Holiday::$created_by.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :167   Access to an undefined property App\Models\Holiday::$created_by.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :193   Access to an undefined property App\Models\Holiday::$occasion.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :194   Access to an undefined property App\Models\Holiday::$date.                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :195   Access to an undefined property App\Models\Holiday::$end_date.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :224   Access to an undefined property App\Models\Holiday::$occasion.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :225   Access to an undefined property App\Models\Holiday::$date.                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :226   Access to an undefined property App\Models\Holiday::$end_date.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 13 errors                                                        
+=== IndicatorController.php === DONE (25s, 6 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   IndicatorController.php                                                   
+ ------ -------------------------------------------------------------------------- 
+  :36    Access to an undefined property App\Models\Employee::$branch_id.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :37    Access to an undefined property App\Models\Employee::$department_id.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :71    Anonymous function has an unused use $action.                             
+  :96    Access to an undefined property App\Models\Indicator::$rating.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :118   Access to an undefined property App\Models\Indicator::$rating.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :130   Anonymous function has an unused use $action.                             
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 6 errors                                                         
+=== InterviewScheduleController.php === DONE (168s, 4 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   InterviewScheduleController.php                                           
+ ------ -------------------------------------------------------------------------- 
+  :48    Access to an undefined property App\Models\InterviewSchedule::$date.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :253   Access to an undefined property                                           
+         App\Models\InterviewSchedule::$comment.                                   
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :254   Access to an undefined property App\Models\InterviewSchedule::$date.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :254   Access to an undefined property App\Models\InterviewSchedule::$time.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 4 errors                                                         
+=== LeaveController.php === DONE (3s, 0 errors)
+=== LeaveTypeController.php === DONE (13s, 3 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   LeaveTypeController.php                                                   
+ ------ -------------------------------------------------------------------------- 
+  :103   Access to an undefined property App\Models\LeaveType::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :120   Access to an undefined property App\Models\LeaveType::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :147   Access to an undefined property App\Models\LeaveType::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 3 errors                                                         
+=== PlanController.php === DONE (20s, 1 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   PlanController.php                                                        
+ ------ -------------------------------------------------------------------------- 
+  :208   Access to an undefined property App\Models\Plan::$image.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 1 error                                                          
+=== PlanRequestController.php === DONE (84s, 8 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ --------------------------------------------------------------------------------------------------- 
+  Line   PlanRequestController.php                                                                          
+ ------ --------------------------------------------------------------------------------------------------- 
+  :77    Cannot access property $requested_plan on                                                          
+         App\Models\User|Illuminate\Http\JsonResponse|Illuminate\Http\Response|Illuminate\View\View|false.  
+  :87    Call to protected method update() of class                                                         
+         Illuminate\Database\Eloquent\Model.                                                                
+  :109   Access to an undefined property App\Models\PlanRequest::$user_id.                                  
+         💡 Learn more:                                                                                     
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                           
+  :111   Access to an undefined property App\Models\PlanRequest::$plan_id.                                  
+         💡 Learn more:                                                                                     
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                           
+  :112   Access to an undefined property App\Models\PlanRequest::$plan_id.                                  
+         💡 Learn more:                                                                                     
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                           
+  :113   Access to an undefined property App\Models\PlanRequest::$plan_id.                                  
+         💡 Learn more:                                                                                     
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                           
+  :116   Access to an undefined property                                                                    
+         App\Models\User|Illuminate\Database\Eloquent\Collection<int,                                       
+         App\Models\User>::$payment_subscription_id.                                                        
+         💡 Learn more:                                                                                     
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                           
+  :118   Call to an undefined method                                                                        
+         App\Models\User|Illuminate\Database\Eloquent\Collection<int,                                       
+         App\Models\User>::cancel_subscription().                                                           
+ ------ --------------------------------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 8 errors                                                         
+=== ProjectController.php === TIMEOUT (300s)
+=== ProjectReportController.php === DONE (93s, 5 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   ProjectReportController.php                                               
+ ------ -------------------------------------------------------------------------- 
+  :188   Access to an undefined property App\Models\Project::$end_date.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :206   Access to an undefined property App\Models\Timesheet::$time.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :207   Access to an undefined property App\Models\Timesheet::$time.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :276   Access to an undefined property App\Models\TaskStage::$name.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :313   Instantiated class App\Exports\task_reportExport not found.               
+         💡 Learn more at https://phpstan.org/user-guide/discovering-symbols       
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 5 errors                                                         
+=== ProjectStagesController.php === DONE (16s, 1 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   ProjectStagesController.php                                               
+ ------ -------------------------------------------------------------------------- 
+  :91    Access to an undefined property App\Models\ProjectStage::$order.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 1 error                                                          
+=== ProjectTaskController.php === DONE (238s, 57 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   ProjectTaskController.php                                                 
+ ------ -------------------------------------------------------------------------- 
+  :48    Anonymous function has an unused use $method.                             
+  :57    Access to an undefined property App\Models\TaskStage::$cssClass.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :76    Anonymous function has an unused use $method.                             
+  :84    Static method App\Models\Utility::settings() invoked with 1               
+         parameter, 0 required.                                                    
+  :100   Anonymous function has an unused use $method.                             
+  :115   Static method App\Models\Utility::settings() invoked with 1               
+         parameter, 0 required.                                                    
+  :143   Anonymous function has an unused use $method.                             
+  :186   Anonymous function has an unused use $method.                             
+  :227   Anonymous function has an unused use $method.                             
+  :235   Relation 'created_by' is not found in App\Models\Bug model.               
+  :235   Relation 'project_bug' is not found in App\Models\Bug model.              
+  :238   Relation 'created_by' is not found in App\Models\Bug model.               
+  :239   Relation 'created_by' is not found in App\Models\Bug model.               
+  :261   Anonymous function has an unused use $method.                             
+  :289   Anonymous function has an unused use $method.                             
+  :316   Anonymous function has an unused use $method.                             
+  :349   Anonymous function has an unused use $method.                             
+  :381   Anonymous function has an unused use $method.                             
+  :402   Anonymous function has an unused use $method.                             
+  :413   Access to an undefined property App\Models\ProjectTask::$marked_at.       
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :414   Access to an undefined property App\Models\ProjectTask::$stage_id.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :432   Anonymous function has an unused use $method.                             
+  :458   Anonymous function has an unused use $method.                             
+  :466   Access to an undefined property App\Models\ProjectTask::$progress.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :484   Anonymous function has an unused use $method.                             
+  :496   Access to an undefined property App\Models\TaskChecklist::$updateUrl.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :497   Access to an undefined property App\Models\TaskChecklist::$deleteUrl.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :514   Anonymous function has an unused use $method.                             
+  :521   Access to an undefined property                                           
+         App\Models\TaskChecklist::$created_by.                                    
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :543   Anonymous function has an unused use $method.                             
+  :550   Access to an undefined property                                           
+         App\Models\TaskChecklist::$created_by.                                    
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :571   Anonymous function has an unused use $method.                             
+  :586   Access to an undefined property App\Models\TaskFile::$deleteUrl.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :603   Anonymous function has an unused use $method.                             
+  :603   Anonymous function has an unused use $taskId.                             
+  :610   Access to an undefined property App\Models\TaskFile::$created_by.         
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :611   Access to an undefined property App\Models\TaskFile::$file.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :632   Anonymous function has an unused use $method.                             
+  :632   Anonymous function has an unused use $taskId.                             
+  :639   Access to an undefined property App\Models\TaskComment::$created_by.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :660   Anonymous function has an unused use $method.                             
+  :672   Access to an undefined property App\Models\TaskComment::$deleteUrl.       
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :673   Access to an undefined property App\Models\TaskComment::$created_at.      
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :673   Access to an undefined property                                           
+         App\Models\TaskComment::$current_time.                                    
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :674   Access to an undefined property App\Models\TaskComment::$default_img.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :691   Anonymous function has an unused use $method.                             
+  :721   Anonymous function has an unused use $method.                             
+  :746   Anonymous function has an unused use $method.                             
+  :771   Anonymous function has an unused use $method.                             
+  :788   Call to an undefined static method                                        
+         App\Models\Utility::getTaskCalendarArray().                               
+  :790   Call to function compact() contains undefined variable $project_id.       
+  :806   Anonymous function has an unused use $method.                             
+  :828   Anonymous function has an unused use $method.                             
+  :828   Anonymous function has an unused use $projectId.                          
+  :854   Anonymous function has an unused use $method.                             
+  :876   Access to an undefined property App\Models\ProjectTask::$name.            
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :905   Access to an undefined property                                           
+         App\Models\ProjectTask|Illuminate\Database\Eloquent\Collection<int,       
+         App\Models\ProjectTask>::$priority_color.                                 
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 57 errors                                                        
+=== PromotionController.php === DONE (167s, 14 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   PromotionController.php                                                   
+ ------ -------------------------------------------------------------------------- 
+  :109   Variable $designations on left side of ?? always exists and is not        
+         nullable.                                                                 
+  :110   Variable $employees on left side of ?? always exists and is not           
+         nullable.                                                                 
+  :187   Access to an undefined property App\Models\Promotion::$employee_id.       
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :188   Access to an undefined property                                           
+         App\Models\Promotion::$designation_id.                                    
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :192   Access to an undefined property                                           
+         App\Models\Employee|Illuminate\Database\Eloquent\Collection<int,          
+         App\Models\Employee>::$name.                                              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :193   Access to an undefined property                                           
+         App\Models\Designation|Illuminate\Database\Eloquent\Collection<int,       
+         App\Models\Designation>::$name.                                           
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :194   Access to an undefined property                                           
+         App\Models\Promotion::$promotion_title.                                   
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :195   Access to an undefined property                                           
+         App\Models\Promotion::$promotion_date.                                    
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :199   Access to an undefined property                                           
+         App\Models\Employee|Illuminate\Database\Eloquent\Collection<int,          
+         App\Models\Employee>::$email.                                             
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :273   Access to an undefined property App\Models\Promotion::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :290   Variable $designations on left side of ?? always exists and is not        
+         nullable.                                                                 
+  :291   Variable $employees on left side of ?? always exists and is not           
+         nullable.                                                                 
+  :326   Access to an undefined property App\Models\Promotion::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :395   Access to an undefined property App\Models\Promotion::$created_by.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 14 errors                                                        
+=== ProposalController.php === DONE (185s, 29 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------- -------------------------------------------------------------------------- 
+  Line    ProposalController.php                                                    
+ ------- -------------------------------------------------------------------------- 
+  :235    Unsafe access to private constant                                         
+          App\Http\Controllers\ProposalController::INDEX_ROUTE through              
+          static::.                                                                 
+  :453    Anonymous function has an unused use $function.                           
+  :506    Unsafe access to private constant                                         
+          App\Http\Controllers\ProposalController::INDEX_ROUTE through              
+          static::.                                                                 
+  :614    Anonymous function has an unused use $function.                           
+  :660    Unsafe access to private constant                                         
+          App\Http\Controllers\ProposalController::INDEX_ROUTE through              
+          static::.                                                                 
+  :751    Access to an undefined property                                           
+          App\Models\Proposal::$shipping_display.                                   
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :886    Anonymous function has an unused use $method.                             
+  :892    Access to an undefined property App\Models\Proposal::$status.             
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :913    Static method App\Models\Utility::settings() invoked with 1               
+          parameter, 0 required.                                                    
+  :915    Access to an undefined property App\Models\Proposal::$proposal_id.        
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :916    Access to an undefined property App\Models\Proposal::$issue_date.         
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :917    Access to an undefined property App\Models\Proposal::$due_date.           
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :920    Access to an undefined property App\Models\Proposal::$itemData.           
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :937    Access to an undefined property App\Models\Proposal::$totalTaxPrice.      
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :938    Access to an undefined property App\Models\Proposal::$totalQuantity.      
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :939    Access to an undefined property App\Models\Proposal::$totalRate.          
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :940    Access to an undefined property App\Models\Proposal::$totalDiscount.      
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :941    Access to an undefined property App\Models\Proposal::$taxesData.          
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :942    Access to an undefined property App\Models\Proposal::$created_by.         
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :943    Access to an undefined property App\Models\Proposal::$customField.        
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :955    Call to function compact() contains undefined variable $preview.          
+  :979    Access to an undefined property                                           
+          App\Models\Proposal|Illuminate\Database\Eloquent\Collection<int,          
+          App\Models\Proposal>::$created_by.                                        
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :988    Access to an undefined property                                           
+          App\Models\Proposal|Illuminate\Database\Eloquent\Collection<int,          
+          App\Models\Proposal>::$customer.                                          
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :989    Access to protected property                                              
+          App\Models\Proposal|Illuminate\Database\Eloquent\Collection<int,          
+          App\Models\Proposal>::$items.                                             
+  :1214   Unsafe access to private constant                                         
+          App\Http\Controllers\ProposalController::INDEX_ROUTE through              
+          static::.                                                                 
+  :1227   Access to an undefined property                                           
+          App\Models\Proposal|Illuminate\Database\Eloquent\Collection<int,          
+          App\Models\Proposal>::$created_by.                                        
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :1234   Static method App\Models\Utility::settings() invoked with 1               
+          parameter, 0 required.                                                    
+  :1261   Access to an undefined property App\Models\Proposal::$proposal_id.        
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :1275   Access to an undefined property App\Models\Invoice::$invoice_id.          
+          💡 Learn more:                                                            
+             https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------- -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 29 errors                                                        
+=== ResignationController.php === DONE (56s, 7 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   ResignationController.php                                                 
+ ------ -------------------------------------------------------------------------- 
+  :135   Static method App\Models\Utility::settings() invoked with 1               
+         parameter, 0 required.                                                    
+  :139   Access to an undefined property App\Models\Employee::$email.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :140   Access to an undefined property App\Models\Employee::$name.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :141   Access to an undefined property                                           
+         App\Models\Resignation::$resignation_date.                                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :142   Access to an undefined property App\Models\Resignation::$notice_date.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :144   Access to an undefined property App\Models\Employee::$email.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :211   Access to an undefined property App\Models\Resignation::$employee_id.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 7 errors                                                         
+=== SetSalaryController.php === DONE (2s, 0 errors)
+=== TerminationController.php === DONE (88s, 9 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   TerminationController.php                                                 
+ ------ -------------------------------------------------------------------------- 
+  :46    Relation 'termination_type' is not found in App\Models\Termination        
+         model.                                                                    
+  :174   Access to an undefined property App\Models\Termination::$employee_id.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :177   Access to an undefined property                                           
+         App\Models\Employee|Illuminate\Database\Eloquent\Collection<int,          
+         App\Models\Employee>::$name.                                              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :178   Access to an undefined property                                           
+         App\Models\Employee|Illuminate\Database\Eloquent\Collection<int,          
+         App\Models\Employee>::$email.                                             
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :179   Access to an undefined property App\Models\Termination::$notice_date.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :180   Access to an undefined property                                           
+         App\Models\Termination::$termination_date.                                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :181   Access to an undefined property                                           
+         App\Models\Termination::$termination_type.                                
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :181   Access to an undefined property                                           
+         App\Models\TerminationType|Illuminate\Database\Eloquent\Collection<int,   
+         App\Models\TerminationType>::$name.                                       
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :186   Access to an undefined property                                           
+         App\Models\Employee|Illuminate\Database\Eloquent\Collection<int,          
+         App\Models\Employee>::$email.                                             
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 9 errors                                                         
+=== TerminationTypeController.php === DONE (39s, 7 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   TerminationTypeController.php                                             
+ ------ -------------------------------------------------------------------------- 
+  :54    Access to an undefined property                                           
+         App\Models\TerminationType::$created_by.                                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :109   Access to an undefined property App\Models\TerminationType::$name.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :110   Access to an undefined property                                           
+         App\Models\TerminationType::$created_by.                                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :137   Access to an undefined property                                           
+         App\Models\TerminationType::$created_by.                                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :161   Access to an undefined property                                           
+         App\Models\TerminationType::$created_by.                                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :171   Access to an undefined property App\Models\TerminationType::$name.        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :197   Access to an undefined property                                           
+         App\Models\TerminationType::$created_by.                                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 7 errors                                                         
+=== TimeTrackerController.php === DONE (106s, 3 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   TimeTrackerController.php                                                 
+ ------ -------------------------------------------------------------------------- 
+  :247   Access to an undefined property                                           
+         App\Models\TrackPhoto|Illuminate\Database\Eloquent\Collection<int,        
+         App\Models\TrackPhoto>::$user_id.                                         
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :251   Access to an undefined property                                           
+         App\Models\TrackPhoto|Illuminate\Database\Eloquent\Collection<int,        
+         App\Models\TrackPhoto>::$img_path.                                        
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :301   Access to an undefined property App\Models\TrackPhoto::$img_path.         
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 3 errors                                                         
+=== TravelController.php === DONE (55s, 8 errors)
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   TravelController.php                                                      
+ ------ -------------------------------------------------------------------------- 
+  :113   Access to an undefined property App\Models\Employee::$email.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :114   Access to an undefined property App\Models\Employee::$name.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :115   Access to an undefined property App\Models\Travel::$purpose_of_visit.     
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :116   Access to an undefined property App\Models\Travel::$start_date.           
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :117   Access to an undefined property App\Models\Travel::$end_date.             
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :118   Access to an undefined property App\Models\Travel::$place_of_visit.       
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :119   Access to an undefined property App\Models\Travel::$description.          
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :135   Anonymous function has an unused use $request.                            
+ ------ -------------------------------------------------------------------------- 
+
+
+ [ERROR] Found 8 errors                                                         

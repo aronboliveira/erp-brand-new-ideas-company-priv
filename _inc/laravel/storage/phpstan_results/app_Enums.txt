@@ -1,0 +1,266 @@
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------- 
+  Line   ActivityType.php                                              
+ ------ -------------------------------------------------------------- 
+  :265   Function str_contains invoked with 3 parameters, 2 required.  
+ ------ -------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   AppModuleType.php                                              
+ ------ --------------------------------------------------------------- 
+  :69    Array has 2 duplicate keys with value 'clientes' ('clientes',  
+         'clientes').                                                   
+  :75    Array has 2 duplicate keys with value 'recursos_humanos'       
+         ('recursos_humanos', 'recursos_humanos').                      
+ ------ --------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   AssetType.php                                                          
+ ------ ----------------------------------------------------------------------- 
+  :71    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   AttendanceStatus.php                                           
+ ------ --------------------------------------------------------------- 
+  :27    Array has 2 duplicate keys with value 'presente' ('presente',  
+         'presente').                                                   
+  :45    Array has 2 duplicate keys with value 'no' ('no', 'no').       
+ ------ --------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   ContactRole.php                                                        
+ ------ ----------------------------------------------------------------------- 
+  :148   Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------- 
+  Line   EcuadorProvince.php                                 
+ ------ ---------------------------------------------------- 
+  :352   Array has 2 duplicate keys with value 2 (2, 2).     
+  :354   Array has 2 duplicate keys with value 7 (7, 7).     
+  :356   Array has 3 duplicate keys with value 5 (5, 5, 5).  
+ ------ ---------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   EmailTemplateType.php                                                  
+ ------ ----------------------------------------------------------------------- 
+  :115   Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   EventObservance.php                                                    
+ ------ ----------------------------------------------------------------------- 
+  :41    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   FieldType.php                                                          
+ ------ ----------------------------------------------------------------------- 
+  :36    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   FileType.php                                                          
+ ------ ---------------------------------------------------------------------- 
+  :111   Array has 2 duplicate keys with value 'img' ('img', 'img').           
+  :141   Array has 2 duplicate keys with value 'recording' ('recording',       
+         'recording').                                                         
+  :193   Array has 2 duplicate keys with value 'program' ('program',           
+         'program').                                                           
+  :195   Array has 2 duplicate keys with value 'script' ('script', 'script').  
+  :196   Array has 2 duplicate keys with value 'scripts' ('scripts',           
+         'scripts').                                                           
+  :249   Array has 2 duplicate keys with value 'executable' ('executable',     
+         'executable').                                                        
+  :318   Array has 2 duplicate keys with value 'runner' ('runner', 'runner').  
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   FinancialEstimationStatus.php                                         
+ ------ ---------------------------------------------------------------------- 
+  :35    Array has 2 duplicate keys with value 'unpaid' ('unpaid', 'unpaid').  
+  :36    Array has 2 duplicate keys with value 'outstanding' ('outstanding',   
+         'outstanding').                                                       
+  :37    Array has 2 duplicate keys with value 'due' ('due', 'due').           
+  :38    Array has 2 duplicate keys with value 'overdue' ('overdue',           
+         'overdue').                                                           
+  :53    Array has 3 duplicate keys with value 'não_pago' ('não_pago',         
+         'não_pago', 'não_pago').                                              
+  :105   Array has 2 duplicate keys with value 'cancelado' ('cancelado',       
+         'cancelado').                                                         
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   GoalType.php                                                           
+ ------ ----------------------------------------------------------------------- 
+  :89    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   HolidayType.php                                                        
+ ------ ----------------------------------------------------------------------- 
+  :38    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   LeadRole.php                                                       
+ ------ ------------------------------------------------------------------- 
+  :48    Array has 2 duplicate keys with value 'supervisão' ('supervisão',  
+         'supervisão').                                                     
+ ------ ------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   LogType.php                                                           
+ ------ ---------------------------------------------------------------------- 
+  :66    Array has 2 duplicate keys with value 'alerta' ('alerta', 'alerta').  
+  :122   Array has 2 duplicate keys with value 'queue' ('queue', 'queue').     
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   MessagingPlatform.php                                                  
+ ------ ----------------------------------------------------------------------- 
+  :66    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   NotificationTemplateType.php                                           
+ ------ ----------------------------------------------------------------------- 
+  :96    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   PaymentType.php                                                      
+ ------ --------------------------------------------------------------------- 
+  :33    Array has 2 duplicate keys with value 'manualmente' ('manualmente',  
+         'manualmente').                                                      
+ ------ --------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   PeruDepartment.php                                                 
+ ------ ------------------------------------------------------------------- 
+  :143   Array has 2 duplicate keys with value 'CUSCO' ('CUSCO', 'CUSCO').  
+  :166   Array has 2 duplicate keys with value 'UCAYALI' ('UCAYALI',        
+         'UCAYALI').                                                        
+ ------ ------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   PortugalState.php                                              
+ ------ --------------------------------------------------------------- 
+  :51    Array has 2 duplicate keys with value 'SANTARÉM' ('SANTARÉM',  
+         'SANTARÉM').                                                   
+ ------ --------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   PriorityLevel.php                                                      
+ ------ ----------------------------------------------------------------------- 
+  :25    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------- 
+  Line   ProposalStatus.php                                               
+ ------ ----------------------------------------------------------------- 
+  :70    Array has 2 duplicate keys with value 'enviado' ('enviado',      
+         'enviado').                                                      
+  :79    Array has 2 duplicate keys with value 'approved' ('approved',    
+         'approved').                                                     
+  :81    Array has 2 duplicate keys with value 'confirmed' ('confirmed',  
+         'confirmed').                                                    
+ ------ ----------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   PurchaseStatus.php                                                   
+ ------ --------------------------------------------------------------------- 
+  :131   Array has 2 duplicate keys with value 'confirmado' ('confirmado',    
+         'confirmado').                                                       
+  :135   Array has 2 duplicate keys with value 'enviado' ('enviado',          
+         'enviado').                                                          
+  :136   Array has 2 duplicate keys with value 'parcialmente_enviado'         
+         ('parcialmente_enviado', 'parcialmente_enviado').                    
+  :140   Array has 2 duplicate keys with value 'cancelado' ('cancelado',      
+         'cancelado').                                                        
+  :141   Array has 2 duplicate keys with value 'reembolsado' ('reembolsado',  
+         'reembolsado').                                                      
+ ------ --------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   UserType.php                                                   
+ ------ --------------------------------------------------------------- 
+  :73    Array has 2 duplicate keys with value 'customer' ('customer',  
+         'customer').                                                   
+  :81    Array has 2 duplicate keys with value 'consumer' ('consumer',  
+         'consumer').                                                   
+ ------ --------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   WorkActivityProgress.php                                               
+ ------ ----------------------------------------------------------------------- 
+  :21    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   WorkActivityScope.php                                                  
+ ------ ----------------------------------------------------------------------- 
+  :20    Variable $value on left side of ?? always exists and is not nullable.  
+ ------ ----------------------------------------------------------------------- 
+
+ -- ------------------------------------------------------------------------ 
+     Error                                                                   
+ -- ------------------------------------------------------------------------ 
+     Ignored error pattern missingType.iterableValue was not matched in      
+     reported errors.                                                        
+     Ignored error pattern missingType.generics was not matched in reported  
+     errors.                                                                 
+ -- ------------------------------------------------------------------------ 
+
+ [ERROR] Found 52 errors                                                        
+

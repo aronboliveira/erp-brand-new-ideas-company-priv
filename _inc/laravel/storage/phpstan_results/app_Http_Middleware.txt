@@ -1,0 +1,221 @@
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ ------------------------------------------ 
+  Line   CheckForMaintenanceMode.php               
+ ------ ------------------------------------------ 
+  :82    Variable $response might not be defined.  
+ ------ ------------------------------------------ 
+
+ ------ --------------------------------------------------------- 
+  Line   CheckMount.php                                           
+ ------ --------------------------------------------------------- 
+  :20    Cannot access property $headers on class-string|object.  
+  :154   Cannot call method setContent() on class-string|object.  
+ ------ --------------------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\Authenticate)             
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\CheckForMaintenanceMode)  
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\EncryptCookies)           
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ------------------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class           
+         App\Http\Middleware\PreventRequestsDuringMaintenance)  
+ ------ ------------------------------------------------------- 
+  :87    Variable $class might not be defined.                  
+  :88    Variable $class might not be defined.                  
+ ------ ------------------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\PusherConfig)             
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\RedirectIfAuthenticated)  
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\RevalidateBackHistory)    
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\SecureHeaders)            
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\StripHtmlComments)        
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\TrimStrings)              
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\TrustHosts)               
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\TrustProxies)             
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ---------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class  
+         App\Http\Middleware\VerifyCsrfToken)          
+ ------ ---------------------------------------------- 
+  :87    Variable $class might not be defined.         
+  :88    Variable $class might not be defined.         
+ ------ ---------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   MeasuresPerformance.php (in context of class App\Http\Middleware\XSS)  
+ ------ ----------------------------------------------------------------------- 
+  :87    Variable $class might not be defined.                                  
+  :88    Variable $class might not be defined.                                  
+ ------ ----------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   RedirectIfAuthenticated.php                                    
+ ------ --------------------------------------------------------------- 
+  :53    Array has 2 duplicate keys with value 'referrer' ('referrer',  
+         'referrer').                                                   
+ ------ --------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------ 
+  Line   SecureHeaders.php                                                 
+ ------ ------------------------------------------------------------------ 
+  :33    PHPDoc tag @return with type mixed is not subtype of native type  
+         Symfony\Component\HttpFoundation\Response.                        
+ ------ ------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------ 
+  Line   TrimStrings.php                                                   
+ ------ ------------------------------------------------------------------ 
+  :33    PHPDoc tag @return with type mixed is not subtype of native type  
+         Symfony\Component\HttpFoundation\Response.                        
+ ------ ------------------------------------------------------------------ 
+
+ ------ ----------------------------------------------------------------- 
+  Line   TrustProxies.php                                                 
+ ------ ----------------------------------------------------------------- 
+  :44    PHPDoc tag @param for parameter $request with type mixed is not  
+         subtype of native type Illuminate\Http\Request.                  
+  :93    Undefined variable: $response                                    
+  :103   Variable $response might not be defined.                         
+ ------ ----------------------------------------------------------------- 
+
+ ------ ------------------------------------------ 
+  Line   VerifyCsrfToken.php                       
+ ------ ------------------------------------------ 
+  :53    Cannot access property $headers on null.  
+ ------ ------------------------------------------ 
+
+ -- ------------------------------------------------------------------------ 
+     Error                                                                   
+ -- ------------------------------------------------------------------------ 
+     Ignored error pattern missingType.iterableValue was not matched in      
+     reported errors.                                                        
+     Ignored error pattern missingType.generics was not matched in reported  
+     errors.                                                                 
+ -- ------------------------------------------------------------------------ 
+
+ [ERROR] Found 40 errors                                                        
+

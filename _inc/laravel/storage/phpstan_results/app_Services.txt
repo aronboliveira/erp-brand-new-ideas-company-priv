@@ -1,0 +1,158 @@
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ ------ -------------------------------------------------------------------------- 
+  Line   BugReportService.php                                                      
+ ------ -------------------------------------------------------------------------- 
+  :141   Access to an undefined property App\Models\Bug::$status.                  
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :171   Access to an undefined property App\Models\Bug::$assign_to.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :199   Access to an undefined property App\Models\Bug::$assign_to.               
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :243   Access to an undefined property App\Models\BugStatus::$title.             
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   EmailRequestService.php                                               
+ ------ ---------------------------------------------------------------------- 
+  :70    Method App\Services\EmailRequestService::getDefaultTemplate() should  
+         return App\Models\EmailTemplate|null but returns                      
+         Illuminate\Database\Eloquent\Model|null.                              
+  :79    Method App\Services\EmailRequestService::getDefaultForType() should   
+         return App\Models\EmailTemplate|null but returns                      
+         Illuminate\Database\Eloquent\Model|null.                              
+  :107   Static call to instance method App\Models\Utility::isEmployee().      
+  :188   Static call to instance method App\Models\Utility::isEmployee().      
+  :227   Static call to instance method App\Models\Utility::isEmployee().      
+  :256   Static call to instance method App\Models\Utility::isEmployee().      
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------- 
+  Line   GoalRequestService.php                                          
+ ------ ---------------------------------------------------------------- 
+  :28    PHPDoc tag @param references unknown parameter: $goal           
+  :41    Call to protected static method parseDateTimeOrNull() of class  
+         App\Models\Goal.                                                
+  :42    Call to protected static method parseDateTimeOrNull() of class  
+         App\Models\Goal.                                                
+ ------ ---------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------ 
+  Line   LeadRequestService.php                                            
+ ------ ------------------------------------------------------------------ 
+  :98    Static call to instance method App\Models\Utility::isEmployee().  
+  :124   Static call to instance method App\Models\Utility::isEmployee().  
+ ------ ------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------- 
+  Line   PosRequestService.php                                                     
+ ------ -------------------------------------------------------------------------- 
+  :55    Access to an undefined property App\Models\Pos::$created_at.              
+         💡 Learn more:                                                            
+            https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ -------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------- 
+  Line   ProductOrServiceRequestService.php                                                                 
+ ------ --------------------------------------------------------------------------------------------------- 
+  :67    Cannot access property $warehouse_id on                                                            
+         App\Models\User|Illuminate\Http\JsonResponse|Illuminate\Http\Response|Illuminate\View\View|false.  
+  :79    Cannot access property $warehouse_id on                                                            
+         App\Models\User|Illuminate\Http\JsonResponse|Illuminate\Http\Response|Illuminate\View\View|false.  
+  :190   Method                                                                                             
+         App\Services\ProductOrServiceRequestService::getAllCategories()                                    
+         should return                                                                                      
+         Illuminate\Database\Eloquent\Collection|Illuminate\Http\RedirectResponse                           
+         but returns Illuminate\Support\Collection<int, stdClass>.                                          
+ ------ --------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------ 
+  Line   ProjectRequestService.php                                         
+ ------ ------------------------------------------------------------------ 
+  :194   Static call to instance method App\Models\Utility::isEmployee().  
+  :224   Static call to instance method App\Models\Utility::isEmployee().  
+  :248   Static call to instance method App\Models\Utility::isEmployee().  
+ ------ ------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------ 
+  Line   SupportHelperService.php                                          
+ ------ ------------------------------------------------------------------ 
+  :27    Static call to instance method App\Models\Utility::isEmployee().  
+  :113   Static call to instance method App\Models\Utility::isEmployee().  
+  :166   Static call to instance method App\Models\Utility::isEmployee().  
+  :186   Static call to instance method App\Models\Utility::isEmployee().  
+  :208   Static call to instance method App\Models\Utility::isEmployee().  
+ ------ ------------------------------------------------------------------ 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   TaskRequestService.php                                                 
+ ------ ----------------------------------------------------------------------- 
+  :96    Cannot unset offset 'fill' on array{name: non-falsy-string,            
+         backgroundColor: 'transparent', borderColor: '#999', data: array<int,  
+         int>}.                                                                 
+ ------ ----------------------------------------------------------------------- 
+
+ -- ------------------------------------------------------------------------ 
+     Error                                                                   
+ -- ------------------------------------------------------------------------ 
+     Ignored error pattern missingType.iterableValue was not matched in      
+     reported errors.                                                        
+     Ignored error pattern missingType.generics was not matched in reported  
+     errors.                                                                 
+ -- ------------------------------------------------------------------------ 
+
+ [ERROR] Found 30 errors                                                        
+

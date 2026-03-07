@@ -1,0 +1,7 @@
+==============================================
+PHPStan RETRY - Timed-out directories
+Timeout: 3600s (1 hour) per directory
+Workers: 8 parallel
+==============================================
+
+app/Http/Controllers/Activity                       24 files ... 

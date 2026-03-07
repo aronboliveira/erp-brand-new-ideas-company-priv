@@ -1,0 +1,275 @@
+Note: Using configuration file /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/phpstan.neon.
+ Instiating Http Kernel Singleton... 
+ Instiating Exception Handler Singleton... 
+ Done creating Core App Singletons  
+Registering main BroadcastServiceProvider
+ Registering main RouteServiceProvider...  
+Modules\LandingPage\Providers\LandingPageServiceProvider::register start
+Modules\LandingPage\Providers\LandingPageServiceProvider::register completed
+Booting main AuthServiceProvider for registering policies...
+Booting main BroadcastServiceProvider
+Returning about discovering events in main EventServiceProvider
+Booting main EventServiceProvider
+ Booting main RouteServiceProvider...  
+ Configuring Rate Limit for the main RouteServiceProvider...  
+ Done configuring the rate limit for the RouteServiceProvider  
+Mapping main application routes
+ Mapping main API routes...  
+ Mapping api main routes... 
+ Main API routes mapped successfully  
+ Mapping main Web routes...  
+ Mapping auth main routes... 
+ Mapping web main routes... 
+ Main Web routes mapped successfully  
+ Mapping main Fortify routes...  
+ Main Fortify routes mapped successfully  
+Main application routes mapped successfully
+ Done configuring the main RouteServiceProvider  
+ Booting Landing Page RouteServiceProvider...  
+[Landing RouteServiceProvider::map] Mapping Landing Page routes
+[Landing RouteServiceProvider::mapWebRoutes] Registering Landing Page web routes
+ Mappig web landing routes... 
+[Landing RouteServiceProvider::mapWebRoutes] Landing Page Web routes loaded
+[Landing RouteServiceProvider::mapApiRoutes] Registering Landing Page API routes
+ Mapping api landing routes... 
+[Landing RouteServiceProvider::mapApiRoutes] Landing Page API routes loaded
+[Landing RouteServiceProvider::map] Landing Page Routes mapped successfully
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerTranslations completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig start
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerConfig completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths start
+Modules\LandingPage\Providers\LandingPageServiceProvider::getViewPaths completed
+Modules\LandingPage\Providers\LandingPageServiceProvider::registerViews completed
+Loading migrations from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Database/Migrations...
+Loading routes from /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/Modules/LandingPage/Routes/web.php...
+ Mappig web landing routes... 
+Modules\LandingPage\Providers\LandingPageServiceProvider::boot completed
+Booting AddMenuProvider
+ -------- -------------------------------------------------------------------- 
+  Line     Constants/LangsConstants.php                                        
+ -------- -------------------------------------------------------------------- 
+  :1623    Array has 2 duplicate keys with value 'budgets'                     
+           (\App\Config\Constants\ViewsConstants::BDG,                         
+           \App\Config\Constants\ViewsConstants::BDG).                         
+  :3489    Array has 2 duplicate keys with value 'complaints'                  
+           (\App\Config\Constants\ViewsConstants::CPL,                         
+           \App\Config\Constants\ViewsConstants::CPL).                         
+  :5757    Access to undefined constant                                        
+           App\Config\Constants\ViewsConstants::DDT_OP.                        
+  :9772    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :9814    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :9856    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :9898    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :9940    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :9982    Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10024   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10080   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10122   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10164   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10206   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10248   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10290   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :10332   Array has 2 duplicate keys with value                               
+           'invoice_product_route_unavailable'                                 
+           ('invoice_product_route_unavailable',                               
+           'invoice_product_route_unavailable').                               
+  :11400   Access to undefined constant                                        
+           App\Config\Constants\ViewsConstants::JRN_ENT.                       
+  :13230   Access to undefined constant                                        
+           App\Config\Constants\ViewsConstants::NFT_TMP.                       
+  :13315   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13316   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13323   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13324   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13331   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13332   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13339   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13340   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13347   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13348   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13355   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13356   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13363   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13364   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13371   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13372   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13379   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13380   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13387   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13388   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13395   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13396   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13403   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13404   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13411   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13412   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13419   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13420   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13427   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13428   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :13435   Array has 2 duplicate keys with value 'payment_status_unavailable'  
+           ('payment_status_unavailable', 'payment_status_unavailable').       
+  :13436   Array has 2 duplicate keys with value 'delete_order_unavailable'    
+           ('delete_order_unavailable', 'delete_order_unavailable').           
+  :18244   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18350   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18456   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18562   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18668   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18774   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18880   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :18986   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19092   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19198   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19304   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19410   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19516   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19622   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19728   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :19834   Array has 2 duplicate keys with value                               
+           'download_monthly_purchase_unavailable'                             
+           ('download_monthly_purchase_unavailable',                           
+           'download_monthly_purchase_unavailable').                           
+  :21189   Array has 2 duplicate keys with value                               
+           'system_ip_edit_route_unavailable'                                  
+           ('system_ip_edit_route_unavailable',                                
+           'system_ip_edit_route_unavailable').                                
+ -------- -------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   Constants/SettingsConstants.php                                      
+ ------ --------------------------------------------------------------------- 
+  :249   Array has 2 duplicate keys with value 'twilio_from' ('twilio_from',  
+         'twilio_from').                                                      
+  :405   Array has 2 duplicate keys with value 'meta_image' (self::MT_IMG_K,  
+         self::MT_IMG_K).                                                     
+ ------ --------------------------------------------------------------------- 
+
+ -- ------------------------------------------------------------------------ 
+     Error                                                                   
+ -- ------------------------------------------------------------------------ 
+     Ignored error pattern missingType.iterableValue was not matched in      
+     reported errors.                                                        
+     Ignored error pattern missingType.generics was not matched in reported  
+     errors.                                                                 
+ -- ------------------------------------------------------------------------ 
+
+ [ERROR] Found 72 errors                                                        
+

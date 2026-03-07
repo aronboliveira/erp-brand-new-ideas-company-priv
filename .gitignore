@@ -83,3 +83,6 @@ tmp/
 _inc/laravel/.notes/
 composer.lock
 .notes/TODO_LATER*
+
+.vscode/
+.vscode/**

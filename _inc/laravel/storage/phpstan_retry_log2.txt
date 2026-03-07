@@ -1,0 +1,10 @@
+==============================================
+PHPStan RETRY - Timed-out directories
+Timeout: 3600s (1 hour) per directory
+Workers: 8 parallel
+==============================================
+
+app/Http/Controllers/Bills                          25 files ... TIMEOUT (3600s)
+app/Http/Controllers/Companies                       8 files ... DONE (1281s, 197 errors)
+app/Http/Controllers/Individuals                    11 files ... DONE (1201s, 145 errors)
+app/Http/Controllers/Planning                       24 files ... 
