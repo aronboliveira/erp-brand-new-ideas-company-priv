@@ -4,9 +4,12 @@
  * @module order
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -18,12 +21,14 @@
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
-  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  ): HTMLElement | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
@@ -37,7 +42,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -63,7 +68,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string) => {
+  const schedulePointerupError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -82,12 +87,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
@@ -102,7 +109,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -114,8 +121,10 @@
   };
   const csrf = (): string => {
     const meta = document.querySelector('meta[name="csrf-token"]');
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return meta?.getAttribute("content") ?? "";
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const verifyRoute = (candidate: string) => {
     const a = document.createElement("a");
     a.setAttribute("data-url", candidate ?? "");
@@ -126,7 +135,7 @@
     return true;
   };
   const ensureJq = (): boolean => {
-    if (!$?.fn) {
+    if (!$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -148,18 +157,22 @@
       )
         console.error("Dragula unavailable");
     } catch (_) {}
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     schedulePointerupError(getMsg(document.body, "dragula_unavailable"));
     return false;
   };
-  const bindDragula = (): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const bindDragula = () => {
     if (!ensureJq() || !ensureDragula()) return;
     if (document.body.getAttribute(dataBindDrag) === "true") return;
     document.body.setAttribute(dataBindDrag, "true");
-    $('[data-plugin="dragula"]').each(function (): void {
+    $('[data-plugin="dragula"]').each(function () {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const $root = $(this);
       const containers = $root.data("containers") as string[] | undefined;
       let nodes: HTMLElement[] = [];
       if (containers?.length) {
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < containers.length; i++) {
           const el = document.getElementById(containers[i]);
           if (el) nodes.push(el);
@@ -178,7 +191,7 @@
               src: HTMLElement,
               handle: HTMLElement | undefined,
             ) {
-              return handle?.classList?.contains(handleCls) ?? false;
+              return handle?.classList.contains(handleCls) ?? false;
             },
           })
         : dragulaFn(nodes);
@@ -188,6 +201,7 @@
           try {
             const order: (string | undefined)[] = [];
             $("#" + target.id + " > div").each(function (): void {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               order[$(this).index()] = $(this).attr("data-id");
             });
             const id = $(el).attr("data-id");
@@ -227,7 +241,7 @@
                 _token: csrf(),
               },
               success: function (): void {},
-              error: function (xhr: JQueryXHR): void {
+              error: function (_xhr: JQueryXHR): void {
                 schedulePointerupError(
                   getMsg(document.body, "leads_order_unavailable"),
                 );

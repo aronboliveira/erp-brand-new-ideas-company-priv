@@ -69,11 +69,14 @@ interface DefineFunction {
       computedSize = computedSize * w.devicePixelRatio;
     }
 
+    // eslint-disable-next-line prefer-const
     charIndex = (initials === "?" ? 72 : initials.charCodeAt(0)) - 64;
+    // eslint-disable-next-line prefer-const
     colourIndex = charIndex % 20;
     canvas = d.createElement("canvas");
     canvas.width = computedSize;
     canvas.height = computedSize;
+    // eslint-disable-next-line prefer-const
     context = canvas.getContext("2d");
 
     if (context) {
@@ -85,6 +88,7 @@ interface DefineFunction {
       context.fillText(initials, computedSize / 2, computedSize / 1.5);
     }
 
+    // eslint-disable-next-line prefer-const
     dataURI = canvas.toDataURL();
     canvas = null;
 
@@ -119,6 +123,7 @@ interface DefineFunction {
       ? (globalThis as typeof globalThis & { module?: { exports?: unknown } })
           .module
       : undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const globalExports =
     typeof globalThis !== "undefined"
       ? (
@@ -137,12 +142,13 @@ interface DefineFunction {
     // CommonJS and Node.js module support.
   } else if (typeof globalExports !== "undefined") {
     // Support Node.js specific `module.exports` (which can be a function)
-    if (typeof globalModule !== "undefined" && globalModule.exports) {
+    if (globalModule?.exports) {
       globalModule.exports = LetterAvatarExport;
     }
 
     // But always support CommonJS module 1.1.1 spec (`exports` cannot be a function)
     if (globalExports) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       globalExports.LetterAvatar = LetterAvatarExport;
     }
   } else {

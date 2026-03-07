@@ -4,7 +4,7 @@
  * @module editLink
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const links = document.querySelectorAll(".tax-edit-link, .dashboard-link");
@@ -46,7 +46,7 @@
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (
               bsLink &&
-              window.bootstrap?.Toast
+              window.bootstrap.Toast
             ) {
               const toast = document.createElement("div");
               toast.className = "toast";
@@ -69,7 +69,9 @@
                 )
                   console.error(
                     "[assets/js/routes/taxes/editLink.js] Bootstrap toast error:",
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error",
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error"
                   );
                 alert(msg);
@@ -86,7 +88,9 @@
             )
               console.error(
                 "[assets/js/routes/taxes/editLink.js] Click handler error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error"
               );
           }
@@ -98,7 +102,9 @@
         )
           console.error(
             "[assets/js/routes/taxes/editLink.js] Binding error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error"
           );
       }
@@ -110,7 +116,9 @@
     )
       console.error(
         "[assets/js/routes/taxes/editLink.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error"
       );
   }

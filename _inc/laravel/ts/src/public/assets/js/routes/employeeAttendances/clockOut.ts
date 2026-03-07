@@ -4,7 +4,7 @@
  * @module clockOut
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("clock-out-form");

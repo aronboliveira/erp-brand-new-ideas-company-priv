@@ -6,11 +6,13 @@
 
 /* global bootstrap */
 ((): void => {
-  const Q = (s: string) => document.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const _Q = (s: string) => document.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const QA = (s: string) => Array.from(document.querySelectorAll(s));
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const toast = (message: string) => {
+  const toast = (message: string): void=> {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -42,7 +44,7 @@
       alert(text);
     }
   };
-  const bindLinkGuard = (a: Element) => {
+  const bindLinkGuard = (a: Element): void=> {
     if (!a || a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
     a.addEventListener("click", (e: Event) => {
@@ -54,7 +56,7 @@
       a.setAttribute("data-failed-route", "true");
     });
   };
-  const bindFormGuard = (f: Element) => {
+  const bindFormGuard = (f: Element): void=> {
     if (!f || f.getAttribute("data-submit-guarded") === "true") return;
     f.setAttribute("data-submit-guarded", "true");
     f.addEventListener("submit", (e: Event) => {

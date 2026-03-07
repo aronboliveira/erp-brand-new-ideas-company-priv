@@ -4,14 +4,17 @@
  * @module tasks
  */
 
-/* global $, jQuery */
+
 declare global {
   interface JQuery {
     daterangepicker(options?: Record<string, unknown>): JQuery;
     timepicker(options?: Record<string, unknown>): JQuery;
   }
 }
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
     const lang = (
       sessionStorage.getItem("erp-np-lang") ??
@@ -26,7 +29,7 @@ declare global {
       "# ERROR"
     );
   };
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     window.show_toastr ? window.show_toastr("error", msg, "error") : alert(msg);
   };
 

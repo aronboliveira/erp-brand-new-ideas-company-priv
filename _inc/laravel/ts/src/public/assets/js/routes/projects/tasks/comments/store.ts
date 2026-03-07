@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("form-comment");

@@ -4,10 +4,10 @@
  * @module index
  */
 
-/* global bootstrap */
+
 (function (): void {
   const listened = "data-listener-active";
-  function toast(message: string) {
+  function toast(message: string): void{
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -30,14 +30,14 @@
       b.textContent = text;
       t.appendChild(b);
       box.appendChild(t);
-      (window.bootstrap as typeof bootstrap).Toast.getOrCreateInstance(
+      (window.bootstrap).Toast.getOrCreateInstance(
         t,
       ).show();
     } else {
       alert(text);
     }
   }
-  function guardLink(a: Element) {
+  function guardLink(a: Element): void{
     if (!a || a.getAttribute(listened) === "true") return;
     a.setAttribute(listened, "true");
     a.addEventListener("click", function (e: Event) {
@@ -48,7 +48,7 @@
       toast(a.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function guardForm(f: Element) {
+  function guardForm(f: Element): void{
     if (!f || f.getAttribute(listened) === "true") return;
     f.setAttribute(listened, "true");
     f.addEventListener("submit", function (e: Event) {
@@ -59,7 +59,7 @@
       toast(f.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function hookConfirm(el: HTMLElement) {
+  function hookConfirm(el: HTMLElement): void{
     if (!el || el.getAttribute("data-confirm-hooked") === "true") return;
     el.setAttribute("data-confirm-hooked", "true");
     el.addEventListener("click", function (e: Event) {
@@ -93,14 +93,15 @@
         if (modalCancel) modalCancel.textContent = "Cancel";
         if (yesBtn) yesBtn.textContent = "OK";
         const inst = (
-          window.bootstrap as typeof bootstrap
+          window.bootstrap
         ).Modal.getOrCreateInstance(modal);
         const handler = function (): void {
           try {
             if (yes) {
               // SECURITY: Safe handler dispatch instead of new Function()
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               window.__confirmHandlers?.[yes]?.[0]?.() ||
-                safeFormAction(yes, yesBtn as HTMLElement);
+                safeFormAction(yes, yesBtn!);
             }
           } catch (_) {}
           inst.hide();
@@ -112,6 +113,7 @@
           try {
             if (yes) {
               // SECURITY: Safe handler dispatch instead of new Function()
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               window.__confirmHandlers?.[yes]?.[0]?.() ||
                 safeFormAction(yes, document.body);
             }
@@ -121,7 +123,7 @@
     });
   }
   // SECURITY: Safe fallback for confirm handlers instead of new Function()
-  function safeFormAction(actionStr: string, element: HTMLElement) {
+  function safeFormAction(actionStr: string, _element: HTMLElement): void{
     if (!actionStr) return;
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
       const form = document.querySelector<HTMLFormElement>(actionStr);
@@ -138,7 +140,7 @@
       return;
     }
   }
-  function init() {
+  function init(): void{
     document
       .querySelectorAll("a[data-guard-msg],a[data-url]")
       .forEach(guardLink);
@@ -151,7 +153,7 @@
         el: HTMLElement,
       ) {
         try {
-          (window.bootstrap as typeof bootstrap).Tooltip.getOrCreateInstance(
+          (window.bootstrap).Tooltip.getOrCreateInstance(
             el,
           );
         } catch (_) {}

@@ -4,9 +4,9 @@
  * @module store
  */
 
-/* global bootstrap */
+
 (function (): void {
-  function toast(msg: string) {
+  function toast(msg: string): void{
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -14,7 +14,7 @@
         c.id = "toast-container";
         document.body.appendChild(c);
       }
-      if (window.bootstrap?.Toast) {
+      if (window.bootstrap.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");

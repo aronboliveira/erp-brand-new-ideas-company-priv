@@ -4,18 +4,20 @@
  * @module list
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el: HTMLElement, msgKey: string) => {
+  const getMsg = (el: HTMLElement, msgKey: string): string=> {
     let msg = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -29,12 +31,12 @@
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
     return msg;
@@ -43,8 +45,8 @@
   const showFeedback = (
     el: HTMLElement,
     key: string,
-    ev: string = "pointerup",
-  ) => {
+    ev = "pointerup",
+  ): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -87,8 +89,8 @@
   const guardOnce = (
     el: HTMLElement,
     key: string,
-    ev: string = "pointerup",
-  ) => {
+    ev = "pointerup",
+  ): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -103,11 +105,13 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const routeGuard = (element: HTMLElement | null, alt: string) => {
-    const url = element?.getAttribute?.("data-url");
+    const url = element?.getAttribute("data-url");
     const href =
-      element?.getAttribute?.("action") ?? element?.getAttribute?.("href");
+      element?.getAttribute("action") ?? element?.getAttribute("href");
     return (
       (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
     );
@@ -153,13 +157,13 @@
       });
     };
 
-    const onClientChange = (e: Event) => {
+    const onClientChange = (e: Event): void=> {
       const target = e.currentTarget as HTMLElement;
       const clientId = String($(target).val() ?? "");
       getParent(clientId, target);
     };
 
-    const getParent = (bid: string, targetEl: HTMLElement) => {
+    const getParent = (bid: string, targetEl: HTMLElement): void=> {
       const base = `{{ url('contracts/clients/select') }}`;
       const url = `${base}/${encodeURIComponent(bid ?? "")}`;
       if (!bid || routeGuard(null, url)) {

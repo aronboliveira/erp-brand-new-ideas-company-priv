@@ -4,13 +4,18 @@
  * @module listGuard
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataGuardListener = "data-guard-listener";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const msgKey = "leads_unavailable";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
     try {
@@ -44,9 +49,10 @@
       return errFb;
     }
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null) => {
+  const showError = (el: HTMLElement | null): void=> {
     try {
       const message = getMsg(el);
       if (hasBootstrapCss() && window.bootstrap.Toast) {
@@ -88,11 +94,11 @@
       return;
     }
     jq((): void => {
-      const bind = (el: HTMLElement | null) => {
+      const bind = (el: HTMLElement | null): void=> {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const onClick = (e: Event) => {
+        const onClick = (e: Event): void=> {
           try {
             const url = el.getAttribute("data-url");
             const href = el.getAttribute("href");

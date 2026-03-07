@@ -8,7 +8,7 @@
 (function (): void {
   const mark = "data-listener-active";
 
-  function toast(message: string) {
+  function toast(message: string): void{
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -37,7 +37,7 @@
     bootstrap.Toast.getOrCreateInstance(t).show();
   }
 
-  function guardLink(a: Element | null) {
+  function guardLink(a: Element | null): void{
     if (!a || a.getAttribute(mark) === "true") return;
     a.setAttribute(mark, "true");
     a.addEventListener("click", function (e: Event) {
@@ -49,7 +49,7 @@
     });
   }
 
-  function init() {
+  function init(): void{
     document
       .querySelectorAll("a[data-guard-msg], a[data-url]")
       .forEach(guardLink);

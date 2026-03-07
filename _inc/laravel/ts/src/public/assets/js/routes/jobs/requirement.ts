@@ -6,10 +6,11 @@
 
 /* global bootstrap */
 ((): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const QA = (s: string) => Array.from(document.querySelectorAll(s));
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     const text = msg || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -41,7 +42,7 @@
       alert(text);
     }
   };
-  const bindLinkGuard = (el: HTMLElement | null) => {
+  const bindLinkGuard = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {
@@ -53,7 +54,7 @@
       el.setAttribute("data-failed-route", "true");
     });
   };
-  const bindFormGuard = (fm: Element | null) => {
+  const bindFormGuard = (fm: Element | null): void=> {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
     fm.addEventListener("submit", (e: Event) => {

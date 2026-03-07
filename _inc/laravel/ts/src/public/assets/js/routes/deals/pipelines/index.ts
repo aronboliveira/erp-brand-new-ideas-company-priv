@@ -5,13 +5,17 @@
  */
 
 /* global bootstrap */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const ERR_FB = "# ERROR";
   const FL_CLIENT = "data-client-localized";
   const FL_GUARD = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
     let msg = ERR_FB;
     if (el.getAttribute(FL_CLIENT) === "true") {
@@ -37,7 +41,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {

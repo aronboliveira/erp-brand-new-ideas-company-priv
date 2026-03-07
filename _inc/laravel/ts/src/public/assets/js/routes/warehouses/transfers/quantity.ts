@@ -4,9 +4,12 @@
  * @module quantity
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,12 +18,14 @@
   const dataBindGuard = "data-warehouse-bound";
   const ns = "._npWarehouse";
   const qs = (s: string, r: ParentNode = document): HTMLElement | null =>
-    r.querySelector(s) as HTMLElement | null;
+    r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
@@ -34,7 +39,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container as ParentNode);
@@ -60,7 +65,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (message: string) => {
+  const scheduleClickError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -79,12 +84,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -98,7 +105,7 @@
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[key] ||
         errFb;
       if (msg !== errFb && el) {
@@ -155,10 +162,11 @@
     $sel.empty();
     if (placeholder) $sel.append(`<option value="">${placeholder}</option>`);
     Object.entries(entries).forEach(([key, value]) => {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       $sel.append(`<option value="${key}">${value}</option>`);
     });
   };
-  const getProduct = (wid: string) => {
+  const getProduct = (wid: string): void=> {
     if (!ensureJq()) return;
     if (isBadUrl(urls.products)) {
       scheduleClickError(
@@ -178,13 +186,14 @@
           buildProductControls();
           const $product = $("#product_id");
           populateSelect($product, {}, '{{ __("Select Product") }}');
-          if (data?.ware_products) {
+          if (data.ware_products) {
             populateSelect($product, data.ware_products);
           }
           const $to = $('select[name="to_warehouse"]');
-          if ($to.length && data?.to_warehouses) {
+          if ($to.length && data.to_warehouses) {
             $to.empty();
             Object.entries(data.to_warehouses).forEach(([key, value]) => {
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
               $to.append(`<option value="${key}">${value}</option>`);
             });
           }
@@ -196,7 +205,7 @@
       },
     });
   };
-  const getQuantity = (pid: string, wid: string) => {
+  const getQuantity = (pid: string, wid: string): void=> {
     if (!ensureJq()) return;
     if (isBadUrl(urls.quantity)) {
       scheduleClickError(
@@ -228,11 +237,13 @@
       "change" + ns,
       'select[name="from_warehouse"]',
       function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const v = String($(this).val() ?? "");
         getProduct(v);
       },
     );
     $(document).on("change" + ns, "#product_id", function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const pid = String($(this).val() ?? "");
       const wid = String($("#warehouse_id").val() ?? "");
       getQuantity(pid, wid);

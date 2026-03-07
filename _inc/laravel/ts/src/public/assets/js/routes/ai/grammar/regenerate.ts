@@ -4,7 +4,7 @@
  * @module regenerate
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const out = document.getElementById("ai-description");
@@ -13,7 +13,7 @@
     if (copy.getAttribute("data-listener-active") === "true") return;
     copy.setAttribute("data-listener-active", "true");
 
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       try {
         if (!msg) return;
         let container = document.getElementById("toast-container");
@@ -26,7 +26,7 @@
           document.body.appendChild(container);
         }
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (bsLink && window.bootstrap?.Toast) {
+        if (bsLink && window.bootstrap.Toast) {
           const t = document.createElement("div");
           t.className = "toast";
           t.setAttribute("role", "alert");
@@ -46,7 +46,7 @@
       }
     };
 
-    const doCopy = async (text: string, okMsg: string, errMsg: string) => {
+    const doCopy = async (text: string, okMsg: string, errMsg: string): Promise<void> => {
       try {
         if (navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);
@@ -69,7 +69,9 @@
         )
           console.error(
             "[assets/js/routes/aiGrammar/clipboard.js] Copy error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
         toast(errMsg);
@@ -92,7 +94,9 @@
         )
           console.error(
             "[assets/js/routes/aiGrammar/clipboard.js] Click handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err2?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err2?.message ?? "Unknown error",
           );
       }
@@ -104,7 +108,9 @@
     )
       console.error(
         "[assets/js/routes/aiGrammar/clipboard.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error",
       );
   }

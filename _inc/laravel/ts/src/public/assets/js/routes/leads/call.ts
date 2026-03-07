@@ -4,8 +4,11 @@
  * @module call
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const $ = window.jQuery;
   if (!$) {
     try {
@@ -26,9 +29,12 @@
   const DPL = "data-pointer-listener";
   const DMK = "data-msg-key";
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, fallbackKey: string) => {
     let msg = ERR_FB;
     if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
@@ -56,7 +62,7 @@
     return msg;
   };
 
-  const showError = (el: HTMLElement, key: string) => {
+  const showError = (el: HTMLElement, key: string): void=> {
     const msg = getMsg(el, key);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-ld-calls");
@@ -86,10 +92,10 @@
   const handlersClick = new WeakMap();
   const handlersPointer = new WeakMap();
 
-  const bindAnchorGuard = (el: HTMLElement | null) => {
+  const bindAnchorGuard = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
-    const h = (e: Event) => {
+    const h = (e: Event): void=> {
       try {
         const url = el.getAttribute("data-url");
         const href = el.getAttribute("href");
@@ -103,12 +109,12 @@
     $(el).on("click", h);
   };
 
-  const bindFormPointerGuard = (form: HTMLFormElement | null) => {
+  const bindFormPointerGuard = (form: HTMLFormElement | null): void=> {
     if (!form || form.getAttribute(DPL) === "true") return;
     form.setAttribute(DPL, "true");
     const $btns = $(form).find('button[type="submit"], input[type="submit"]');
     if (!$btns.length) return;
-    const h = (e: Event) => {
+    const h = (e: Event): void=> {
       try {
         const url = form.getAttribute("data-url");
         const action = form.getAttribute("action");
@@ -121,27 +127,32 @@
     };
     handlersPointer.set(form, h);
     $btns.each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(this).on("pointerup", h);
     });
   };
 
-  const unbindAnchorGuard = (el: HTMLElement | null) => {
+  const unbindAnchorGuard = (el: HTMLElement | null): void=> {
     if (!el) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersClick.get(el);
     if (h) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(el).off("click", h);
       handlersClick.delete(el);
     }
     el.removeAttribute(DLA);
   };
 
-  const unbindFormPointerGuard = (form: HTMLFormElement | null) => {
+  const unbindFormPointerGuard = (form: HTMLFormElement | null): void=> {
     if (!form) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersPointer.get(form);
     if (h) {
       $(form)
         .find('button[type="submit"], input[type="submit"]')
         .each(function (this: HTMLElement): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).off("pointerup", h);
         });
       handlersPointer.delete(form);
@@ -149,7 +160,7 @@
     form.removeAttribute(DPL);
   };
 
-  const scan = (root: Document | Element) => {
+  const scan = (root: Document | Element): void=> {
     const scope = root || document;
     scope
       .querySelectorAll("a[" + DGM + "]:not([" + DLA + '="true"])')

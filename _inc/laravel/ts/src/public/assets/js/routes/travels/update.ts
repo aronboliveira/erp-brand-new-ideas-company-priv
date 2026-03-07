@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const form = document.getElementById("edit_travel");

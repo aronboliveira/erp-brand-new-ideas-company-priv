@@ -11,7 +11,7 @@
     if (!a) return;
     if (a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       const text =
         msg ?? "AI generation route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(

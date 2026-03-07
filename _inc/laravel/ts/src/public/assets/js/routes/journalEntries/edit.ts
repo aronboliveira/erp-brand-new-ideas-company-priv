@@ -4,9 +4,9 @@
  * @module edit
  */
 
-/* global bootstrap */
+
 ((): void => {
-  const toast = (m: unknown) => {
+  const toast = (m: unknown): void=> {
     try {
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&

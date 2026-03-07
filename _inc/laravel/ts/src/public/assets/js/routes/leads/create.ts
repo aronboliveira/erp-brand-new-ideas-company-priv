@@ -4,13 +4,18 @@
  * @module create
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataGuardListener = "data-guard-listener";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const msgKey = "ld_unavailable";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
     try {
@@ -44,9 +49,10 @@
       return errFb;
     }
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null) => {
+  const showError = (el: HTMLElement | null): void=> {
     try {
       const message = getMsg(el);
       if (hasBootstrapCss() && window.bootstrap.Toast) {
@@ -88,11 +94,11 @@
       return;
     }
     jq((): void => {
-      const bindClick = (el: HTMLElement | null) => {
+      const bindClick = (el: HTMLElement | null): void=> {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = (e: Event) => {
+        const handler = (e: Event): void=> {
           try {
             const url = el.getAttribute("data-url");
             const href = el.getAttribute("href");
@@ -116,11 +122,11 @@
         });
         obs.observe(document.body, { childList: true, subtree: true });
       };
-      const bindPointerUp = (el: HTMLElement | null) => {
+      const bindPointerUp = (el: HTMLElement | null): void=> {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = (e: Event) => {
+        const handler = (e: Event): void=> {
           try {
             const url = el.getAttribute("data-url");
             const href = (el as HTMLInputElement).form

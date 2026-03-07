@@ -6,63 +6,70 @@
 
 /* global bootstrap */
 (function (): void {
-  function toast(msg: string) {
-    if (window.bootstrap.Toast) {
-      const box =
-        document.getElementById("toast-container") ??
-        document.body.appendChild(
-          Object.assign(document.createElement("div"), {
-            id: "toast-container",
-          }),
-        );
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.innerHTML = '<div class="toast-body"></div>';
-      const tbody = t.querySelector(".toast-body");
-      if (tbody)
-        tbody.textContent =
+  try {
+    // eslint-disable-next-line no-inner-declarations
+    function toast(msg: string): void{
+      if (window.bootstrap.Toast) {
+        const box =
+          document.getElementById("toast-container") ??
+          document.body.appendChild(
+            Object.assign(document.createElement("div"), {
+              id: "toast-container",
+            }),
+          );
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.setAttribute("role", "alert");
+        t.innerHTML = '<div class="toast-body"></div>';
+        const tbody = t.querySelector(".toast-body");
+        if (tbody)
+          tbody.textContent =
+            msg ??
+            "Requested route is unavailable. Please contact technical support or your domain administrator.";
+        box.appendChild(t);
+        bootstrap.Toast.getOrCreateInstance(t).show();
+      } else {
+        alert(
           msg ??
-          "Requested route is unavailable. Please contact technical support or your domain administrator.";
-      box.appendChild(t);
-      bootstrap.Toast.getOrCreateInstance(t).show();
-    } else {
-      alert(
-        msg ??
-          "Requested route is unavailable. Please contact technical support or your domain administrator.",
-      );
+            "Requested route is unavailable. Please contact technical support or your domain administrator.",
+        );
+      }
     }
+
+    // eslint-disable-next-line no-inner-declarations
+    function guardClick(a: Element): void{
+      if (!a || a.getAttribute("data-guard-bound") === "1") return;
+      a.setAttribute("data-guard-bound", "1");
+      a.addEventListener("click", function (e: Event) {
+        const href = (a.getAttribute("href") ?? "#").trim();
+        const url = (a.getAttribute("data-url") || href || "#").trim();
+        if (url !== "#" && href !== "#") return;
+        e.preventDefault();
+        toast(a.getAttribute("data-guard-msg") ?? "");
+      });
+    }
+
+    // eslint-disable-next-line no-inner-declarations
+    function init(): void{
+      const ids = ["#project-report-index-link"];
+
+      ids.forEach(function (sel) {
+        const el = document.querySelector(sel);
+        if (el) guardClick(el);
+      });
+
+      document
+        .querySelectorAll('a[id^="project-report-export-link-"]')
+        .forEach(guardClick);
+      document
+        .querySelectorAll('a[id^="project-task-show-link-"]')
+        .forEach(guardClick);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  } catch (__moduleErr) {
+    console.error("[detail] failed to initialise:", __moduleErr);
   }
-
-  function guardClick(a: Element) {
-    if (!a || a.getAttribute("data-guard-bound") === "1") return;
-    a.setAttribute("data-guard-bound", "1");
-    a.addEventListener("click", function (e: Event) {
-      const href = (a.getAttribute("href") ?? "#").trim();
-      const url = (a.getAttribute("data-url") || href || "#").trim();
-      if (url !== "#" && href !== "#") return;
-      e.preventDefault();
-      toast(a.getAttribute("data-guard-msg") ?? "");
-    });
-  }
-
-  function init() {
-    const ids = ["#project-report-index-link"];
-
-    ids.forEach(function (sel) {
-      const el = document.querySelector(sel);
-      if (el) guardClick(el);
-    });
-
-    document
-      .querySelectorAll('a[id^="project-report-export-link-"]')
-      .forEach(guardClick);
-    document
-      .querySelectorAll('a[id^="project-task-show-link-"]')
-      .forEach(guardClick);
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
 })();
 
 export {};

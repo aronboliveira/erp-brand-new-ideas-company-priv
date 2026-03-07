@@ -4,14 +4,18 @@
  * @module index
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const ERR_FB = "# ERROR";
   const CLIENT_FLAG = "data-client-localized";
   const GUARD_MSG = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
@@ -37,7 +41,7 @@
     return msg;
   }
 
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {

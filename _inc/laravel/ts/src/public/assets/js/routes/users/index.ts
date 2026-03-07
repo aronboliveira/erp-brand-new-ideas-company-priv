@@ -4,10 +4,10 @@
  * @module index
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
-    const attach = (id: string, fallbackMsg: string) => {
+    const attach = (id: string, fallbackMsg: string): void=> {
       const a = document.getElementById(id);
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
@@ -30,7 +30,7 @@
         }
         const hasBS =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (hasBS) {
           const t = document.createElement("div");
           t.className = "toast";

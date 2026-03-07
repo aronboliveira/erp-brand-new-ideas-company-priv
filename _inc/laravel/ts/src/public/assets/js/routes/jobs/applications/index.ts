@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap dragula */
+
 declare const dragula:
   | ((containers: Element[]) => {
       on: (event: string, callback: () => void) => void;
@@ -12,9 +12,11 @@ declare const dragula:
   | undefined;
 
 ((): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const Q = (s: string) => document.querySelector(s),
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     QA = (s: string) => Array.from(document.querySelectorAll(s));
-  const T = (m: unknown) => {
+  const T = (m: unknown): void=> {
     const t =
         typeof m === "string"
           ? m
@@ -45,7 +47,7 @@ declare const dragula:
       alert(t);
     }
   };
-  const bindLink = (a: Element) => {
+  const bindLink = (a: Element): void=> {
     if (!a || a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
     a.addEventListener("click", (e: Event) => {
@@ -56,7 +58,7 @@ declare const dragula:
       T(a.getAttribute("data-guard-msg") ?? "");
     });
   };
-  const bindForm = (f: Element) => {
+  const bindForm = (f: Element): void=> {
     if (!f || f.getAttribute("data-submit-guarded") === "true") return;
     f.setAttribute("data-submit-guarded", "true");
     f.addEventListener("submit", (e: Event) => {

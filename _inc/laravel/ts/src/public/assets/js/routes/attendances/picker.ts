@@ -4,12 +4,13 @@
  * @module picker
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const DATE_PICKER_CLASS = ".daterangepicker";
   const DATE_PICKER_ATTR = "data-datepicker";
-  const translations = {
+  const _translations = {
     ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },
     da: { datepicker_unavailable: "Kunne ikke initialisere datovælger" },
     de: {
@@ -45,7 +46,7 @@
     return container;
   })();
 
-  const showError = (key: string, el: HTMLElement | null = null) => {
+  const showError = (key: string, el: HTMLElement | null = null): void=> {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -104,11 +105,11 @@
     }
   };
 
-  const handleDatePickerClick = (el: HTMLElement | null) => {
+  const handleDatePickerClick = (el: HTMLElement | null): void=> {
     if (!el) return;
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
-      const $el = $(el) as JQuery & { daterangepicker?: Function };
+      const $el = $(el) as JQuery & { daterangepicker?: (...args: unknown[]) => unknown };
       if (typeof $el.daterangepicker !== "function")
         throw new Error("daterangepicker plugin not available");
       $el.daterangepicker({

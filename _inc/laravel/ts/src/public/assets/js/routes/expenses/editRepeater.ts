@@ -4,13 +4,17 @@
  * @module editRepeater
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const langSessionKey = "erp-np-lang";
   const errFb = "# ERROR";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getMsg(key: string, el: HTMLElement) {
     let msg = errFb;
     if (
@@ -38,8 +42,10 @@
       }
     }
     return msg;
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function showError(message: string) {
     try {
       const hasBs =

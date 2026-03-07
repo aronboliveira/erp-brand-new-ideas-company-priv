@@ -4,15 +4,17 @@
  * @module url
  */
 
-/* global bootstrap, $, jQuery */
+
 declare const show_toastr: (type: string, msg: string, status: string) => void;
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const SUCCESS_KEY = "url_copy_success";
   const ERROR_KEY = "url_copy_failed";
   const ATTR_ACTIVE = "data-listener-active";
   const SELECTOR = ".copy_link";
 
-  const showError = (msg: string) => {
+  const showError = (msg: string): void=> {
     const hasBs = window.bootstrap.Toast;
     if (hasBs) {
       const toast = document.createElement("div");
@@ -31,10 +33,12 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
     }
   };
 
-  const showSuccess = (msg: string) => {
+  const showSuccess = (msg: string): void=> {
     show_toastr("success", msg, "success");
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
     let lang = (
       sessionStorage.getItem("erp-np-lang") ??
@@ -72,6 +76,7 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
       }
     };
     handlers.set(el, handler);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     el.addEventListener("click", handler);
   });
 
@@ -79,6 +84,7 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
     if (![...els].some(el => document.body.contains(el))) {
       els.forEach((el): void => {
         const h = handlers.get(el);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (h) el.removeEventListener("click", h);
       });
       obs.disconnect();

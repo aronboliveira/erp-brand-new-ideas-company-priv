@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const guardToast = (msg: string) => {
+    const guardToast = (msg: string): void=> {
       const text =
         msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(

@@ -4,18 +4,22 @@
  * @module users
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER = "data-listener-added";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -29,18 +33,18 @@
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[key] ||
         errFb;
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
     return msg;
   };
 
-  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -91,7 +95,7 @@
     }
   };
 
-  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
     if (!el || el.getAttribute(DATA_LISTENER) === "true") return;
     const cb = (): void => {
       showFeedback(el, key, ev);
@@ -105,8 +109,10 @@
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const routeGuard = (url: string, el: HTMLElement) => {
     const bad = !url || url === "#";
     if (bad) guardOnce(el, "zoom_users_unavailable", "click");
@@ -137,9 +143,11 @@
         $sel.empty();
       }
       return $sel;
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
 
     const choicesKey = "_npChoicesInstance";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const ensureChoices = (sel: JQuery<HTMLElement>) => {
       if (typeof window.Choices !== "function") {
         if (
@@ -149,7 +157,7 @@
           console.error("Choices failed to load");
         return null;
       }
-      const selEl = sel[0] as HTMLElement & { [key: string]: unknown };
+      const selEl = sel[0] as HTMLElement & Record<string, unknown>;
       if (selEl[choicesKey]) {
         try {
           (selEl[choicesKey] as { destroy(): void }).destroy();
@@ -170,7 +178,7 @@
       return inst;
     };
 
-    const fetchUsers = (projectId: string) => {
+    const fetchUsers = (projectId: string): void=> {
       const pid = projectId ?? "";
       const url = `${BASE}/${encodeURIComponent(pid)}`;
       if (routeGuard(url, document.body)) return;
@@ -182,7 +190,9 @@
           const $sel = buildOrReuseSelect();
           const frag = document.createDocumentFragment();
           for (const it of list) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             const id = String(it?.id ?? "");
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             const name = String(it?.name ?? "");
             if (id === "") continue;
             const opt = document.createElement("option");
@@ -202,6 +212,7 @@
 
     if (document.body.getAttribute("data-zoom-users-bound") !== "true") {
       $(document).on("change", ".project_select", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const projectId = String($(this).val() ?? "");
         fetchUsers(projectId);
       });

@@ -4,8 +4,12 @@
  * @module applyPreview
  */
 
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   try {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const safeURL = (file: Blob) => {
       try {
         return URL.createObjectURL(file);
@@ -14,7 +18,7 @@
       }
     };
 
-    const wirePreview = (inputId: string, imgId: string) => {
+    const wirePreview = (inputId: string, imgId: string): void=> {
       const input = document.getElementById(inputId);
       const img = document.getElementById(imgId);
       if (!input || !img) {

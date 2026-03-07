@@ -4,7 +4,7 @@
  * @module toggle
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const errFb = "# ERROR";
   const clientFlag = "data-client-localized";
@@ -37,7 +37,7 @@
     return msg;
   }
 
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {

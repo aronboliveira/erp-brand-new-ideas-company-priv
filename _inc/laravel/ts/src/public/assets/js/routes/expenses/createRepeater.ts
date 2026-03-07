@@ -4,14 +4,19 @@
  * @module createRepeater
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const langSessionKey = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
     let msg = errFb;
     if (
@@ -40,7 +45,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       const bsLink = document.querySelector('link[href*="bootstrap"]');
       let container = document.getElementById("toast-container");

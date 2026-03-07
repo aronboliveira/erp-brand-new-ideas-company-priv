@@ -4,9 +4,11 @@
  * @module date
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (function (): void {
   const $ = window.jQuery;
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
   const errFb = "# ERROR";
@@ -43,11 +45,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const tid = "np-toast";
@@ -76,7 +78,7 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string) {
+  function scheduleInteractiveError(message: string): void{
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -101,8 +103,8 @@
   function getMsg(el: HTMLElement, key: string): string {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -117,7 +119,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (el && msg !== errFb) {
@@ -132,7 +134,7 @@
     evt: string,
     handler: (e: Event) => void,
     flag: string,
-  ) => {
+  ): void=> {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }

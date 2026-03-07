@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.querySelector(
@@ -15,7 +15,7 @@
 
     f.addEventListener("submit", (e: Event) => {
       try {
-        const action = f.getAttribute("action") ?? "#";
+        const _action = f.getAttribute("action") ?? "#";
         const url = f.getAttribute("data-action-url") ?? "#";
         if (url !== "#") return;
 

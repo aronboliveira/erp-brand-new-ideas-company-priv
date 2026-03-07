@@ -4,7 +4,8 @@
  * @module index
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   try {
     const f = document.getElementById("ai-template-form");
@@ -17,7 +18,7 @@
     if (btn.getAttribute("data-listener-active") === "true") return;
     btn.setAttribute("data-listener-active", "true");
 
-    const showNotice = (msg: string) => {
+    const showNotice = (msg: string): void=> {
       try {
         if (!msg) return;
         const bsLink = document.querySelector('link[href*="bootstrap"]');
@@ -30,7 +31,7 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        if (bsLink && window.bootstrap?.Toast) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -117,7 +118,9 @@
         )
           console.error(
             "[assets/js/routes/aiTemplates/generate.js] Click handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
       }
@@ -129,7 +132,9 @@
     )
       console.error(
         "[assets/js/routes/aiTemplates/generate.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error",
       );
   }

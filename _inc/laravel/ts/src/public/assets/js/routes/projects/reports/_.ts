@@ -4,7 +4,7 @@
  * @module _
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const link = document.getElementById("{{ $projectReportExportLinkId }}");
   if (!link || link.getAttribute("data-listener-active") === "true") return;

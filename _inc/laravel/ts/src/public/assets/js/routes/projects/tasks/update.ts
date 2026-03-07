@@ -4,14 +4,14 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
-    const guardToast = (msg: string) => {
+    const guardToast = (msg: string): void=> {
       try {
         const hasBootstrap =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");

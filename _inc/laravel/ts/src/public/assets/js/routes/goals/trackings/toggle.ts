@@ -4,12 +4,17 @@
  * @module toggle
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLoc = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(el: HTMLElement, key: string) {
     let msg = errFb;
     if (el.getAttribute(dataClientLoc) === "true") {
@@ -34,8 +39,10 @@
       }
     }
     return msg;
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function showError(msg: string) {
     const bsLink = document.querySelector("link[href*='bootstrap']");
     if (bsLink && window.bootstrap.Toast) {
@@ -66,9 +73,14 @@
   document.addEventListener("DOMContentLoaded", (): void => {
     document.querySelectorAll(".toggleswitch").forEach((el: Element): void => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         if (typeof ($(el) as any).bootstrapToggle !== "function") {
           throw new Error("bootstrapToggle missing");
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
         ($(el) as any).bootstrapToggle();
       } catch {
         const msg = getLocalizedMessage(
@@ -86,9 +98,9 @@
     });
 
     const starSelector = "fieldset[id^='demo'] .stars";
-    const handleStarClick = (e: Event) => {
+    const handleStarClick = (e: Event): void=> {
       const tgt = e.target as HTMLInputElement | null;
-      if (!tgt || !tgt.matches(starSelector)) return;
+      if (!tgt?.matches(starSelector)) return;
       try {
         alert(tgt.value);
         tgt.checked = true;

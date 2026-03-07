@@ -4,13 +4,18 @@
  * @module show
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataGuardListener = "data-guard-listener";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const msgKey = "pos_unavailable";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
     try {
@@ -44,9 +49,10 @@
       return errFb;
     }
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null) => {
+  const showError = (el: HTMLElement | null): void=> {
     try {
       const message = getMsg(el);
       if (hasBootstrapCss() && window.bootstrap.Toast) {
@@ -78,7 +84,7 @@
     }
   };
   try {
-    const jq = window.jQuery ?? (window.$ && window.$.fn ? window.$ : null);
+    const jq = window.jQuery ?? (window.$?.fn ? window.$ : null);
     if (!jq) {
       if (
         window.location.hostname === "localhost" ||
@@ -88,11 +94,11 @@
       return;
     }
     jq((): void => {
-      const bind = (el: HTMLElement | null) => {
+      const bind = (el: HTMLElement | null): void=> {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = (e: Event) => {
+        const handler = (e: Event): void=> {
           try {
             const url = el.getAttribute("data-url");
             const href =
@@ -124,7 +130,7 @@
         const nodes = document.querySelectorAll(".payment-done-btn");
         nodes.forEach(n => bind(n as HTMLElement));
       } catch {
-        const nodes = jq(".payment-done-btn").toArray() as HTMLElement[];
+        const nodes = jq(".payment-done-btn").toArray();
         nodes.forEach(bind);
       }
     });

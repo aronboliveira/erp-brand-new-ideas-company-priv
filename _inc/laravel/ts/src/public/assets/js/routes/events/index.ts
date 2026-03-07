@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const bindGuard = (el: Element | null) => {
+    const bindGuard = (el: Element | null): void=> {
       try {
         if (!el) {
           return;
@@ -61,7 +61,7 @@
       } catch (err) {}
     };
 
-    const bindFormGuard = (fm: Element) => {
+    const bindFormGuard = (fm: Element): void=> {
       try {
         if (!fm) {
           return;

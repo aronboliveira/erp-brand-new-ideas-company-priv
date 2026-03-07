@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const ids = ["zoom-list-link", "zoom-create-link"];
@@ -41,7 +41,7 @@
           }
           const hasBootstrap = !!(
             document.querySelector('link[href*="bootstrap"]') &&
-            window.bootstrap?.Toast
+            window.bootstrap.Toast
           );
           if (hasBootstrap) {
             const toast = document.createElement("div");

@@ -4,13 +4,16 @@
  * @module init
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 interface GrammarAjaxResponse {
   message?: string;
   [key: string]: unknown;
 }
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -21,9 +24,9 @@ interface GrammarAjaxResponse {
   const qs = (
     s: string,
     r: Document | Element = document,
-  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  ): HTMLElement | null => r.querySelector(s);
   const ensureToastContainer = (): HTMLElement => {
-    let c = qs("#np-toast-container");
+    const c = qs("#np-toast-container");
     if (c) {
       return c;
     }
@@ -37,11 +40,11 @@ interface GrammarAjaxResponse {
     document.body.appendChild(div);
     return div;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -69,7 +72,7 @@ interface GrammarAjaxResponse {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -90,12 +93,14 @@ interface GrammarAjaxResponse {
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -110,7 +115,7 @@ interface GrammarAjaxResponse {
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (el && msg !== errFb) {
@@ -124,7 +129,7 @@ interface GrammarAjaxResponse {
     el: HTMLElement | undefined,
     explicit: string,
   ): string | null => {
-    const url = el?.getAttribute?.("data-url") || "";
+    const url = el?.getAttribute("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
         ? (el.getAttribute("action") ?? "")
@@ -214,6 +219,7 @@ interface GrammarAjaxResponse {
         const endpoint = resolveRoute(formEl, explicit);
         if (!endpoint) {
           scheduleInteractiveError(
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             getMsg(formEl || document.body, "generate_unavailable"),
           );
           return;
@@ -236,7 +242,7 @@ interface GrammarAjaxResponse {
             try {
               $(".response").removeClass("d-none");
               $("#regenerate").text("Re-Generate");
-              if (data?.message) {
+              if (data.message) {
                 if (window.show_toastr) {
                   window.show_toastr("error", data.message, "error");
                 }

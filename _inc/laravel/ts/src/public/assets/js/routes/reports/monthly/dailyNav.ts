@@ -4,7 +4,7 @@
  * @module dailyNav
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   try {
     const homeTab = document.getElementById("pills-home-tab");

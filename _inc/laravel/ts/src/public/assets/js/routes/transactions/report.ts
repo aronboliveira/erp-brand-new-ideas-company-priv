@@ -4,7 +4,7 @@
  * @module report
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("transaction_report");

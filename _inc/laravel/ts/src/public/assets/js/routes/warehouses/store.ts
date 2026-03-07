@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const forms = document.querySelectorAll(
@@ -35,7 +35,7 @@
           }
           const ok =
             document.querySelector('link[href*="bootstrap"]') &&
-            window.bootstrap?.Toast;
+            window.bootstrap.Toast;
           if (ok) {
             const t = document.createElement("div");
             t.className = "toast";

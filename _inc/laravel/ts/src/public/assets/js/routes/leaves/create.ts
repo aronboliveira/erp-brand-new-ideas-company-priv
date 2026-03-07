@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 // assets/js/routes/leaves/create.js
 ((): void => {
   try {
@@ -24,7 +24,7 @@
             l.getAttribute("data-guard-msg") ?? "Create leave route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBs =
-            linkEl !== null && window.bootstrap?.Toast;
+            linkEl !== null && window.bootstrap.Toast;
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");

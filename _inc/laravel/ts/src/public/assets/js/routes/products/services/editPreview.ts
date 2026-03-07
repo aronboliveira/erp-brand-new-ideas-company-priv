@@ -4,18 +4,18 @@
  * @module editPreview
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el: HTMLElement, msgKey: string) => {
+  const getMsg = (el: HTMLElement, msgKey: string): string=> {
     let msg = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -29,18 +29,18 @@
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
     return msg;
   };
 
-  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -80,7 +80,7 @@
     }
   };
 
-  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -111,21 +111,32 @@
     if ($imgInput.length) {
       const onImgChange = function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           const file = this?.files?.[0];
           if (!file || !$img.length) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             guardOnce(this, "image_preview_unavailable");
             return;
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
           const prev = this.getAttribute("data-prev-url") ?? "";
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const url = URL.createObjectURL(file);
           $img.attr("src", url);
           if (prev) {
             try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               URL.revokeObjectURL(prev);
             } catch {}
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           this.setAttribute("data-prev-url", url);
         } catch {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           guardOnce(this, "image_preview_unavailable");
         }
       };
@@ -147,9 +158,11 @@
       $(document).on("click", ".type", function (): void {
         try {
           const isProduct =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             String($(this).val() ?? "").toLowerCase() === "product";
           const $qty = $(".quantity");
           if (!$qty.length) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             guardOnce(this, "toggle_quantity_unavailable");
             return;
           }
@@ -157,6 +170,7 @@
             .toggleClass("d-none", !isProduct)
             .toggleClass("d-block", isProduct);
         } catch {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           guardOnce(this, "toggle_quantity_unavailable");
         }
       });

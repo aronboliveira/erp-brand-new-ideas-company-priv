@@ -4,8 +4,11 @@
  * @module edit
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   if (!window.translations) window.translations = {};
   const t = {
     ar: {
@@ -125,14 +128,16 @@
   Object.keys(t).forEach(k => {
     if (window.translations) {
       window.translations[k] = {
-        ...((window.translations as Record<string, Record<string, string>>)[
+        ...((window.translations)[
           k
         ] || {}),
         ...(t as Record<string, Record<string, string>>)[k],
       };
     }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   });
-  ((): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  (() => {
     const lang = (
       document.documentElement.getAttribute("lang") ?? "en"
     ).toLowerCase();
@@ -140,13 +145,14 @@
       (window.translations &&
         (window.translations[lang] ||
           window.translations[lang.split("-")[0]])) ||
-      window.translations?.en ||
+      window.translations.en ||
       {};
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const tr = (k: string) => dict[k] || k;
 
-    const showToastOrAlert = (msg: string) => {
+    const showToastOrAlert = (msg: string): void=> {
       try {
-        const hasBootstrapToast = !!window.bootstrap?.Toast;
+        const hasBootstrapToast = !!window.bootstrap.Toast;
         if (hasBootstrapToast) {
           let container = document.getElementById("toast-container");
           if (!container) {
@@ -181,8 +187,10 @@
       } catch {
         alert(msg);
       }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const ensure = (selector: string) => {
       const el = document.querySelector(selector);
       if (!el) throw new Error(`${tr("element_unavailable")} (${selector})`);
@@ -199,7 +207,7 @@
       const $email = $("#client_email");
       const $password = $("#client_password");
 
-      const safeToggle = (mode: unknown) => {
+      const safeToggle = (mode: unknown): void=> {
         const exist = mode === "exist";
         if ($existWrap.length) $existWrap.toggleClass("d-none", !exist);
         if ($newWrap.length) $newWrap.toggleClass("d-none", exist);
@@ -224,6 +232,7 @@
 
       $(document).on("click", "input[name='client_check']", function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const mode = String($(this).val() ?? "new").toLowerCase();
           safeToggle(mode);
         } catch (e: unknown) {

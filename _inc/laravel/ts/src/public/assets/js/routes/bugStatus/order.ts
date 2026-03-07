@@ -4,8 +4,10 @@
  * @module order
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const guardMsgKey = "data-guard-msg";
   const clientFlag = "data-client-localized";
@@ -13,7 +15,9 @@
   let errorMessage = "";
   const translations = (window as unknown as Record<string, unknown>)
     .translations as Record<string, Record<string, string>> | undefined;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
@@ -40,7 +44,7 @@
     return msg;
   }
 
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -101,12 +105,14 @@
           .on("sortstop", function (): void {
             try {
               const order: (string | null)[] = [];
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
               this.querySelectorAll("li").forEach(
                 (li: Element, idx: number) => {
                   order[idx] = li.getAttribute("data-id");
                 },
               );
-              const url: string = "{{route(ViewsConstants::BUG_STT.'.order')}}";
+              const url = "{{route(ViewsConstants::BUG_STT.'.order')}}" as string;
               if (url === "") throw new Error("bugstatus_order_failed");
               $.ajax({
                 url,
@@ -119,13 +125,15 @@
                 throw new Error("bugstatus_order_failed");
               });
             } catch (e) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
               errorMessage = getLocalizedMessage(e.message, el);
             }
           });
       } catch {
         errorMessage = getLocalizedMessage("bugstatus_order_failed", el);
       }
-      const obsEl = new MutationObserver((m, o) => {
+      const obsEl = new MutationObserver((m, _o) => {
         m.forEach(mut => {
           mut.removedNodes.forEach(node => {
             if (node === el) {

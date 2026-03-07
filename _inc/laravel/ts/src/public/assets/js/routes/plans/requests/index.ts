@@ -7,7 +7,7 @@
 /* global bootstrap */
 (function (): void {
   const listened = "data-listener-active";
-  function toast(message: string) {
+  function toast(message: string): void{
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -35,7 +35,7 @@
       alert(text);
     }
   }
-  function guardLink(a: Element) {
+  function guardLink(a: Element): void{
     if (!a || a.getAttribute(listened) === "true") return;
     a.setAttribute(listened, "true");
     a.addEventListener("click", function (e: Event) {
@@ -46,7 +46,7 @@
       toast(a.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function guardForm(f: Element) {
+  function guardForm(f: Element): void{
     if (!f || f.getAttribute(listened) === "true") return;
     f.setAttribute(listened, "true");
     f.addEventListener("submit", function (e: Event) {
@@ -57,7 +57,7 @@
       toast(f.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function init() {
+  function init(): void{
     document
       .querySelectorAll("a[data-guard-msg],a[data-url]")
       .forEach(guardLink);

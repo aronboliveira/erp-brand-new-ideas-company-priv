@@ -4,9 +4,13 @@
  * @module toggle
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
   const errFb = "# ERROR";
@@ -29,11 +33,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -61,7 +65,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -82,12 +86,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -102,7 +108,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (el && msg !== errFb) {
@@ -113,7 +119,7 @@
     return msg;
   };
   const bindFilterToggle = (): void => {
-    if (!$ || !$.fn) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||

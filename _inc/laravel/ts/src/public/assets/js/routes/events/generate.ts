@@ -6,9 +6,9 @@
 
 /* global bootstrap */
 ((): void => {
-  const toast = (m: unknown) => {
+  const toast = (m: unknown): void=> {
     try {
-      if (window.bootstrap?.Toast) {
+      if (window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");

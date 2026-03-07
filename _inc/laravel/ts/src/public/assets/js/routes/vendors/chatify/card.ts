@@ -4,7 +4,7 @@
  * @module card
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const anchors = document.querySelectorAll("a[data-guard-msg][data-url]");
@@ -30,7 +30,7 @@
         }
         const hasBS =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (hasBS) {
           const t = document.createElement("div");
           t.className = "toast";

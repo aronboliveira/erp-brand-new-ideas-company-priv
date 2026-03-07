@@ -4,8 +4,11 @@
  * @module list
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -14,13 +17,16 @@
   const dataErrArmed = "data-pipeline-error-armed";
   const dataBound = "data-pipeline-bound";
   const selector = '.change-pipeline select[name="default_pipeline_id"]';
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs("#np-toast-container") as HTMLDivElement | null;
     if (existing) return existing;
@@ -34,7 +40,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -60,7 +66,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (msg: string) => {
+  const scheduleClickError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrArmed) === "true") return;
     host.setAttribute(dataErrArmed, "true");
@@ -79,12 +85,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -99,7 +107,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -107,10 +115,12 @@
         el.setAttribute(dataClientLocalized, "true");
       }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return msg;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const verifyRoute = (form: HTMLFormElement | null) => {
-    const url = form?.getAttribute?.("data-url") ?? "";
+    const url = form?.getAttribute("data-url") ?? "";
     const href = form?.action ?? "";
     if ((!url || url === "#") && (!href || href === "#")) return false;
     return true;

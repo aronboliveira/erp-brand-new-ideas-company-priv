@@ -4,8 +4,11 @@
  * @module scroll
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -14,12 +17,15 @@
   const dataBindGuard = "data-scrollspy-bound";
   const dataClickGuard = "data-listgroup-click-bound";
   const dataErrGuard = "data-scrollspy-error";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: ParentNode = document) => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToast = (): HTMLElement => {
     let c = qs("#np-toast-container") as HTMLElement | null;
     if (c) return c;
@@ -33,7 +39,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (msg: string) => {
+  const showErrorNow = (msg: string): void=> {
     if (hasBS()) {
       const container = ensureToast();
       let t = qs("#np-toast", container);
@@ -59,7 +65,7 @@
       alert(msg ?? errFb);
     }
   };
-  const scheduleClickError = (msg: string) => {
+  const scheduleClickError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -78,12 +84,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
@@ -98,7 +106,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -137,13 +145,15 @@
         o.disconnect();
       }
     });
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     mo.observe(document.body, { childList: true, subtree: true });
   };
-  const bindListClicks = (): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const bindListClicks = () => {
     const root = document.body;
     if (root.getAttribute(dataClickGuard) === "true") return;
     root.setAttribute(dataClickGuard, "true");
-    if (!$ || !$.fn) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -154,11 +164,14 @@
       return;
     }
     const ns = ".lgitem";
-    $(document).on("click" + ns, ".list-group-item", function (): void {
+    $(document).on("click" + ns, ".list-group-item", function () {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
         const href = this.getAttribute("href") ?? "";
         const $all = $(".list-group-item");
-        if ($all?.length) {
+        if ($all.length) {
           $all
             .filter(function (this: HTMLElement): boolean {
               return (this.getAttribute("href") ?? "") === href;

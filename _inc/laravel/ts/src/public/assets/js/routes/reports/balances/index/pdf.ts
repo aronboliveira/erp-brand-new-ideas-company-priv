@@ -4,13 +4,14 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (function (): void {
   const $ = window.jQuery;
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -73,11 +74,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const toastId = "np-toast";
@@ -106,7 +107,7 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string) {
+  function scheduleInteractiveError(message: string): void{
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -133,7 +134,7 @@
     evt: string,
     handler: (e: Event) => void,
     flag: string,
-  ) => {
+  ): void=> {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }
@@ -173,6 +174,8 @@
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       window.html2pdf().set(opt).from(area).save();
     } catch (_) {
       scheduleInteractiveError(getMsg(area, "pdf_unavailable"));

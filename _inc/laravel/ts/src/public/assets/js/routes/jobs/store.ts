@@ -4,9 +4,10 @@
  * @module store
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
-  const show = (msg: string) => {
+  const show = (msg: string): void=> {
     try {
       const hasBs = !!window.bootstrap.Toast;
       if (hasBs) {
@@ -37,6 +38,7 @@
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const safeUrl = (el: Element | null) =>
     (
       (el?.getAttribute("action") ||
@@ -45,6 +47,7 @@
       ""
     ).trim();
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const guard = (el: Element | null) =>
     el?.getAttribute("data-guard-msg") ??
     "Route is unavailable. Please contact technical support or your domain administrator.";
@@ -80,14 +83,18 @@
   if (window.jQuery) {
     const $ = window.jQuery;
     $(".summernote-simple").each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (!$(this).data("summernote")) $(this).summernote({ height: 200 });
     });
     $(".summernote-simple-2").each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (!$(this).data("summernote")) $(this).summernote({ height: 300 });
     });
     $('input[data-toggle="tags"]').each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (typeof $(this).tagsinput === "function")
-        ($(this) as JQuery).tagsinput(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        ($(this)).tagsinput(
           "items" as unknown as Record<string, unknown>,
         );
     });

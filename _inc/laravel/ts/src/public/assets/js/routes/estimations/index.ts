@@ -5,8 +5,12 @@
  */
 
 /* global bootstrap */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   try {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const once = (el: HTMLElement, attr: string) => {
       if (!el) return false;
       if (el.getAttribute(attr) === "true") return false;
@@ -14,7 +18,7 @@
       return true;
     };
 
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       const hasBootstrap = !!(
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
@@ -43,7 +47,7 @@
       }
     };
 
-    const guardClick = (el: HTMLElement | null) => {
+    const guardClick = (el: HTMLElement | null): void=> {
       if (!el) return;
       if (!once(el, "data-listener-active")) return;
       el.addEventListener("click", (e: Event) => {

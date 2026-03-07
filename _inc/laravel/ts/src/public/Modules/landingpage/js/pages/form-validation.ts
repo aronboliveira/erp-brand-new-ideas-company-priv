@@ -8,9 +8,10 @@
 
 declare const Bouncer: new (selector: string, options: unknown) => unknown;
 
-const bouncerInstance = new Bouncer("[data-validate]", {
+const _bouncerInstance = new Bouncer("[data-validate]", {
   disableSubmit: true,
   customValidations: {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     valueMismatch: function (
       field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
     ) {
@@ -22,6 +23,7 @@ const bouncerInstance = new Bouncer("[data-validate]", {
     },
   },
   messages: {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     valueMismatch: function (
       field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
     ) {
@@ -36,7 +38,10 @@ const bouncerInstance = new Bouncer("[data-validate]", {
 document.addEventListener(
   "bouncerFormInvalid",
   function (event: Event) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const detail = (event as CustomEvent).detail;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
     if (detail?.errors?.[0]) window.scrollTo(0, detail.errors[0].offsetTop);
   },
   false,

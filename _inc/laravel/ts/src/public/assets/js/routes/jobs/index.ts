@@ -6,7 +6,9 @@
 
 /* global bootstrap */
 ((): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const QA = (s: string) => Array.from(document.querySelectorAll(s));
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const T = window.JOBS_I18N || {};
   const DEFAULT_ROUTE_MSG =
     T.routeUnavailable ??
@@ -14,7 +16,7 @@
   const COPIED = T.copySuccess ?? "Link copied to clipboard";
   const COPY_FAIL = T.copyFail ?? "Failed to copy link";
 
-  const toast = (message: string) => {
+  const toast = (message: string): void=> {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -47,7 +49,7 @@
     }
   };
 
-  const bindLinkGuard = (el: Element | null) => {
+  const bindLinkGuard = (el: Element | null): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {
@@ -60,7 +62,7 @@
     });
   };
 
-  const bindFormGuard = (fm: Element | null) => {
+  const bindFormGuard = (fm: Element | null): void=> {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
     fm.addEventListener("submit", (e: Event) => {
@@ -83,6 +85,7 @@
     } catch (_) {}
   };
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const copyToClipboard = (text: string) =>
     navigator.clipboard
       ? navigator.clipboard.writeText(text)

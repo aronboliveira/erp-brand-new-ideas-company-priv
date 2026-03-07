@@ -62,11 +62,17 @@ declare const bootstrap: {
       if (isModal) {
         overlay.className =
           "position-relative w-100 d-flex align-items-center justify-content-center p-3";
-        Object.assign(overlay.style, { background: "rgba(255,255,255,.95)", minHeight: "300px" });
+        Object.assign(overlay.style, {
+          background: "rgba(255,255,255,.95)",
+          minHeight: "300px",
+        });
       } else {
         overlay.className =
           "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3";
-        Object.assign(overlay.style, { zIndex: "2147483000", background: "rgba(0,0,0,.25)" });
+        Object.assign(overlay.style, {
+          zIndex: "2147483000",
+          background: "rgba(0,0,0,.25)",
+        });
       }
       for (const [k, v] of Object.entries({
         role: "dialog",

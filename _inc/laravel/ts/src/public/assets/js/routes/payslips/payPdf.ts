@@ -4,9 +4,13 @@
  * @module payPdf
  */
 
-/* global bootstrap */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const Q = (s: string) => document.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const QA = (s: string) => Array.from(document.querySelectorAll(s));
   const CLICK_SEL = '[data-action="save-pdf"]';
   const ATTR_GUARD = "data-guard-msg";
@@ -15,6 +19,7 @@
   const DEFAULT_ERR =
     "Save as PDF is unavailable. Please contact technical support or your domain administrator.";
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBs = () =>
     !!(
       document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]') &&
@@ -29,7 +34,9 @@
     const lang = (fromStorage || fromDoc).toLowerCase().replace(/_/g, "-");
     return lang === "pt-br" ? lang : lang.slice(0, 2);
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localizeGuard = (el: Element | null) => {
     if (!el) return DEFAULT_ERR;
     if (el.getAttribute(ATTR_LOCALIZED) === "true")
@@ -46,7 +53,7 @@
     return msg;
   };
 
-  const toast = (message: string) => {
+  const toast = (message: string): void=> {
     const text = message || DEFAULT_ERR;
     if (hasBs()) {
       const wrapId = "toast-wrap-guard";
@@ -82,11 +89,11 @@
     catch(fn: (err?: unknown) => void): void;
   }
 
-  const doSavePdf = (btn: Element | null) => {
+  const doSavePdf = (btn: Element | null): void=> {
     try {
       const area = Q("#printableArea");
       const h2p = window.html2pdf as (() => Html2PdfChain) | undefined;
-      if (!area || !h2p || !h2p()?.set) throw new Error("missing");
+      if (!area || !h2p?.().set) throw new Error("missing");
       const filename = (
         Q(".invoice .invoice-title h4")?.textContent ?? "document"
       ).trim();
@@ -116,7 +123,7 @@
     }
   };
 
-  const bind = (btn: Element) => {
+  const bind = (btn: Element): void=> {
     if (!btn || btn.getAttribute(ONCE) === "true") return;
     btn.setAttribute(ONCE, "true");
     localizeGuard(btn);
@@ -139,15 +146,16 @@
       r.addedNodes &&
         r.addedNodes.forEach(n => {
           const el = n as Element;
-          el.matches?.(CLICK_SEL)
+          el.matches(CLICK_SEL)
             ? bind(el)
-            : el.querySelectorAll?.(CLICK_SEL).forEach(child => bind(child));
+            : el.querySelectorAll(CLICK_SEL).forEach(child => bind(child));
         });
     });
   });
   mo.observe(document.documentElement, { childList: true, subtree: true });
 
   window.saveAsPDF = (): void => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     doSavePdf(Q(CLICK_SEL) || document.body);
   };
 })();

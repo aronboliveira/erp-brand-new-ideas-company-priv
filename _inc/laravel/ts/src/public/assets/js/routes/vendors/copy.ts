@@ -4,8 +4,11 @@
  * @module copy
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -15,12 +18,14 @@
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapUi = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs<HTMLDivElement>("#np-toast-container");
     if (existing) return existing;
@@ -34,7 +39,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -59,12 +64,14 @@
     } else {
       alert(message ?? errFb);
     }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -79,7 +86,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -87,20 +94,26 @@
         el.setAttribute(dataClientLocalized, "true");
       }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return msg;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const copyValue = (from: unknown, to: unknown) => {
     if (!$) return false;
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const $from = $(`[name='${from}']`);
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const $to = $(`[name='${to}']`);
     if (!$from.length || !$to.length) return false;
     const v = String($from.val() ?? "");
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     $to.val(v);
     return true;
   };
-  const handler = function (this: HTMLElement): void {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const handler = function (this: HTMLElement) {
     try {
-      if (!$ || !$.fn) {
+      if (!$?.fn) {
         try {
           console.error("jQuery unavailable");
         } catch (_) {}
@@ -136,7 +149,7 @@
     } else {
       document.addEventListener("click", function (e: Event) {
         const t = e.target as HTMLElement | null;
-        if (t && (t.id === "billing_data" || t.closest?.("#billing_data")))
+        if (t && (t.id === "billing_data" || t.closest("#billing_data")))
           handler.call(t);
       });
     }

@@ -4,19 +4,23 @@
  * @module picker
  */
 
-/* global bootstrap, $, jQuery */
+
 declare global {
   interface JQuery {
     daterangepicker(options?: Record<string, unknown>): JQuery;
   }
 }
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
-  const dataClient = "data-client-localized";
-  const dataGuard = "data-guard-msg";
+  const _dataClient = "data-client-localized";
+  const _dataGuard = "data-guard-msg";
   const langKey = "erp-np-lang";
   const toastId = "toast-box";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
     let lang = (
       sessionStorage.getItem(langKey) ??
@@ -32,7 +36,7 @@ declare global {
     );
   };
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string): void=> {
     const hasBs =
       Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l =>
         /bootstrap/i.test((l as HTMLLinkElement).href),

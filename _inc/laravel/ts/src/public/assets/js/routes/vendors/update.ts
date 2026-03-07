@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("vendor-update-form");
@@ -28,7 +28,7 @@
       }
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
+        window.bootstrap.Toast;
       if (hasBS) {
         const t = document.createElement("div");
         t.className = "toast";

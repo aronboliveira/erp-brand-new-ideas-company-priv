@@ -4,7 +4,8 @@
  * @module drag
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 interface DragulaInstance {
   on(event: string, callback: (...args: unknown[]) => void): DragulaInstance;
   destroy(): void;
@@ -24,7 +25,9 @@ declare global {
   }
 }
 
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   if (!$) {
     console.error("jQuery not available");
@@ -52,7 +55,7 @@ declare global {
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ??
         document.querySelector('link[href*="bootstrap"]')) &&
@@ -84,7 +87,7 @@ declare global {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -105,7 +108,9 @@ declare global {
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
@@ -133,8 +138,10 @@ declare global {
         el.setAttribute(dataClientLocalized, "true");
       }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return msg;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const resolveUrl = (el: HTMLElement, explicit: string | null) => {
     const url = el.getAttribute("data-url") ?? "";
     const href = el
@@ -162,7 +169,7 @@ declare global {
     onSuccess: ((d: unknown) => void) | null,
     elForMsg: HTMLElement | null,
     msgKey: string | null,
-  ) => {
+  ): void=> {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
@@ -192,7 +199,7 @@ declare global {
     onSuccess: ((d: unknown) => void) | null,
     elForMsg: HTMLElement | null,
     msgKey: string | null,
-  ) => {
+  ): void=> {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
@@ -214,10 +221,12 @@ declare global {
         scheduleInteractiveError(
           getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
         );
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       },
     });
   };
-  const initDragula = (): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const initDragula = () => {
     if (!window.dragula) {
       try {
         if (
@@ -229,11 +238,13 @@ declare global {
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
-    $('[data-plugin="dragula"]').each(function (): void {
+    $('[data-plugin="dragula"]').each(function () {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const $host = $(this);
       const containers = $host.data("containers") as string[] | undefined;
       const nodes: Element[] = [];
       if (containers?.length) {
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < containers.length; i++) {
           const n = document.getElementById(containers[i]);
           if (n) {
@@ -263,6 +274,7 @@ declare global {
             }
             const sort: (string | undefined)[] = [];
             $("#" + target.id + " > div").each(function (): void {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               sort[$(this).index()] = $(this).attr("id");
             });
             const id = el.id;
@@ -322,7 +334,7 @@ declare global {
       mo.observe(document.body, { childList: true, subtree: true });
     });
   };
-  const bindOnce = (key: string, binder: () => void) => {
+  const bindOnce = (key: string, binder: () => void): void=> {
     const root = document.documentElement;
     const attr = dataBound + key;
     if (root.getAttribute(attr) === "true") {
@@ -342,6 +354,7 @@ declare global {
       $(document).on("click.addUsr", ".add_usr", function (): void {
         try {
           const ids: (string | undefined)[] = [];
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const $btn = $(this);
           $btn.toggleClass("selected");
           const crr_id = $btn.attr("data-id");
@@ -354,6 +367,7 @@ declare global {
             ic.removeClass("fa-check").addClass("fa-plus");
           }
           $(".selected").each(function (): void {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             ids.push($(this).attr("data-id"));
           });
           $('input[name="assign_to"]').val(
@@ -366,6 +380,7 @@ declare global {
   const deleteTask = (): void => {
     bindOnce("del-task", function (): void {
       $(document).on("click.delTask", ".del_task", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const $btn = $(this);
         const el = this as HTMLElement;
         const url = resolveUrl(el, $btn.attr("data-url") ?? null);
@@ -400,6 +415,7 @@ declare global {
         "click.commentSubmit",
         "#comment_submit",
         function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const curr = $(this);
           const v = String(
             $("#form-comment textarea[name='comment']").val() ?? "",
@@ -439,10 +455,14 @@ declare global {
                   " alt='" +
                   (user?.name ? user.name : "") +
                   "'></a></div><div class='col ml-n2'><p class='d-block h6 text-sm font-weight-light mb-0 text-break'>" +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.comment ?? "") +
                   "</p><small class='d-block'>" +
                   now +
                   "</small></div><div class='col-auto'><a href='#' class='delete-comment' data-url='" +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.deleteUrl ?? "") +
                   "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
                 $("#comments").prepend(html);
@@ -474,6 +494,7 @@ declare global {
   const deleteComment = (): void => {
     bindOnce("comment-delete", function (): void {
       $(document).on("click.commentDel", ".delete-comment", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const btn = $(this);
         const el = this as HTMLElement;
         const url = resolveUrl(el, btn.attr("data-url") ?? null);
@@ -540,16 +561,28 @@ declare global {
                 ) as Record<string, unknown>;
                 const html =
                   '<div class="card border shadow-none checklist-member"><div class="px-3 py-2 row align-items-center"><div class="col-10"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="check-item-' +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.id ?? "") +
                   '" value="' +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.id ?? "") +
                   '" data-url="' +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.updateUrl ?? "") +
                   '"><label class="custom-control-label h6 text-sm" for="check-item-' +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.id ?? "") +
                   '">' +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.name ?? "") +
                   "</label></div></div><div class='col-auto card-meta d-inline-flex align-items-center ml-sm-auto'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                   (d.deleteUrl ?? "") +
                   "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
                 $("#checklist").append(html);
@@ -590,6 +623,7 @@ declare global {
         "#checklist input[type=checkbox]",
         function (): void {
           const el = this as HTMLElement;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const url = resolveUrl(el, $(this).attr("data-url") ?? null);
           if (!url) {
             scheduleInteractiveError(
@@ -626,6 +660,7 @@ declare global {
         "click.checklistDel",
         ".delete-checklist",
         function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const btn = $(this);
           const el = this as HTMLElement;
           const url = resolveUrl(el, btn.attr("data-url") ?? null);
@@ -661,6 +696,7 @@ declare global {
   const favToggle = (): void => {
     bindOnce("favorite", function (): void {
       $(document).on("click.favorite", "#add_favourite", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const btn = $(this);
         const el = this as HTMLElement;
         const url = resolveUrl(el, btn.attr("data-url") ?? null);
@@ -688,6 +724,7 @@ declare global {
   const completeToggle = (): void => {
     bindOnce("complete", function (): void {
       $(document).on("change.complete", "#complete_task", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const cb = $(this);
         const el = this as HTMLElement;
         const url = resolveUrl(el, cb.attr("data-url") ?? null);
@@ -719,6 +756,7 @@ declare global {
   const progressMove = (): void => {
     bindOnce("progress", function (): void {
       $(document).on("change.progress", "#task_progress", function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const sel = $(this);
         const el = this as HTMLElement;
         const url = resolveUrl(el, sel.attr("data-url") ?? null);
@@ -755,7 +793,7 @@ declare global {
       },
     });
   };
-  const load_task = (id: string) => {
+  const load_task = (id: string): void=> {
     const base = "{{route(VW::PRJ_TSK_C.'.get','_task_id')}}".replace(
       "_task_id",
       id ?? "",

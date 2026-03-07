@@ -4,7 +4,7 @@
  * @module changeAction
  */
 
-/* global bootstrap */
+
 // assets/js/routes/leaves/changeAction.js
 ((): void => {
   try {
@@ -17,11 +17,11 @@
       return;
     f.setAttribute("data-submit-listener", "true");
 
-    const showNotice = (msg: string) => {
+    const showNotice = (msg: string): void=> {
       try {
         const linkEl = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          linkEl !== null && window.bootstrap?.Toast;
+          linkEl !== null && window.bootstrap.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");

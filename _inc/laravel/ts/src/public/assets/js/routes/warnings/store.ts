@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.querySelector<HTMLFormElement>("form#create_warning[data-resolved-action][data-guard-msg]");
@@ -36,7 +36,7 @@
 
         const ok =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (ok) {
           const t = document.createElement("div");
           t.className = "toast";

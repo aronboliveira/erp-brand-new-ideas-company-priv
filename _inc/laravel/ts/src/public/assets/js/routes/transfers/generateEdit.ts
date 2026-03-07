@@ -4,7 +4,7 @@
  * @module generateEdit
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const links = document.querySelectorAll(

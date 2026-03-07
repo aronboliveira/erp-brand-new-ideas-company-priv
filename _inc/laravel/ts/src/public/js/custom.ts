@@ -152,9 +152,10 @@ $(function (): void {
       'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]',
       function (this: HTMLElement): void {
         const data: Record<string, unknown> = {};
-        const title = ($(this).data("title") as string | undefined)
-          ?? ($(this).data("bs-original-title") as string | undefined)
-          ?? ($(this).data("original-title") as string | undefined);
+        const title =
+          ($(this).data("title") as string | undefined) ??
+          ($(this).data("bs-original-title") as string | undefined) ??
+          ($(this).data("original-title") as string | undefined);
 
         $(".modal-dialog").removeClass("modal-xl");
         const size =

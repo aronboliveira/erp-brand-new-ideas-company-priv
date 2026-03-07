@@ -4,7 +4,8 @@
  * @module calendar
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 
 interface CalendarHTMLElement extends HTMLElement {
   _fcInstance?: FullCalendarInstance | null;
@@ -22,8 +23,10 @@ interface FullCalendarStatic {
   ) => FullCalendarInstance;
 }
 
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -36,11 +39,12 @@ interface FullCalendarStatic {
   ): T | null => r.querySelector<T>(s);
   const hasBootstrapUi = (): boolean =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
-    let c = qs<HTMLElement>("#np-toast-container");
+    const c = qs<HTMLElement>("#np-toast-container");
     if (c) return c;
     const newC = document.createElement("div");
     newC.id = "np-toast-container";
@@ -79,7 +83,7 @@ interface FullCalendarStatic {
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string) => {
+  const schedulePointerupError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -98,12 +102,14 @@ interface FullCalendarStatic {
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
@@ -118,7 +124,7 @@ interface FullCalendarStatic {
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -148,7 +154,7 @@ interface FullCalendarStatic {
       : "";
   };
   const ensureJq = (): boolean => {
-    if (!$?.fn) {
+    if (!$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||

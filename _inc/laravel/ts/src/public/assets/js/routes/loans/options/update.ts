@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("loanOption-edit-form");
   if (!form) return;
@@ -38,7 +38,7 @@
             body.className = "toast-body";
             body.textContent = msg;
             el.appendChild(body);
-            (c as HTMLElement).appendChild(el);
+            (c).appendChild(el);
             window.bootstrap.Toast.getOrCreateInstance(el).show();
           } else {
             alert(msg);

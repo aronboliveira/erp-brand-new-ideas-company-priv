@@ -1760,6 +1760,16 @@ interface Window {
   notifier?: Notifier;
   Choices?: typeof Choices;
   show_toastr?: (type: string, message: string, status?: string) => void;
+  postAjax?: (
+    url: string,
+    data: Record<string, unknown>,
+    cb: (response: unknown) => void,
+  ) => void;
+  deleteAjax?: (
+    url: string,
+    data: Record<string, unknown>,
+    cb: (response: unknown) => void,
+  ) => void;
   html2pdf?: unknown;
   saveAsPDF?: (element?: Element, options?: Record<string, unknown>) => void;
   svLang?: Record<string, string>;

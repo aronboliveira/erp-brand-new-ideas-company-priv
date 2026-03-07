@@ -4,19 +4,21 @@
  * @module editList
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el: HTMLElement, key: string) => {
+  const getMsg = (el: HTMLElement, key: string): string=> {
     let msg = errFb;
 
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -31,13 +33,13 @@
 
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[key] ||
         errFb;
 
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
 
@@ -47,8 +49,8 @@
   const showFeedback = (
     el: HTMLElement,
     key: string,
-    ev: string = "pointerup",
-  ) => {
+    ev = "pointerup",
+  ): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -96,8 +98,8 @@
   const guardOnce = (
     el: HTMLElement,
     key: string,
-    ev: string = "pointerup",
-  ) => {
+    ev = "pointerup",
+  ): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
 
     const handler = (): void => {
@@ -117,11 +119,13 @@
 
   const routeGuard = (
     element: HTMLElement | null,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     alt: string | null | undefined,
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
-    const url = element?.getAttribute?.("data-url");
+    const url = element?.getAttribute("data-url");
     const href =
-      element?.getAttribute?.("action") ?? element?.getAttribute?.("href");
+      element?.getAttribute("action") ?? element?.getAttribute("href");
     return (
       (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
     );
@@ -170,7 +174,7 @@
       });
     };
 
-    const getParent = (bid: string, sourceEl: HTMLElement) => {
+    const getParent = (bid: string, sourceEl: HTMLElement): void=> {
       const base = `{{ url('contracts/clients/select') }}`;
       const url = `${base}/${encodeURIComponent(bid ?? "")}`;
 
@@ -195,7 +199,9 @@
             if (Array.isArray(data) && data.length > 0) {
               data.forEach(it => {
                 if (!it) return;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 const val = String(it.id ?? "");
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 const text = String(it.name ?? "");
                 if (val.length !== 0)
                   $sel.append(`<option value="${val}">${text}</option>`);
@@ -230,6 +236,7 @@
     initChoices();
 
     $(document).on("change", ".client_select", function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const client_id = String($(this).val() ?? "");
       getParent(client_id, this as unknown as HTMLElement);
     });

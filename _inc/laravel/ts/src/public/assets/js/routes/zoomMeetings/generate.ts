@@ -4,7 +4,7 @@
  * @module generate
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("zoom-ai-generate-link");
@@ -36,7 +36,7 @@
           document.body.appendChild(container);
         }
         const hasBs =
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";

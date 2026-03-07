@@ -21,7 +21,7 @@
     return !act || act === "#";
   };
 
-  const showErr = (msg: string) => {
+  const showErr = (msg: string): void=> {
     try {
       alert(msg);
     } catch {

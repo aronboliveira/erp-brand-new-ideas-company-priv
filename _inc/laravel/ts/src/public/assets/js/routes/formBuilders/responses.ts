@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const showGuard = (msg: string) => {
+    const showGuard = (msg: string): void=> {
       const hasBootstrap = !!(
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
@@ -39,7 +39,7 @@
       }
     };
 
-    const bindGuard = (a: Element | null) => {
+    const bindGuard = (a: Element | null): void=> {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
@@ -60,9 +60,12 @@
       .forEach(bindGuard);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const els = [].slice.call(
         document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       els.forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);

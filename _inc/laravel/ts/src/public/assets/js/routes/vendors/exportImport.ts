@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const bindGuard = (id: string) => {
+    const bindGuard = (id: string): void=> {
       try {
         const el = document.getElementById(id);
         if (!el) {

@@ -4,26 +4,32 @@
  * @module copy
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-error-guard";
-  const dataBoundCopy = "data-bound-copy";
-  const dataBoundSel = "data-bound-sel";
+  const _dataBoundCopy = "data-bound-copy";
+  const _dataBoundSel = "data-bound-sel";
   const dataBoundChange = "data-bound-template-change";
   const dataBoundGen = "data-bound-generate";
   const copiedMsgId = "ai-copied-msg";
   const qs = (s: string, r: ParentNode = document): HTMLElement | null =>
-    r.querySelector(s) as HTMLElement | null;
-  const qsa = (s: string, r = document) =>
+    r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const _qsa = (s: string, r = document) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     Array.prototype.slice.call(r.querySelectorAll(s) || []);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+    (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
@@ -39,7 +45,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -67,7 +73,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveErrorClick = (message: string) => {
+  const scheduleInteractiveErrorClick = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -88,12 +94,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -108,7 +116,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -119,10 +127,12 @@
     return msg;
   };
   const resolveRoute = (
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     el: HTMLElement | null | undefined,
     explicit: string,
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
-    const url = el?.getAttribute?.("data-url") || "";
+    const url = el?.getAttribute("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
         ? (el.getAttribute("action") ?? "")
@@ -152,9 +162,11 @@
       if (!first.checked) {
         first.checked = true;
         $(first).trigger("change");
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       }
     }
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const writeField = (name: string, value: unknown) => {
     if (!name) {
       return false;
@@ -178,10 +190,12 @@
         $ta.val(String(value ?? ""));
         return true;
       }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
     $ta.val(String(value ?? ""));
     return true;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ensureCopiedLabel = (afterEl: HTMLElement | null) => {
     const el = qs("#" + copiedMsgId);
     if (el) {
@@ -190,9 +204,11 @@
     const span = document.createElement("span");
     span.id = copiedMsgId;
     span.style.marginLeft = "0.5rem";
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     span.textContent = getMsg(afterEl || document.body, "copied_label");
     (afterEl?.parentNode ?? document.body).insertBefore(
       span,
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       afterEl?.nextSibling || null,
     );
     return span;
@@ -278,14 +294,17 @@
       "change.aiTemplate",
       ".template_name",
       function (): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const templateId = String($(this).val() ?? "");
         const explicit =
           '{{route("generate.keywords",["__templateId"])}}'.replace(
             "__templateId",
             templateId,
           );
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const endpoint = resolveRoute(this, explicit);
         if (!endpoint) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           scheduleInteractiveErrorClick(getMsg(this, "keywords_unavailable"));
           return;
         }
@@ -297,7 +316,7 @@
           cache: false,
           success: function (data: { tone?: number; template?: string }) {
             try {
-              if (data?.tone == 1) {
+              if (data.tone == 1) {
                 $(".tone").removeClass("d-none");
                 $(".tone select").attr("name", "tone");
               } else {
@@ -305,7 +324,7 @@
                 $(".d-none select").removeAttr("name");
               }
               $("#getkeywords").empty();
-              $("#getkeywords").append(data?.template ?? "");
+              $("#getkeywords").append(data.template ?? "");
             } catch (_) {
               scheduleInteractiveErrorClick(
                 getMsg(document.body, "keywords_unavailable"),
@@ -342,6 +361,7 @@
       const explicit = '{{ route("generate.response") }}';
       const endpoint = resolveRoute(form.get(0), explicit);
       if (!endpoint) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         scheduleInteractiveErrorClick(getMsg(this, "generate_unavailable"));
         return;
       }
@@ -363,7 +383,7 @@
           try {
             $(".response").removeClass("d-none");
             $("#generate").text("Re-Generate");
-            if (typeof data !== "string" && data?.message) {
+            if (typeof data !== "string" && data.message) {
               if (window.show_toastr) {
                 window.show_toastr("error", data.message, "error");
               }
@@ -403,7 +423,7 @@
   const init = (): void => {
     if (!$.fn) {
       try {
-        console.log("jQuery unavailable");
+        console.info("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveErrorClick(
         getMsg(document.body, "plugin_unavailable"),

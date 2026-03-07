@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("store_saturation_deduction_form");
@@ -13,7 +13,7 @@
 
     f.addEventListener("submit", (e: Event) => {
       try {
-        const action = f.getAttribute("action") ?? "#";
+        const _action = f.getAttribute("action") ?? "#";
         const url = f.getAttribute("data-action-url") ?? "#";
 
         if (url !== "#") return;

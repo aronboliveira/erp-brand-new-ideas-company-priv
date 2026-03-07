@@ -4,9 +4,10 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -59,7 +60,7 @@
     const w = window.open("about:blank", "_blank", "noopener,noreferrer");
     if (!w) return;
     const bootstrapHref =
-      (document.querySelector('link[href*="bootstrap"]') as HTMLLinkElement)
+      (document.querySelector('link[href*="bootstrap"]') as HTMLLinkElement | null)
         ?.href ?? "";
     const newDoc = w.document;
     newDoc.head.innerHTML = [

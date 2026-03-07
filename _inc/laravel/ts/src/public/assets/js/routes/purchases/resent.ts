@@ -4,7 +4,7 @@
  * @module resent
  */
 
-/* global bootstrap */
+
 // assets/js/routes/purchases/resent.js
 ((): void => {
   try {

@@ -4,7 +4,7 @@
  * @module ledger
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const host = document.documentElement;

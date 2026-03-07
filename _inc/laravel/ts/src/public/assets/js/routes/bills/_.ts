@@ -4,7 +4,7 @@
  * @module _
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const btn = document.getElementById("{{ $deletePaymentBtnId }}");
   if (!btn || btn.getAttribute("data-listener-active") === "true") return;

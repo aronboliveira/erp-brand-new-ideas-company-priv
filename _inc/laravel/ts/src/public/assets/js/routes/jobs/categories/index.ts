@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   const F = {
-    toast(message: string) {
+    toast(message: string): void{
       const text =
         message ??
         "Requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -37,7 +37,7 @@
         alert(text);
       }
     },
-    bindLinkGuard(a: HTMLElement | null) {
+    bindLinkGuard(a: HTMLElement | null): void{
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
@@ -49,7 +49,7 @@
         a.setAttribute("data-failed-route", "true");
       });
     },
-    bindFormGuard(fm: HTMLElement | null) {
+    bindFormGuard(fm: HTMLElement | null): void{
       if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
       fm.setAttribute("data-submit-guarded", "true");
       fm.addEventListener("submit", (e: Event) => {
@@ -61,7 +61,7 @@
         fm.setAttribute("data-failed-route", "true");
       });
     },
-    initTooltips() {
+    initTooltips(): void{
       try {
         document
           .querySelectorAll('[data-bs-toggle="tooltip"]')

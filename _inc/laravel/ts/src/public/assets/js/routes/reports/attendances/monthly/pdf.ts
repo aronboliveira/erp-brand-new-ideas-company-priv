@@ -4,9 +4,13 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | HTMLElement = document) =>
     r.querySelector(s);
   const errFb = "# ERROR";
@@ -34,11 +38,11 @@
     return c;
   };
 
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container) as HTMLElement | null;
@@ -67,7 +71,7 @@
     }
   };
 
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -89,12 +93,14 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -109,7 +115,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (el && msg !== errFb) {
@@ -129,7 +135,7 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name = String($?.("#filename")?.val() ?? "").trim();
+    const name = String($?.("#filename").val() ?? "").trim();
     const opt = {
       margin: 0.3,
       filename: name,
@@ -149,6 +155,8 @@
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       window.html2pdf().set(opt).from(area).save();
     } catch (_) {
       scheduleInteractiveError(getMsg(area, "pdf_unavailable"));
@@ -160,7 +168,7 @@
   const deptUrl = '{{route(VW::RPT . ".attendance.getdepartment")}}';
   const empUrl = '{{route(VW::RPT . ".attendance.getemployee")}}';
 
-  const renderDepartmentSelect = (data: Record<string, unknown>) => {
+  const renderDepartmentSelect = (data: Record<string, unknown>): void=> {
     const wrap = document.getElementById("department_div");
     if (!wrap) {
       return;
@@ -204,7 +212,7 @@
     }
   };
 
-  const renderEmployeeSelect = (data: Record<string, unknown>) => {
+  const renderEmployeeSelect = (data: Record<string, unknown>): void=> {
     const wrap = document.getElementById("employee_div");
     if (!wrap) {
       return;
@@ -264,7 +272,7 @@
     }
   };
 
-  const getDepartment = (branchId: string) => {
+  const getDepartment = (branchId: string): void=> {
     if (!validRoute(deptUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
@@ -290,7 +298,7 @@
     });
   };
 
-  const getEmployee = (deptId: string) => {
+  const getEmployee = (deptId: string): void=> {
     if (!validRoute(empUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
@@ -319,7 +327,7 @@
     evt: string,
     handler: (this: HTMLElement, e: Event) => void,
     flag: string,
-  ) => {
+  ): void=> {
     if (!el || el.getAttribute(flag) === "true") {
       return;
     }

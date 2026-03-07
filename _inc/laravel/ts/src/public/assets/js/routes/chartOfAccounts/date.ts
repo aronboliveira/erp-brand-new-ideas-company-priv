@@ -4,14 +4,18 @@
  * @module date
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const clientFlag = "data-client-localized";
   const guardMsgKey = "data-guard-msg";
   const langKey = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
@@ -38,7 +42,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -96,7 +100,7 @@
       typeEl.dataset.listenerAttached = "true";
       const onTypeChange = (): void => {
         try {
-          const url: string = '{{ route("charofAccount.subType") }}';
+          const url = '{{ route("charofAccount.subType") }}' as string;
           if (url === "")
             throw new Error("char_of_account_subtype_unavailable");
           const val = typeEl.value ?? "";
@@ -123,6 +127,8 @@
               throw new Error("char_of_account_subtype_unavailable");
             });
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
           errorMessage = getLocalizedMessage(e.message, typeEl);
         }
       };

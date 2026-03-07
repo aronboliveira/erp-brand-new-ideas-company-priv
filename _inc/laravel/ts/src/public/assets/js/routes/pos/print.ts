@@ -4,12 +4,16 @@
  * @module print
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const guardListener = "data-guard-listener";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement | null) => {
     let msg = errFb;
     if (!el) return msg;
@@ -40,9 +44,10 @@
     }
     return msg;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null) => {
+  const showError = (el: HTMLElement | null): void=> {
     const message = getMsg(el);
     if (hasBootstrapCss() && window.bootstrap) {
       const wrapId = "toast-wrap-print-guard";
@@ -68,7 +73,7 @@
       alert(message);
     }
   };
-  const onClick = (e: Event) => {
+  const onClick = (e: Event): void=> {
     const $ = window.jQuery;
     const btn = e.currentTarget as HTMLElement | null;
     if (!$) {

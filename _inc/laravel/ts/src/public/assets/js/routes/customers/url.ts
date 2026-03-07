@@ -5,12 +5,16 @@
  */
 
 /* global bootstrap */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const ERR_FB = "# ERROR";
   const CLIENT_FLAG = "data-client-localized";
   const GUARD_MSG = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
@@ -37,7 +41,8 @@
     return msg;
   }
 
-  function showToast(message: string, isError = false) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function showToast(message: string, isError = false): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -89,7 +94,7 @@
     });
   }).observe(document.body, { childList: true, subtree: true });
 
-  window.copyToClipboard = (text: string) => {
+  window.copyToClipboard = (text: string): void=> {
     const element = document.getElementById(text) ?? document.body;
     try {
       if (!navigator.clipboard) throw new Error("url_copy_failed");

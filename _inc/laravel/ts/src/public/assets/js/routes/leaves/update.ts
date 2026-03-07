@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("edit_leave");
@@ -15,11 +15,11 @@
     )
       return;
     f.setAttribute("data-submit-listener", "true");
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       try {
         const linkEl = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          !!linkEl && window.bootstrap?.Toast;
+          !!linkEl && window.bootstrap.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");

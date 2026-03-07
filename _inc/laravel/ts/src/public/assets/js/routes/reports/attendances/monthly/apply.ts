@@ -4,7 +4,7 @@
  * @module apply
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const host = document.documentElement;
@@ -25,7 +25,7 @@
           const formId = a.getAttribute("data-form-id") ?? "";
           const f = formId ? document.getElementById(formId) : null;
           if (!f) return;
-          const action = f.getAttribute("action") ?? "#";
+          const _action = f.getAttribute("action") ?? "#";
           const url = f.getAttribute("data-url") ?? "#";
           if (url !== "#") {
             try {

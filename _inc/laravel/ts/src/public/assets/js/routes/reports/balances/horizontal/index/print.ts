@@ -4,7 +4,7 @@
  * @module print
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("balance-sheet-print-form");

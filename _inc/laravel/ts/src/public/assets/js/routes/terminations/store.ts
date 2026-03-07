@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 // public/assets/js/routes/terminations/store.js
 ((): void => {
   try {

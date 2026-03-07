@@ -11,7 +11,7 @@
     if (!fm) return;
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       const text =
         msg ?? "Update route is unavailable. Please contact technical support or your domain administrator.";
       const hasBootstrap = !!(

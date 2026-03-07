@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("vendor-store-form");
@@ -31,7 +31,7 @@
       }
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
+        window.bootstrap.Toast;
       if (hasBS) {
         const toast = document.createElement("div");
         toast.className = "toast";

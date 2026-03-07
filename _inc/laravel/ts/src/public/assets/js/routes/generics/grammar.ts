@@ -4,7 +4,7 @@
  * @module grammar
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const l = document.getElementById("grammarCheck");

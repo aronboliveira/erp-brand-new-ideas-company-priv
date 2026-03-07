@@ -4,7 +4,7 @@
  * @module messenger
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("message-form");
@@ -34,7 +34,7 @@
       }
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
+        window.bootstrap.Toast;
       if (hasBS) {
         const toast = document.createElement("div");
         toast.className = "toast";

@@ -4,13 +4,13 @@
  * @module show
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     if (!window.svToastOrAlert) {
-      window.svToastOrAlert = function (msg: string) {
+      window.svToastOrAlert = function (msg: string): void{
         try {
-          const ok = !!window.bootstrap?.Toast;
+          const ok = !!window.bootstrap.Toast;
           if (!ok) {
             alert(msg);
             return;
@@ -37,7 +37,8 @@
       };
     }
 
-    function guardByAction(formSelector: string, anchorSelector: string) {
+    // eslint-disable-next-line no-inner-declarations
+    function guardByAction(formSelector: string, anchorSelector: string): void{
       const forms = document.querySelectorAll(formSelector);
       Array.prototype.forEach.call(forms, function (f: Element) {
         const act = (f.getAttribute("action") ?? "").trim();
@@ -54,7 +55,8 @@
       });
     }
 
-    function guardByHref(anchor: HTMLElement) {
+    // eslint-disable-next-line no-inner-declarations
+    function guardByHref(anchor: HTMLElement): void{
       if (!anchor) return;
       const href = (anchor.getAttribute("href") ?? "").trim();
       if (!href || href === "#") {
@@ -68,7 +70,8 @@
       }
     }
 
-    function guardByDataUrl(anchor: HTMLElement) {
+    // eslint-disable-next-line no-inner-declarations
+    function _guardByDataUrl(anchor: HTMLElement): void{
       if (!anchor) return;
       const url = (anchor.getAttribute("data-url") ?? "").trim();
       if (!url || url === "#") {

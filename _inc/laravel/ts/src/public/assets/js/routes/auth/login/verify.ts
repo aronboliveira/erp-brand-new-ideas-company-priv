@@ -6,7 +6,7 @@
 
 /* global bootstrap */
 ((): void => {
-  const guardForm = (formId: string) => {
+  const guardForm = (formId: string): void=> {
     const form = document.getElementById(formId);
     if (!form || form.getAttribute("data-listener-active") === "true") return;
     form.setAttribute("data-listener-active", "true");

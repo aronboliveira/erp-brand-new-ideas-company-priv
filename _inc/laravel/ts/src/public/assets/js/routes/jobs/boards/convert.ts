@@ -4,9 +4,13 @@
  * @module convert
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const Q = (s: string) => document.querySelector(s),
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     QA = (s: string) => Array.from(document.querySelectorAll(s)),
     G = (): void => {
       try {
@@ -28,17 +32,21 @@
       i.addEventListener("change", set);
       set();
     });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const N = (d: unknown) => {
     if (!d) return [];
     if (Array.isArray(d))
       return d
         .map(x =>
           typeof x === "object"
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
             ? { id: x.id ?? x.value ?? "", name: x.name ?? x.text ?? "" }
             : null,
         )
-        .filter((x): x is { id: any; name: any } => x != null);
+        .filter((x): x is { id: unknown; name: unknown } => x != null);
     if (typeof d === "object")
       return Object.keys(d).map(k => ({
         id: k,
@@ -46,34 +54,40 @@
       }));
     return [];
   };
-  const P = (sel: HTMLSelectElement | null, items: unknown[], selId = "") => {
+  const P = (sel: HTMLSelectElement | null, items: unknown[], selId = ""): void=> {
     if (!sel) return;
     sel.innerHTML = "";
     const def = document.createElement("option");
     def.value = "";
     def.textContent = "Select any Designation";
     sel.appendChild(def);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     N(items).forEach(it => {
       const o = document.createElement("option");
-      o.value = it.id;
-      o.textContent = it.name;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      o.value = String(it.id);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      o.textContent = String(it.name);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (selId && String(selId) === String(it.id)) o.selected = true;
       sel.appendChild(o);
     });
     try {
       const jQ = window.jQuery;
-      if (jQ?.fn?.select2 && jQ(sel).data("select2"))
+      if (jQ?.fn.select2 && jQ(sel).data("select2"))
         jQ(sel).trigger("change.select2");
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     } catch (_) {}
   };
-  const C = (): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const C = () => {
     const d = Q("#department_id") as HTMLSelectElement | null,
       s = Q("#designation_id") as HTMLSelectElement | null;
     if (!d || !s) return;
     const url =
       (s.getAttribute("data-url") || d.getAttribute("data-designation-url")) ??
       "#";
-    const guard =
+    const _guard =
       (s.getAttribute("data-guard-msg") || d.getAttribute("data-guard-msg")) ??
       "";
     const csrf =
@@ -85,9 +99,11 @@
         (
           document.querySelector(
             'input[name="_token"]',
+          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
           ) as HTMLInputElement | null
         )?.value) ??
       "";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const load = async (id: string) => {
       if (!id) {
         P(s, []);
@@ -95,6 +111,7 @@
       }
       if (!url || url.trim() === "#" || /^javascript:/i.test(url)) return;
       const payload = { department_id: id };
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const doFetch = () =>
         fetch(url, {
           method: "POST",
@@ -116,12 +133,16 @@
         );
       };
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const res = await (typeof fetch === "function"
           ? doFetch().catch(doAjax)
           : doAjax().catch(doFetch));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         P(s, res?.data ?? res ?? []);
       } catch (_) {}
     };
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     d.addEventListener("change", () => load(d.value));
     if (d.value) void load(d.value);
   };

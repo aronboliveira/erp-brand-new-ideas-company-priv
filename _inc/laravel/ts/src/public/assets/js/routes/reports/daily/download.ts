@@ -54,7 +54,7 @@
                       '<div class="d-flex"><div class="toast-body">' +
                       msg +
                       '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-                    (container as HTMLElement).appendChild(toastEl);
+                    (container).appendChild(toastEl);
                     new bootstrap.Toast(toastEl, { delay: 5000 }).show();
                   } else {
                     alert(msg);

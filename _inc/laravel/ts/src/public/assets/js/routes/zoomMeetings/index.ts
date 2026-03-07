@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 // assets/js/routes/zoomMeetings/index.js
 ((): void => {
   type NestedLang = Record<string, Record<string, Record<string, string>>>;
@@ -22,7 +22,7 @@
         "Create zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
     } catch {}
   })();
-  function attachGuard(anchor: HTMLElement | null, fallbackMsg: string) {
+  function attachGuard(anchor: HTMLElement | null, fallbackMsg: string): void{
     if (!anchor || anchor.getAttribute("data-listener-active") === "true")
       return;
     anchor.setAttribute("data-listener-active", "true");
@@ -49,7 +49,7 @@
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        const hasBs = window.bootstrap?.Toast;
+        const hasBs = window.bootstrap.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";

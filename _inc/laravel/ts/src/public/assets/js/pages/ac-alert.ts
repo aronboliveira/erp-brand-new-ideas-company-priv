@@ -4,7 +4,7 @@
  * @module ac-alert
  */
 
-/* global bootstrap, Swal */
+
 "use strict";
 
 interface SwalResult {
@@ -193,7 +193,7 @@ document
       },
     }).then((result: SwalResult) => {
       if (result.dismiss === Swal.DismissReason.timer) {
-        console.log("I was closed by the timer");
+        console.info("I was closed by the timer");
       }
     });
   });
@@ -212,7 +212,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-ajex-req")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void Swal.fire({
       title: "Submit your Github username",
       input: "text",
@@ -306,7 +306,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-text-input")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void (async (): Promise<void> => {
       const ipAPI = "//api.ipify.org?format=json";
       const inputValue = fetch(ipAPI)
@@ -395,7 +395,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-select-input")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void (async (): Promise<void> => {
       const selectOptions: SweetAlertOptions = {
         title: "Select field validation",
@@ -434,7 +434,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-radio-input")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void (async (): Promise<void> => {
       const inputOptions = new Promise<Record<string, string>>(resolve => {
         setTimeout((): void => {
@@ -465,7 +465,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-checkbox-input")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void (async (): Promise<void> => {
       const { value: accept } = await Swal.fire({
         title: "Terms and conditions",
@@ -510,7 +510,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-range-input")
   ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+    void ((): void => {
       void Swal.fire({
         title: "How old are you?",
         icon: "question",
@@ -526,7 +526,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-multiple-input")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void (async (): Promise<void> => {
       const { value: formValues } = await Swal.fire({
         title: "Multiple inputs",

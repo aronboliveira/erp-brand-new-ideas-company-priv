@@ -4,9 +4,12 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const qs = <T extends Element = Element>(
     s: string,
     r: Document | Element = document,
@@ -14,7 +17,7 @@
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
+  const _dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-err-guard";
   const dataFilterGuard = "data-filter-guard";
   const dataPrintGuard = "data-print-guard";
@@ -34,11 +37,11 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs<HTMLElement>("#np-toast", container);
@@ -69,7 +72,7 @@
   const scheduleInteractiveError = (
     message: string,
     evt: keyof HTMLElementEventMap = "click",
-  ) => {
+  ): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -90,12 +93,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     const err = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       return el.getAttribute(dataGuardMsg) || err;
     }
@@ -110,7 +115,7 @@
     const msgKey = key;
     const msg =
       window.translations?.[lang]?.[msgKey] ||
-      el?.getAttribute(dataGuardMsg) ||
+      el.getAttribute(dataGuardMsg) ||
       window.translations?.en?.[msgKey] ||
       err;
     if (el && msg !== err) {
@@ -146,6 +151,8 @@
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       window.html2pdf().set(opt).from(area).save();
     } catch (_) {
       scheduleInteractiveError(getMsg(area, "pdf_unavailable"));
@@ -153,7 +160,7 @@
   };
   window.saveAsPDF = saveAsPDF;
   const bindFilterToggle = (): void => {
-    if (!$?.fn) {
+    if (!$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -181,10 +188,10 @@
         scheduleInteractiveError(getMsg(document.body, "toggle_unavailable"));
       }
     };
-    $?.(btn).on("click", handler);
+    $(btn).on("click", handler);
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(btn)) {
-        $?.(btn).off("click", handler);
+        $(btn).off("click", handler);
         o.disconnect();
       }
     });

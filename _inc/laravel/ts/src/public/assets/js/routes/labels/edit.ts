@@ -4,12 +4,12 @@
  * @module edit
  */
 
-/* global bootstrap */
+
 ((): void => {
   const DEFAULT_MSG =
     "The requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       const hasBootstrapToast = !!window.bootstrap.Toast;
       if (hasBootstrapToast) {
@@ -50,7 +50,7 @@
     }
   };
 
-  const attachGuard = (form: HTMLFormElement | null) => {
+  const attachGuard = (form: HTMLFormElement | null): void=> {
     if (!form) return;
     const guardMsg = form.getAttribute("data-guard-msg") || DEFAULT_MSG;
 

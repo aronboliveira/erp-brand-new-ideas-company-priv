@@ -6,7 +6,7 @@
 
 /* global bootstrap */
 ((): void => {
-  const D = (m: unknown) => {
+  const D = (m: unknown): void=> {
       const t = String(
           m ??
             "Requested route is unavailable. Please contact technical support or your domain administrator.",
@@ -37,7 +37,7 @@
         alert(t);
       }
     },
-    bindLink = (a: HTMLElement | null) => {
+    bindLink = (a: HTMLElement | null): void=> {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
@@ -48,7 +48,7 @@
         D(a.getAttribute("data-guard-msg") ?? "");
       });
     },
-    bindForm = (f: HTMLElement | null) => {
+    bindForm = (f: HTMLElement | null): void=> {
       if (!f || f.getAttribute("data-submit-guarded") === "true") return;
       f.setAttribute("data-submit-guarded", "true");
       f.addEventListener("submit", (e: Event) => {

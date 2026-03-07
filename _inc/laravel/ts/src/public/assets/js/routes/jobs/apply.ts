@@ -4,7 +4,7 @@
  * @module apply
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const Q = <T extends Element = Element>(s: string): T | null =>
     document.querySelector<T>(s);
@@ -13,7 +13,7 @@
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const toast = (message: string) => {
+  const toast = (message: string): void=> {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -85,7 +85,7 @@
   };
 
   const filenameFromInput = (inp: HTMLInputElement): string => {
-    if (!inp?.files) return "";
+    if (!inp.files) return "";
     if (inp.files.length === 0) return "";
     if (inp.files.length === 1) return inp.files[0].name ?? "";
     return Array.from(inp.files)

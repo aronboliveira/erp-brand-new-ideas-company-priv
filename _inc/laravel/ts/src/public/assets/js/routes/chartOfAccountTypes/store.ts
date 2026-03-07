@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const f = document.getElementById("store_chart_of_account_type");
@@ -14,9 +14,10 @@
     if (!f.getAttribute("action") && actionHref && actionHref !== "#")
       f.setAttribute("action", actionHref);
 
-    function toastOrAlert(msg: string) {
+    // eslint-disable-next-line no-inner-declarations
+    function toastOrAlert(msg: string): void{
       try {
-        const hasBootstrap = !!(window.bootstrap?.Toast);
+        const hasBootstrap = !!(window.bootstrap.Toast);
         if (!hasBootstrap) {
           alert(msg);
           return;

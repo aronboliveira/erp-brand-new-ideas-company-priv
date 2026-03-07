@@ -6,7 +6,7 @@
 
 /* global bootstrap */
 ((): void => {
-  const bindGuard = (el: HTMLElement | null) => {
+  const bindGuard = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {

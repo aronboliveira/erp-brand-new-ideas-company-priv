@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const form = document.getElementById("create_travel");

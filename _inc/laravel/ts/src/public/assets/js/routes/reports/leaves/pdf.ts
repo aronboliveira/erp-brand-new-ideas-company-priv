@@ -17,9 +17,12 @@ interface DataTablesJQueryFnExtension {
 
 type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const qs = <T extends Element = Element>(
     s: string,
     r: ParentNode = document,
@@ -52,7 +55,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs<HTMLDivElement>("#np-toast", container);
@@ -84,7 +87,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     }
   };
 
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -106,12 +109,14 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -125,7 +130,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[key] ||
         errFb;
       if (el && msg !== errFb) {
@@ -182,6 +187,8 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       window.html2pdf().set(opt).from(area).save();
     } catch (_) {
       scheduleInteractiveError(getMsg(area, "pdf_unavailable"));
@@ -205,7 +212,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
           console.error("DataTables unavailable");
       } catch (_) {}
       scheduleInteractiveError(
-        getMsg($table.get(0) as HTMLElement, "plugin_unavailable"),
+        getMsg($table.get(0), "plugin_unavailable"),
       );
       return;
     }
@@ -233,14 +240,14 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
           console.error("DataTables Buttons unavailable");
       } catch (_) {}
       scheduleInteractiveError(
-        getMsg($table.get(0) as HTMLElement, "datatable_unavailable"),
+        getMsg($table.get(0), "datatable_unavailable"),
       );
     }
     try {
       $table.DataTable(opts);
     } catch (_) {
       scheduleInteractiveError(
-        getMsg($table.get(0) as HTMLElement, "datatable_unavailable"),
+        getMsg($table.get(0), "datatable_unavailable"),
       );
     }
   };

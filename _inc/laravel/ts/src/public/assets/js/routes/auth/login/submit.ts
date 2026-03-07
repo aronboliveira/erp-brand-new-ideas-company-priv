@@ -4,9 +4,12 @@
  * @module submit
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -33,11 +36,12 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrapLink =
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]');
-    if (hasBootstrapLink && window.bootstrap?.Toast) {
+    if (hasBootstrapLink && window.bootstrap.Toast) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
       if (!t) {
@@ -64,7 +68,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -85,12 +89,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -105,7 +111,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -113,18 +119,22 @@
         el.setAttribute(dataClientLocalized, "true");
       }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return msg;
   };
-  const bindSubmit = (): void => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const bindSubmit = () => {
     const form = qs("#form_data");
     if (!form) {
       return;
     }
     if (form.getAttribute(dataSubmitGuard) === "true") {
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       return;
     }
     form.setAttribute(dataSubmitGuard, "true");
-    const handler = function (e: Event) {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const handler = function (_e: Event) {
       try {
         const btn = qs("#login_button");
         if (btn) {

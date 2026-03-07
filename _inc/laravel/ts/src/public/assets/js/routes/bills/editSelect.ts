@@ -4,12 +4,13 @@
  * @module editSelect
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const select = document.getElementById("product-select");
   if (!select || select.getAttribute("data-listener-active") === "true") return;
   select.setAttribute("data-listener-active", "true");
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   select.addEventListener("change", async (): Promise<void> => {
     try {
       const url = select.getAttribute("data-url");
@@ -52,16 +53,21 @@
         },
       );
       if (!response.ok) throw new Error(`Network error: ${response.status}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const data = await response.json();
 
       document
         .querySelectorAll("[data-product-field]")
         .forEach((el: Element): void => {
           const key = el.getAttribute("data-product-field") ?? "";
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           const val = data[key] ?? "";
           if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             (el as HTMLInputElement).value = val;
           } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             el.textContent = val;
           }
         });

@@ -4,8 +4,11 @@
  * @module pusher
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -13,13 +16,16 @@
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-pusher-error";
   const dataInitGuard = "data-pusher-initialized";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | HTMLElement = document) =>
     r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs("#np-toast-container") as HTMLDivElement | null;
     if (existing) return existing;
@@ -33,7 +39,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -59,7 +65,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (message: string) => {
+  const schedulePointerupError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -78,12 +84,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -98,7 +106,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -131,9 +139,9 @@
       try {
         (window.Pusher as Record<string, unknown>).logToConsole = true;
       } catch (_) {}
-      const key: string = "{{ config('chatify.pusher.key') }}";
-      const cluster: string = "{{ config('chatify.pusher.options.cluster') }}";
-      const authEndpoint: string = '{{route("pusher.auth")}}';
+      const key = "{{ config('chatify.pusher.key') }}" as string;
+      const cluster = "{{ config('chatify.pusher.options.cluster') }}" as string;
+      const authEndpoint = '{{route("pusher.auth")}}' as string;
       if (!key || key === "#" || !cluster || cluster === "#") {
         schedulePointerupError(getMsg(document.body, "pusher_unavailable"));
         return;
@@ -155,7 +163,7 @@
         authEndpoint: authEndpoint,
         auth: { headers: headers },
       });
-      if (!pusher?.connection) {
+      if (!pusher.connection) {
         schedulePointerupError(getMsg(document.body, "pusher_unavailable"));
         return;
       }

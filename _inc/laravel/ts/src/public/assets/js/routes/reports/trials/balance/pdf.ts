@@ -4,15 +4,17 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (function (): void {
-  const $ = window.jQuery as JQueryStatic;
+  const $ = window.jQuery!;
   function qs<T extends Element = Element>(
     s: string,
     r: Document | Element = document,
   ): T | null {
     return r.querySelector<T>(s);
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qsa = (s: string, r: Document | Element = document) =>
     Array.from(r.querySelectorAll(s));
   const errFb = "# ERROR";
@@ -63,7 +65,7 @@
   }
   const ensureToastContainer = (): HTMLElement => {
     const id = "np-toast-container";
-    let c = qs<HTMLElement>("#" + id);
+    const c = qs<HTMLElement>("#" + id);
     if (c) {
       return c;
     }
@@ -77,11 +79,11 @@
     document.body.appendChild(div);
     return div;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       const tid = "np-toast";
@@ -110,7 +112,7 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string) {
+  function scheduleInteractiveError(message: string): void{
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -188,8 +190,8 @@
     doc.body.appendChild(wrapper);
     const done = (): void => {
       try {
-        iframe?.contentWindow?.focus?.();
-        iframe?.contentWindow?.print?.();
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
       } catch (_) {
         scheduleInteractiveError(getMsg(src, "print_unavailable"));
       }

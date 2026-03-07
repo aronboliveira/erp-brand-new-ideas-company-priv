@@ -4,7 +4,7 @@
  * @module pdf
  */
 
-/* global bootstrap */
+
 // assets/js/routes/purchases/pdf.js
 ((): void => {
   try {

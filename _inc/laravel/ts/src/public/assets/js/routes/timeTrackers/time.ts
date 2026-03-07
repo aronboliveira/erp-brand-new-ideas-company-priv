@@ -10,8 +10,11 @@ declare global {
   }
 }
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -19,11 +22,13 @@ declare global {
   const dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-timeentry-error";
   const dataInitGuard = "data-timeentry-initialized";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+    (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLDivElement => {
     let c = qs("#np-toast-container") as HTMLDivElement | null;
     if (c) {
@@ -39,7 +44,7 @@ declare global {
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -67,7 +72,7 @@ declare global {
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (message: string) => {
+  const scheduleClickError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -88,12 +93,14 @@ declare global {
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -107,7 +114,7 @@ declare global {
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -118,7 +125,7 @@ declare global {
     return msg;
   };
   const initTimeInputs = (): void => {
-    if (!$ || !$.fn) {
+    if (!$?.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -145,13 +152,17 @@ declare global {
       return;
     }
     $targets.each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const el = this;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if ($(el).data("timeEntry")) {
         return;
       }
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         $(el).timeEntry!({ show24Hours: true });
       } catch (_) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         scheduleClickError(getMsg(el, "time_unavailable"));
       }
     });

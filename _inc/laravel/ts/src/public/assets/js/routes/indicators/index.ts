@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const showGuard = (msg: string) => {
+    const showGuard = (msg: string): void=> {
       const text =
         msg ??
         "Requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -39,7 +39,7 @@
       }
     };
 
-    const bindLinkGuard = (a: Element) => {
+    const bindLinkGuard = (a: Element): void=> {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
@@ -54,7 +54,7 @@
       });
     };
 
-    const bindFormGuard = (fm: Element) => {
+    const bindFormGuard = (fm: Element): void=> {
       if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
       fm.setAttribute("data-submit-guarded", "true");
       fm.addEventListener("submit", (e: Event) => {

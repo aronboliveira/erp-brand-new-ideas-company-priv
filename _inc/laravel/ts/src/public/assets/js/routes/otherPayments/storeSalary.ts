@@ -6,7 +6,7 @@
 
 /* global bootstrap */
 ((): void => {
-  const attachGuard = (el: HTMLElement | null, eventType: string) => {
+  const attachGuard = (el: HTMLElement | null, eventType: string): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener(eventType, event => {

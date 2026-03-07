@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("travel-create-link");
@@ -37,7 +37,7 @@
           document.body.appendChild(container);
         }
 
-        if (window.bootstrap?.Toast) {
+        if (window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");

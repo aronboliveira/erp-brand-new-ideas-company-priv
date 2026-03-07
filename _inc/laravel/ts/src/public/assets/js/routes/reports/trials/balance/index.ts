@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const form = document.getElementById("report_trial_balance");

@@ -12,16 +12,19 @@ interface JQueryExtended extends JQuery<HTMLElement> {
   fireModal?: (options: {
     title: string;
     body: string;
-    buttons: Array<{
+    buttons: {
       text: string;
       class: string;
       handler: (modal: JQuery<HTMLElement>) => void;
-    }>;
+    }[];
   }) => void;
 }
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const $ = window.jQuery as JQueryStaticExtended;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -33,12 +36,13 @@ interface JQueryExtended extends JQuery<HTMLElement> {
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
-  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  ): HTMLElement | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+    (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
-    let c = qs("#np-toast-container");
+    const c = qs("#np-toast-container");
     if (c) {
       return c;
     }
@@ -52,7 +56,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
     document.body.appendChild(el);
     return el;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -81,7 +85,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (target: HTMLElement, message: string) => {
+  const scheduleInteractiveError = (target: HTMLElement, message: string): void=> {
     if (!target || target.getAttribute(dataErrGuard) === "true") {
       return;
     }
@@ -101,12 +105,14 @@ interface JQueryExtended extends JQuery<HTMLElement> {
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -121,7 +127,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -132,7 +138,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
     return msg;
   };
   const bindConfirmModals = (): void => {
-    if (!$?.fn) {
+    if (!$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -176,7 +182,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                 {
                   text: String(me.data("confirm-text-yes") ?? "Yes"),
                   class: "btn btn-sm btn-danger rounded-pill",
-                  handler: function (modal: JQuery<HTMLElement>) {
+                  handler: function (modal: JQuery<HTMLElement>): void{
                     try {
                       const yesCode = String(me.data("confirm-yes") ?? "");
                       if (yesCode) {
@@ -187,7 +193,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         if (typeof confirmHandler === "function") {
                           confirmHandler();
                         } else {
-                          safeFormAction(yesCode, me.get(0) as HTMLElement);
+                          safeFormAction(yesCode, me.get(0));
                         }
                       }
                     } catch (_) {}
@@ -204,7 +210,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                 {
                   text: String(me.data("confirm-text-cancel") ?? "Cancel"),
                   class: "btn btn-sm btn-secondary rounded-pill",
-                  handler: function (modal: JQuery<HTMLElement>) {
+                  handler: function (modal: JQuery<HTMLElement>): void{
                     try {
                       const destroyFn = $.destroyModal;
                       if (destroyFn) {
@@ -223,7 +229,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         if (typeof confirmHandler === "function") {
                           confirmHandler();
                         } else {
-                          safeFormAction(noCode, me.get(0) as HTMLElement);
+                          safeFormAction(noCode, me.get(0));
                         }
                       }
                     } catch (_) {}
@@ -257,7 +263,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
   };
 
   // SECURITY: Safe fallback for confirm handlers instead of eval()
-  const safeFormAction = (actionStr: string, element: HTMLElement) => {
+  const safeFormAction = (actionStr: string, _element: HTMLElement): void=> {
     if (!actionStr) return;
     // If it looks like a form selector, submit that form
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {

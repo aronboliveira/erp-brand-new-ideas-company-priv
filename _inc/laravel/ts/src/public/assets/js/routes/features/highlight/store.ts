@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("highlight-feature-store-form");
   if (form) {

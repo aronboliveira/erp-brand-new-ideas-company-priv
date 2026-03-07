@@ -4,7 +4,7 @@
  * @module forgot
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.querySelector<HTMLElement>(".auth-forgot-link");
@@ -44,7 +44,7 @@
         const bsLink = document.querySelector('link[href*="bootstrap"]');
         if (
           bsLink &&
-          window.bootstrap?.Toast
+          window.bootstrap.Toast
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";
@@ -68,7 +68,9 @@
             )
               console.error(
                 "[assets/js/routes/auth/forgotPasswordLink.js] Bootstrap toast instantiation error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error"
               );
             alert(msg);
@@ -85,7 +87,9 @@
         )
           console.error(
             "[assets/js/routes/auth/forgotPasswordLink.js] Click handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error"
           );
       }
@@ -97,7 +101,9 @@
     )
       console.error(
         "[assets/js/routes/auth/forgotPasswordLink.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error"
       );
   }

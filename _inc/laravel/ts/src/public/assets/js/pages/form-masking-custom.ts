@@ -6,7 +6,7 @@
 
 "use strict";
 
-declare var IMask: (el: Element | null, options: unknown) => unknown;
+declare let IMask: (el: Element | null, options: unknown) => unknown;
 const maskDate = IMask(document.querySelector<HTMLElement>(".date"), {
   mask: "00/00/0000",
 });

@@ -4,18 +4,22 @@
  * @module purchase
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
-  const $ = window.jQuery as JQueryStatic;
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const DATA_LISTENER_ADDED = "data-listener-added";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
@@ -30,17 +34,17 @@
       const key = msgKey;
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[key] ||
         errFb;
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
     return msg;
   };
-  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -92,7 +96,7 @@
       document.addEventListener(ev, handler, { once: true });
     }
   };
-  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -108,10 +112,12 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
   const routeGuard = (
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     element: HTMLElement | undefined,
     alt: string | undefined,
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
-    const url = element?.getAttribute?.("data-url");
+    const url = element?.getAttribute("data-url");
     const href =
       (element as HTMLFormElement | undefined)?.action ??
       (element as HTMLAnchorElement | undefined)?.href;

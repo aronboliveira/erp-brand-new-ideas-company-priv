@@ -4,12 +4,12 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("plan-update-form");
   if (!form) return;
 
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =

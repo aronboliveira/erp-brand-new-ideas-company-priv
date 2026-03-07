@@ -4,7 +4,7 @@
  * @module reset
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const host = document.documentElement;

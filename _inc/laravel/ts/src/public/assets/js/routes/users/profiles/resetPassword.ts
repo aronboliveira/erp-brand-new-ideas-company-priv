@@ -4,7 +4,7 @@
  * @module resetPassword
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const forms = document.querySelectorAll(
@@ -38,7 +38,7 @@
 
         const hasBS =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (hasBS) {
           const toast = document.createElement("div");
           toast.className = "toast";

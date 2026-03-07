@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("edit_transfer");

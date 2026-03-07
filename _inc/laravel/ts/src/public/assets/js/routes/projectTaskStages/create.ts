@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   try {
     const el = document.getElementById("{{ $taskStageCreateAnchorId }}");

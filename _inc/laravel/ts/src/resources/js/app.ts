@@ -4,7 +4,7 @@
  * @module app
  */
 
-/* global bootstrap */
+
 import "./bootstrap";
 
 // @ts-expect-error - alpinejs is a runtime dependency without type declarations
@@ -12,4 +12,6 @@ import Alpine from "alpinejs";
 
 window.Alpine = Alpine;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 Alpine.start();

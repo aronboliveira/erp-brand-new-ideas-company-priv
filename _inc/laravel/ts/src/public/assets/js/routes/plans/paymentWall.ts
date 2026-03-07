@@ -4,23 +4,27 @@
  * @module paymentWall
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
+  const _dataSvLocalized = "data-sv-localized";
   const dataErrGuard = "data-pw-error";
   const dataBindGuard = "data-pw-bound";
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
@@ -34,7 +38,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -63,7 +67,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string) => {
+  const schedulePointerupError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -82,14 +86,16 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, key: string) => {
     const err = errFb;
     const dataClient = dataClientLocalized;
     const dataGuard = dataGuardMsg;
     if (
-      el?.getAttribute?.("data-sv-localized") === "true" ||
-      el?.getAttribute?.(dataClient) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClient) === "true"
     ) {
       return el.getAttribute(dataGuard) || err;
     }
@@ -104,15 +110,17 @@
     const msgKey = key;
     const msg =
       window.translations?.[lang]?.[msgKey] ||
-      el?.getAttribute?.(dataGuard) ||
+      el.getAttribute(dataGuard) ||
       window.translations?.en?.[msgKey] ||
       err;
     if (msg !== err && el) {
       el.setAttribute(dataGuard, msg);
       el.setAttribute(dataClient, "true");
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     return msg;
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const verifyRoute = (candidate: string) => {
     const a = document.createElement("a");
     a.setAttribute("data-url", candidate ?? "");
@@ -153,11 +161,9 @@
         schedulePointerupError(localize(document.body, "route_unavailable"));
         return;
       }
-      const Brick = BrickCtor as unknown as {
-        new (
+      const Brick = BrickCtor as unknown as new (
           o: Record<string, unknown>,
-        ): Record<string, (...a: unknown[]) => void>;
-      };
+        ) => Record<string, (...a: unknown[]) => void>;
       const brick = new Brick({
         public_key: "{{ $admin_payment_setting[paymentwall_public_key'] }}",
         amount: "{{$plan->price }}",
@@ -174,7 +180,7 @@
       });
       const toErr = '{{route("error.plan.show",1)}}';
       const toOk = '{{route("error.plan.show",2)}}';
-      const go = (target: string) => {
+      const go = (target: string): void=> {
         if (!verifyRoute(target)) {
           schedulePointerupError(
             localize(document.body, "payment_redirect_unavailable"),
@@ -186,7 +192,7 @@
       brick.showPaymentForm(
         function (data: unknown) {
           try {
-            const f = Number((data as { flag?: unknown })?.flag ?? 0);
+            const f = Number((data as { flag?: unknown }).flag ?? 0);
             go(f === 1 ? toErr : toOk);
           } catch (_) {
             schedulePointerupError(
@@ -196,7 +202,7 @@
         },
         function (errors: unknown) {
           try {
-            const f = Number((errors as { flag?: unknown })?.flag ?? 0);
+            const f = Number((errors as { flag?: unknown }).flag ?? 0);
             go(f === 1 ? toErr : toOk);
           } catch (_) {
             schedulePointerupError(

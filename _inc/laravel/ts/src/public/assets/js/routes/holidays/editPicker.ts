@@ -4,13 +4,16 @@
  * @module editPicker
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const ERR_FB = "# ERROR";
   const CLIENT_FLAG = "data-client-localized";
   const GUARD_MSG = "data-guard-msg";
   const LANG_KEY = "erp-np-lang";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
     let msg = ERR_FB;
     if (el.getAttribute(CLIENT_FLAG) === "true") {
@@ -36,7 +39,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -88,6 +91,7 @@
       });
     } catch (e) {
       const key =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         e.message === "datepicker_plugin_unavailable"
           ? "datepicker_plugin_unavailable"
           : "datepicker_init_failed";

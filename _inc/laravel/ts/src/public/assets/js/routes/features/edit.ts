@@ -4,7 +4,7 @@
  * @module edit
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("feature-update-form");
   if (!form) return;

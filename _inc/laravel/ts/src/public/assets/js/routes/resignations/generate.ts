@@ -4,7 +4,7 @@
  * @module generate
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const el = document.getElementById("resignation-generate-link");

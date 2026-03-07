@@ -4,7 +4,7 @@
  * @module edit
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const host = document.documentElement;
@@ -16,7 +16,7 @@
       function (e: Event) {
         try {
           const target = e.target as Element | null;
-          const a = target?.closest?.("a.edit-purchase") ?? null;
+          const a = target?.closest("a.edit-purchase") ?? null;
           if (!a) return;
           const href = a.getAttribute("href") ?? "#";
           const url = (a.getAttribute("data-url") || href) ?? "#";
@@ -77,7 +77,7 @@
       function (e: Event) {
         try {
           const target = e.target as Element | null;
-          const a = target?.closest?.("a.edit-purchase") ?? null;
+          const a = target?.closest("a.edit-purchase") ?? null;
           if (!a) return;
           const href = a.getAttribute("href") ?? "#";
           const url = (a.getAttribute("data-url") || href) ?? "#";

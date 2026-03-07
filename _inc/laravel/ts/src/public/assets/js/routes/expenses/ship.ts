@@ -4,7 +4,8 @@
  * @module ship
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (function (): void {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -16,11 +17,13 @@
     s: string,
     r: Document | Element = document,
   ): T | null => r.querySelector<T>(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     let c = qs<HTMLDivElement>("#np-toast-container");
     if (c) return c;
@@ -34,7 +37,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showToast = (message: string) => {
+  const showToast = (message: string): void=> {
     const container = ensureToastContainer();
     let t = qs<HTMLDivElement>("#np-toast", container);
     if (!t) {
@@ -52,7 +55,7 @@
     if (body) body.textContent = message ?? errFb;
     new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
   };
-  const notifyError = (host: HTMLElement, msg: string) => {
+  const notifyError = (host: HTMLElement, msg: string): void=> {
     if (!host || host.getAttribute(dataArmed) === "true") return;
     host.setAttribute(dataArmed, "true");
     const handler = (): void => {
@@ -100,12 +103,12 @@
     }
     return msg;
   };
-  const bindOnce = (el: HTMLElement | null) => {
+  const bindOnce = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute(dataBound) === "true") return;
     el.setAttribute(dataBound, "true");
     const handler = function (): void {
       const $ = window.jQuery;
-      if (!$ || !$.ajax) {
+      if (!$?.ajax) {
         try {
           if (
             window.location.hostname === "localhost" ||
@@ -118,7 +121,7 @@
       }
       const url = el.getAttribute("data-url");
       let href: string | null = null;
-      const isAnchor = el.tagName?.toLowerCase() === "a";
+      const isAnchor = el.tagName.toLowerCase() === "a";
       if (isAnchor) href = el.getAttribute("href");
       else if ("form" in el && el.form instanceof HTMLFormElement)
         href = el.form.getAttribute("action");

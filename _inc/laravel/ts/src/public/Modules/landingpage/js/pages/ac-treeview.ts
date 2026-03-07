@@ -15,13 +15,13 @@ if (main) {
     contextmenu: [
       {
         label: "Hey",
-        action: function (id: string | number) {
+        action: function (id: string | number): void{
           alert("Hey " + id);
         },
       },
       {
         label: "Blah",
-        action: function (id: string | number) {
+        action: function (id: string | number): void{
           alert("Blah " + id);
         },
       },

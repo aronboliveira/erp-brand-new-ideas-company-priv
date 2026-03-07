@@ -4,9 +4,9 @@
  * @module generateEdit
  */
 
-/* global bootstrap */
+
 ((): void => {
-  const toast = (m: string) => {
+  const toast = (m: string): void=> {
     try {
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&
@@ -38,7 +38,7 @@
   };
 
   const selector = '[data-ajax-popup-over="true"][data-url]';
-  const bind = (a: Element) => {
+  const bind = (a: Element): void=> {
     if (a.getAttribute("data-gen-guarded") === "true") return;
     a.setAttribute("data-gen-guarded", "true");
     a.addEventListener("click", (e: Event) => {

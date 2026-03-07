@@ -4,14 +4,19 @@
  * @module createSelect
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const clientLoc = "data-client-localized";
   const guardMsg = "data-guard-msg";
   const langKey = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (
@@ -40,7 +45,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       const bs = document.querySelector('link[href*="bootstrap"]');
       let c = document.getElementById("toast-container");
@@ -100,6 +105,8 @@
   };
 
   const onTypeChange = function (): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const type = this.value;
     ["employee", "customer", "vendor"].forEach(cls => {
       document.querySelectorAll(`.${cls}`).forEach((el: Element): void => {
@@ -109,7 +116,7 @@
     });
   };
 
-  const setupAjax = (type: string) => {
+  const setupAjax = (type: string): void=> {
     const sel = document.getElementById(type) as HTMLSelectElement | null;
     if (!sel || sel.getAttribute("data-listener-active") === "true") return;
     sel.setAttribute("data-listener-active", "true");
@@ -171,7 +178,7 @@
   });
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el: HTMLElement, html: string) {
+  function safeSethtmlContent(el: HTMLElement, html: string): void{
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");

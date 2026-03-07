@@ -6,13 +6,13 @@
 
 /* global bootstrap */
 ((): void => {
-  console.log("Loaded: projectReport.js");
+  console.info("Loaded: projectReport.js");
   const listenerAttr = "data-project-report-index-listener-active";
   const el = document.getElementById("project-report-index-link");
   if (!el || el.getAttribute(listenerAttr) === "true") return;
   el.setAttribute(listenerAttr, "true");
   el.addEventListener("click", event => {
-    console.log("Clicked: project-report-index-link");
+    console.info("Clicked: project-report-index-link");
     try {
       const url = el.getAttribute("data-url");
       const href = (el as HTMLAnchorElement).href
@@ -51,7 +51,7 @@
     } catch (error) {}
   });
   const observer = new MutationObserver((): void => {
-    console.log("MutationObserver triggered for project-report-index-link");
+    console.info("MutationObserver triggered for project-report-index-link");
     if (!document.getElementById("project-report-index-link"))
       observer.disconnect();
   });

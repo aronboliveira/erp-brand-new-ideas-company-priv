@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("training-type-create-link");
@@ -41,7 +41,7 @@
         const bsLink = document.querySelector('link[href*="bootstrap"]');
         if (
           bsLink &&
-          window.bootstrap?.Toast
+          window.bootstrap.Toast
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";

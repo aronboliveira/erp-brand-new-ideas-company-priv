@@ -4,7 +4,7 @@
  * @module termination
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const l = document.getElementById("termination-generate-link");

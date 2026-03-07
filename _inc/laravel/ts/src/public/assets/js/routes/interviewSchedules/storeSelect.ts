@@ -4,14 +4,13 @@
  * @module storeSelect
  */
 
-/* global bootstrap, $, jQuery */
 ((): void => {
   const dataListenerAdded = "data-listener-added";
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
 
-  const getLocalizedMessage = (el: HTMLElement, msgKey: string) => {
+  const getLocalizedMessage = (el: HTMLElement, msgKey: string): string=> {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -62,7 +61,7 @@
     const url = el.getAttribute("data-url");
     const href =
       (el as HTMLAnchorElement).href
-        ?.replace(window.location.origin, "")
+        .replace(window.location.origin, "")
         .replace(window.location.pathname, "") ?? "";
     if ((!url || url === "#") && (!href || href === "#")) {
       return;

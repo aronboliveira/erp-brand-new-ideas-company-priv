@@ -4,9 +4,11 @@
  * @module gridShow
  */
 
-/* global bootstrap */
-(function (): void {
-  function toast(msg: string | null) {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  function toast(msg: string | null): void{
     const m =
       msg ??
       "Requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -36,7 +38,9 @@
       alert(m);
     }
   }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function disabledUrl(a: Element) {
     const href = (a.getAttribute("href") ?? "").trim();
     const url = (a.getAttribute("data-url") || href || "").trim();
@@ -49,7 +53,7 @@
     }
   }
 
-  function guard(el: HTMLElement) {
+  function guard(el: HTMLElement): void{
     if (!el || el.dataset.guardBound === "1") return;
     el.dataset.guardBound = "1";
     el.addEventListener("click", function (e: Event) {
@@ -66,7 +70,7 @@
     });
   }
 
-  function bind() {
+  function bind(): void{
     document.querySelectorAll("a.project-task-index-link").forEach(guard);
     document
       .querySelectorAll<HTMLElement>(".card-progress")
@@ -100,19 +104,22 @@
       window.bootstrap &&
       document.querySelector('[data-bs-toggle="tooltip"]')
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       [].slice
         .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .forEach(function (el: HTMLElement) {
           window.bootstrap.Tooltip.getOrCreateInstance(el);
         });
     }
   }
 
-  function observe() {
+  function observe(): void{
     if (!("MutationObserver" in window)) return;
     const mo = new MutationObserver(function (muts) {
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < muts.length; i++) {
-        if (muts[i].addedNodes?.length) {
+        if (muts[i].addedNodes.length) {
           bind();
           break;
         }
@@ -121,7 +128,7 @@
     mo.observe(document.body, { childList: true, subtree: true });
   }
 
-  function init() {
+  function init(): void{
     bind();
     observe();
   }

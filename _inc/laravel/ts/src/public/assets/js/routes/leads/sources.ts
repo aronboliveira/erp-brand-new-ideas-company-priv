@@ -4,8 +4,11 @@
  * @module sources
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const $ = window.jQuery;
   if (!$) {
     try {
@@ -26,9 +29,12 @@
   const FORM_ID = "leads-sources-form";
   const MSG_KEY = "leads_sources_update_route_unavailable";
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement) => {
     let msg = ERR_FB;
     if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
@@ -55,7 +61,7 @@
     return msg;
   };
 
-  const showError = (el: HTMLElement) => {
+  const showError = (el: HTMLElement): void=> {
     const msg = getMsg(el);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-leads-sources");
@@ -84,12 +90,12 @@
 
   const handlersPointer = new WeakMap();
 
-  const bindFormPointerGuard = (form: HTMLFormElement) => {
+  const bindFormPointerGuard = (form: HTMLFormElement): void=> {
     if (form.getAttribute(DPL) === "true") return;
     form.setAttribute(DPL, "true");
     const $btns = $(form).find('button[type="submit"], input[type="submit"]');
     if (!$btns.length) return;
-    const h = (e: Event) => {
+    const h = (e: Event): void=> {
       try {
         const url = form.getAttribute("data-url");
         const action = form.getAttribute("action");
@@ -102,16 +108,19 @@
     };
     handlersPointer.set(form, h);
     $btns.each(function (): void {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(this).on("pointerup", h);
     });
   };
 
-  const unbindFormPointerGuard = (form: HTMLFormElement) => {
+  const unbindFormPointerGuard = (form: HTMLFormElement): void=> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersPointer.get(form);
     if (h) {
       $(form)
         .find('button[type="submit"], input[type="submit"]')
         .each(function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).off("pointerup", h);
         });
       handlersPointer.delete(form);
@@ -119,7 +128,7 @@
     form.removeAttribute(DPL);
   };
 
-  const scan = (root: Document | Element) => {
+  const scan = (root: Document | Element): void=> {
     const form = root.querySelector<HTMLFormElement>("#" + FORM_ID);
     if (form) bindFormPointerGuard(form);
   };

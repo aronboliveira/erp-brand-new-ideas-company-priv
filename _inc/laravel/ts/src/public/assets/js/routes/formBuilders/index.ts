@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const showGuard = (msg: string) => {
+    const showGuard = (msg: string): void=> {
       const hasBootstrap = !!(
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
@@ -40,7 +40,7 @@
         );
       }
     };
-    const bindGuard = (a: Element | null) => {
+    const bindGuard = (a: Element | null): void=> {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {

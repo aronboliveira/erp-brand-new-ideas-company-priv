@@ -74,7 +74,7 @@
           return;
         }
         l.setAttribute("data-listener-active", "true");
-        l.addEventListener("click", (e: Event) => {
+        l.addEventListener("click", (_e: Event) => {
           try {
             const url = (l.getAttribute("data-url") ?? "#").trim();
             if (url !== "#") {

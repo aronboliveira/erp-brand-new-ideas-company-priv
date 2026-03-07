@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       const text =
         msg ??
         "Update route is unavailable. Please contact technical support or your domain administrator.";
@@ -71,9 +71,12 @@
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const els = [].slice.call(
         document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       els.forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);

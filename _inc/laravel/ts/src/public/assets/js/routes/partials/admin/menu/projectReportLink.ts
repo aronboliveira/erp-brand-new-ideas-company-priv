@@ -30,19 +30,19 @@
           document.body.appendChild(container);
         }
         if (bootstrapLink && window.bootstrap) {
-          console.log(container);
+          console.info(container);
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
           toastEl.setAttribute("role", "alert");
           toastEl.setAttribute("aria-live", "assertive");
           toastEl.setAttribute("aria-atomic", "true");
-          console.log(toastEl);
+          console.info(toastEl);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
           toastEl.appendChild(body);
           container.appendChild(toastEl);
-          console.log(body);
+          console.info(body);
           bootstrap.Toast.getOrCreateInstance(toastEl).show();
         } else {
           alert(msg);
@@ -50,7 +50,7 @@
         el.setAttribute("data-failed-route", "true");
       }
     } catch (error) {
-      console.log(error);
+      console.info(error);
     }
   });
   const observer = new MutationObserver((): void => {

@@ -4,21 +4,25 @@
  * @module print
  */
 
-/* global bootstrap, $, jQuery */
+
 declare const html2pdf: () => {
   set: (opt: unknown) => { from: (el: HTMLElement) => { save: () => void } };
 };
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const DATA_LISTENER_ADDED = "data-listener-added";
   const ERR_FB = "# ERROR";
   const DATA_CLIENT_LOCALIZED = "data-client-localized";
   const DATA_GUARD_MSG = "data-guard-msg";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (el: HTMLElement, key: string) => {
     let msg = ERR_FB;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(DATA_CLIENT_LOCALIZED) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(DATA_CLIENT_LOCALIZED) === "true"
     ) {
       msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
     } else {
@@ -32,18 +36,18 @@ declare const html2pdf: () => {
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[key] ||
-        el?.getAttribute(DATA_GUARD_MSG) ||
+        el.getAttribute(DATA_GUARD_MSG) ||
         window.translations?.en?.[key] ||
         ERR_FB;
       if (msg !== ERR_FB) {
-        el?.setAttribute(DATA_GUARD_MSG, msg);
-        el?.setAttribute(DATA_CLIENT_LOCALIZED, "true");
+        el.setAttribute(DATA_GUARD_MSG, msg);
+        el.setAttribute(DATA_CLIENT_LOCALIZED, "true");
       }
     }
     return msg;
   };
 
-  const handleErrorDisplay = (el: HTMLElement, key: string) => {
+  const handleErrorDisplay = (el: HTMLElement, key: string): void=> {
     const message = getLocalizedMessage(el ?? document.body, key);
     const hasBootstrap =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -81,7 +85,7 @@ declare const html2pdf: () => {
     }
   };
 
-  const attachPointerGuard = (el: HTMLElement, key: string) => {
+  const attachPointerGuard = (el: HTMLElement, key: string): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const onceHandler = (): void => {
       handleErrorDisplay(el, key);
@@ -171,7 +175,7 @@ declare const html2pdf: () => {
         });
       } catch {
         attachPointerGuard(
-          $table.get(0) as HTMLElement,
+          $table.get(0),
           "datatable_unavailable",
         );
       }

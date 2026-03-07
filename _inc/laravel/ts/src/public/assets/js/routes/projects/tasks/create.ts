@@ -4,7 +4,8 @@
  * @module create
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   try {
     const f = document.getElementById("create-project-task-form");
@@ -38,7 +39,7 @@
           return;
         wrap.setAttribute("data-listener-active", "true");
 
-        wrap.addEventListener("click", (e: Event) => {
+        wrap.addEventListener("click", (_e: Event) => {
           try {
             const id = wrap.getAttribute("data-id") ?? "";
             if (id === "") return;
@@ -73,7 +74,9 @@
             )
               console.error(
                 "[assets/js/routes/projects/tasks/create.js] add_usr click error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error",
               );
           }
@@ -85,7 +88,9 @@
         )
           console.error(
             "[assets/js/routes/projects/tasks/create.js] bind add_usr error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
       }
@@ -129,7 +134,7 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (bsLink && window.bootstrap?.Toast) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -152,7 +157,9 @@
             )
               console.error(
                 "[assets/js/routes/projects/tasks/create.js] Bootstrap toast instantiation error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error",
               );
             alert(msg);
@@ -169,7 +176,9 @@
         )
           console.error(
             "[assets/js/routes/projects/tasks/create.js] Submit handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
       }
@@ -181,7 +190,9 @@
     )
       console.error(
         "[assets/js/routes/projects/tasks/create.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error",
       );
   }

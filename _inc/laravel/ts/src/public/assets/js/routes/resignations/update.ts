@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const form = document.getElementById("edit_resignation");

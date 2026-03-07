@@ -4,9 +4,9 @@
  * @module info
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
-  const bindGuard = (id: string) => {
+  const bindGuard = (id: string): void=> {
     const listenerAttr = `data-${id}-listener-active`;
     const el = document.getElementById(id);
     if (!el || el.getAttribute(listenerAttr) === "true") return;

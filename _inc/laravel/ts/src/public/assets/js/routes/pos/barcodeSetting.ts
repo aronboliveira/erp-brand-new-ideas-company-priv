@@ -4,14 +4,19 @@
  * @module barcodeSetting
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const L = "data-guard-listener";
   const DCL = "data-client-localized";
   const DGM = "data-guard-msg";
   const DSL = "data-sv-localized";
   const ERR = "# ERROR";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const map = new WeakMap();
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function hasBootstrapCss() {
     try {
       return !!document.querySelector(
@@ -21,9 +26,9 @@
       return false;
     }
   }
-  function toast(msg: string) {
+  function toast(msg: string): void{
     try {
-      if (hasBootstrapCss() && window.bootstrap?.Toast) {
+      if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -46,8 +51,10 @@
       }
     } catch (_) {
       alert(msg);
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getMsg(el: HTMLElement, key: string) {
     try {
       let msg = ERR;
@@ -62,9 +69,10 @@
           .toLowerCase()
           .replace(/_/g, "-");
         lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dict = window.translations || {};
         msg =
-          dict?.[lang]?.[key] || el.getAttribute(DGM) || dict?.en?.[key] || ERR;
+          dict[lang][key] || el.getAttribute(DGM) || dict.en[key] || ERR;
         if (msg !== ERR) {
           el.setAttribute(DGM, msg);
           el.setAttribute(DCL, "true");
@@ -75,11 +83,11 @@
       return ERR;
     }
   }
-  function bindForm($f: JQuery<HTMLFormElement>) {
+  function bindForm($f: JQuery<HTMLFormElement>): void{
     const f = $f.get(0);
     if (!f || f.getAttribute(L) === "true") return;
     f.setAttribute(L, "true");
-    const handler = function (e: Event) {
+    const handler = function (e: Event): void{
       try {
         const url = f.getAttribute("data-url");
         const href = f.action;
@@ -95,7 +103,7 @@
     $f.on("submit.formGuard", handler);
     map.set(f, handler);
   }
-  function unbindForm(f: HTMLFormElement) {
+  function unbindForm(f: HTMLFormElement): void{
     try {
       if (!f) return;
       if (!window.jQuery) return;
@@ -105,7 +113,7 @@
       map.delete(f);
     } catch (_) {}
   }
-  function observeRemoval(f: HTMLFormElement) {
+  function observeRemoval(f: HTMLFormElement): void{
     try {
       const obs = new MutationObserver(function (): void {
         if (!document.body.contains(f)) {
@@ -132,9 +140,10 @@
       try {
         const $forms = $("form[data-guard-msg], form[data-url]");
         $forms.each(function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const $f = $(this) as JQuery<HTMLFormElement>;
           bindForm($f);
-          observeRemoval($f.get(0) as HTMLFormElement);
+          observeRemoval($f.get(0));
         });
       } catch (_) {}
     });
@@ -150,11 +159,11 @@
   (function (): void {
     const L = "data-listener-active";
     const NS = ".barcodeSetting";
-    function bindSelect($s: JQuery<HTMLSelectElement>) {
+    function bindSelect($s: JQuery<HTMLSelectElement>): void{
       const el = $s.get(0);
       if (!el || el.getAttribute(L) === "true") return;
       el.setAttribute(L, "true");
-      if (!el.value && el.options?.length) el.selectedIndex = 0;
+      if (!el.value && el.options.length) el.selectedIndex = 0;
       $s.on("change" + NS, function (): void {
         try {
           const v = $s.val();
@@ -163,7 +172,7 @@
         } catch (_) {}
       });
     }
-    function unbindSelect(el: HTMLSelectElement) {
+    function unbindSelect(el: HTMLSelectElement): void{
       try {
         if (!el) return;
         if (!window.jQuery) return;
@@ -172,7 +181,7 @@
         el.removeAttribute(L);
       } catch (_) {}
     }
-    function observeRemoval(nodeList: HTMLSelectElement[]) {
+    function observeRemoval(nodeList: HTMLSelectElement[]): void{
       try {
         const obs = new MutationObserver(function (): void {
           nodeList.forEach(function (el: HTMLSelectElement) {

@@ -4,7 +4,7 @@
  * @module generate
  */
 
-/* global bootstrap */
+
 // assets/js/routes/leaves/generate.js
 ((): void => {
   try {
@@ -16,11 +16,11 @@
     )
       return;
     l.setAttribute("data-ai-listener", "true");
-    const toast = (msg: string) => {
+    const toast = (msg: string): void=> {
       try {
         const linkEl = document.querySelector('link[href*="bootstrap"]');
         const hasBootstrap =
-          !!linkEl && window.bootstrap?.Toast;
+          !!linkEl && window.bootstrap.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");

@@ -4,8 +4,11 @@
  * @module report
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const $ = window.jQuery;
   if (!$) {
     try {
@@ -23,8 +26,11 @@
   const DSL = "data-sv-localized";
   const DLA = "data-listener-active";
   const MSG_KEY = "pos_route_unavailable";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement | null) => {
     let msg = ERR_FB;
     if (!el) return msg;
@@ -51,7 +57,7 @@
     }
     return msg;
   };
-  const showError = (el: HTMLElement | null) => {
+  const showError = (el: HTMLElement | null): void=> {
     const msg = getMsg(el);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-pos-guard");
@@ -78,7 +84,7 @@
     }
   };
   const handlers = new WeakMap();
-  const onClick = (el: HTMLElement) => (e: Event) => {
+  const onClick = (el: HTMLElement) => (e: Event): void=> {
     try {
       const url = el.getAttribute("data-url");
       const href = el.getAttribute("href");
@@ -88,23 +94,26 @@
       }
     } catch (_) {}
   };
-  const bind = (el: HTMLElement | null) => {
+  const bind = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
     const h = onClick(el);
     handlers.set(el, h);
     $(el as Element).on("click", h);
   };
-  const unbind = (el: HTMLElement | null) => {
+  const unbind = (el: HTMLElement | null): void=> {
     if (!el) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlers.get(el);
     if (h) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(el as Element).off("click", h);
       handlers.delete(el);
     }
     el.removeAttribute(DLA);
   };
-  const scan = (root?: Element | Document) => {
+  const scan = (root?: Element | Document): void=> {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const r = root || document;
     const list = r.querySelectorAll<HTMLElement>(
       "a[" + DGM + "]:not([" + DLA + '="true"])',
@@ -131,8 +140,8 @@
         m.removedNodes.forEach(n => {
           if (n.nodeType === 1) {
             const el = n as HTMLElement;
-            if (el.hasAttribute?.(DLA)) unbind(el);
-            el.querySelectorAll?.<HTMLElement>("a[" + DLA + "]").forEach(
+            if (el.hasAttribute(DLA)) unbind(el);
+            el.querySelectorAll<HTMLElement>("a[" + DLA + "]").forEach(
               unbind,
             );
           }
@@ -161,6 +170,7 @@
         );
         if (!$t.length) return;
         $t.each(function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).attr("data-dt-init", "true").DataTable({ order: [] });
         });
       } catch (_) {}

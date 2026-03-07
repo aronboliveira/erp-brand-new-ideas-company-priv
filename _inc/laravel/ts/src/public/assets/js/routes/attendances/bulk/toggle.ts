@@ -5,11 +5,15 @@
  */
 
 /* global bootstrap */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const langSessionKey = "erp-np-lang";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
     let msg = errFb;
     if (
@@ -38,7 +42,7 @@
     }
     return msg;
   };
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       let container = document.querySelector<HTMLElement>(
         "#bootstrap-toast-container",
@@ -101,7 +105,7 @@
     obsAll.observe(document.body, { childList: true, subtree: true });
     presentAllEl.addEventListener("click", onPresentAllClick);
   }
-  function onPresentAllClick() {
+  function onPresentAllClick(): void{
     try {
       if (!presentAllEl) return;
       const checked = presentAllEl.checked ?? false;
@@ -140,7 +144,7 @@
     obsPres.observe(document.body, { childList: true, subtree: true });
     el.addEventListener("click", onPresentClick);
   });
-  function onPresentClick(event: Event) {
+  function onPresentClick(event: Event): void{
     try {
       const el = event.currentTarget as HTMLInputElement;
       const container =

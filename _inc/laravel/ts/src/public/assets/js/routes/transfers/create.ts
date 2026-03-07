@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const a = document.getElementById("transfer-create-link");

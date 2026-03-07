@@ -4,14 +4,14 @@
  * @module generateEdit
  */
 
-/* global bootstrap */
+
 ((): void => {
   const btn = document.querySelector(
     'a[data-url][data-guard-msg][data-sv-localized="true"].btn-icon',
   );
   if (!btn) return;
 
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =

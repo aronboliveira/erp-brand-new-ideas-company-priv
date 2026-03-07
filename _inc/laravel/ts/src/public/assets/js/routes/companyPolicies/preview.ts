@@ -4,7 +4,7 @@
  * @module preview
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const ERR_KEY = "image_preview_failed";
   const ATTACH_SELECTOR = "#attachment";
@@ -13,7 +13,7 @@
   const imageEl = document.querySelector(IMAGE_SELECTOR);
   if (!attachEl || !imageEl) return;
 
-  const showError = (msg: string) => {
+  const showError = (msg: string): void=> {
     const hasBs = window.bootstrap && typeof bootstrap.Toast === "function";
     if (hasBs) {
       const toastEl = document.createElement("div");
@@ -32,7 +32,7 @@
     }
   };
 
-  const handler = (e: Event) => {
+  const handler = (e: Event): void=> {
     try {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;

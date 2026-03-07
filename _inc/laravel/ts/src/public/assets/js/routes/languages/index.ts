@@ -4,12 +4,16 @@
  * @module index
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const defaultLangSessionKey = "erp-np-lang";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
     let msg = errFb;
     if (
@@ -53,7 +57,7 @@
   observer.observe(document.body, { childList: true, subtree: true });
   el.setAttribute("data-listener-attached", "true");
   el.addEventListener("pointerup", handler);
-  function handler() {
+  function handler(): void{
     if (!el) return;
     try {
       const isChecked = el.checked ?? false;
@@ -71,7 +75,7 @@
           .querySelector('meta[name="csrf-token"]')
           ?.getAttribute("content") ??
         "";
-      if (!token) console.log("CSRF token missing");
+      if (!token) console.info("CSRF token missing");
       $.ajax({
         type: "POST",
         url: requestUrl,
@@ -92,7 +96,7 @@
       showError(getLocalizedMessage("disable_lang_failed", el));
     }
   }
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.querySelector<HTMLElement>(
         "#bootstrap-toast-container",

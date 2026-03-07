@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 // assets/js/routes/purchases/create.js
 ((): void => {
   try {

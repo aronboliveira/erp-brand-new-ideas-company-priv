@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const id = "purchase-index-breadcrumb-link";

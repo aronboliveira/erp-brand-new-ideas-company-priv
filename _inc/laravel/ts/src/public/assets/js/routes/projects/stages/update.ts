@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("update-project-stage-form");
@@ -23,7 +23,7 @@
             f.getAttribute("data-guard-msg") ?? "Update project stage route is unavailable. Please contact technical support or your domain administrator.";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
-            window.bootstrap?.Toast;
+            window.bootstrap.Toast;
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");

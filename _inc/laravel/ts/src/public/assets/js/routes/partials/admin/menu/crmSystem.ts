@@ -4,7 +4,7 @@
  * @module crmSystem
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const listenerAttr = "data-crm-system-setup-listener-active";
   const el = document.getElementById("crm-system-setup-link");

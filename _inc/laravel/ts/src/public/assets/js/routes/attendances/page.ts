@@ -4,14 +4,15 @@
  * @module page
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const TYPE_RADIO = 'input[name="type"][type="radio"]';
   const MONTH_CLASS = "month";
   const DATE_CLASS = "date";
   const TOGGLER_ATTR = "data-toggler-initialized";
-  const translations = {
+  const _translations = {
     ar: {
       toggler_unavailable: "فشل في تهيئة المبدل",
       toggle_failed: "فشل في تبديل العرض",
@@ -88,7 +89,7 @@
     return container;
   })();
 
-  const showError = (key: string, el: HTMLElement | null = null) => {
+  const showError = (key: string, el: HTMLElement | null = null): void=> {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -153,7 +154,7 @@
     }
   };
 
-  const handleToggle = (e: Event) => {
+  const handleToggle = (e: Event): void=> {
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
       const target = e.target as HTMLInputElement | null;

@@ -21,11 +21,12 @@
       .replace(/_/g, "-");
     return l === "pt-br" ? l : l.slice(0, 2);
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const t = (k: string) =>
     window.translations?.[langShort()]?.[k] ??
     window.translations?.en?.[k] ??
     "# ERROR";
-  const toast = (m: string) => {
+  const toast = (m: string): void=> {
     window.show_toastr ? window.show_toastr("error", m, "error") : alert(m);
   };
 

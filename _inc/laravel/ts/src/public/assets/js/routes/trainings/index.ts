@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("training-index-link");

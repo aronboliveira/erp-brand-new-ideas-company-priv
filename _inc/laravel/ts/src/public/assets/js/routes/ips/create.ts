@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("ip-create-form");

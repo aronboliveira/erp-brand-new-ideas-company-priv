@@ -4,7 +4,7 @@
  * @module reset
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("userlog-reset-link");
@@ -31,7 +31,7 @@
       }
       const hasBS =
         document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
+        window.bootstrap.Toast;
       if (hasBS) {
         const t = document.createElement("div");
         t.className = "toast";

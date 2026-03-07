@@ -4,9 +4,9 @@
  * @module index
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
-  const guardClick = (id: string) => {
+  const guardClick = (id: string): void=> {
     const el = document.getElementById(id);
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");

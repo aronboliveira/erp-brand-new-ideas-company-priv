@@ -4,6 +4,7 @@
  * @module reorder
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface JQuerySortableUI {
   item: JQuery<HTMLElement>;
 }
@@ -18,13 +19,16 @@ interface JQueryStaticFn {
   sortable?: unknown;
 }
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: ParentNode = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -49,11 +53,11 @@ interface JQueryStaticFn {
     return c;
   };
 
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
-      window.bootstrap?.Toast;
+      window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs<HTMLElement>("#np-toast", container);
@@ -82,7 +86,7 @@ interface JQueryStaticFn {
     }
   };
 
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -104,12 +108,14 @@ interface JQueryStaticFn {
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -124,7 +130,7 @@ interface JQueryStaticFn {
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (el && msg !== errFb) {

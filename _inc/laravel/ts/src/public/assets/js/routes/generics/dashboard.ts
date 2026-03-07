@@ -4,7 +4,7 @@
  * @module dashboard
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const l = document.getElementById("dashboard-breadcrumb-link");
@@ -23,7 +23,7 @@
             l.getAttribute("data-guard-msg") ?? "Dashboard route is unavailable. Please contact technical support or your domain administrator.";
           const linkEl = document.querySelector('link[href*="bootstrap"]');
           const hasBs =
-            linkEl !== null && window.bootstrap?.Toast;
+            linkEl !== null && window.bootstrap.Toast;
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");

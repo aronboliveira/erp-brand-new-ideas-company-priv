@@ -4,7 +4,7 @@
  * @module storeFIle
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const b = document.getElementById("file_attachment_submit");

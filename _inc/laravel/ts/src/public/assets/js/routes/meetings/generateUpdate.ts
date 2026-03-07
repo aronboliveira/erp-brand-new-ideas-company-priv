@@ -4,7 +4,7 @@
  * @module generateUpdate
  */
 
-/* global bootstrap */
+
 ((): void => {
   const btn = document.getElementById("ai-generate-meeting-btn");
   if (!btn) return;
@@ -41,7 +41,7 @@
             body.textContent = msg;
 
             toastEl.appendChild(body);
-            (container as HTMLElement).appendChild(toastEl);
+            (container).appendChild(toastEl);
             window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
           } else {
             alert(msg);

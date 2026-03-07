@@ -4,7 +4,8 @@
  * @module date
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const toastContainer = ((): HTMLDivElement => {
@@ -14,7 +15,7 @@
     return c;
   })();
 
-  const showError = (key: string) => {
+  const showError = (key: string): void=> {
     const errFb = "# ERROR";
     let lang = (
       window.sessionStorage.getItem("erp-np-lang") ??
@@ -83,7 +84,7 @@
             return;
           }
           (
-            $(el) as unknown as JQuery & { daterangepicker: Function }
+            $(el) as unknown as JQuery & { daterangepicker: (...args: unknown[]) => unknown }
           ).daterangepicker({
             format: "yyyy-mm-dd",
             locale: { format: "YYYY-MM-DD" },

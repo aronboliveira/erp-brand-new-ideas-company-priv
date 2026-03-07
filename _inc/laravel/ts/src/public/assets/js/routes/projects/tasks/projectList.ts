@@ -4,11 +4,12 @@
  * @module projectList
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const anchors = document.querySelectorAll('a[id^="task-index-link-"]');
     if (anchors.length === 0) return;
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < anchors.length; i++) {
       try {
         const el = anchors[i];
@@ -27,7 +28,7 @@
                 el.getAttribute("data-guard-msg") ?? "View project tasks route is unavailable. Please contact technical support or your domain administrator.";
               const hasBootstrap =
                 document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap?.Toast;
+                window.bootstrap.Toast;
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");

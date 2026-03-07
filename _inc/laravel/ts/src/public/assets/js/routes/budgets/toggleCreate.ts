@@ -4,15 +4,19 @@
  * @module toggleCreate
  */
 
-/* global bootstrap, $, jQuery */
-const $ = window.jQuery as JQueryStatic;
-((): void => {
+
+const $ = window.jQuery!;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const guardMsg = "data-guard-msg";
   const clientFlag = "data-client-localized";
   const langKey = "erp-np-lang";
   let errorMessage = "";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
@@ -26,14 +30,11 @@ const $ = window.jQuery as JQueryStatic;
         .toLowerCase()
         .replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const translations = TRANSLATIONS as Record<
-        string,
-        Record<string, string>
-      >;
+      const translations = window.translations!;
       msg =
-        translations?.[lang]?.[key] ||
+        translations[lang][key] ||
         el.getAttribute(guardMsg) ||
-        translations?.en?.[key] ||
+        translations.en[key] ||
         msg;
       if (msg !== errFb) {
         el.setAttribute(guardMsg, msg);
@@ -43,7 +44,7 @@ const $ = window.jQuery as JQueryStatic;
     return msg;
   }
 
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -100,7 +101,7 @@ const $ = window.jQuery as JQueryStatic;
       event: string,
       handler: (this: HTMLElement) => void,
       errorKey: string,
-    ) => {
+    ): void=> {
       $(document).on(event, selector, function (this: HTMLElement): void {
         try {
           handler.call(this);

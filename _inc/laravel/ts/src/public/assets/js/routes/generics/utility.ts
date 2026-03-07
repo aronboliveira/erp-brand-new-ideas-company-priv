@@ -4,8 +4,9 @@
  * @module utility
  */
 
-/* global bootstrap */
-function displayUnavailableRouteMessage(
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function _displayUnavailableRouteMessage(
   lang = "pt-br",
   msg: string | null = null,
 ) {
@@ -62,7 +63,7 @@ function displayUnavailableRouteMessage(
     const body = toast.querySelector(".toast-body");
     if (body) body.textContent = message;
 
-    const instance = window.bootstrap.Toast.getOrCreateInstance(toast!, {
+    const instance = window.bootstrap.Toast.getOrCreateInstance(toast, {
       autohide: true,
       delay: 4000,
     });

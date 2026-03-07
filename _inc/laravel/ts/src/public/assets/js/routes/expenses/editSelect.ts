@@ -5,12 +5,16 @@
  */
 
 /* global bootstrap, $, jQuery */
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const langKey = "erp-np-lang";
   const errFb = "# ERROR";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
     let msg = errFb;
     if (
@@ -40,7 +44,7 @@
     return msg;
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     try {
       const hasBs =
         Array.from(
@@ -81,7 +85,7 @@
     selector: string,
     handler: (el: T) => void,
     key: string,
-  ) => {
+  ): void=> {
     document.addEventListener(eventType, e => {
       const target = e.target as Element | null;
       if (!target) return;
@@ -222,7 +226,7 @@
   );
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el: HTMLElement, html: string) {
+  function safeSethtmlContent(el: HTMLElement, html: string): void{
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");

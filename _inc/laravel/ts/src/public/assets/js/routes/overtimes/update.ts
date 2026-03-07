@@ -4,12 +4,12 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("overtime-update-form");
   if (!form) return;
 
-  const showMsg = (msg: string) => {
+  const showMsg = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -29,7 +29,7 @@
         body.className = "toast-body";
         body.textContent = msg;
         el.appendChild(body);
-        (c as HTMLElement).appendChild(el);
+        (c).appendChild(el);
         window.bootstrap.Toast.getOrCreateInstance(el).show();
       } else {
         alert(msg);

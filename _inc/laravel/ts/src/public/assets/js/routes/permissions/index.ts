@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 
 declare const bootstrap: {
   Toast: { getOrCreateInstance(el: Element): { show(): void } };
@@ -14,7 +14,7 @@ declare const bootstrap: {
 
 (function (): void {
   const listened = "data-listener-active";
-  function toast(message: string) {
+  function toast(message: string): void{
     const text = message ?? "Requested route is unavailable.";
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -64,7 +64,7 @@ declare const bootstrap: {
       toast(f.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function hookConfirm(el: HTMLElement) {
+  function hookConfirm(el: HTMLElement): void{
     if (!el || el.getAttribute("data-confirm-hooked") === "true") return;
     el.setAttribute("data-confirm-hooked", "true");
     el.addEventListener("click", function (e: Event) {
@@ -109,6 +109,7 @@ declare const bootstrap: {
               const handlers = window.__confirmHandlers as
                 | Record<string, (() => void) | undefined>
                 | undefined;
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               handlers?.[yes]?.() || safeFormAction(yes, yesBtn);
             }
           } catch (_) {}
@@ -124,6 +125,7 @@ declare const bootstrap: {
               const handlers = window.__confirmHandlers as
                 | Record<string, (() => void) | undefined>
                 | undefined;
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               handlers?.[yes]?.() || safeFormAction(yes, document.body);
             }
           } catch (_) {}
@@ -134,6 +136,7 @@ declare const bootstrap: {
   // SECURITY: Safe fallback for confirm handlers instead of new Function()
   function safeFormAction(
     actionStr: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     element: HTMLElement | null,
   ): void {
     if (!actionStr) return;

@@ -4,7 +4,7 @@
  * @module pdf
  */
 
-/* global bootstrap, $, jQuery */
+
 declare const html2pdf:
   | (() => {
       set: (opt: unknown) => {
@@ -19,12 +19,16 @@ declare const html2pdf:
     })
   | undefined;
 
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_BOUND = "data-np-bound";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, msgKey: string) => {
     let msg = errFb;
     if (
@@ -54,7 +58,7 @@ declare const html2pdf:
     return msg;
   };
 
-  const showErrorOnPointer = (key: string) => {
+  const showErrorOnPointer = (key: string): void=> {
     const target = document.body;
     if (!target || target.getAttribute(DATA_BOUND) === "true") return;
     const handler = (): void => {

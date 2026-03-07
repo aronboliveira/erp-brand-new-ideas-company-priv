@@ -4,7 +4,6 @@
  * @module buttons.html5
  */
 
-/* global $, jQuery */
 
 // UMD/AMD type declarations
 declare const define: {
@@ -100,6 +99,7 @@ interface DataTableApi {
  * Copyright © 2016 Eli Grey - http://eligrey.com
  */
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function (factory) {
   if (typeof define === "function" && define.amd) {
     // AMD
@@ -110,6 +110,7 @@ interface DataTableApi {
     });
   } else if (typeof exports === "object") {
     // CommonJS
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     module.exports = function (
       root: Window | undefined,
       $: JQueryStatic,
@@ -120,11 +121,15 @@ interface DataTableApi {
         root = window;
       }
 
-      if (!$?.fn.dataTable) {
+      if (!$.fn.dataTable) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-var-requires
         $ = (require("datatables.net")(root, $) as { $: JQueryStatic }).$;
       }
 
       if (!($.fn.dataTable as unknown as { Buttons?: unknown }).Buttons) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-var-requires
         require("datatables.net-buttons")(root, $);
       }
 
@@ -140,6 +145,7 @@ interface DataTableApi {
   document: Document,
   jszip: unknown,
   pdfmake: unknown,
+  // eslint-disable-next-line no-shadow-restricted-names
   undefined?: undefined,
 ) {
   "use strict";
@@ -150,9 +156,11 @@ interface DataTableApi {
 
   // Allow the constructor to pass in JSZip and PDFMake from external requires.
   // Otherwise, use globally defined variables, if they are available.
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function _jsZip() {
     return jszip || bWindow.JSZip;
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function _pdfMake() {
     return pdfmake || bWindow.pdfMake;
   }
@@ -163,6 +171,7 @@ interface DataTableApi {
 
   /*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _saveAs = (function (view: ButtonsWindow | undefined) {
     "use strict";
     // IE <10 is explicitly unsupported
@@ -183,13 +192,13 @@ interface DataTableApi {
         "a",
       ) as HTMLAnchorElement,
       can_use_save_link = "download" in save_link,
-      click = function (node: Node) {
+      click = function (node: Node): void{
         const event = new MouseEvent("click");
         node.dispatchEvent(event);
       },
       is_safari = /constructor/i.test(String(view.HTMLElement)) || view.safari,
       is_chrome_ios = /CriOS\/[\d]+/.test(navigator.userAgent),
-      throw_outside = function (ex: unknown) {
+      throw_outside = function (ex: unknown): void{
         if (view.setImmediate) {
           view.setImmediate(function (): void {
             throw ex;
@@ -203,6 +212,7 @@ interface DataTableApi {
       force_saveable_type = "application/octet-stream",
       // the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
       arbitrary_revoke_timeout = 1000 * 40, // in ms
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       revoke = function (file: string | { remove: () => void }) {
         const revoker = function (): void {
           if (typeof file === "string") {
@@ -215,6 +225,7 @@ interface DataTableApi {
         };
         setTimeout(revoker, arbitrary_revoke_timeout);
       },
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       dispatch = function (
         filesaver: Record<string, unknown>,
         event_types: string | string[],
@@ -250,6 +261,7 @@ interface DataTableApi {
         }
         return blob;
       },
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       FileSaver = function (
         this: Record<string, unknown>,
         blob: Blob,
@@ -331,6 +343,7 @@ interface DataTableApi {
         fs_error();
       },
       FS_proto = FileSaver.prototype as Record<string, unknown>,
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       saveAs = function (
         blob: Blob & { name?: string },
         name: string,
@@ -345,6 +358,7 @@ interface DataTableApi {
     // IE 10+ (native saveAs)
     const navWithMs = navigator as NavigatorWithMsSave;
     if (navWithMs.msSaveOrOpenBlob) {
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       return function (
         blob: Blob & { name?: string },
         name: string,
@@ -375,8 +389,10 @@ interface DataTableApi {
 
     return saveAs;
   })(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     (typeof self !== "undefined" && self) ||
       (typeof window !== "undefined" && window) ||
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       this.content,
   );
 
@@ -394,6 +410,7 @@ interface DataTableApi {
    * @param {object}	config Button configuration
    * @param {boolean} incExtension Include the file name extension
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _filename = function (
     config: Record<string, unknown>,
     incExtension?: boolean,
@@ -415,7 +432,7 @@ interface DataTableApi {
     }
 
     // Strip characters which the OS will object to
-    filename = filename.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF\.,\-_ !\(\)]/g, "");
+    filename = filename.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF.,\-_ !()]/g, "");
 
     return incExtension === undefined || incExtension === true
       ? filename + String(config.extension ?? "")
@@ -427,11 +444,12 @@ interface DataTableApi {
    *
    * @param {object}	config Button configuration
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _sheetname = function (config: Record<string, unknown>) {
     let sheetName = "Sheet1";
 
     if (config.sheetName) {
-      sheetName = String(config.sheetName).replace(/[\[\]\*\/\\\?\:]/g, "");
+      sheetName = String(config.sheetName).replace(/[[\]*/\\?:]/g, "");
     }
 
     return sheetName;
@@ -442,8 +460,9 @@ interface DataTableApi {
    *
    * @param {object} config	Button configuration
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _title = function (config: Record<string, unknown>) {
-    let title: string = String(config.title ?? "");
+    let title = String(config.title ?? "");
 
     if (typeof config.title === "function") {
       title = String((config.title as () => unknown)());
@@ -476,6 +495,7 @@ interface DataTableApi {
    * @param	{object}				config Button configuration
    * @return {object}							 The data to export
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _exportData = function (
     dt: {
       buttons: {
@@ -507,6 +527,7 @@ interface DataTableApi {
 
         s += boundary
           ? boundary +
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             ("" + a[i]).replace(reBoundary, escapeChar + boundary) +
             boundary
           : String(a[i]);
@@ -559,6 +580,7 @@ interface DataTableApi {
    * @param  {int} n Column number
    * @return {string} Column letter(s) name
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function createCellPos(n: number) {
     const ordA = "A".charCodeAt(0);
     const ordZ = "Z".charCodeAt(0);
@@ -587,6 +609,7 @@ interface DataTableApi {
    * @param {JSZip} zip ZIP package
    * @param {object} obj Object to add (recursive)
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function _addToZip(
     zip: {
       folder: (name: string) => unknown;
@@ -689,7 +712,7 @@ interface DataTableApi {
 
     if (opts) {
       if (opts.attr) {
-        $(tempNode).attr(opts.attr as Record<string, string | number>);
+        $(tempNode).attr(opts.attr);
       }
 
       if (opts.children) {
@@ -715,6 +738,7 @@ interface DataTableApi {
    * @param  {int}    col  Column index
    * @return {int}         Column width
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function _excelColWidth(
     data: { header: string[]; footer?: string[]; body: string[][] },
     col: number,
@@ -807,9 +831,9 @@ interface DataTableApi {
       '<?xml version="1.0" encoding="UTF-8"?>' +
       '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">' +
       '<numFmts count="6">' +
-      '<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>' +
+      '<numFmt numFmtId="164" formatCode="#,##0.00_- [$$-45C]"/>' +
       '<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>' +
-      '<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>' +
+      '<numFmt numFmtId="166" formatCode="[$€-2] #,##0.00"/>' +
       '<numFmt numFmtId="167" formatCode="0.0%"/>' +
       '<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>' +
       '<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>' +
@@ -992,46 +1016,50 @@ interface DataTableApi {
   // via an API in future?
   // Ref: section 3.8.30 - built in formatters in open spreadsheet
   //   https://www.ecma-international.org/news/TC45_current_work/Office%20Open%20XML%20Part%204%20-%20Markup%20Language%20Reference.pdf
-  const _excelSpecials: Array<{
+  const _excelSpecials: {
     match: RegExp;
     style: number;
     fmt?: (d: string | number) => number;
-  }> = [
+  }[] = [
     {
-      match: /^\-?\d+\.\d%$/,
+      match: /^-?\d+\.\d%$/,
       style: 60,
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       fmt: function (d) {
         return Number(d) / 100;
       },
     }, // Precent with d.p.
     {
-      match: /^\-?\d+\.?\d*%$/,
+      match: /^-?\d+\.?\d*%$/,
       style: 56,
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       fmt: function (d) {
         return Number(d) / 100;
       },
     }, // Percent
-    { match: /^\-?\$[\d,]+.?\d*$/, style: 57 }, // Dollars
-    { match: /^\-?£[\d,]+.?\d*$/, style: 58 }, // Pounds
-    { match: /^\-?€[\d,]+.?\d*$/, style: 59 }, // Euros
-    { match: /^\-?\d+$/, style: 65 }, // Numbers without thousand separators
-    { match: /^\-?\d+\.\d{2}$/, style: 66 }, // Numbers 2 d.p. without thousands separators
+    { match: /^-?\$[\d,]+.?\d*$/, style: 57 }, // Dollars
+    { match: /^-?£[\d,]+.?\d*$/, style: 58 }, // Pounds
+    { match: /^-?€[\d,]+.?\d*$/, style: 59 }, // Euros
+    { match: /^-?\d+$/, style: 65 }, // Numbers without thousand separators
+    { match: /^-?\d+\.\d{2}$/, style: 66 }, // Numbers 2 d.p. without thousands separators
     {
       match: /^\([\d,]+\)$/,
       style: 61,
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       fmt: function (d) {
-        return -1 * Number(String(d).replace(/[\(\)]/g, ""));
+        return -1 * Number(String(d).replace(/[()]/g, ""));
       },
     }, // Negative numbers indicated by brackets
     {
       match: /^\([\d,]+\.\d{2}\)$/,
       style: 62,
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       fmt: function (d) {
-        return -1 * Number(String(d).replace(/[\(\)]/g, ""));
+        return -1 * Number(String(d).replace(/[()]/g, ""));
       },
     }, // Negative numbers indicated by brackets - 2d.p.
-    { match: /^\-?[\d,]+$/, style: 63 }, // Numbers with thousand separators
-    { match: /^\-?[\d,]+\.\d{2}$/, style: 64 }, // Numbers with 2 d.p. and thousands separators
+    { match: /^-?[\d,]+$/, style: 63 }, // Numbers with thousand separators
+    { match: /^-?[\d,]+\.\d{2}$/, style: 64 }, // Numbers with 2 d.p. and thousands separators
   ];
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -1260,12 +1288,13 @@ interface DataTableApi {
       return dt.i18n("buttons.excel", "Excel");
     },
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     action: function (
       e: Event,
       dt: DataTableInstance,
       button: HTMLButtonElement,
       config: Record<string, unknown>,
-    ): void {
+    ) {
       let rowPos = 0;
       const getXml = function (type: keyof typeof excelStrings): Document {
         const str = excelStrings[type];
@@ -1318,8 +1347,8 @@ interface DataTableApi {
           for (let j = 0, jen = _excelSpecials.length; j < jen; j++) {
             const special = _excelSpecials[j];
 
-            if (row[i].match?.(special.match)) {
-              let val: string = row[i].replace(/[^\d\.\-]/g, "");
+            if (row[i].match(special.match)) {
+              let val: string = row[i].replace(/[^\d.-]/g, "");
 
               if (special.fmt) {
                 val = String(special.fmt(val as unknown as string | number));
@@ -1340,7 +1369,7 @@ interface DataTableApi {
           if (!cell) {
             if (
               typeof row[i] === "number" ||
-              (row[i].match?.(/^-?\d+(\.\d+)?$/) && !row[i].match(/^0\d+/))
+              (row[i].match(/^-?\d+(\.\d+)?$/) && !row[i].match(/^0\d+/))
             ) {
               // Detect numbers - don't match numbers with leading zeros
               // or a negative anywhere but the start
@@ -1355,6 +1384,7 @@ interface DataTableApi {
               // String output - replace non standard characters for text output
               const text = !row[i].replace
                 ? row[i]
+                // eslint-disable-next-line no-control-regex
                 : row[i].replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, "");
 
               cell = _createNode(rels, "c", {
@@ -1426,7 +1456,7 @@ interface DataTableApi {
         (config.customize as (xlsx: Record<string, unknown>) => void)(xlsx);
       }
 
-      const jsZipCtor = _jsZip() as { new (): JSZipLike };
+      const jsZipCtor = _jsZip() as new () => JSZipLike;
       const zip = new jsZipCtor();
       const zipConfig = {
         type: "blob",
@@ -1438,12 +1468,15 @@ interface DataTableApi {
 
       if (zip.generateAsync) {
         // JSZip 3+
-        zip.generateAsync(zipConfig).then(function (blob: Blob): void {
+        void zip.generateAsync(zipConfig).then(function (blob: Blob): void {
           _saveAs?.(blob, _filename(config), false);
         });
       } else {
         // JSZip 2.5
-        _saveAs?.(zip.generate?.(zipConfig) as Blob, _filename(config), false);
+        const generated = zip.generate?.(zipConfig);
+        if (generated) {
+          _saveAs?.(generated, _filename(config), false);
+        }
       }
     },
 
@@ -1472,17 +1505,20 @@ interface DataTableApi {
       return dt.i18n("buttons.pdf", "PDF");
     },
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     action: function (
       e: Event,
       dt: DataTableInstance,
       button: HTMLButtonElement,
       config: Record<string, unknown>,
-    ): void {
-      const newLine = _newLine(config);
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+      const _newLine2 = _newLine(config);
       const data = dt.buttons.exportData(
         config.exportOptions as Record<string, unknown> | undefined,
       );
-      const rows: Array<Array<{ text: string; style: string }>> = [];
+      const rows: { text: string; style: string }[][] = [];
 
       if (config.header) {
         rows.push(
@@ -1491,6 +1527,7 @@ interface DataTableApi {
             style: string;
           } {
             return {
+              // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
               text: typeof d === "string" ? d : d + "",
               style: "tableHeader",
             };
@@ -1505,6 +1542,7 @@ interface DataTableApi {
             style: string;
           } {
             return {
+              // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
               text: typeof d === "string" ? d : d + "",
               style: i % 2 ? "tableBodyEven" : "tableBodyOdd",
             };
@@ -1519,6 +1557,7 @@ interface DataTableApi {
             style: string;
           } {
             return {
+              // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
               text: typeof d === "string" ? d : d + "",
               style: "tableFooter",
             };
@@ -1529,7 +1568,7 @@ interface DataTableApi {
       const doc: {
         pageSize: unknown;
         pageOrientation: unknown;
-        content: Array<Record<string, unknown>>;
+        content: Record<string, unknown>[];
         styles: Record<string, Record<string, unknown>>;
         defaultStyle: { fontSize: number };
       } = {

@@ -4,7 +4,7 @@
  * @module index
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("report_bill_summary");

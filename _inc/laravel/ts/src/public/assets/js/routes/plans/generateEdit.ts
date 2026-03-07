@@ -4,12 +4,12 @@
  * @module generateEdit
  */
 
-/* global bootstrap */
+
 ((): void => {
   const btn = document.getElementById("generate-plan-btn");
   if (!btn) return;
 
-  const show = (msg: string) => {
+  const show = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =

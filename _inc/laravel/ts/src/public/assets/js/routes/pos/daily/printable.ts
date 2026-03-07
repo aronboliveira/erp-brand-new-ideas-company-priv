@@ -4,12 +4,13 @@
  * @module printable
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const PRINTABLE_AREA_ID = "printableArea";
   const FILENAME_INPUT = "#filename";
-  const translations = {
+  const _translations = {
     ar: {
       pdf_save_failed: "فشل حفظ PDF",
       printable_not_found: "لم يتم العثور على المنطقة القابلة للطباعة",
@@ -91,7 +92,7 @@
     return container;
   };
 
-  const showError = (key: string, el: HTMLElement | null = null) => {
+  const showError = (key: string, el: HTMLElement | null = null): void=> {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -171,7 +172,9 @@
         return;
       }
 
-      (window.html2pdf as Function)()
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      (window.html2pdf)()
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .set({
           margin: 0.3,
           filename,
@@ -179,7 +182,9 @@
           html2canvas: { scale: 4, dpi: 72, letterRendering: true },
           jsPDF: { unit: "in", format: "A2" },
         })
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .from(element)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .save();
     } catch {
       showError("pdf_save_failed");

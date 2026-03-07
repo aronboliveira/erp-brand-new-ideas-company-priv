@@ -94,7 +94,7 @@
         if (cancelBtn) cancelBtn.textContent = "Cancel";
         if (yesBtnEl) yesBtnEl.textContent = "OK";
         const inst = (
-          window.bootstrap as typeof bootstrap
+          window.bootstrap
         ).Modal.getOrCreateInstance(modal);
         const yesBtn = modal.querySelector(
           "#confirm-yes-btn",
@@ -139,7 +139,7 @@
     });
   }
   // SECURITY: Safe fallback for confirm handlers instead of new Function()
-  function safeFormAction(actionStr: string, element: HTMLElement): void {
+  function safeFormAction(actionStr: string, _element: HTMLElement): void {
     if (!actionStr) return;
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
       const form = document.querySelector(actionStr) as HTMLFormElement | null;
@@ -168,7 +168,7 @@
         el: Element,
       ): void {
         try {
-          (window.bootstrap as typeof bootstrap).Tooltip.getOrCreateInstance(
+          (window.bootstrap).Tooltip.getOrCreateInstance(
             el as HTMLElement,
           );
         } catch (_) {}

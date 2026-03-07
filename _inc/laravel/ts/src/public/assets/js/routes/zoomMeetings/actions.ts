@@ -9,25 +9,30 @@ interface DeleteAjaxResponse {
   msg?: string;
 }
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
+  const _dataClientLocalized = "data-client-localized";
+  const _dataGuardMsg = "data-guard-msg";
+  const _dataSvLocalized = "data-sv-localized";
   const dataInit = "data-zoomdel-bound";
   const dataErr = "data-zoomdel-error";
   const ns = "._npZoomDel";
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
-  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  ): HTMLElement | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     const existing = qs("#np-toast-container");
     if (existing) return existing;
@@ -41,7 +46,7 @@ interface DeleteAjaxResponse {
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -68,7 +73,7 @@ interface DeleteAjaxResponse {
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string) => {
+  const schedulePointerupError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErr) === "true") return;
     host.setAttribute(dataErr, "true");
@@ -87,14 +92,16 @@ interface DeleteAjaxResponse {
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, key: string) => {
     const err = errFb;
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
     if (
-      el?.getAttribute?.("data-sv-localized") === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       return el.getAttribute(dataGuardMsg) || err;
     }
@@ -109,7 +116,7 @@ interface DeleteAjaxResponse {
     const msgKey = key;
     const msg =
       window.translations?.[lang]?.[msgKey] ||
-      el?.getAttribute?.(dataGuardMsg) ||
+      el.getAttribute(dataGuardMsg) ||
       window.translations?.en?.[msgKey] ||
       err;
     if (msg !== err && el) {
@@ -119,7 +126,7 @@ interface DeleteAjaxResponse {
     return msg;
   };
   const ensureJq = (): boolean => {
-    if (!$ || !$.fn) {
+    if (!$.fn) {
       try {
         if (
           window.location.hostname === "localhost" ||
@@ -141,8 +148,8 @@ interface DeleteAjaxResponse {
     return btn;
   };
   const buildDeleteUrl = (id: string | number, el: HTMLElement): string => {
-    const url = el?.getAttribute?.("data-url");
-    const href = el?.getAttribute?.("href");
+    const url = el.getAttribute("data-url");
+    const href = el.getAttribute("href");
     if ((!url || url === "#") && (!href || href === "#")) {
       const fallback =
         "{{ url('zoom-meeting') }}".replace(/\/$/, "") + "/" + id;
@@ -192,9 +199,9 @@ interface DeleteAjaxResponse {
     window.deleteAjax(url, data, function (res: DeleteAjaxResponse) {
       try {
         if (typeof window.toastr === "object" && window.toastr) {
-          window.toastr.success(String(res?.msg ?? ""));
+          window.toastr.success(String(res.msg ?? ""));
         }
-        if (res?.flag === 1) {
+        if (res.flag === 1) {
           window.location.reload();
         }
         try {

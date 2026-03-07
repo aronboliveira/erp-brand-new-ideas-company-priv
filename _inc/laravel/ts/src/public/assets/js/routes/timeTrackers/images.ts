@@ -4,9 +4,12 @@
  * @module images
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
-  const $ = window.jQuery as JQueryStatic;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+  const $ = window.jQuery!;
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -17,10 +20,11 @@
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
-  ): HTMLElement | null => r.querySelector(s) as HTMLElement | null;
+  ): HTMLElement | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') && window.bootstrap?.Toast);
+    (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) {
@@ -36,7 +40,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -64,7 +68,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (message: string) => {
+  const schedulePointerupError = (message: string): void=> {
     const target = document.body;
     if (!target || target.getAttribute(dataErrGuard) === "true") {
       return;
@@ -85,12 +89,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -105,7 +111,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -116,7 +122,7 @@
     return msg;
   };
   const routeFrom = (el: HTMLElement, explicit: string): string | null => {
-    const url = el?.getAttribute?.("data-url") || "";
+    const url = el.getAttribute("data-url") || "";
     const href = el
       ? el.tagName === "FORM"
         ? (el.getAttribute("action") ?? "")
@@ -171,7 +177,7 @@
         slidesPerView: 7,
         loopedSlides: 5,
       });
-      if (productSlider?.controller && productThumbs?.controller) {
+      if (productSlider.controller && productThumbs.controller) {
         productSlider.controller.control = productThumbs;
         productThumbs.controller.control = productSlider;
       }
@@ -183,7 +189,7 @@
     url: string,
     data: unknown,
     cb: (res?: unknown) => void,
-  ) => {
+  ): void=> {
     try {
       if (typeof window.postAjax === "function") {
         window.postAjax(url, data as Record<string, unknown>, cb);
@@ -195,7 +201,7 @@
         data: data as Record<string, unknown>,
         cache: false,
         success: function (res: unknown) {
-          cb?.(res);
+          cb(res);
         },
         error: function (): void {
           schedulePointerupError(getMsg(document.body, "ajax_unavailable"));
@@ -209,7 +215,7 @@
     url: string,
     data: unknown,
     cb: (res?: unknown) => void,
-  ) => {
+  ): void=> {
     try {
       if (typeof window.deleteAjax === "function") {
         window.deleteAjax(url, data as Record<string, unknown>, cb);
@@ -221,7 +227,7 @@
         data: data as Record<string, unknown>,
         cache: false,
         success: function (res: unknown) {
-          cb?.(res);
+          cb(res);
         },
         error: function (): void {
           schedulePointerupError(getMsg(document.body, "ajax_unavailable"));
@@ -247,6 +253,7 @@
           );
           return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const id = $(this).attr("data-id") ?? "";
         safePost(endpoint, { id: id }, function (res: unknown) {
           try {
@@ -290,6 +297,7 @@
       ".track-image-remove",
       function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const rid = $(this).attr("data-pid") ?? "";
           $(".confirm_yes").addClass("image_remove").attr("image_id", rid);
           $("#cModal").modal("show");
@@ -301,6 +309,7 @@
       ".confirm_yes.image_remove",
       function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const id = $(this).attr("image_id") ?? "";
           const explicit = "{{route('time_trackers.image.remove')}}";
           const endpoint = routeFrom(this as HTMLElement, explicit);

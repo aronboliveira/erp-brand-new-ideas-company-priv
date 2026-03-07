@@ -4,7 +4,7 @@
  * @module languageSwitcher
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const sel = document.getElementById("language");
@@ -19,9 +19,9 @@
     sel.addEventListener("change", (e: Event) => {
       try {
         const val =
-          (sel as HTMLSelectElement).options?.[
+          (sel as HTMLSelectElement).options[
             (sel as HTMLSelectElement).selectedIndex
-          ]?.value ?? "#";
+          ].value ?? "#";
         if (val && val !== "#") return;
 
         e.preventDefault();
@@ -37,7 +37,7 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (bsLink && window.bootstrap?.Toast) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           toast.setAttribute("role", "alert");
@@ -60,7 +60,9 @@
             )
               console.error(
                 "[assets/js/routes/auth/languageSwitcher.js] Bootstrap toast error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error",
               );
             alert(guardMsg);
@@ -77,7 +79,9 @@
         )
           console.error(
             "[assets/js/routes/auth/languageSwitcher.js] Change handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
       }
@@ -89,7 +93,9 @@
     )
       console.error(
         "[assets/js/routes/auth/languageSwitcher.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error",
       );
   }

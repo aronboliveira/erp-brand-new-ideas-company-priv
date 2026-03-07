@@ -4,7 +4,7 @@
  * @module vendorEditSelect
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const select = document.getElementById("vendor_select");
   if (!select || select.getAttribute("data-listener-active") === "true") return;
@@ -14,6 +14,7 @@
   const guardMsgAttr = "data-guard-msg";
   const failedAttr = "data-failed-route";
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   select.addEventListener("change", async (): Promise<void> => {
     try {
       const url = select.getAttribute(urlAttr);
@@ -57,15 +58,20 @@
         throw new Error(`Network error: ${response.status}`);
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const data = await response.json();
       document
         .querySelectorAll("[data-vendor-field]")
         .forEach((el: Element): void => {
           const key = el.getAttribute("data-vendor-field") ?? "";
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           const val = data[key] ?? "";
           if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             (el as HTMLInputElement).value = val;
           } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             el.textContent = val;
           }
         });

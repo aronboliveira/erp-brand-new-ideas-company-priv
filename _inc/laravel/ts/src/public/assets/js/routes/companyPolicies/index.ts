@@ -11,7 +11,7 @@
     eventType: string,
     urlAttr = "data-url",
     msgAttr = "data-guard-msg",
-  ) => {
+  ): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener(eventType, e => {

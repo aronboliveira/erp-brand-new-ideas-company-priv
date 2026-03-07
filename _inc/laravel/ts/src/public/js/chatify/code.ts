@@ -147,8 +147,14 @@ function cssMediaQueries(): void {
     $(".messenger-listView").removeAttr("style");
   }
   const actionVal = window.matchMedia("(max-width: 980px)").matches ? "1" : "0";
-  $("body").find(".messenger-list-item").find("tr[data-action]").attr("data-action", actionVal);
-  $("body").find(".favorite-list-item").find("div").attr("data-action", actionVal);
+  $("body")
+    .find(".messenger-list-item")
+    .find("tr[data-action]")
+    .attr("data-action", actionVal);
+  $("body")
+    .find(".favorite-list-item")
+    .find("div")
+    .attr("data-action", actionVal);
 }
 
 /**
@@ -223,8 +229,12 @@ function hScroller(scroller: string): void {
       startX = e.pageX - slider.offsetLeft;
       scrollLeft = slider.scrollLeft;
     },
-    mouseleave: (): void => { isDown = false; },
-    mouseup: (): void => { isDown = false; },
+    mouseleave: (): void => {
+      isDown = false;
+    },
+    mouseup: (): void => {
+      isDown = false;
+    },
     mousemove: (e: MouseEvent): void => {
       if (!isDown) return;
       e.preventDefault();
@@ -644,9 +654,7 @@ function isTyping(status: boolean): void {
 function makeSeen(status: boolean): void {
   const mId = messenger.split("_")[1];
   // remove unseen counter for the user from the contacts list
-  $(`.messenger-list-item[data-contact=${mId}]`)
-    .find("tr>td>b")
-    .remove();
+  $(`.messenger-list-item[data-contact=${mId}]`).find("tr>td>b").remove();
   // seen
   $.ajax({
     url: url + "/makeSeen",

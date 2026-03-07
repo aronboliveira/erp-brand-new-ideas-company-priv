@@ -4,12 +4,12 @@
  * @module printable
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const PRINTABLE_AREA = "printableArea";
   const FILENAME_INPUT = "#filename";
-  const translations = {
+  const _translations = {
     ar: {
       pdf_fail: "فشل حفظ الملف كـ PDF",
       no_area: "المنطقة القابلة للطباعة غير موجودة",
@@ -105,7 +105,7 @@
     return toastContainer;
   };
 
-  const showError = (key: string, el: HTMLElement | null = null) => {
+  const showError = (key: string, el: HTMLElement | null = null): void=> {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -171,7 +171,8 @@
     try {
       if (
         typeof window.html2pdf !== "object" ||
-        typeof (window.html2pdf as Function)().set !== "function"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        typeof ((window.html2pdf as (...args: unknown[]) => any)().set) !== "function"
       ) {
         showError("no_lib");
         return;
@@ -191,7 +192,9 @@
         if (input) filename = (input as HTMLInputElement).value || filename;
       }
 
-      (window.html2pdf as Function)()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
+      (window.html2pdf as (...args: unknown[]) => any)()
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .set({
           margin: 0.3,
           filename,
@@ -199,7 +202,9 @@
           html2canvas: { scale: 4, dpi: 72, letterRendering: true },
           jsPDF: { unit: "in", format: "a2" },
         })
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .from(printable)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .save();
     } catch (e) {
       showError("pdf_fail");

@@ -4,7 +4,8 @@
  * @module change
  */
 
-/* global bootstrap, $, jQuery */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 ((): void => {
   const lang = (
     document.documentElement.getAttribute("lang") ?? "en"
@@ -14,11 +15,12 @@
       (window.translations[lang] || window.translations[lang.split("-")[0]])) ||
     window.translations?.en ||
     {};
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const tr = (k: string) => dict[k] || k;
 
-  const showToastOrAlert = (msg: string) => {
+  const showToastOrAlert = (msg: string): void=> {
     try {
-      const hasToast = !!window.bootstrap?.Toast;
+      const hasToast = !!window.bootstrap.Toast;
       if (hasToast) {
         let c = document.getElementById("toast-container");
         if (!c) {
@@ -64,7 +66,7 @@
     }
   };
 
-  const previewBinder = (inputId: string, imgId: string) => {
+  const previewBinder = (inputId: string, imgId: string): void=> {
     try {
       const input = document.getElementById(inputId);
       const img = document.getElementById(imgId);
@@ -86,10 +88,14 @@
             } catch {}
           };
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
           showToastOrAlert(e.message || tr("request_failed"));
         }
       });
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
       showToastOrAlert(e.message || tr("request_failed"));
     }
   };

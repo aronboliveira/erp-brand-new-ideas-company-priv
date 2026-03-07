@@ -4,7 +4,7 @@
  * @module showTraining
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("employee-show-link");

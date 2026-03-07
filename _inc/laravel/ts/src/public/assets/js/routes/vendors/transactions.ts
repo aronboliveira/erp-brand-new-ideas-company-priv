@@ -4,7 +4,7 @@
  * @module transactions
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("vendor-transaction-filter-form");
@@ -32,7 +32,7 @@
         }
         const ok =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (ok) {
           const t = document.createElement("div");
           t.className = "toast";
@@ -81,7 +81,7 @@
         }
         const ok =
           document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
+          window.bootstrap.Toast;
         if (ok) {
           const t = document.createElement("div");
           t.className = "toast";

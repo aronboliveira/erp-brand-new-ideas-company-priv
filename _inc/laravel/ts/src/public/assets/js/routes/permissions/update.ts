@@ -4,12 +4,12 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("permission-update-form");
   if (!form) return;
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const container =

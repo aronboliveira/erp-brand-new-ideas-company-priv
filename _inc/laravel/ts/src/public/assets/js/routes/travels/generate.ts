@@ -4,7 +4,7 @@
  * @module generate
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const a = document.getElementById("travel-generate-link");

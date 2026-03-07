@@ -114,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function (): void {
         const elem = document.querySelectorAll(
           ".dash-navbar li:not(.dash-trigger) .dash-submenu",
         );
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let j = 0; j < elem.length; j++) {
           (elem[j] as HTMLElement).style.display = "none";
         }
@@ -121,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function (): void {
       } else {
         document.body.classList.add("minimenu");
         const tc = document.querySelectorAll(".dash-navbar li .dash-submenu");
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let t = 0; t < tc.length; t++) {
           const c = tc[t];
           c.removeAttribute("style");
@@ -278,12 +280,16 @@ document.addEventListener("DOMContentLoaded", function (): void {
   }
   // Horizontal menu click js end
 
-  function formmat(e: HTMLInputElement) {
+  function _formmat(e: HTMLInputElement): void{
     let temp = 0;
     try {
       // @ts-expect-error attr is jQuery method pattern
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
       temp = e.attr("placeholder").length;
     } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       temp = 0;
     }
     if (e.value.length > 0) {
@@ -318,8 +324,8 @@ document.addEventListener("DOMContentLoaded", function (): void {
   // notification scrollbar end
 });
 
-function horizontalmobilemenuclick() {
-  const vw = window.innerWidth;
+function horizontalmobilemenuclick(): void{
+  const _vw = window.innerWidth;
   const pcnavlinklist = document.querySelector<HTMLElement>(".dash-navbar li");
   if (pcnavlinklist) {
     pcnavlinklist.removeEventListener("click", function (): void {});
@@ -328,6 +334,7 @@ function horizontalmobilemenuclick() {
   const pclinkclick = document.querySelectorAll(
     ".dash-navbar > li:not(.dash-caption)",
   );
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let i = 0; i < pclinkclick.length; i++) {
     pclinkclick[i].addEventListener("click", function (event: Event) {
       let targetElement = event.target as HTMLElement | null;
@@ -347,6 +354,7 @@ function horizontalmobilemenuclick() {
         );
       } else {
         const tc = document.querySelectorAll("li.dash-trigger");
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let t = 0; t < tc.length; t++) {
           const c = tc[t];
           c.classList.remove("dash-trigger");
@@ -360,6 +368,7 @@ function horizontalmobilemenuclick() {
   const pcsublinkclick = document.querySelectorAll(
     ".dash-navbar > li:not(.dash-caption) > .dash-submenu > li",
   );
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let n = 0; n < pcsublinkclick.length; n++) {
     pcsublinkclick[n].addEventListener("click", function (event: Event) {
       event.stopPropagation();
@@ -380,6 +389,7 @@ function horizontalmobilemenuclick() {
         );
       } else {
         const tc = document.querySelectorAll(".dash-submenu li.dash-trigger");
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let t = 0; t < tc.length; t++) {
           const c = tc[t];
           c.classList.remove("dash-trigger");
@@ -393,6 +403,7 @@ function horizontalmobilemenuclick() {
   const pcsubchildlinkclick = document.querySelectorAll(
     ".dash-navbar > li:not(.dash-caption) > .dash-submenu >  li > .dash-submenu >  li",
   );
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let n = 0; n < pcsubchildlinkclick.length; n++) {
     pcsubchildlinkclick[n].addEventListener("click", function (event: Event) {
       event.stopPropagation();
@@ -415,6 +426,7 @@ function horizontalmobilemenuclick() {
         const tc = document.querySelectorAll(
           ".dash-submenu .dash-submenu li.dash-trigger",
         );
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let t = 0; t < tc.length; t++) {
           const c = tc[t];
           c.classList.remove("dash-trigger");
@@ -428,12 +440,12 @@ function horizontalmobilemenuclick() {
 }
 
 // Menu click start
-function addscroller() {
+function addscroller(): void{
   rmmini();
   menuclick();
   // Menu scrollbar start
   if (document.querySelector<HTMLElement>(".navbar-content")) {
-    const px = new SimpleBar(
+    const _px = new SimpleBar(
       document.querySelector<HTMLElement>(".navbar-content"),
       {
         autoHide: true,
@@ -450,9 +462,10 @@ function addscroller() {
   // Menu scrollbar end
 }
 // Menu click start
-function menuclick() {
-  const vw = window.innerWidth;
+function menuclick(): void{
+  const _vw = window.innerWidth;
   const elem = document.querySelectorAll(".dash-navbar li");
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let j = 0; j < elem.length; j++) {
     elem[j].removeEventListener("click", function (): void {});
   }
@@ -463,12 +476,14 @@ function menuclick() {
     const elem = document.querySelectorAll(
       ".dash-navbar li:not(.dash-trigger) .dash-submenu",
     );
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let j = 0; j < elem.length; j++) {
       (elem[j] as HTMLElement).style.display = "none";
     }
     const pclinkclick = document.querySelectorAll(
       ".dash-navbar > li:not(.dash-caption)",
     );
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < pclinkclick.length; i++) {
       pclinkclick[i].addEventListener("click", function (event: Event) {
         event.stopPropagation();
@@ -492,6 +507,7 @@ function menuclick() {
           );
         } else {
           const tc = document.querySelectorAll("li.dash-trigger");
+          // eslint-disable-next-line @typescript-eslint/prefer-for-of
           for (let t = 0; t < tc.length; t++) {
             const c = tc[t];
             c.classList.remove("dash-trigger");
@@ -514,6 +530,7 @@ function menuclick() {
     const pcsublinkclick = document.querySelectorAll(
       ".dash-navbar > li:not(.dash-caption) li",
     );
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < pcsublinkclick.length; i++) {
       pcsublinkclick[i].addEventListener("click", function (event: Event) {
         let targetElement = event.target as HTMLElement | null;
@@ -538,6 +555,7 @@ function menuclick() {
           const tc = (targetElement?.parentNode as HTMLElement | null)
             ?.parentNode?.children;
           if (tc) {
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let t = 0; t < tc.length; t++) {
               let c = tc[t] as HTMLElement;
               c.classList.remove("dash-trigger");
@@ -572,7 +590,7 @@ function menuclick() {
   }
 }
 
-function rmdrp() {
+function _rmdrp(): void{
   document
     .querySelector(".dash-header:not(.dash-mob-header) .dash-mob-drp")
     ?.classList.remove("mob-drp-active");
@@ -581,7 +599,7 @@ function rmdrp() {
     ?.remove();
 }
 
-function rmthead() {
+function _rmthead(): void{
   document
     .querySelector(".dash-header:not(.dash-mob-header)")
     ?.classList.remove("mob-header-active");
@@ -590,7 +608,7 @@ function rmthead() {
     ?.remove();
 }
 
-function rmmenu() {
+function rmmenu(): void{
   const tempov = document.querySelector<HTMLElement>(".dash-sidebar");
   if (tempov) {
     document
@@ -609,7 +627,7 @@ function rmmenu() {
   document.querySelector<HTMLElement>(".topbar .dash-menu-overlay")?.remove();
 }
 
-function rmovermenu() {
+function rmovermenu(): void{
   document
     .querySelector(".dash-sidebar")
     ?.classList.remove("dash-over-menu-active");
@@ -624,7 +642,7 @@ function rmovermenu() {
   document.querySelector<HTMLElement>(".topbar .dash-menu-overlay")?.remove();
 }
 
-function rmactive() {
+function rmactive(): void{
   document
     .querySelector(".dash-sidebar .dash-navbar li")
     ?.classList.remove("active");
@@ -643,7 +661,7 @@ function rmactive() {
   document.querySelector<HTMLElement>(".topbar .dash-menu-overlay")?.remove();
 }
 
-function rmmini() {
+function rmmini(): void{
   // let vw = document.querySelector(window)[0].innerWidth;
   const vw = window.innerWidth;
   if (vw <= 1024) {
@@ -669,8 +687,10 @@ const emailmorelink = document.querySelector<HTMLElement>(".email-more-link");
 if (emailmorelink) {
   emailmorelink.addEventListener(
     "click",
-    function (this: HTMLElement, e: Event) {
+    function (this: HTMLElement, _e: Event) {
       // @ts-expect-error jQuery-like pattern - children() and slideToggle are not native DOM
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       document.querySelector(this)?.children("span").slideToggle(1);
     },
   );
@@ -696,24 +716,39 @@ window.addEventListener("resize", function (): void {
 });
 
 window.addEventListener("load", function (): void {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const tooltipTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="tooltip"]'),
   );
-  const tooltipList = tooltipTriggerList.map(function (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+  const _tooltipList = tooltipTriggerList.map(function (
     tooltipTriggerEl: Element,
   ) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
   });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const popoverTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="popover"]'),
   );
-  const popoverList = popoverTriggerList.map(function (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+  const _popoverList = popoverTriggerList.map(function (
     popoverTriggerEl: Element,
   ) {
     return new bootstrap.Popover(popoverTriggerEl);
   });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const toastElList = [].slice.call(document.querySelectorAll(".toast"));
-  const toastList = toastElList.map(function (toastEl: Element) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+  const _toastList = toastElList.map(function (toastEl: Element) {
     return new bootstrap.Toast(toastEl);
   });
 });
@@ -721,6 +756,7 @@ window.addEventListener("load", function (): void {
 const elem = document.querySelectorAll<HTMLAnchorElement>(
   ".dash-sidebar .dash-navbar a",
 );
+// eslint-disable-next-line @typescript-eslint/prefer-for-of
 for (let l = 0; l < elem.length; l++) {
   const pageUrl = window.location.href.split(/[?#]/)[0];
   if (elem[l].href == pageUrl && elem[l].getAttribute("href") != "") {
@@ -774,7 +810,7 @@ for (let l = 0; l < elem.length; l++) {
   }
 }
 // scroll to active menu
-function scrolltargetmenu(value: HTMLElement | null) {
+function scrolltargetmenu(value: HTMLElement | null): void{
   document.addEventListener("DOMContentLoaded", function (): void {
     if (document.querySelector<HTMLElement>(".navbar-content") && value) {
       const elm = value;
@@ -794,8 +830,9 @@ const tablayclick = document.querySelector<HTMLElement>(
   ".tab-sidemenu > ul > li",
 );
 if (tablayclick) {
-  console.log("condition");
+  console.info("condition");
   const tc = document.querySelectorAll(".tab-sidemenu > ul > li");
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let t = 0; t < tc.length; t++) {
     const c = tc[t];
     c.addEventListener("click", function (event: Event) {
@@ -815,7 +852,7 @@ if (tablayclick) {
         .querySelector(".tab-sidemenu > ul > li.active")
         ?.classList.remove("active");
       targetElement?.classList.add("active");
-      console.log(tempcont);
+      console.info(tempcont);
       document
         .querySelector(
           '.navbar-content .dash-tabcontent[data-value="' + tempcont + '"]',
@@ -884,6 +921,7 @@ if (
   const tplink = document.querySelectorAll(
     ".dash-header .list-unstyled > .dropdown",
   );
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let t = 0; t < tplink.length; t++) {
     const c = tplink[t];
     c.addEventListener("mouseenter", showmenu);
@@ -891,13 +929,13 @@ if (
   }
 }
 
-function showmenu(event: Event) {
+function showmenu(event: Event): void{
   (
     (event.target as HTMLElement | null)?.children[1] as HTMLElement | undefined
   )?.classList.add("show");
 }
 
-function hidemenu(event: Event) {
+function hidemenu(event: Event): void{
   (
     (event.target as HTMLElement | null)?.children[1] as HTMLElement | undefined
   )?.classList.remove("show");
@@ -909,7 +947,7 @@ if (
     .querySelector<HTMLElement>("body")
     ?.classList.contains("dash-horizontal")
 ) {
-  let hpx;
+  let _hpx;
   const docH = window.innerHeight;
   const docW = window.innerWidth;
 
@@ -954,7 +992,7 @@ if (
 }
 // horizontal submenu edge end
 // Collapse meni edge start
-function collapseedge() {
+function collapseedge(): void{
   const docH = window.innerHeight;
   const docW = window.innerWidth;
   if (docW > 1024) {
@@ -967,9 +1005,9 @@ function collapseedge() {
         const elm = targetElement?.children[1] as HTMLElement | undefined;
         if (!elm) return;
         const off = elm.getBoundingClientRect();
-        const l = off.left;
+        const _l = off.left;
         const t = off.top;
-        const w = off.width;
+        const _w = off.width;
         const h = off.height;
         const scrw = document.documentElement.scrollTop;
 
@@ -993,6 +1031,7 @@ function collapseedge() {
 const tcProdLikes = document.querySelectorAll<HTMLInputElement>(
   ".prod-likes .form-check-input",
 );
+// eslint-disable-next-line @typescript-eslint/prefer-for-of
 for (let t = 0; t < tcProdLikes.length; t++) {
   let prodlike: HTMLInputElement | HTMLElement = tcProdLikes[t];
   prodlike.addEventListener("change", function (event: Event) {
@@ -1023,7 +1062,7 @@ for (let t = 0; t < tcProdLikes.length; t++) {
 
 // =======================================================
 // =======================================================
-const slideUp = (target: HTMLElement, duration = 0) => {
+const slideUp = (target: HTMLElement, duration = 0): void=> {
   if (!target) return;
   target.style.transitionProperty = "height, margin, padding";
   target.style.transitionDuration = duration + "ms";
@@ -1037,7 +1076,7 @@ const slideUp = (target: HTMLElement, duration = 0) => {
   target.style.marginTop = "0";
   target.style.marginBottom = "0";
 };
-const slideDown = (target: HTMLElement, duration = 0) => {
+const slideDown = (target: HTMLElement, duration = 0): void=> {
   if (!target) return;
   target.style.removeProperty("display");
   let display = window.getComputedStyle(target).display;
@@ -1068,7 +1107,7 @@ const slideDown = (target: HTMLElement, duration = 0) => {
     target.style.removeProperty("transition-property");
   }, duration);
 };
-const slideToggle = (target: HTMLElement, duration = 0) => {
+const _slideToggle = (target: HTMLElement, duration = 0): void=> {
   if (window.getComputedStyle(target).display === "none") {
     slideDown(target, duration);
     return;

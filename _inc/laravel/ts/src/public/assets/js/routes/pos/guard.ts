@@ -4,9 +4,9 @@
  * @module guard
  */
 
-/* global bootstrap */
+
 ((): void => {
-  const toast = (msg: string) => {
+  const toast = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -36,7 +36,7 @@
     }
   };
 
-  const bindGuard = (el: HTMLElement | null) => {
+  const bindGuard = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {
@@ -55,7 +55,7 @@
 })();
 
 (function (): void {
-  function toast(msg: string) {
+  function toast(msg: string): void{
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -63,7 +63,7 @@
         c.id = "toast-container";
         document.body.appendChild(c);
       }
-      if (window.bootstrap?.Toast) {
+      if (window.bootstrap.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
         t.setAttribute("role", "alert");

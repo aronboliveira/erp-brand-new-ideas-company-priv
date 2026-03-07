@@ -4,19 +4,22 @@
  * @module store
  */
 
-/* global bootstrap */
-type SvLang = {
+
+interface SvLang {
   zoomMeetings?: {
     store?: {
       routeGuardDefault?: string;
     };
   };
-};
+}
 ((): void => {
   (function (): void {
     try {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       const svLang = (window.svLang || {}) as SvLang;
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       svLang.zoomMeetings = svLang.zoomMeetings || {};
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       svLang.zoomMeetings.store = svLang.zoomMeetings.store || {};
       svLang.zoomMeetings.store.routeGuardDefault =
         "Store zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
@@ -59,7 +62,7 @@ type SvLang = {
           container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
-        const hasBs = window.bootstrap?.Toast;
+        const hasBs = window.bootstrap.Toast;
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";

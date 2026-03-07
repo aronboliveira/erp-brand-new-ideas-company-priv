@@ -4,7 +4,7 @@
  * @module destroy
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const forms = document.querySelectorAll('form[id^="delete-form-"]');
@@ -44,7 +44,7 @@
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (
               bsLink &&
-              window.bootstrap?.Toast
+              window.bootstrap.Toast
             ) {
               const toast = document.createElement("div");
               toast.className = "toast";

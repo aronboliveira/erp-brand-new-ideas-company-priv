@@ -4,7 +4,7 @@
  * @module cancel
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const b = document.getElementById("purchase-cancel-btn");

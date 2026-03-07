@@ -4,18 +4,18 @@
  * @module preview
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const DATA_LISTENER_ADDED = "data-listener-added";
 
-  const getMsg = (el: HTMLElement, msgKey: string) => {
+  const getMsg = (el: HTMLElement, msgKey: string): string=> {
     let msg = errFb;
     if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
+      el.getAttribute("data-sv-localized") === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     ) {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
@@ -29,18 +29,18 @@
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
+        el.setAttribute(dataGuardMsg, msg);
+        el.setAttribute(dataClientLocalized, "true");
       }
     }
     return msg;
   };
 
-  const showFeedback = (el: HTMLElement, key: string, ev: string = "click") => {
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
     const text = getMsg(el ?? document.body, key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
@@ -80,7 +80,7 @@
     }
   };
 
-  const guardOnce = (el: HTMLElement, key: string, ev: string = "click") => {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -100,23 +100,34 @@
     try {
       const handler = function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           const file = this?.files?.[0];
           if (!file) return;
           const $img = $("#image");
           if (!$img.length) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             guardOnce(this, "image_preview_unavailable");
             return;
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
           const prev = this.getAttribute("data-prev-url") ?? "";
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const url = URL.createObjectURL(file);
           $img.attr("src", url);
           if (prev) {
             try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               URL.revokeObjectURL(prev);
             } catch {}
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           this.setAttribute("data-prev-url", url);
         } catch {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           guardOnce(this, "image_preview_unavailable");
         }
       };
@@ -137,6 +148,7 @@
 
       if (document.body.getAttribute("data-np-delegate-img") !== "true") {
         $(document).on("change", "#pro_image", function (): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           if ($(this).attr("data-np-bound") === "true") return;
           handler.call(this);
         });
@@ -152,6 +164,7 @@
       if (document.body.getAttribute("data-np-qty-bound") === "true") return;
       $(document).on("click", ".type", function (): void {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const type = String($(this).val() ?? "").toLowerCase();
           const $q = $(".quantity");
           if (!$q.length) return;
@@ -161,6 +174,7 @@
             $q.addClass("d-none").removeClass("d-block");
           }
         } catch {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           guardOnce(this, "toggle_quantity_unavailable");
         }
       });

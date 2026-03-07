@@ -4,7 +4,7 @@
  * @module status
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("training-status-form");
@@ -42,7 +42,7 @@
         const bs = document.querySelector('link[href*="bootstrap"]');
         if (
           bs &&
-          window.bootstrap?.Toast
+          window.bootstrap.Toast
         ) {
           const t = document.createElement("div");
           t.className = "toast";

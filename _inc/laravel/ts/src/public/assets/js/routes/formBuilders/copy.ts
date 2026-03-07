@@ -4,11 +4,15 @@
  * @module copy
  */
 
-((): void => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const SUCCESS_KEY = "link_copy_success";
   const FAILURE_KEY = "link_copy_failed";
   const LISTENER_ATTR = "data-copy-listener";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const SELECTOR = [".cp_link", ".iframe_link"];
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const showMsg = (key: string, isError = false) => {
     const msg = ((): string => {
       let lang = (
@@ -25,10 +29,10 @@
         "# ERROR"
       );
     })();
-    show_toastr(isError ? "error" : "success", msg);
+    window.show_toastr?.(isError ? "error" : "success", msg);
   };
 
-  const copyText = async (text: string) => {
+  const copyText = async (text: string): Promise<void> => {
     try {
       if (navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
@@ -46,7 +50,7 @@
     }
   };
 
-  const attach = (el: Element) => {
+  const attach = (el: Element): void=> {
     if (el.getAttribute(LISTENER_ATTR) === "true") return;
     el.setAttribute(LISTENER_ATTR, "true");
     el.addEventListener("click", (e: Event) => {

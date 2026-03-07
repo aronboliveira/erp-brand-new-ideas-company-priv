@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 (function (): void {
   try {
     const f = document.getElementById("update_employee_form");
@@ -19,9 +19,10 @@
       f.setAttribute("action", resolved);
     }
 
-    function notify(msg: string) {
+    // eslint-disable-next-line no-inner-declarations
+    function notify(msg: string): void{
       try {
-        if (window.bootstrap?.Toast) {
+        if (window.bootstrap.Toast) {
           const c =
             document.getElementById("toast-container") ??
             (function (): HTMLDivElement {

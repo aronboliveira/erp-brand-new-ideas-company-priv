@@ -4,7 +4,7 @@
  * @module toggle
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const ids = ["task-view-toggle-list", "task-view-toggle-grid"];
@@ -47,7 +47,7 @@
             }
 
             const bsLink = document.querySelector('link[href*="bootstrap"]');
-            if (bsLink && window.bootstrap?.Toast) {
+            if (bsLink && window.bootstrap.Toast) {
               const toast = document.createElement("div");
               toast.className = "toast";
               toast.setAttribute("role", "alert");
@@ -70,7 +70,9 @@
                 )
                   console.error(
                     "[assets/js/routes/taskBoard/viewToggle.js] Bootstrap toast instantiation error:",
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error",
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error",
                   );
                 alert(msg);
@@ -87,7 +89,9 @@
             )
               console.error(
                 "[assets/js/routes/taskBoard/viewToggle.js] Click handler error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error",
               );
           }
@@ -99,7 +103,9 @@
         )
           console.error(
             "[assets/js/routes/taskBoard/viewToggle.js] Link binding error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error",
           );
       }
@@ -111,7 +117,9 @@
     )
       console.error(
         "[assets/js/routes/taskBoard/viewToggle.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error",
       );
   }

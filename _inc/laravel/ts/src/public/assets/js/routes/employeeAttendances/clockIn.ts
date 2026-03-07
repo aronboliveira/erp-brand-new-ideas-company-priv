@@ -4,7 +4,7 @@
  * @module clockIn
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("clock-in-form");

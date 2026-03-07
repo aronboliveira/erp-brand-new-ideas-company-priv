@@ -4,7 +4,7 @@
  * @module generate
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("support-generate-ai");
@@ -35,7 +35,7 @@
         const bsLink = document.querySelector('link[href*="bootstrap"]');
         if (
           bsLink &&
-          window.bootstrap?.Toast
+          window.bootstrap.Toast
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";
@@ -59,7 +59,9 @@
             )
               console.error(
                 "[assets/js/routes/supports/generate.js] Bootstrap toast instantiation error:",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.message ?? "Unknown error"
               );
             alert(msg);
@@ -76,7 +78,9 @@
         )
           console.error(
             "[assets/js/routes/supports/generate.js] Click handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error"
           );
       }
@@ -88,7 +92,9 @@
     )
       console.error(
         "[assets/js/routes/supports/generate.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error"
       );
   }

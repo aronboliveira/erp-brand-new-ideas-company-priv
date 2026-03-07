@@ -4,7 +4,7 @@
  * @module vendor
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const s = document.getElementById("vendor");
@@ -14,7 +14,7 @@
     s.setAttribute(flag, "true");
     s.addEventListener(
       "change",
-      function (e: Event) {
+      function (_e: Event) {
         try {
           const url = s.getAttribute("data-url") ?? "#";
           if (url !== "#") return;

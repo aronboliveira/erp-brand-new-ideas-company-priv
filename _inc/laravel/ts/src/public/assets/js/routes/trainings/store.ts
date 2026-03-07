@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("create_training");
@@ -42,7 +42,7 @@
         const bsLink = document.querySelector('link[href*="bootstrap"]');
         if (
           bsLink &&
-          window.bootstrap?.Toast
+          window.bootstrap.Toast
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";
@@ -74,7 +74,9 @@
         )
           console.error(
             "[assets/js/routes/trainings/store.js] Submit handler error:",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.message ?? "Unknown error"
           );
       }
@@ -86,7 +88,9 @@
     )
       console.error(
         "[assets/js/routes/trainings/store.js] Initialization error:",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.message ?? "Unknown error"
       );
   }

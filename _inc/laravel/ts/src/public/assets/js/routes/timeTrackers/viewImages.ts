@@ -4,7 +4,7 @@
  * @module viewImages
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const items = document.querySelectorAll(".view-images");
@@ -15,6 +15,7 @@
         if (img.getAttribute("data-listener-active") === "true") return;
         img.setAttribute("data-listener-active", "true");
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         img.addEventListener("click", async e => {
           try {
             e.preventDefault();
@@ -34,7 +35,7 @@
                 document.body.appendChild(container);
               }
               const bsLink = document.querySelector('link[href*="bootstrap"]');
-              if (bsLink && window.bootstrap?.Toast) {
+              if (bsLink && window.bootstrap.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 toast.setAttribute("role", "alert");
@@ -76,7 +77,7 @@
               // SECURITY: Use textContent for any user data, or use a sanitizer for arbitrary HTML
               safeSethtmlContent(content as HTMLElement, html);
 
-              if (window.bootstrap?.Modal) {
+              if (window.bootstrap.Modal) {
                 const m = window.bootstrap.Modal.getOrCreateInstance(modal);
                 m.show();
               }
@@ -93,7 +94,7 @@
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }
-              if (bsLink && window.bootstrap?.Toast) {
+              if (bsLink && window.bootstrap.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 toast.setAttribute("role", "alert");
@@ -119,7 +120,8 @@
     });
 
     // SECURITY: Safe HTML insertion helper
-    function safeSethtmlContent(el: HTMLElement, html: string) {
+    // eslint-disable-next-line no-inner-declarations
+    function safeSethtmlContent(el: HTMLElement, html: string): void{
       try {
         // Use DOMParser to safely parse HTML, then clone nodes to prevent scripts
         const parser = new DOMParser();

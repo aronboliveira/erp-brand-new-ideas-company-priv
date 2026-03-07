@@ -4,7 +4,7 @@
  * @module export
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("balance-sheet-export-form");

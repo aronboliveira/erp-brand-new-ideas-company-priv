@@ -4,14 +4,19 @@
  * @module view
  */
 
-/* global bootstrap, $, jQuery */
-(function (): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const L = "data-guard-listener";
   const DCL = "data-client-localized";
   const DGM = "data-guard-msg";
   const DSL = "data-sv-localized";
   const ERR = "# ERROR";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const NS = ".detailGuards";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function hasBootstrapCss() {
     try {
       return !!document.querySelector(
@@ -21,9 +26,9 @@
       return false;
     }
   }
-  function toast(msg: string) {
+  function toast(msg: string): void{
     try {
-      if (hasBootstrapCss() && window.bootstrap?.Toast) {
+      if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
         if (!c) {
           c = document.createElement("div");
@@ -46,8 +51,10 @@
       }
     } catch (_) {
       alert(msg);
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getMsg(el: HTMLElement, key: string) {
     try {
       let msg = ERR;
@@ -77,13 +84,13 @@
       return ERR;
     }
   }
-  function bindLink(a: HTMLAnchorElement) {
+  function bindLink(a: HTMLAnchorElement): void{
     if (!a || a.getAttribute(L) === "true") return;
     a.setAttribute(L, "true");
     const jQuery = window.jQuery;
     if (!jQuery) return;
     const $a = jQuery(a);
-    const handler = function (e: Event) {
+    const handler = function (e: Event): void{
       try {
         const url = a.getAttribute("data-url");
         const href = a.href;

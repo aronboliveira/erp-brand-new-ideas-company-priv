@@ -4,7 +4,7 @@
  * @module update
  */
 
-/* global bootstrap */
+
 ((): void => {
   const form = document.getElementById("meeting-update-form");
   if (!form) return;
@@ -42,7 +42,7 @@
             body.textContent = msg;
 
             toastEl.appendChild(body);
-            (container as HTMLElement).appendChild(toastEl);
+            (container).appendChild(toastEl);
             window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
           } else {
             alert(msg);

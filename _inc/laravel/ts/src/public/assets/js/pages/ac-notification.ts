@@ -6,7 +6,7 @@
 
 "use strict";
 
-declare var notifier: {
+declare let notifier: {
   show: (
     title: string,
     message: string,

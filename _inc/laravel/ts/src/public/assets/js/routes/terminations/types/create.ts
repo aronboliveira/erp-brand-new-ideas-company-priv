@@ -4,7 +4,7 @@
  * @module create
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const a = document.getElementById("terminationtype-create-link");

@@ -4,7 +4,7 @@
  * @module footer
  */
 
-/* global feather, bootstrap */
+
 ((): void => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
@@ -90,7 +90,7 @@
   };
 
   const removeClassByPrefix = (node: Element, prefix: string): void => {
-    node?.classList?.forEach((cls: string) => {
+    node.classList.forEach((cls: string) => {
       if (cls.startsWith(prefix)) node.classList.remove(cls);
     });
   };

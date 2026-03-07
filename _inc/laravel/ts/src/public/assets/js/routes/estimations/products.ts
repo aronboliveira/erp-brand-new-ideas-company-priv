@@ -7,7 +7,7 @@
 /* global bootstrap */
 ((): void => {
   try {
-    const bindGuard = (fm: Element | null) => {
+    const bindGuard = (fm: Element | null): void=> {
       if (!fm) return;
       if (fm.getAttribute("data-submit-guarded") === "true") return;
       fm.setAttribute("data-submit-guarded", "true");

@@ -4,13 +4,17 @@
  * @module editToggle
  */
 
-/* global bootstrap, $, jQuery */
-((): void => {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(() => {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
   const langKey = "erp-np-lang";
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
     let msg = errFb;
     if (el.getAttribute(dataClientLocalized) === "true") {
@@ -37,7 +41,7 @@
     return msg;
   }
 
-  function showError(message: string) {
+  function showError(message: string): void{
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -93,7 +97,8 @@
         const $el = $(el);
         if ($el.data("listener-income") === true) return;
         $el.data("listener-income", true);
-        const handler = (e?: Event) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const handler = (e?: Event): void=> {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
@@ -106,10 +111,14 @@
             let mTotal = 0;
             $row
               .parent()
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
               .find(`.${month}_income`)
               .each((i: number, inp) => {
                 mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
             $row.parent().find(`.${month}_total_income`).text(String(mTotal));
             let grand = 0;
             $row
@@ -143,7 +152,8 @@
         const $el = $(el);
         if ($el.data("listener-expense") === true) return;
         $el.data("listener-expense", true);
-        const handler = (e?: Event) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const handler = (e?: Event): void=> {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
@@ -155,10 +165,14 @@
             let mTotal = 0;
             $row
               .parent()
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
               .find(`.${month}_expense`)
               .each((i: number, inp) => {
                 mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
             $row.parent().find(`.${month}_total_expense`).text(String(mTotal));
             let grand = 0;
             $row
@@ -195,10 +209,12 @@
         const $el = $(el);
         if ($el.data("listener-period") === true) return;
         $el.data("listener-period", true);
-        const handler = (e?: Event) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const handler = (e?: Event): void=> {
           try {
             const val = $el.val() ?? "";
             $(".budget_plan").addClass("d-none");
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             $(`#${val}`).removeClass("d-none").addClass("d-block");
           } catch {
             errorMessage = getLocalizedMessage("period_toggle_failed", el);

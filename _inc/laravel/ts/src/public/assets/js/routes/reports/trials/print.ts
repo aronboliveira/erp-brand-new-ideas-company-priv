@@ -4,12 +4,14 @@
  * @module print
  */
 
-/* global bootstrap */
-(function (): void {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -31,11 +33,12 @@
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string) => {
+  const showErrorNow = (message: string): void=> {
     const hasBsLink =
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]');
-    const hasBsToast = window.bootstrap?.Toast;
+    const hasBsToast = window.bootstrap.Toast;
     if (hasBsLink && hasBsToast) {
       const container = ensureToastContainer();
       const tid = "np-toast";
@@ -64,7 +67,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string) => {
+  const scheduleInteractiveError = (message: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
       return;
@@ -85,7 +88,9 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, msgKey: string) => {
     const errFbL = errFb;
     const dataClientLocalizedL = dataClientLocalized;

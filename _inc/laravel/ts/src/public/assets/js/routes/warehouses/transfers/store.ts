@@ -4,7 +4,7 @@
  * @module store
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const f = document.getElementById("warehouse-transfer-store-form");
@@ -31,7 +31,7 @@
       }
       const ok =
         document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
+        window.bootstrap.Toast;
       if (ok) {
         const t = document.createElement("div");
         t.className = "toast";

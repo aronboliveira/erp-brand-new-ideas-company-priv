@@ -4,7 +4,7 @@
  * @module seo
  */
 
-/* global bootstrap, $, jQuery */
+
 ((): void => {
   try {
     const seoGen = document.getElementById("generate-ai-seo-link");
@@ -15,7 +15,7 @@
           const url = seoGen.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           e.preventDefault();
-          const msg = seoGen?.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = seoGen.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -43,7 +43,7 @@
           } else {
             alert(msg);
           }
-          seoGen?.setAttribute("data-failed-route", "true");
+          seoGen.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
@@ -59,7 +59,7 @@
           const url = cookieGen.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           e.preventDefault();
-          const msg = cookieGen?.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = cookieGen.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -87,7 +87,7 @@
           } else {
             alert(msg);
           }
-          cookieGen?.setAttribute("data-failed-route", "true");
+          cookieGen.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
@@ -101,7 +101,7 @@
           const action = seoForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = seoForm?.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = seoForm.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -129,7 +129,7 @@
           } else {
             alert(msg);
           }
-          seoForm?.setAttribute("data-failed-route", "true");
+          seoForm.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
@@ -148,7 +148,7 @@
           const action = cookiesForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = cookiesForm?.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = cookiesForm.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -176,7 +176,7 @@
           } else {
             alert(msg);
           }
-          cookiesForm?.setAttribute("data-failed-route", "true");
+          cookiesForm.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }
@@ -190,7 +190,7 @@
           const action = chatForm.getAttribute("action") ?? "#";
           if (url !== "#" || action !== "#") return;
           e.preventDefault();
-          const msg = chatForm?.getAttribute("data-guard-msg") ?? "# ERROR";
+          const msg = chatForm.getAttribute("data-guard-msg") ?? "# ERROR";
           const hasBootstrap =
             document.querySelector('link[href*="bootstrap"]') &&
             window.bootstrap;
@@ -218,7 +218,7 @@
           } else {
             alert(msg);
           }
-          chatForm?.setAttribute("data-failed-route", "true");
+          chatForm.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
     }

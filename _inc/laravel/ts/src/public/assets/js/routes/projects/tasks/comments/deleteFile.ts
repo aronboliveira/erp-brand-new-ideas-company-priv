@@ -4,7 +4,7 @@
  * @module deleteFile
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const host = document.documentElement;

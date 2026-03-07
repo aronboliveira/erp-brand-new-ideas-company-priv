@@ -8,7 +8,7 @@
 ((): void => {
   const DEFAULT_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const toast = (message: string) => {
+  const toast = (message: string): void=> {
     const text = message || DEFAULT_MSG;
     const hasBs =
       !!document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -35,7 +35,7 @@
       alert(text);
     }
   };
-  const guardLink = (el: HTMLElement | null) => {
+  const guardLink = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {

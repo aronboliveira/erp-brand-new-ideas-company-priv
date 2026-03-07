@@ -4,9 +4,9 @@
  * @module show
  */
 
-/* global bootstrap */
+
 ((): void => {
-  const showMsg = (msg: string) => {
+  const showMsg = (msg: string): void=> {
     try {
       if (window.bootstrap.Toast) {
         const c =

@@ -4,7 +4,7 @@
  * @module edit
  */
 
-/* global bootstrap */
+
 ((): void => {
   try {
     const fm = document.getElementById("jobStage-edit-form");

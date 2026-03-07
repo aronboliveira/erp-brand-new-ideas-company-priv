@@ -4,7 +4,7 @@
  * @module ac-alert
  */
 
-/* global bootstrap, Swal */
+
 "use strict";
 
 document
@@ -186,7 +186,7 @@ document
       },
     }).then((result: SweetAlertResult) => {
       if (result.dismiss === "timer") {
-        console.log("I was closed by the timer");
+        console.info("I was closed by the timer");
       }
     });
   });
@@ -205,7 +205,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-ajex-req")
-  ?.addEventListener("click", function (): void {
+  ?.addEventListener("click", function () {
     void Swal.fire({
       title: "Submit your Github username",
       input: "text",
@@ -299,8 +299,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-text-input")
-  ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+  ?.addEventListener("click", function () {
+    void (async (): Promise<void> => {
       const ipAPI = "//api.ipify.org?format=json";
       const inputValue = fetch(ipAPI)
         .then((response: Response) => response.json().catch(console.error))
@@ -318,6 +318,8 @@ document
         },
       });
       if (ipAddress) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
         void Swal.fire(`Your IP address is ` + ipAddress);
       }
     })();
@@ -325,7 +327,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-email-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const { value: email } = await Swal.fire({
         title: "Input email address",
         input: "email",
@@ -333,6 +335,8 @@ document
       });
 
       if (email) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
         void Swal.fire(`Entered email: ` + email);
       }
     })();
@@ -340,12 +344,14 @@ document
 document
   .querySelector<HTMLElement>(".bs-url-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const { value: url } = await Swal.fire({
         input: "url",
         inputPlaceholder: "Enter the URL",
       });
       if (url) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
         void Swal.fire(`Entered URL: ` + url);
       }
     })();
@@ -353,7 +359,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-password-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const { value: password } = await Swal.fire({
         title: "Enter your password",
         input: "password",
@@ -365,6 +371,8 @@ document
         },
       });
       if (password) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
         void Swal.fire(`Entered password: ` + password);
       }
     })();
@@ -372,7 +380,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-textarea-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const { value: text } = await Swal.fire({
         input: "textarea",
         inputPlaceholder: "Type your message here...",
@@ -388,8 +396,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-select-input")
-  ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+  ?.addEventListener("click", function () {
+    void (async (): Promise<void> => {
       const selectOptions: Record<string, string | Record<string, string>> = {
         Fruits: {
           apples: "Apples",
@@ -421,14 +429,16 @@ document
         },
       });
       if (fruit) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
         void Swal.fire(`You selected: ` + fruit);
       }
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-radio-input")
-  ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+  ?.addEventListener("click", function () {
+    void (async (): Promise<void> => {
       const inputOptions = new Promise<Record<string, string>>(resolve => {
         setTimeout((): void => {
           resolve({
@@ -451,6 +461,8 @@ document
       });
       if (color) {
         void Swal.fire({
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
           html: `You selected: ` + color,
         });
       }
@@ -458,8 +470,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-checkbox-input")
-  ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+  ?.addEventListener("click", function () {
+    void (async (): Promise<void> => {
       const { value: accept } = await Swal.fire({
         title: "Terms and conditions",
         input: "checkbox",
@@ -478,7 +490,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-file-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const { value: file } = await Swal.fire({
         title: "Select image",
         input: "file",
@@ -505,7 +517,7 @@ document
 document
   .querySelector<HTMLElement>(".bs-range-input")
   ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+    void ((): void => {
       void Swal.fire({
         title: "How old are you?",
         icon: "question",
@@ -521,8 +533,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-multiple-input")
-  ?.addEventListener("click", function (): void {
-    (async (): Promise<void> => {
+  ?.addEventListener("click", function () {
+    void (async (): Promise<void> => {
       const { value: formValues } = await Swal.fire({
         title: "Multiple inputs",
         html:

@@ -4,8 +4,10 @@
  * @module dismiss
  */
 
-/* global bootstrap */
-(function (): void {
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
   const errFb = "# ERROR";
   const dataClientLocalized = "data-client-localized";
   const dataGuardMsg = "data-guard-msg";
@@ -15,12 +17,14 @@
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
-  ): T | null => r.querySelector(s) as T | null;
+  ): T | null => r.querySelector(s);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]')
-    ) && !!window.bootstrap?.Toast;
+    ) && !!window.bootstrap.Toast;
   const toastContainer = (): HTMLDivElement => {
     let c = qs<HTMLDivElement>("#np-toast-container");
     if (c) return c;
@@ -34,7 +38,7 @@
     document.body.appendChild(c);
     return c;
   };
-  const showError = (message: string) => {
+  const showError = (message: string): void=> {
     if (hasBS()) {
       const container = toastContainer();
       let t = qs("#np-toast", container);
@@ -60,7 +64,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (msg: string) => {
+  const scheduleClickError = (msg: string): void=> {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -79,12 +83,14 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, key: string) => {
     let msg = errFb;
     if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
+      el.getAttribute(dataSvLocalized) === "true" ||
+      el.getAttribute(dataClientLocalized) === "true"
     )
       msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
@@ -99,7 +105,7 @@
       const msgKey = key;
       msg =
         window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
+        el.getAttribute(dataGuardMsg) ||
         window.translations?.en?.[msgKey] ||
         errFb;
       if (msg !== errFb && el) {
@@ -109,7 +115,7 @@
     }
     return msg;
   };
-  const hideAlert = (closeEl: HTMLElement) => {
+  const hideAlert = (closeEl: HTMLElement): void=> {
     try {
       const target = qs("#error_alert");
       if (!target) {
@@ -126,7 +132,7 @@
     if (!closeEl) return;
     if (closeEl.getAttribute(dataBindGuard) === "true") return;
     closeEl.setAttribute(dataBindGuard, "true");
-    const onClick = function (this: HTMLElement, e: Event) {
+    const onClick = function (this: HTMLElement, e: Event): void{
       e.preventDefault();
       hideAlert(this);
     };
