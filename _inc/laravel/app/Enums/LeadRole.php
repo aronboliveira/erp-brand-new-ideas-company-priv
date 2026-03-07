@@ -46,7 +46,6 @@ enum LeadRole: string
 			'supervisor'       => self::Supervisor,
 			'supervisora'      => self::Supervisor,
 			'supervisão'       => self::Supervisor,
-			'supervisão'       => self::Supervisor,
 			'oversee'          => self::Supervisor,
 			'team_lead'        => self::Supervisor,
 			'líder_de_equipe'  => self::Supervisor,

@@ -141,7 +141,6 @@ enum PeruDepartment: string
 			'AYACUCHO'                     => self::AYA,
 			'CAJAMARCA'                    => self::CAJ,
 			'CUSCO'                        => self::CUS,
-			'CUSCO'                        => self::CUS,
 			'HUANCAVELICA'                 => self::HUV,
 			'HUANUCO'                      => self::HUC,
 			'HUÁNUCO'                      => self::HUC,
@@ -163,7 +162,6 @@ enum PeruDepartment: string
 			'SAN MARTÍN'                   => self::SAM,
 			'TACNA'                        => self::TAC,
 			'TUMBES'                       => self::TUM,
-			'UCAYALI'                      => self::UCA,
 			'UCAYALI'                      => self::UCA,
 		];
 

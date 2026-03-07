@@ -17,7 +17,7 @@ enum WorkActivityScope: string
 		if ($value === null)
 			return self::Internal;
 
-		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value ?? '')));
+		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value)));
 		return match ($normalizedValue) {
 			'internal', 'interno', 'intern', 'interne', 'interna' => self::Internal,
 			'external', 'externo', 'extern', 'externe', 'externa' => self::External,

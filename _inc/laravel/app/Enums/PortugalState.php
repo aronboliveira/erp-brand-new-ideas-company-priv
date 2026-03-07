@@ -50,7 +50,6 @@ enum PortugalState: string
 			'COIMBRA' => self::CR,
 			'SANTARÉM' => self::ST,
 			'SANTAREM' => self::ST,
-			'SANTARÉM' => self::ST,
 			'ÉVORA' => self::EV,
 			'EVORA' => self::EV,
 			'FARO' => self::FR,

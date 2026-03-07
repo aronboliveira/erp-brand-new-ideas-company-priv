@@ -63,7 +63,6 @@ enum LogType: string
 			// Warning
 			'warning'       => self::Warning,
 			'warn'          => self::Warning,
-			'alerta'        => self::Warning,
 			'advertência'   => self::Warning,
 
 			// Info
@@ -119,7 +118,6 @@ enum LogType: string
 			'job'           => self::Job,
 			'trabalho'      => self::Job,
 			'queue_job'     => self::Job,
-			'queue'         => self::Job,
 
 			// Event
 			'event'         => self::Event,

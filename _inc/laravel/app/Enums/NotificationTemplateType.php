@@ -93,7 +93,7 @@ enum NotificationTemplateType: string
 		if ($value === null)
 			return self::Email;
 
-		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value ?? '')));
+		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value)));
 		return match ($normalizedValue) {
 			// Core communication types
 			'email', 'mail' => self::Email,

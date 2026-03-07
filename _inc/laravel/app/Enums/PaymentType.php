@@ -31,7 +31,6 @@ enum PaymentType: string
 			'manual'        => self::Manual,
 			'manual payment' => self::Manual,
 			'manualmente'   => self::Manual,
-			'manualmente'   => self::Manual,
 
 			// Recurring
 			'recurring'     => self::Recurring,

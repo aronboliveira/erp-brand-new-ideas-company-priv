@@ -247,7 +247,6 @@ class SettingsConstants
 		'twilio_sid' => '',
 		'twilio_token' => '',
 		'twilio_from' => '',
-		'twilio_from' => '',
 		'chat_gpt_key' => '',
 		"ip_restrict" => "off",
 
@@ -404,7 +403,6 @@ class SettingsConstants
 
 		self::MT_IMG_K => '',
 		self::MT_DSC_K => '',
-		self::MT_IMG_K => '',
 
 		'enable_cookie' => 'on',
 		'necessary_cookies' => 'on',

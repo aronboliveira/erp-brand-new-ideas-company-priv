@@ -1620,56 +1620,6 @@ class LangsConstants
 				'award_type_destroy_route_unavailable' => '删除奖励类型路由不可用。' . self::DELEGATION_ZH
 			]
 		],
-		ViewsConstants::BDG => [
-			'ar' => [
-				'budget_index_route_unavailable' => 'مسار مخطط الميزانية غير متاح. ' . self::DELEGATION_AR,
-			],
-			'da' => [
-				'budget_index_route_unavailable' => 'Budsætningsplanlægningsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-			],
-			'de' => [
-				'budget_index_route_unavailable' => 'Budgetplaner-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
-			],
-			'en' => [
-				'budget_index_route_unavailable' => 'Budget Planner route is unavailable. ' . self::DELEGATION_EN,
-			],
-			'es' => [
-				'budget_index_route_unavailable' => 'La ruta del Planificador de presupuestos no está disponible. ' . self::DELEGATION_ES,
-			],
-			'fr' => [
-				'budget_index_route_unavailable' => 'La route du planificateur de budget n\'est pas disponible. ' . self::DELEGATION_FR,
-			],
-			'he' => [
-				'budget_index_route_unavailable' => 'נתיב מתכנן התקציב אינו זמין. ' . self::DELEGATION_HE,
-			],
-			'it' => [
-				'budget_index_route_unavailable' => 'Il percorso del planner di budget non è disponibile. ' . self::DELEGATION_IT,
-			],
-			'ja' => [
-				'budget_index_route_unavailable' => '予算プランナールートは利用できません。' . self::DELEGATION_JA,
-			],
-			'nl' => [
-				'budget_index_route_unavailable' => 'Budgetplannerroute is niet beschikbaar. ' . self::DELEGATION_NL,
-			],
-			'pl' => [
-				'budget_index_route_unavailable' => 'Trasa planera budżetu jest niedostępna. ' . self::DELEGATION_PL,
-			],
-			'pt' => [
-				'budget_index_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PT,
-			],
-			'pt-br' => [
-				'budget_index_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PTBR,
-			],
-			'ru' => [
-				'budget_index_route_unavailable' => 'Маршрут планировщика бюджета недоступен. ' . self::DELEGATION_RU,
-			],
-			'tr' => [
-				'budget_index_route_unavailable' => 'Bütçe Planlayıcı rotası kullanılamıyor. ' . self::DELEGATION_TR,
-			],
-			'zh' => [
-				'budget_index_route_unavailable' => '预算计划路由不可用。' . self::DELEGATION_ZH,
-			]
-		],
 		ViewsConstants::BIL => [
 			'ar' => [
 				'bill_index_route_unavailable'        => 'مسار قائمة الفواتير غير متاح. '                . self::DELEGATION_AR,
@@ -2658,6 +2608,7 @@ class LangsConstants
 		],
 		ViewsConstants::BDG => [
 			'ar' => [
+				'budget_index_route_unavailable' => 'مسار مخطط الميزانية غير متاح. ' . self::DELEGATION_AR,
 				'budget_planner_index_route_unavailable' => 'مسار فهرس مخطط الميزانية غير متاح. ' . self::DELEGATION_AR,
 				'budget_planner_store_route_unavailable' => 'مسار مخطط الميزانية غير متاح. ' . self::DELEGATION_AR,
 				'expense_cancel_route_unavailable' => 'مسار قسم المصروفات غير متاح. ' . self::DELEGATION_AR,
@@ -2668,6 +2619,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'مسار إزالة خطة الميزانية غير متاح. ' . self::DELEGATION_AR,
 			],
 			'da' => [
+				'budget_index_route_unavailable' => 'Budsætningsplanlægningsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'budget_planner_index_route_unavailable' => 'Budget Planner-indeksrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'budget_planner_store_route_unavailable' => 'Budget Planner-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'expense_cancel_route_unavailable' => 'Udgiftsafdelingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
@@ -2678,6 +2630,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Sletningsrute for budgetplan er ikke tilgængelig. ' . self::DELEGATION_DA,
 			],
 			'de' => [
+				'budget_index_route_unavailable' => 'Budgetplaner-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'budget_planner_index_route_unavailable' => 'Budget Planner-Indexroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'budget_planner_store_route_unavailable' => 'Budget Planner-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'expense_cancel_route_unavailable' => 'Kostenbereich-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
@@ -2688,6 +2641,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Budgetplan-Löschroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 			],
 			'en' => [
+				'budget_index_route_unavailable' => 'Budget Planner route is unavailable. ' . self::DELEGATION_EN,
 				'budget_planner_index_route_unavailable' => 'Budget Planner index route is unavailable. ' . self::DELEGATION_EN,
 				'budget_planner_store_route_unavailable' => 'Budget Planner route is unavailable. ' . self::DELEGATION_EN,
 				'expense_cancel_route_unavailable' => 'Expense section route is unavailable. ' . self::DELEGATION_EN,
@@ -2698,6 +2652,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Budget plan destroy route is unavailable. ' . self::DELEGATION_EN,
 			],
 			'es' => [
+				'budget_index_route_unavailable' => 'La ruta del Planificador de presupuestos no está disponible. ' . self::DELEGATION_ES,
 				'budget_planner_index_route_unavailable' => 'La ruta de índice del Planificador de presupuestos no está disponible. ' . self::DELEGATION_ES,
 				'budget_planner_store_route_unavailable' => 'La ruta del Planificador de presupuestos no está disponible. ' . self::DELEGATION_ES,
 				'expense_cancel_route_unavailable' => 'La ruta de la sección de gastos no está disponible. ' . self::DELEGATION_ES,
@@ -2708,6 +2663,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'La ruta de eliminación del plan de presupuesto no está disponible. ' . self::DELEGATION_ES,
 			],
 			'fr' => [
+				'budget_index_route_unavailable' => 'La route du planificateur de budget n\'est pas disponible. ' . self::DELEGATION_FR,
 				'budget_planner_index_route_unavailable' => 'La route d\'index du planificateur de budget n\'est pas disponible. ' . self::DELEGATION_FR,
 				'budget_planner_store_route_unavailable' => 'La route du planificateur de budget n\'est pas disponible. ' . self::DELEGATION_FR,
 				'expense_cancel_route_unavailable' => 'La route de la section des dépenses n\'est pas disponible. ' . self::DELEGATION_FR,
@@ -2718,6 +2674,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'La route de suppression du plan budgétaire n\'est pas disponible. ' . self::DELEGATION_FR,
 			],
 			'he' => [
+				'budget_index_route_unavailable' => 'נתיב מתכנן התקציב אינו זמין. ' . self::DELEGATION_HE,
 				'budget_planner_index_route_unavailable' => 'נתיב האינדקס של מתכנן התקציב אינו זמין. ' . self::DELEGATION_HE,
 				'budget_planner_store_route_unavailable' => 'נתיב מתכנן התקציב אינו זמין. ' . self::DELEGATION_HE,
 				'expense_cancel_route_unavailable' => 'נתיב חלק ההוצאות אינו זמין. ' . self::DELEGATION_HE,
@@ -2728,6 +2685,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'נתיב ההשמדה של תוכנית התקציב אינו זמין. ' . self::DELEGATION_HE,
 			],
 			'it' => [
+				'budget_index_route_unavailable' => 'Il percorso del planner di budget non è disponibile. ' . self::DELEGATION_IT,
 				'budget_planner_index_route_unavailable' => 'La rotta dell\'indice del Budget Planner non è disponibile. ' . self::DELEGATION_IT,
 				'budget_planner_store_route_unavailable' => 'La rotta del Budget Planner non è disponibile. ' . self::DELEGATION_IT,
 				'expense_cancel_route_unavailable' => 'La rotta della sezione spese non è disponibile. ' . self::DELEGATION_IT,
@@ -2738,6 +2696,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'La rotta di eliminazione del piano budget non è disponibile. ' . self::DELEGATION_IT,
 			],
 			'ja' => [
+				'budget_index_route_unavailable' => '予算プランナールートは利用できません。' . self::DELEGATION_JA,
 				'budget_planner_index_route_unavailable' => '予算プランナーのインデックスルートは利用できません。' . self::DELEGATION_JA,
 				'budget_planner_store_route_unavailable' => '予算プランナールートは利用できません。' . self::DELEGATION_JA,
 				'expense_cancel_route_unavailable' => '経費セクションのルートは利用できません。' . self::DELEGATION_JA,
@@ -2748,6 +2707,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => '予算計画削除ルートは利用できません。' . self::DELEGATION_JA,
 			],
 			'nl' => [
+				'budget_index_route_unavailable' => 'Budgetplannerroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'budget_planner_index_route_unavailable' => 'Budgetplanner-indexroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'budget_planner_store_route_unavailable' => 'Budgetplanner-route is niet beschikbaar. ' . self::DELEGATION_NL,
 				'expense_cancel_route_unavailable' => 'Uitgavensectie-route is niet beschikbaar. ' . self::DELEGATION_NL,
@@ -2758,6 +2718,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Budgetplan-verwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
 			],
 			'pl' => [
+				'budget_index_route_unavailable' => 'Trasa planera budżetu jest niedostępna. ' . self::DELEGATION_PL,
 				'budget_planner_index_route_unavailable' => 'Trasa indeksu planera budżetu jest niedostępna. ' . self::DELEGATION_PL,
 				'budget_planner_store_route_unavailable' => 'Trasa planera budżetu jest niedostępna. ' . self::DELEGATION_PL,
 				'expense_cancel_route_unavailable' => 'Trasa sekcji wydatków jest niedostępna. ' . self::DELEGATION_PL,
@@ -2768,6 +2729,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Trasa usuwania planu budżetu jest niedostępna. ' . self::DELEGATION_PL,
 			],
 			'pt' => [
+				'budget_index_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PT,
 				'budget_planner_index_route_unavailable' => 'A rota de índice do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PT,
 				'budget_planner_store_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PT,
 				'expense_cancel_route_unavailable' => 'A rota da seção de despesas não está disponível. ' . self::DELEGATION_PT,
@@ -2778,6 +2740,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'A rota de destruição do plano orçamental não está disponível. ' . self::DELEGATION_PT,
 			],
 			'pt-br' => [
+				'budget_index_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PTBR,
 				'budget_planner_index_route_unavailable' => 'A rota de índice do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PTBR,
 				'budget_planner_store_route_unavailable' => 'A rota do Planejador de Orçamento não está disponível. ' . self::DELEGATION_PTBR,
 				'expense_cancel_route_unavailable' => 'A rota da seção de despesas não está disponível. ' . self::DELEGATION_PTBR,
@@ -2788,6 +2751,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'A rota de exclusão do plano orçamentário não está disponível. ' . self::DELEGATION_PTBR,
 			],
 			'ru' => [
+				'budget_index_route_unavailable' => 'Маршрут планировщика бюджета недоступен. ' . self::DELEGATION_RU,
 				'budget_planner_index_route_unavailable' => 'Маршрут индекса планировщика бюджета недоступен. ' . self::DELEGATION_RU,
 				'budget_planner_store_route_unavailable' => 'Маршрут планировщика бюджета недоступен. ' . self::DELEGATION_RU,
 				'expense_cancel_route_unavailable' => 'Маршрут раздела расходов недоступен. ' . self::DELEGATION_RU,
@@ -2798,6 +2762,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Маршрут удаления бюджетного плана недоступен. ' . self::DELEGATION_RU,
 			],
 			'tr' => [
+				'budget_index_route_unavailable' => 'Bütçe Planlayıcı rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'budget_planner_index_route_unavailable' => 'Bütçe Planlayıcı indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'budget_planner_store_route_unavailable' => 'Bütçe Planlayıcı rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'expense_cancel_route_unavailable' => 'Gider bölümü rotası kullanılamıyor. ' . self::DELEGATION_TR,
@@ -2808,6 +2773,7 @@ class LangsConstants
 				'budget_plan_destroy_route_unavailable' => 'Bütçe planı silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
 			],
 			'zh' => [
+				'budget_index_route_unavailable' => '预算计划路由不可用。' . self::DELEGATION_ZH,
 				'budget_planner_index_route_unavailable' => '预算计划器索引路由不可用。' . self::DELEGATION_ZH,
 				'budget_planner_store_route_unavailable' => '预算计划器路由不可用。' . self::DELEGATION_ZH,
 				'expense_cancel_route_unavailable' => '费用部分路由不可用。' . self::DELEGATION_ZH,
@@ -3486,24 +3452,6 @@ class LangsConstants
 				'commission_update_route_unavailable' => '佣金更新路由不可用。' . self::DELEGATION_ZH
 			]
 		],
-		ViewsConstants::CPL => [
-			'ar' => ['complaint_index_route_unavailable' => 'مسار فهرس الشكاوى غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['complaint_index_route_unavailable' => 'Klageindeksrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['complaint_index_route_unavailable' => 'Beschwerdeindex-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['complaint_index_route_unavailable' => 'Complaints index route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['complaint_index_route_unavailable' => 'La ruta del índice de quejas no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['complaint_index_route_unavailable' => 'La route de l\'index des réclamations est indisponible. ' . self::DELEGATION_FR],
-			'he' => ['complaint_index_route_unavailable' => 'נתיב אינדקס תלונות אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['complaint_index_route_unavailable' => 'La rotta dell\'indice dei reclami non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['complaint_index_route_unavailable' => '苦情インデックスルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['complaint_index_route_unavailable' => 'Klachtenindexroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['complaint_index_route_unavailable' => 'Trasa indeksu skarg jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['complaint_index_route_unavailable' => 'A rota do índice de reclamações não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['complaint_index_route_unavailable' => 'A rota do índice de reclamações não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['complaint_index_route_unavailable' => 'Маршрут индекса жалоб недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['complaint_index_route_unavailable' => 'Şikayet indeks rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['complaint_index_route_unavailable' => '投诉索引路由不可用。' . self::DELEGATION_ZH]
-		],
 		ViewsConstants::CPN => [
 			'ar' => [
 				'coupon_index_route_unavailable' => 'مسار القسيمة غير متاح. ' . self::DELEGATION_AR,
@@ -3994,6 +3942,7 @@ class LangsConstants
 		],
 		ViewsConstants::CPL => [
 			'ar' => [
+				'complaint_index_route_unavailable' => 'مسار فهرس الشكاوى غير متاح. ' . self::DELEGATION_AR,
 				'complaint_store_route_unavailable' => 'مسار تخزين الشكوى غير متاح. ' . self::DELEGATION_AR,
 				'complaint_update_route_unavailable' => 'مسار تحديث الشكوى غير متاح. ' . self::DELEGATION_AR,
 				'complaint_create_route_unavailable' => 'مسار إنشاء شكوى غير متاح. ' . self::DELEGATION_AR,
@@ -4002,6 +3951,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'مسار إنشاء شكوى بالذكاء الاصطناعي غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
+				'complaint_index_route_unavailable' => 'Klageindeksrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'complaint_store_route_unavailable' => 'Klageopbevaringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'complaint_update_route_unavailable' => 'Klageopdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'complaint_create_route_unavailable' => 'Opret klagerute er ikke tilgængelig. ' . self::DELEGATION_DA,
@@ -4010,6 +3960,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'Generer AI klagerute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
+				'complaint_index_route_unavailable' => 'Beschwerdeindex-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'complaint_store_route_unavailable' => 'Beschwerden-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'complaint_update_route_unavailable' => 'Beschwerden-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'complaint_create_route_unavailable' => 'Beschwerden-Erstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
@@ -4018,6 +3969,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'AI-Beschwerden-Generierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
+				'complaint_index_route_unavailable' => 'Complaints index route is unavailable. ' . self::DELEGATION_EN,
 				'complaint_store_route_unavailable' => 'Complaint store route is unavailable. ' . self::DELEGATION_EN,
 				'complaint_update_route_unavailable' => 'Complaint update route is unavailable. ' . self::DELEGATION_EN,
 				'complaint_create_route_unavailable' => 'Create Complaint route is unavailable. ' . self::DELEGATION_EN,
@@ -4026,6 +3978,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'Generate AI complaint route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
+				'complaint_index_route_unavailable' => 'La ruta del índice de quejas no está disponible. ' . self::DELEGATION_ES,
 				'complaint_store_route_unavailable' => 'La ruta de almacenamiento de queja no está disponible. ' . self::DELEGATION_ES,
 				'complaint_update_route_unavailable' => 'La ruta de actualización de queja no está disponible. ' . self::DELEGATION_ES,
 				'complaint_create_route_unavailable' => 'La ruta de creación de queja no está disponible. ' . self::DELEGATION_ES,
@@ -4034,6 +3987,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'La ruta de generación de queja con IA no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
+				'complaint_index_route_unavailable' => 'La route de l\'index des plaintes est indisponible. ' . self::DELEGATION_FR,
 				'complaint_store_route_unavailable' => 'La route de stockage de plainte est indisponible. ' . self::DELEGATION_FR,
 				'complaint_update_route_unavailable' => 'La route de mise à jour de plainte est indisponible. ' . self::DELEGATION_FR,
 				'complaint_create_route_unavailable' => 'La route de création de plainte est indisponible. ' . self::DELEGATION_FR,
@@ -4042,6 +3996,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'La route de génération de plainte par IA est indisponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
+				'complaint_index_route_unavailable' => 'נתיב אינדקס תלונות אינו זמין. ' . self::DELEGATION_HE,
 				'complaint_store_route_unavailable' => 'נתיב אחסון תלונה אינו זמין. ' . self::DELEGATION_HE,
 				'complaint_update_route_unavailable' => 'נתיב עדכון תלונה אינו זמין. ' . self::DELEGATION_HE,
 				'complaint_create_route_unavailable' => 'נתיב יצירת תלונה אינו זמין. ' . self::DELEGATION_HE,
@@ -4050,6 +4005,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'נתיב יצירת תלונה בבינה מלאכותית אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
+				'complaint_index_route_unavailable' => 'La rotta dell\'indice dei reclami non è disponibile. ' . self::DELEGATION_IT,
 				'complaint_store_route_unavailable' => 'La rotta di memorizzazione del reclamo non è disponibile. ' . self::DELEGATION_IT,
 				'complaint_update_route_unavailable' => 'La rotta di aggiornamento del reclamo non è disponibile. ' . self::DELEGATION_IT,
 				'complaint_create_route_unavailable' => 'La rotta di creazione reclamo non è disponibile. ' . self::DELEGATION_IT,
@@ -4058,6 +4014,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'La rotta di generazione reclamo con IA non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
+				'complaint_index_route_unavailable' => '苦情インデックスルートは利用できません。' . self::DELEGATION_JA,
 				'complaint_store_route_unavailable' => '苦情保存ルートは利用できません。' . self::DELEGATION_JA,
 				'complaint_update_route_unavailable' => '苦情更新ルートは利用できません。' . self::DELEGATION_JA,
 				'complaint_create_route_unavailable' => '苦情作成ルートは利用できません。' . self::DELEGATION_JA,
@@ -4066,6 +4023,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'AI苦情生成ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
+				'complaint_index_route_unavailable' => 'Klachtenindexroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'complaint_store_route_unavailable' => 'Klachtopslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'complaint_update_route_unavailable' => 'Klachtupdateroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'complaint_create_route_unavailable' => 'Klachtaanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
@@ -4074,6 +4032,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'AI-klachtgeneratieroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
+				'complaint_index_route_unavailable' => 'Trasa indeksu skarg jest niedostępna. ' . self::DELEGATION_PL,
 				'complaint_store_route_unavailable' => 'Trasa przechowywania skargi jest niedostępna. ' . self::DELEGATION_PL,
 				'complaint_update_route_unavailable' => 'Trasa aktualizacji skargi jest niedostępna. ' . self::DELEGATION_PL,
 				'complaint_create_route_unavailable' => 'Trasa tworzenia skargi jest niedostępna. ' . self::DELEGATION_PL,
@@ -4082,6 +4041,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'Trasa generowania skargi przez AI jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
+				'complaint_index_route_unavailable' => 'A rota do índice de reclamações não está disponível. ' . self::DELEGATION_PT,
 				'complaint_store_route_unavailable' => 'A rota de armazenamento de reclamação não está disponível. ' . self::DELEGATION_PT,
 				'complaint_update_route_unavailable' => 'A rota de atualização de reclamação não está disponível. ' . self::DELEGATION_PT,
 				'complaint_create_route_unavailable' => 'A rota de criação de reclamação não está disponível. ' . self::DELEGATION_PT,
@@ -4090,6 +4050,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'A rota de geração de reclamação por IA não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
+				'complaint_index_route_unavailable' => 'A rota do índice de reclamações não está disponível. ' . self::DELEGATION_PTBR,
 				'complaint_store_route_unavailable' => 'A rota de armazenamento de reclamação não está disponível. ' . self::DELEGATION_PTBR,
 				'complaint_update_route_unavailable' => 'A rota de atualização de reclamação não está disponível. ' . self::DELEGATION_PTBR,
 				'complaint_create_route_unavailable' => 'A rota de criação de reclamação não está disponível. ' . self::DELEGATION_PTBR,
@@ -4098,6 +4059,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'A rota de geração de reclamação por IA não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
+				'complaint_index_route_unavailable' => 'Маршрут индекса жалоб недоступен. ' . self::DELEGATION_RU,
 				'complaint_store_route_unavailable' => 'Маршрут хранения жалобы недоступен. ' . self::DELEGATION_RU,
 				'complaint_update_route_unavailable' => 'Маршрут обновления жалобы недоступен. ' . self::DELEGATION_RU,
 				'complaint_create_route_unavailable' => 'Маршрут создания жалобы недоступен. ' . self::DELEGATION_RU,
@@ -4106,6 +4068,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'Маршрут генерации жалобы ИИ недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
+				'complaint_index_route_unavailable' => 'Şikayet indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'complaint_store_route_unavailable' => 'Şikayet depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'complaint_update_route_unavailable' => 'Şikayet güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'complaint_create_route_unavailable' => 'Şikayet oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
@@ -4114,6 +4077,7 @@ class LangsConstants
 				'generate_ai_complaint_route_unavailable' => 'AI şikayet oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
+				'complaint_index_route_unavailable' => '投诉索引路由不可用。' . self::DELEGATION_ZH,
 				'complaint_store_route_unavailable' => '投诉存储路由不可用。' . self::DELEGATION_ZH,
 				'complaint_update_route_unavailable' => '投诉更新路由不可用。' . self::DELEGATION_ZH,
 				'complaint_create_route_unavailable' => '创建投诉路由不可用。' . self::DELEGATION_ZH,
@@ -5754,7 +5718,7 @@ class LangsConstants
 			'tr' => ['debit_note_route_unavailable' => 'Borç dekontu rotası kullanılamıyor. ' . self::DELEGATION_TR],
 			'zh' => ['debit_note_route_unavailable' => '借方票据路由不可用。' . self::DELEGATION_ZH]
 		],
-		ViewsConstants::DDT_OP => [
+		ViewsConstants::DDT_OPT => [
 			'ar' => [
 				'store_deduction_option_route_unavailable' => 'مسار تخزين خيار الخصم غير متاح. ' . self::DELEGATION_AR,
 				'update_deduction_option_route_unavailable' => 'مسار تحديث خيار الخصم غير متاح. ' . self::DELEGATION_AR,
@@ -9769,7 +9733,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'مسار تحديث الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'invoice_customer_route_unavailable' => 'مسار عميل الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'invoice_payment_route_unavailable' => 'مسار دفع الفاتورة غير متاح. ' . self::DELEGATION_AR,
-				'invoice_product_route_unavailable' => 'مسار منتج الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'invoice_resend_route_unavailable' => 'مسار إعادة إرسال الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'invoice_pdf_route_unavailable' => 'مسار تنزيل PDF الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'invoice_mark_sent_route_unavailable' => 'مسار إرسال الفاتورة غير متاح. ' . self::DELEGATION_AR,
@@ -9811,7 +9774,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'Opdater fakturarute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_customer_route_unavailable' => 'Faktura kunderute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_payment_route_unavailable' => 'Faktura betalingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'invoice_product_route_unavailable' => 'Faktura produktroute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_resend_route_unavailable' => 'Gensend fakturarute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_pdf_route_unavailable' => 'Download faktura PDF-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_mark_sent_route_unavailable' => 'Send fakturarute er ikke tilgængelig. ' . self::DELEGATION_DA,
@@ -9853,7 +9815,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'Rechnung aktualisieren-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_customer_route_unavailable' => 'Rechnungskunden-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_payment_route_unavailable' => 'Rechnungszahlung-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'invoice_product_route_unavailable' => 'Rechnungsprodukt-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_resend_route_unavailable' => 'Rechnung erneut senden-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_pdf_route_unavailable' => 'Rechnung PDF herunterladen-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_mark_sent_route_unavailable' => 'Rechnung senden-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
@@ -9895,7 +9856,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'Invoice update route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_customer_route_unavailable' => 'Invoice customer route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_payment_route_unavailable' => 'Invoice payment route is unavailable. ' . self::DELEGATION_EN,
-				'invoice_product_route_unavailable' => 'Invoice product route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_resend_route_unavailable' => 'Resend invoice route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_pdf_route_unavailable' => 'Download invoice PDF route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_mark_sent_route_unavailable' => 'Send invoice route is unavailable. ' . self::DELEGATION_EN,
@@ -9937,7 +9897,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'La ruta de actualización de factura no está disponible.' . self::DELEGATION_ES,
 				'invoice_customer_route_unavailable' => 'La ruta de cliente de factura no está disponible.' . self::DELEGATION_ES,
 				'invoice_payment_route_unavailable' => 'La ruta de pago de factura no está disponible.' . self::DELEGATION_ES,
-				'invoice_product_route_unavailable' => 'La ruta de producto de factura no está disponible.' . self::DELEGATION_ES,
 				'invoice_resend_route_unavailable' => 'La ruta para reenviar factura no está disponible.' . self::DELEGATION_ES,
 				'invoice_pdf_route_unavailable' => 'La ruta para descargar PDF de factura no está disponible.' . self::DELEGATION_ES,
 				'invoice_mark_sent_route_unavailable' => 'La ruta para enviar factura no está disponible.' . self::DELEGATION_ES,
@@ -9979,7 +9938,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'La route de mise à jour de facture est indisponible.' . self::DELEGATION_FR,
 				'invoice_customer_route_unavailable' => 'La route de client de facture est indisponible.' . self::DELEGATION_FR,
 				'invoice_payment_route_unavailable' => 'La route de paiement de facture est indisponible.' . self::DELEGATION_FR,
-				'invoice_product_route_unavailable' => 'La route de produit de facture est indisponible.' . self::DELEGATION_FR,
 				'invoice_resend_route_unavailable' => 'La route de renvoi de facture est indisponible.' . self::DELEGATION_FR,
 				'invoice_pdf_route_unavailable' => 'La route de téléchargement PDF de facture est indisponible.' . self::DELEGATION_FR,
 				'invoice_mark_sent_route_unavailable' => 'La route d\'envoi de facture est indisponible.' . self::DELEGATION_FR,
@@ -10021,7 +9979,6 @@ class LangsConstants
 				'invoice_update_route_unavailable' => 'מסלול עדכון חשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_customer_route_unavailable' => 'מסלול לקוח חשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_payment_route_unavailable' => 'מסלול תשלום חשבונית אינו זמין. ' . self::DELEGATION_HE,
-				'invoice_product_route_unavailable' => 'מסלול מוצר חשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_resend_route_unavailable' => 'מסלול שיחה חוזרת של חשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_pdf_route_unavailable' => 'מסלול הורדת PDF חשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_mark_sent_route_unavailable' => 'מסלול סימון חשבונית כנשלחת אינו זמין. ' . self::DELEGATION_HE,
@@ -10057,7 +10014,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'La rotta delle impostazioni del modello di fattura non è disponibile. ' . self::DELEGATION_IT,
         'preview_invoice_route_unavailable' => 'La rotta di anteprima fattura non è disponibile. ' . self::DELEGATION_IT,
         'store_invoice_route_unavailable' => 'La rotta di memorizzazione fattura non è disponibile. ' . self::DELEGATION_IT,
-        'invoice_product_route_unavailable' => 'La rotta del prodotto fattura non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
 				'invoice_index_route_unavailable' => '請求書ルートは利用できません。' . self::DELEGATION_JA,
@@ -10099,7 +10055,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => '請求書テンプレート設定ルートは利用できません。' . self::DELEGATION_JA,
         'preview_invoice_route_unavailable' => '請求書プレビュールートは利用できません。' . self::DELEGATION_JA,
         'store_invoice_route_unavailable' => '請求書保存ルートは利用できません。' . self::DELEGATION_JA,
-        'invoice_product_route_unavailable' => '請求書商品ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
 				'invoice_index_route_unavailable' => 'Factuurroute is niet beschikbaar. ' . self::DELEGATION_NL,
@@ -10141,7 +10096,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'Factuursjabloon instellingen route is niet beschikbaar. ' . self::DELEGATION_NL,
         'preview_invoice_route_unavailable' => 'Factuur voorbeeldroute is niet beschikbaar. ' . self::DELEGATION_NL,
         'store_invoice_route_unavailable' => 'Factuur opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
-        'invoice_product_route_unavailable' => 'Factuur productroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
 				'invoice_index_route_unavailable' => 'Trasa faktur jest niedostępna. ' . self::DELEGATION_PL,
@@ -10183,7 +10137,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'Trasa ustawień szablonu faktury jest niedostępna. ' . self::DELEGATION_PL,
         'preview_invoice_route_unavailable' => 'Trasa podglądu faktury jest niedostępna. ' . self::DELEGATION_PL,
         'store_invoice_route_unavailable' => 'Trasa przechowywania faktury jest niedostępna. ' . self::DELEGATION_PL,
-        'invoice_product_route_unavailable' => 'Trasa produktu faktury jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
 				'invoice_index_route_unavailable' => 'A rota de faturas não está disponível. ' . self::DELEGATION_PT,
@@ -10225,7 +10178,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'A rota de definições de modelo de fatura não está disponível. ' . self::DELEGATION_PT,
         'preview_invoice_route_unavailable' => 'A rota de pré-visualização de fatura não está disponível. ' . self::DELEGATION_PT,
         'store_invoice_route_unavailable' => 'A rota de armazenamento de fatura não está disponível. ' . self::DELEGATION_PT,
-        'invoice_product_route_unavailable' => 'A rota de produto de fatura não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
 				'invoice_index_route_unavailable' => 'A rota de faturas não está disponível. ' . self::DELEGATION_PTBR,
@@ -10267,7 +10219,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'A rota de configurações de modelo de fatura não está disponível. ' . self::DELEGATION_PTBR,
         'preview_invoice_route_unavailable' => 'A rota de visualização de fatura não está disponível. ' . self::DELEGATION_PTBR,
         'store_invoice_route_unavailable' => 'A rota de armazenamento de fatura não está disponível. ' . self::DELEGATION_PTBR,
-        'invoice_product_route_unavailable' => 'A rota de produto de fatura não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
 				'invoice_index_route_unavailable' => 'Маршрут счетов недоступен. ' . self::DELEGATION_RU,
@@ -10309,7 +10260,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'Маршрут настроек шаблона счета недоступен. ' . self::DELEGATION_RU,
         'preview_invoice_route_unavailable' => 'Маршрут предварительного просмотра счета недоступен. ' . self::DELEGATION_RU,
         'store_invoice_route_unavailable' => 'Маршрут хранения счета недоступен. ' . self::DELEGATION_RU,
-        'invoice_product_route_unavailable' => 'Маршрут продукта счета недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
 				'invoice_index_route_unavailable' => 'Fatura rotası kullanılamıyor. ' . self::DELEGATION_TR,
@@ -10351,7 +10301,6 @@ class LangsConstants
         'settings_invoice_template_route_unavailable' => 'Fatura şablonu ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
         'preview_invoice_route_unavailable' => 'Fatura önizleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
         'store_invoice_route_unavailable' => 'Fatura depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
-        'invoice_product_route_unavailable' => 'Fatura ürün rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
 				'invoice_index_route_unavailable' => '发票路由不可用。' . self::DELEGATION_ZH,
@@ -11397,7 +11346,7 @@ class LangsConstants
 				'delete_job_stage_unavailable' => '删除工作阶段路由不可用。' . self::DELEGATION_ZH
 			]
 		],
-		ViewsConstants::JRN_ENT => [
+		ViewsConstants::JRN_ET => [
 			'ar' => [
 				'store_route_unavailable' => 'مسار تخزين قيد اليومية غير متاح. ' . self::DELEGATION_AR,
 				'generate_route_unavailable' => 'مسار إنشاء المحتوى غير متاح. ' . self::DELEGATION_AR,
@@ -13227,7 +13176,7 @@ class LangsConstants
 						'delete_meeting_unavailable' => '删除会议路由不可用。' . self::DELEGATION_ZH
 				]
 		],
-		ViewsConstants::NFT_TMP => [
+		ViewsConstants::NTF_TMP => [
 			'ar' => [
 				'update_route_unavailable' => 'مسار التحديث غير متاح. ' . self::DELEGATION_AR,
 				'generate_route_unavailable' => 'مسار التوليد غير متاح. ' . self::DELEGATION_AR,
@@ -13312,128 +13261,96 @@ class LangsConstants
 		ViewsConstants::OD => [
 			'ar' => [
 				'change_status_route_unavailable' => 'مسار تغيير الحالة غير متاح. ' . self::DELEGATION_AR,
-				'payment_status_unavailable' => 'مسار ترتيب حالة الدفع غير متاح. ' . self::DELEGATION_AR,
-				'delete_order_unavailable' => 'مسار حذف الطلب غير متاح. ' . self::DELEGATION_AR,
 				'order_index_route_unavailable' => 'مسار الطلب غير متاح. ' . self::DELEGATION_AR,
 				'payment_status_unavailable' => 'مسار حالة الدفع غير متاح. ' . self::DELEGATION_AR,
 				'delete_order_unavailable' => 'مسار حذف الطلب غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
 				'change_status_route_unavailable' => 'Skift statusrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'payment_status_unavailable' => 'Ordning af betalingsstatusrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'delete_order_unavailable' => 'Slet ordrerute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'order_index_route_unavailable' => 'Ordrerute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'payment_status_unavailable' => 'Betalingsstatusrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'delete_order_unavailable' => 'Slet ordrerute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
 				'change_status_route_unavailable' => 'Statusänderungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'payment_status_unavailable' => 'Reihenfolge der Zahlungsstatusroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'delete_order_unavailable' => 'Bestellungslöschroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'order_index_route_unavailable' => 'Bestellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'payment_status_unavailable' => 'Zahlungsstatusroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'delete_order_unavailable' => 'Bestellungslöschroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
 				'change_status_route_unavailable' => 'Change status route is unavailable. ' . self::DELEGATION_EN,
-				'payment_status_unavailable' => 'Ordering of payment status route is unavailable. ' . self::DELEGATION_EN,
-				'delete_order_unavailable' => 'Delete order route is unavailable. ' . self::DELEGATION_EN,
 				'order_index_route_unavailable' => 'Order route is unavailable. ' . self::DELEGATION_EN,
 				'payment_status_unavailable' => 'Payment status route is unavailable. ' . self::DELEGATION_EN,
 				'delete_order_unavailable' => 'Delete order route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
 				'change_status_route_unavailable' => 'La ruta de cambio de estado no está disponible. ' . self::DELEGATION_ES,
-				'payment_status_unavailable' => 'La ruta de ordenación del estado de pago no está disponible. ' . self::DELEGATION_ES,
-				'delete_order_unavailable' => 'La ruta de eliminación de pedido no está disponible. ' . self::DELEGATION_ES,
 				'order_index_route_unavailable' => 'La ruta de pedido no está disponible. ' . self::DELEGATION_ES,
 				'payment_status_unavailable' => 'La ruta de estado de pago no está disponible. ' . self::DELEGATION_ES,
 				'delete_order_unavailable' => 'La ruta de eliminación de pedido no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
 				'change_status_route_unavailable' => 'La route de changement de statut n\'est pas disponible. ' . self::DELEGATION_FR,
-				'payment_status_unavailable' => 'La route d\'ordonnancement du statut de paiement n\'est pas disponible. ' . self::DELEGATION_FR,
-				'delete_order_unavailable' => 'La route de suppression de commande n\'est pas disponible. ' . self::DELEGATION_FR,
 				'order_index_route_unavailable' => 'La route de commande n\'est pas disponible. ' . self::DELEGATION_FR,
 				'payment_status_unavailable' => 'La route de statut de paiement n\'est pas disponible. ' . self::DELEGATION_FR,
 				'delete_order_unavailable' => 'La route de suppression de commande n\'est pas disponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
 				'change_status_route_unavailable' => 'נתיב שינוי הסטטוס אינו זמין. ' . self::DELEGATION_HE,
-				'payment_status_unavailable' => 'נתיב סידור סטטוס התשלום אינו זמין. ' . self::DELEGATION_HE,
-				'delete_order_unavailable' => 'נתיב מחיקת ההזמנה אינו זמין. ' . self::DELEGATION_HE,
 				'order_index_route_unavailable' => 'נתיב ההזמנה אינו זמין. ' . self::DELEGATION_HE,
 				'payment_status_unavailable' => 'נתיב סטטוס התשלום אינו זמין. ' . self::DELEGATION_HE,
 				'delete_order_unavailable' => 'נתיב מחיקת ההזמנה אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
 				'change_status_route_unavailable' => 'La rotta di cambio stato non è disponibile. ' . self::DELEGATION_IT,
-				'payment_status_unavailable' => 'La rotta di ordinamento dello stato pagamento non è disponibile. ' . self::DELEGATION_IT,
-				'delete_order_unavailable' => 'La rotta di eliminazione ordine non è disponibile. ' . self::DELEGATION_IT,
 				'order_index_route_unavailable' => 'La rotta dell\'ordine non è disponibile. ' . self::DELEGATION_IT,
 				'payment_status_unavailable' => 'La rotta dello stato pagamento non è disponibile. ' . self::DELEGATION_IT,
 				'delete_order_unavailable' => 'La rotta di eliminazione ordine non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
 				'change_status_route_unavailable' => 'ステータス変更ルートは利用できません。' . self::DELEGATION_JA,
-				'payment_status_unavailable' => '支払いステータスの順序ルートは利用できません。' . self::DELEGATION_JA,
-				'delete_order_unavailable' => '注文削除ルートは利用できません。' . self::DELEGATION_JA,
 				'order_index_route_unavailable' => '注文ルートは利用できません。' . self::DELEGATION_JA,
 				'payment_status_unavailable' => '支払いステータスルートは利用できません。' . self::DELEGATION_JA,
 				'delete_order_unavailable' => '注文削除ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
 				'change_status_route_unavailable' => 'Statuswijzigingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'payment_status_unavailable' => 'Sortering van betalingsstatusroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'delete_order_unavailable' => 'Bestellingsverwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'order_index_route_unavailable' => 'Bestellingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'payment_status_unavailable' => 'Betalingsstatusroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'delete_order_unavailable' => 'Bestellingsverwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
 				'change_status_route_unavailable' => 'Trasa zmiany statusu jest niedostępna. ' . self::DELEGATION_PL,
-				'payment_status_unavailable' => 'Trasa porządkowania statusu płatności jest niedostępna. ' . self::DELEGATION_PL,
-				'delete_order_unavailable' => 'Trasa usuwania zamówienia jest niedostępna. ' . self::DELEGATION_PL,
 				'order_index_route_unavailable' => 'Trasa zamówienia jest niedostępna. ' . self::DELEGATION_PL,
 				'payment_status_unavailable' => 'Trasa statusu płatności jest niedostępna. ' . self::DELEGATION_PL,
 				'delete_order_unavailable' => 'Trasa usuwania zamówienia jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
 				'change_status_route_unavailable' => 'A rota de alteração de estado não está disponível. ' . self::DELEGATION_PT,
-				'payment_status_unavailable' => 'A rota de ordenação do estado de pagamento não está disponível. ' . self::DELEGATION_PT,
-				'delete_order_unavailable' => 'A rota de eliminação de encomenda não está disponível. ' . self::DELEGATION_PT,
 				'order_index_route_unavailable' => 'A rota de encomenda não está disponível. ' . self::DELEGATION_PT,
 				'payment_status_unavailable' => 'A rota de estado de pagamento não está disponível. ' . self::DELEGATION_PT,
 				'delete_order_unavailable' => 'A rota de eliminação de encomenda não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
 				'change_status_route_unavailable' => 'A rota de alteração de status não está disponível. ' . self::DELEGATION_PTBR,
-				'payment_status_unavailable' => 'A rota de ordenação do status de pagamento não está disponível. ' . self::DELEGATION_PTBR,
-				'delete_order_unavailable' => 'A rota de exclusão de pedido não está disponível. ' . self::DELEGATION_PTBR,
 				'order_index_route_unavailable' => 'A rota de pedido não está disponível. ' . self::DELEGATION_PTBR,
 				'payment_status_unavailable' => 'A rota de status de pagamento não está disponível. ' . self::DELEGATION_PTBR,
 				'delete_order_unavailable' => 'A rota de exclusão de pedido não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
 				'change_status_route_unavailable' => 'Маршрут изменения статуса недоступен. ' . self::DELEGATION_RU,
-				'payment_status_unavailable' => 'Маршрут упорядочивания статуса платежа недоступен. ' . self::DELEGATION_RU,
-				'delete_order_unavailable' => 'Маршрут удаления заказа недоступен. ' . self::DELEGATION_RU,
 				'order_index_route_unavailable' => 'Маршрут заказа недоступен. ' . self::DELEGATION_RU,
 				'payment_status_unavailable' => 'Маршрут статуса платежа недоступен. ' . self::DELEGATION_RU,
 				'delete_order_unavailable' => 'Маршрут удаления заказа недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
 				'change_status_route_unavailable' => 'Durum değiştirme rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'payment_status_unavailable' => 'Ödeme durumu sıralama rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'delete_order_unavailable' => 'Sipariş silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'order_index_route_unavailable' => 'Sipariş rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'payment_status_unavailable' => 'Ödeme durumu rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'delete_order_unavailable' => 'Sipariş silme rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
 				'change_status_route_unavailable' => '更改状态路由不可用。' . self::DELEGATION_ZH,
-				'payment_status_unavailable' => '支付状态排序路由不可用。' . self::DELEGATION_ZH,
-				'delete_order_unavailable' => '删除订单路由不可用。' . self::DELEGATION_ZH,
 				'order_index_route_unavailable' => '订单路由不可用。' . self::DELEGATION_ZH,
 				'payment_status_unavailable' => '支付状态路由不可用。' . self::DELEGATION_ZH,
 				'delete_order_unavailable' => '删除订单路由不可用。' . self::DELEGATION_ZH
@@ -18241,7 +18158,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'مسار المشتريات الشهرية غير متاح. ' . self::DELEGATION_AR,
 				'filter_report_unavailable' => 'مسار تقرير التصفية غير متاح. ' . self::DELEGATION_AR,
 				'daily_purchase_nav_unavailable' => 'التنقل في المشتريات اليومية غير متاح. ' . self::DELEGATION_AR,
-				'download_monthly_purchase_unavailable' => 'وظيفة التنزيل للمشتريات الشهرية غير متاحة. ' . self::DELEGATION_AR,
 				'account_statement_route_unavailable' => 'مسار كشف الحساب غير متاح. ' . self::DELEGATION_AR,
 				'invoice_summary_route_unavailable' => 'مسار ملخص الفاتورة غير متاح. ' . self::DELEGATION_AR,
 				'sales_report_route_unavailable' => 'مسار تقرير المبيعات غير متاح. ' . self::DELEGATION_AR,
@@ -18347,7 +18263,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Månedlig købsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'filter_report_unavailable' => 'Filterrapportrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'daily_purchase_nav_unavailable' => 'Daglig købsnavigation er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'download_monthly_purchase_unavailable' => 'Downloadfunktion til månedlige køb er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'account_statement_route_unavailable' => 'Kontoudtogsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'invoice_summary_route_unavailable' => 'Fakturaoversigtsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'sales_report_route_unavailable' => 'Salgsrapportrute er ikke tilgængelig. ' . self::DELEGATION_DA,
@@ -18453,7 +18368,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Monatliche Einkaufsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'filter_report_unavailable' => 'Filterbericht-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'daily_purchase_nav_unavailable' => 'Tägliche Einkaufsnavigation ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'download_monthly_purchase_unavailable' => 'Downloadfunktion für monatliche Einkäufe ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'account_statement_route_unavailable' => 'Kontoauszugsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'invoice_summary_route_unavailable' => 'Rechnungsübersichtsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'sales_report_route_unavailable' => 'Verkaufsbericht-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
@@ -18559,7 +18473,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Monthly purchase route is unavailable. ' . self::DELEGATION_EN,
 				'filter_report_unavailable' => 'Filter report route is unavailable. ' . self::DELEGATION_EN,
 				'daily_purchase_nav_unavailable' => 'Daily purchase navigation is unavailable. ' . self::DELEGATION_EN,
-				'download_monthly_purchase_unavailable' => 'Download function for monthly purchases is unavailable. ' . self::DELEGATION_EN,
 				'account_statement_route_unavailable' => 'Account statement route is unavailable. ' . self::DELEGATION_EN,
 				'invoice_summary_route_unavailable' => 'Invoice summary route is unavailable. ' . self::DELEGATION_EN,
 				'sales_report_route_unavailable' => 'Sales report route is unavailable. ' . self::DELEGATION_EN,
@@ -18665,7 +18578,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'La ruta de compras mensuales no está disponible. ' . self::DELEGATION_ES,
 				'filter_report_unavailable' => 'La ruta de informe de filtro no está disponible. ' . self::DELEGATION_ES,
 				'daily_purchase_nav_unavailable' => 'La navegación de compras diarias no está disponible. ' . self::DELEGATION_ES,
-				'download_monthly_purchase_unavailable' => 'La función de descarga para compras mensuales no está disponible. ' . self::DELEGATION_ES,
 				'account_statement_route_unavailable' => 'La ruta de estado de cuenta no está disponible. ' . self::DELEGATION_ES,
 				'invoice_summary_route_unavailable' => 'La ruta de resumen de factura no está disponible. ' . self::DELEGATION_ES,
 				'sales_report_route_unavailable' => 'La ruta de informe de ventas no está disponible. ' . self::DELEGATION_ES,
@@ -18771,7 +18683,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'La route d\'achat mensuel n\'est pas disponible. ' . self::DELEGATION_FR,
 				'filter_report_unavailable' => 'La route du rapport de filtre n\'est pas disponible. ' . self::DELEGATION_FR,
 				'daily_purchase_nav_unavailable' => 'La navigation des achats quotidiens n\'est pas disponible. ' . self::DELEGATION_FR,
-				'download_monthly_purchase_unavailable' => 'La fonction de téléchargement pour les achats mensuels n\'est pas disponible. ' . self::DELEGATION_FR,
 				'account_statement_route_unavailable' => 'La route du relevé de compte n\'est pas disponible. ' . self::DELEGATION_FR,
 				'invoice_summary_route_unavailable' => 'La route du résumé de facture n\'est pas disponible. ' . self::DELEGATION_FR,
 				'sales_report_route_unavailable' => 'La route du rapport de ventes n\'est pas disponible. ' . self::DELEGATION_FR,
@@ -18877,7 +18788,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'נתיב הרכישה החודשית אינו זמין. ' . self::DELEGATION_HE,
 				'filter_report_unavailable' => 'נתיב דוח הסינון אינו זמין. ' . self::DELEGATION_HE,
 				'daily_purchase_nav_unavailable' => 'ניווט הרכישה היומית אינו זמין. ' . self::DELEGATION_HE,
-				'download_monthly_purchase_unavailable' => 'פונקציית ההורדה לרכישות חודשיות אינה זמינה. ' . self::DELEGATION_HE,
 				'account_statement_route_unavailable' => 'נתיב דוח חשבון אינו זמין. ' . self::DELEGATION_HE,
 				'invoice_summary_route_unavailable' => 'נתיב סיכום החשבונית אינו זמין. ' . self::DELEGATION_HE,
 				'sales_report_route_unavailable' => 'נתיב דוח המכירות אינו זמין. ' . self::DELEGATION_HE,
@@ -18983,7 +18893,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'La rotta degli acquisti mensili non è disponibile. ' . self::DELEGATION_IT,
 				'filter_report_unavailable' => 'La rotta del report filtro non è disponibile. ' . self::DELEGATION_IT,
 				'daily_purchase_nav_unavailable' => 'La navigazione degli acquisti giornalieri non è disponibile. ' . self::DELEGATION_IT,
-				'download_monthly_purchase_unavailable' => 'La funzione di download per gli acquisti mensili non è disponibile. ' . self::DELEGATION_IT,
 				'account_statement_route_unavailable' => 'La rotta dell\'estratto conto non è disponibile. ' . self::DELEGATION_IT,
 				'invoice_summary_route_unavailable' => 'La rotta del riepilogo fattura non è disponibile. ' . self::DELEGATION_IT,
 				'sales_report_route_unavailable' => 'La rotta del report vendite non è disponibile. ' . self::DELEGATION_IT,
@@ -19089,7 +18998,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => '月次購入ルートは利用できません。' . self::DELEGATION_JA,
 				'filter_report_unavailable' => 'フィルターレポートルートは利用できません。' . self::DELEGATION_JA,
 				'daily_purchase_nav_unavailable' => '日次購入ナビゲーションは利用できません。' . self::DELEGATION_JA,
-				'download_monthly_purchase_unavailable' => '月次購入のダウンロード機能は利用できません。' . self::DELEGATION_JA,
 				'account_statement_route_unavailable' => '口座明細ルートは利用できません。' . self::DELEGATION_JA,
 				'invoice_summary_route_unavailable' => '請求書概要ルートは利用できません。' . self::DELEGATION_JA,
 				'sales_report_route_unavailable' => '販売レポートルートは利用できません。' . self::DELEGATION_JA,
@@ -19195,7 +19103,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Maandelijkse aankooproute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'filter_report_unavailable' => 'Filterrapportroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'daily_purchase_nav_unavailable' => 'Dagelijkse aankoopnavigatie is niet beschikbaar. ' . self::DELEGATION_NL,
-				'download_monthly_purchase_unavailable' => 'Downloadfunctie voor maandelijkse aankopen is niet beschikbaar. ' . self::DELEGATION_NL,
 				'account_statement_route_unavailable' => 'Rekeningafschriftroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'invoice_summary_route_unavailable' => 'Factuuroverzichtroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'sales_report_route_unavailable' => 'Verkooprapportroute is niet beschikbaar. ' . self::DELEGATION_NL,
@@ -19301,7 +19208,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Trasa miesięcznych zakupów jest niedostępna. ' . self::DELEGATION_PL,
 				'filter_report_unavailable' => 'Trasa raportu filtrowania jest niedostępna. ' . self::DELEGATION_PL,
 				'daily_purchase_nav_unavailable' => 'Nawigacja codziennych zakupów jest niedostępna. ' . self::DELEGATION_PL,
-				'download_monthly_purchase_unavailable' => 'Funkcja pobierania dla miesięcznych zakupów jest niedostępna. ' . self::DELEGATION_PL,
 				'account_statement_route_unavailable' => 'Trasa wyciągu z konta jest niedostępna. ' . self::DELEGATION_PL,
 				'invoice_summary_route_unavailable' => 'Trasa podsumowania faktury jest niedostępna. ' . self::DELEGATION_PL,
 				'sales_report_route_unavailable' => 'Trasa raportu sprzedaży jest niedostępna. ' . self::DELEGATION_PL,
@@ -19407,7 +19313,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'A rota de compras mensais não está disponível. ' . self::DELEGATION_PT,
 				'filter_report_unavailable' => 'A rota do relatório de filtro não está disponível. ' . self::DELEGATION_PT,
 				'daily_purchase_nav_unavailable' => 'A navegação de compras diárias não está disponível. ' . self::DELEGATION_PT,
-				'download_monthly_purchase_unavailable' => 'A função de download para compras mensais não está disponível. ' . self::DELEGATION_PT,
 				'account_statement_route_unavailable' => 'A rota do extrato de conta não está disponível. ' . self::DELEGATION_PT,
 				'invoice_summary_route_unavailable' => 'A rota do resumo da fatura não está disponível. ' . self::DELEGATION_PT,
 				'sales_report_route_unavailable' => 'A rota do relatório de vendas não está disponível. ' . self::DELEGATION_PT,
@@ -19513,7 +19418,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'A rota de compras mensais não está disponível. ' . self::DELEGATION_PTBR,
 				'filter_report_unavailable' => 'A rota do relatório de filtro não está disponível. ' . self::DELEGATION_PTBR,
 				'daily_purchase_nav_unavailable' => 'A navegação de compras diárias não está disponível. ' . self::DELEGATION_PTBR,
-				'download_monthly_purchase_unavailable' => 'A função de download para compras mensais não está disponível. ' . self::DELEGATION_PTBR,
 				'account_statement_route_unavailable' => 'A rota do extrato de conta não está disponível. ' . self::DELEGATION_PTBR,
 				'invoice_summary_route_unavailable' => 'A rota do resumo da fatura não está disponível. ' . self::DELEGATION_PTBR,
 				'sales_report_route_unavailable' => 'A rota do relatório de vendas não está disponível. ' . self::DELEGATION_PTBR,
@@ -19619,7 +19523,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Маршрут ежемесячных покупок недоступен. ' . self::DELEGATION_RU,
 				'filter_report_unavailable' => 'Маршрут отчета фильтра недоступен. ' . self::DELEGATION_RU,
 				'daily_purchase_nav_unavailable' => 'Навигация по ежедневным покупкам недоступна. ' . self::DELEGATION_RU,
-				'download_monthly_purchase_unavailable' => 'Функция загрузки для ежемесячных покупок недоступна. ' . self::DELEGATION_RU,
 				'account_statement_route_unavailable' => 'Маршрут выписки счета недоступен. ' . self::DELEGATION_RU,
 				'invoice_summary_route_unavailable' => 'Маршрут сводки счета недоступен. ' . self::DELEGATION_RU,
 				'sales_report_route_unavailable' => 'Маршрут отчета о продажах недоступен. ' . self::DELEGATION_RU,
@@ -19725,7 +19628,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => 'Aylık satın alma rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'filter_report_unavailable' => 'Filtre rapor rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'daily_purchase_nav_unavailable' => 'Günlük satın alma gezintisi kullanılamıyor. ' . self::DELEGATION_TR,
-				'download_monthly_purchase_unavailable' => 'Aylık satın alımlar için indirme işlevi kullanılamıyor. ' . self::DELEGATION_TR,
 				'account_statement_route_unavailable' => 'Hesap ekstresi rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'invoice_summary_route_unavailable' => 'Fatura özeti rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'sales_report_route_unavailable' => 'Satış raporu rotası kullanılamıyor. ' . self::DELEGATION_TR,
@@ -19831,7 +19733,6 @@ class LangsConstants
 				'monthly_purchase_unavailable' => '月度采购路由不可用。' . self::DELEGATION_ZH,
 				'filter_report_unavailable' => '筛选报告路由不可用。' . self::DELEGATION_ZH,
 				'daily_purchase_nav_unavailable' => '每日采购导航不可用。' . self::DELEGATION_ZH,
-				'download_monthly_purchase_unavailable' => '月度采购的下载功能不可用。' . self::DELEGATION_ZH,
 				'account_statement_route_unavailable' => '账户对账单路由不可用。' . self::DELEGATION_ZH,
 				'invoice_summary_route_unavailable' => '发票摘要路由不可用。' . self::DELEGATION_ZH,
 				'sales_report_route_unavailable' => '销售报告路由不可用。' . self::DELEGATION_ZH,
@@ -21186,7 +21087,6 @@ class LangsConstants
 				'settings_index_route_unavailable' => 'مسار الإعدادات غير متاح. ' . self::DELEGATION_AR,
 				'system_store_route_unavailable' => 'مسار تخزين النظام غير متاح. ' . self::DELEGATION_AR,
 				'system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR,
-				'system_ip_edit_route_unavailable' => 'مسار تعديل IP النظام غير متاح. ' . self::DELEGATION_AR,
 				'system_ip_create_route_unavailable' => 'مسار إنشاء IP النظام غير متاح. ' . self::DELEGATION_AR,
 				'system_ip_destroy_route_unavailable' => 'مسار حذف IP النظام غير متاح. ' . self::DELEGATION_AR,
 				'system_ip_edit_route_unavailable' => 'مسار تعديل IP النظام غير متاح. ' . self::DELEGATION_AR,
