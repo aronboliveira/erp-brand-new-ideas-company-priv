@@ -1,3 +1,4 @@
+// # ! VENDOR FILE — DO NOT EDIT (webpack bundle output: bootstrap + Alpine.js)
 /**
  * @fileoverview TypeScript version of public/js/app.js
  * @generated from original JavaScript - manual review recommended

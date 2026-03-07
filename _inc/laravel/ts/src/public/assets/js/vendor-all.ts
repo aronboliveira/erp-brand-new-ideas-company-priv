@@ -1,3 +1,6 @@
+// # ! VENDOR FILE — DO NOT EDIT
+// This file contains minified vendor code (Popper.js, PerfectScrollbar, etc.)
+// It is excluded from TypeScript compilation via tsconfig.json
 /**
  * @fileoverview TypeScript version of public/assets/js/vendor-all.js
  * @generated from original JavaScript - manual review recommended

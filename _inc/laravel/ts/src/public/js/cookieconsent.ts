@@ -1,3 +1,4 @@
+// # ! VENDOR FILE — DO NOT EDIT (CookieConsent v2.8.0 by Orest Bida)
 /**
  * @fileoverview TypeScript version of public/js/cookieconsent.js
  * @generated from original JavaScript - manual review recommended

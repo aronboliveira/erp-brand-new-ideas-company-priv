@@ -1,3 +1,4 @@
+// # ! VENDOR FILE — DO NOT EDIT (minified UI framework bundle: Layout, Popover, Tooltip, etc.)
 /**
  * @fileoverview TypeScript version of public/js/site.js
  * @generated from original JavaScript - manual review recommended

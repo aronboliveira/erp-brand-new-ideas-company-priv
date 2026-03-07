@@ -1,3 +1,4 @@
+// # ! VENDOR FILE — DO NOT EDIT (landing page vendor bundle)
 /**
  * @fileoverview TypeScript version of public/Modules/landingpage/js/vendor-all.js
  * @generated from original JavaScript - manual review recommended
