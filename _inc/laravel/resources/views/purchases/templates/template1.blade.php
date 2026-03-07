@@ -3,6 +3,7 @@
 // Template 1
 
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewClassNamesConstants};
+use App\Helpers\TemplateHelper;
 use App\Models\{Utility};
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
 use Illuminate\Support\Str;
@@ -539,14 +540,5 @@ if (isset($purchase) && !empty($purchase)) {
     </html>
 <?php
 } else {
-    echo '<!DOCTYPE html>
-<html lang="'.htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8').'">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <div class="alert alert-warning">{{ __('No purchase data available.') }}</div>
-</body>
-</html>';
+    echo TemplateHelper::getNoDataHtml('purchase');
 }

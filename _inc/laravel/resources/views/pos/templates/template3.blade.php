@@ -3,6 +3,7 @@
 use App\Config\Constants\{DatabaseConstants, SettingsConstants};
 use App\Models\{Utility, ProductServiceUnit};
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TemplateHelper;
 
 $lang = Utility::fetchUserLang(user: $user);
 if (!function_exists('e')) {
@@ -38,7 +39,7 @@ try {
 }
 
 if (empty($pos)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>POS</title></head><body><div class="alert alert-warning">{{ __('No POS data available.') }}</div></body></html>';
+    echo TemplateHelper::getNoDataHtml('pos', $docLang);
     return;
 }
 

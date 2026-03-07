@@ -583,7 +583,7 @@ if (isset($proposal) && !empty($proposal)) {
 	<title>New York - Proposal</title>
 </head>
 <body>
-	<div class="alert alert-warning">{{ __('No proposal data available.') }}</div>
+	<div class="alert alert-warning">' . e(__('No proposal data available.')) . '</div>
 </body>
 </html>';
 }

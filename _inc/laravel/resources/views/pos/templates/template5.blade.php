@@ -5,6 +5,7 @@ use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Crypt, Log, Route};
 use Milon\Barcode\DNS2D;
+use App\Helpers\TemplateHelper;
 
 $lang = Utility::fetchUserLang();
 if (isset($pos) && !empty($pos)) {
@@ -500,5 +501,5 @@ if (isset($pos) && !empty($pos)) {
     </html>
 <?php
 } else {
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div class="alert alert-warning">{{ __('No POS data available.') }}</div></body></html>';
+    echo TemplateHelper::getNoDataHtml('pos', $docLang ?? 'en');
 }

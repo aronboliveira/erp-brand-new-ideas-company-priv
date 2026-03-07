@@ -3,6 +3,7 @@
 use App\Config\Constants\{DatabaseConstants, ViewsConstants, SettingsConstants};
 use App\Models\Utility;
 use Illuminate\Support\Facades\{Crypt, Log};
+use App\Helpers\TemplateHelper;
 
 if (!function_exists('e')) {
     function e($v)
@@ -46,7 +47,7 @@ try {
 $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
 
 if (empty($bill)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . e(__('BILL')) . '</title></head><body><div class="alert alert-warning">' . e(__('No bill data available.')) . '</div></body></html>';
+    echo TemplateHelper::getNoDataHtml('bill', $docLang);
     return;
 }
 

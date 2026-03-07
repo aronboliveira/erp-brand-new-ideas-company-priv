@@ -574,7 +574,7 @@ if (isset($proposal) && !empty($proposal)) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-	<div class="alert alert-warning">{{ __('No proposal data available.') }}</div>
+	<div class="alert alert-warning">' . e(__('No proposal data available.')) . '</div>
 </body>
 </html>';
 }

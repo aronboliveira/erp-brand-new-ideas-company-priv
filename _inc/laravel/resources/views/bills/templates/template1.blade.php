@@ -5,6 +5,7 @@ use App\Models\Utility;
 use App\Models\ProductServiceUnit;
 use Illuminate\Support\Facades\{Crypt, Log, Route};
 use Milon\Barcode\DNS2D;
+use App\Helpers\TemplateHelper;
 
 if (!function_exists('e')) {
     function e($v)
@@ -44,7 +45,7 @@ try {
 }
 
 if (empty($bill)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bill</title></head><body><div class="alert alert-warning">{{ __('No bill data available.') }}</div></body></html>';
+    echo TemplateHelper::getNoDataHtml('bill', $docLang);
     return;
 }
 
