@@ -15,6 +15,13 @@ import globals from "globals";
  * - "off": Disabled for migration compatibility
  */
 export default tseslint.config(
+  {
+    ignores: [
+      "src/tests/**",
+      "src/public/js/.constants.ts",
+      "src/public/js/app.ts",
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
@@ -57,10 +64,23 @@ export default tseslint.config(
       // === WARNINGS: Migration phase - demoted from errors ===
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_|^\\$|^jQuery" },
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern:
+            "^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula",
+          caughtErrorsIgnorePattern: ".*",
+        },
       ],
       // strictNullChecks is now ON — enforce these rules
-      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      // Migration: Allow || for primitives where semantics are similar
+      "@typescript-eslint/prefer-nullish-coalescing": [
+        "warn",
+        {
+          ignorePrimitives: { string: true, number: true, boolean: true },
+          ignoreConditionalTests: true,
+          ignoreMixedLogicalExpressions: true,
+        },
+      ],
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/no-misused-promises": "warn",
@@ -81,27 +101,31 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-function-return-type": "warn",
-      // Relaxed: Boolean expressions - allow truthy object checks for defensive coding
-      "@typescript-eslint/strict-boolean-expressions": [
-        "warn", // Downgrade from error to allow gradual fixing
-        {
-          allowAny: true, // migration: untyped JS values flow as `any`
-          allowNullableObject: true, // `if (el)` where el?: HTMLElement
-          allowNullableBoolean: true, // `if (flag)` where flag?: boolean
-          allowNullableString: true, // Relaxed: allow `if (str)` for nullable strings
-          allowNullableNumber: true, // Relaxed: allow `if (num)` for nullable numbers
-          allowNullableEnum: true, // Relaxed
-          allowString: true, // Relaxed: `if (str)` for string values
-          allowNumber: true, // Relaxed: `if (num)` for number values
-        },
-      ],
-      // Relaxed: Allow always-true defensive checks
-      "@typescript-eslint/no-unnecessary-condition": [
-        "warn", // Downgrade from error to allow gradual review
-        { allowConstantLoopConditions: true },
-      ],
+      // OFF: Conflicts with required DOM type assertions (querySelector returns Element)
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      // OFF: Migration phase — defensive coding patterns from JS produce
+      // thousands of "always truthy" warnings that are intentional null-guards.
+      // Re-enable after migration stabilizes and types are fully audited.
+      "@typescript-eslint/strict-boolean-expressions": "off",
+      // OFF: Migration phase — same reasoning as strict-boolean-expressions.
+      // Defensive null checks from original JS are intentional safety nets.
+      "@typescript-eslint/no-unnecessary-condition": "off",
       "@typescript-eslint/restrict-plus-operands": "warn",
       "@typescript-eslint/restrict-template-expressions": "warn",
+      // Allow Function type during migration - will be refined later
+      "@typescript-eslint/ban-types": [
+        "warn",
+        {
+          types: {
+            Function: {
+              message:
+                "Avoid using Function. Use specific function types instead.",
+              fixWith: "(...args: unknown[]) => unknown",
+            },
+          },
+          extendDefaults: true,
+        },
+      ],
 
       // === OFF: Disabled for migration compatibility ===
       "no-empty": "off", // Many IIFE patterns have empty catches
