@@ -45,7 +45,9 @@ final class RouteServiceProvider extends ServiceProvider
             : $output->writeln($msg);
         try {
             parent::boot();
-            foreach (Route::getRoutes() as $route) {
+            /** @var \Illuminate\Routing\RouteCollection $routes */
+            $routes = Route::getRoutes();
+            foreach ($routes as $route) {
                 $specialRoutes = ['login', 'password', 'register', 'verification'];
                 $converted = Str::kebab($route->uri());
                 $segments = collect(explode('/', $converted));

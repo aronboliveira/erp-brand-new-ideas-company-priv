@@ -11,6 +11,14 @@ use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 
+/**
+ * @property string|null $status
+ * @property string|null $assign_to
+ * @property string|null $title
+ * @property string|null $description
+ * @property string|null $priority
+ * @property string|null $start_date
+ */
 class Bug extends Model
 {
     use UsesUuids, HasAuditFields, DefinesDates;

@@ -18,7 +18,6 @@ class GoalRequestService
 	 * Calculate goal target percentage and total
 	 * Computes actual vs target amount for specified date range and goal type
 	 * 
-	 * @param Goal $goal
 	 * @param string $type Goal type (invoice, bill, revenue, payment)
 	 * @param string $from Start date
 	 * @param string $to End date

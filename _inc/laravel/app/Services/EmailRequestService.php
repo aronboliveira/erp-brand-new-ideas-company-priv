@@ -67,6 +67,7 @@ class EmailRequestService
 	{
 		$user = $user ?? auth()->user();
 		if (!$user) return null;
+		/** @var EmailTemplate|null */
 		return $this->getAvailableTemplates($user)
 			->sortBy(DC::COL_C_AT)
 			->first();
@@ -76,6 +77,7 @@ class EmailRequestService
 	{
 		$user = $user ?? auth()->user();
 		if (!$user) return null;
+		/** @var EmailTemplate|null */
 		return $this->getTemplatesByType($type, $user)
 			->sortBy(DC::COL_C_AT)
 			->first();

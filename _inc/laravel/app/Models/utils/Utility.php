@@ -813,7 +813,7 @@ class Utility extends Model
         }
     }
 
-    protected function isEmployee(User $user): bool
+    public static function isEmployee(User $user): bool
     {
         try {
             return in_array(
@@ -833,7 +833,7 @@ class Utility extends Model
             Log::notice('isEmployee check failed for user ' . ($user?->id ?? 'null'), [
                 'method' => __METHOD__,
                 'line' => __LINE__,
-                'class' => get_class($this),
+                'class' => static::class,
                 'error' => $e->getMessage(),
             ]);
             return false;

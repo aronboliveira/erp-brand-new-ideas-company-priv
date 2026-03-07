@@ -10,6 +10,11 @@ use App\Services\BugReportService;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Model};
 
+/**
+ * @property string|null $title
+ * @property string|null $description
+ * @property int|null $order
+ */
 class BugStatus extends Model
 {
   use UsesUuids, HasAuditFields;

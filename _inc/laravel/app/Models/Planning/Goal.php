@@ -306,7 +306,7 @@ class Goal extends Model
         );
     }
 
-    protected static function parseDateTimeOrNull(mixed $value): ?Carbon
+    public static function parseDateTimeOrNull(mixed $value): ?Carbon
     {
         if ($value instanceof Carbon) {
             return $value->copy();

@@ -179,7 +179,7 @@ class ProductOrServiceRequestService
 	 * 
 	 * @return Collection|RedirectResponse Collection of categories or redirect if not authenticated
 	 */
-	public function getAllCategories(): Collection|RedirectResponse
+	public function getAllCategories(): \Illuminate\Support\Collection|RedirectResponse
 	{
 		if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
 			return $userOrRedirect;

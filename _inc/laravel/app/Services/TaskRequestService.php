@@ -93,7 +93,9 @@ class TaskRequestService
 
 		$last = count($datasets) - 1;
 		if ($last >= 0) {
-			unset($datasets[$last]['fill']);
+			if (isset($datasets[$last]['fill'])) {
+				unset($datasets[$last]['fill']);
+			}
 			$datasets[$last]['backgroundColor'] = '#ccc';
 		}
 

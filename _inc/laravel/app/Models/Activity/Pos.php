@@ -29,6 +29,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\{DB, Schema, Log};
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Pos extends Model
 {
     use UsesUuids;

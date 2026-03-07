@@ -36,11 +36,7 @@ final class ProductServiceImport implements ToModel
             return new ProductService($content['data']);
         } catch (\Throwable $e) {
             Log::error(__CLASS__ . '::' . __FUNCTION__ . ' failed: ' . $e->getMessage());
-            return defaultUndefinedException(
-                request(),
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
+            return null;
         }
     }
 }

@@ -21,7 +21,7 @@ class CustomerImport implements ToModel
             ($userOrRedirect = self::_checkLogin())
             instanceof \Illuminate\Http\RedirectResponse
         )
-            return $userOrRedirect;
+            return null;
         $user = $userOrRedirect;
 
         try {
