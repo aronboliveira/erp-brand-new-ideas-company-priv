@@ -171,3 +171,104 @@ Use the **cheapest** DOM query method that applies. Ranked fastest → slowest:
 - Support **Chromium** and **Gecko** (Firefox) engines.
 - Always run `jest + playwright + eslint + tsc` after changes to verify nothing regresses.
 - When choosing between two implementation approaches, **benchmark first** — pick the more performant one.
+
+---
+
+## 11. Cache Hard-Coded Strings & RegExps
+
+String literals used **2 or more** times in a file must be stored in a `const` at the nearest common scope.
+The same applies to `RegExp` instances — cache them to avoid re-compilation on each call:
+
+```ts
+// BEFORE
+const m = html.match(/^[\s\n\t\r]*[0-9]+</);
+
+// AFTER (at top of scope)
+const NUM_PREFIX_RE = /^[\s\n\t\r]*[0-9]+</;
+// ... later ...
+const m = html.match(NUM_PREFIX_RE);
+```
+
+Strings shared **across multiple files** belong in a shared `.constants.ts` inside a deep-frozen Record:
+
+```ts
+// .constants.ts
+export const SHARED = Object.freeze({
+  SEL_CSRF_META: 'meta[name="csrf-token"]',
+} as const);
+```
+
+---
+
+## 12. Convert Sequential Procedures to Iterative
+
+Repetitive sequential calls (e.g. `appendChild`, `.style.*`, `.removeClass()`) must be converted to loops or combined calls:
+
+```ts
+// BEFORE — sequential appendChild
+card.appendChild(cardBody);
+overlay.appendChild(card);
+targetElement.appendChild(overlay);
+
+// AFTER — iterative
+for (const [p, c] of [
+  [card, cardBody],
+  [overlay, card],
+  [targetElement, overlay],
+] as [Node, Node][])
+  p.appendChild(c);
+
+// BEFORE — sequential style
+overlay.style.zIndex = "2147483000";
+overlay.style.background = "rgba(0,0,0,.25)";
+
+// AFTER — Object.assign
+Object.assign(overlay.style, { zIndex: "2147483000", background: "rgba(0,0,0,.25)" });
+
+// BEFORE — sequential jQuery removeClass
+$tp.removeClass("bg-warning");
+$tp.removeClass("bg-primary");
+$tp.removeClass("bg-success");
+
+// AFTER — combined
+$tp.removeClass("bg-warning bg-primary bg-success");
+```
+
+---
+
+## 13. Guard Event Listeners with Dataset Checks
+
+Before adding an `addEventListener`, **always** check if the element already has a similar listener bound using a `dataset` pseudoboolean:
+
+```ts
+// BEFORE
+slider.addEventListener("mousedown", handler);
+
+// AFTER
+if (slider.dataset.hscrollerBound) return;
+slider.dataset.hscrollerBound = "1";
+slider.addEventListener("mousedown", handler);
+```
+
+This prevents duplicate registrations when scripts re-execute or modules re-initialise.
+
+---
+
+## 14. Inline Single-Use Values
+
+If a variable is assigned and used **only once**, remove the variable and use the value directly — unless the name significantly improves readability:
+
+```ts
+// BEFORE
+const content = targetElement.innerHTML;
+const m = content.match(NUM_PREFIX_RE);
+
+// AFTER
+const m = targetElement.innerHTML.match(NUM_PREFIX_RE);
+
+// BEFORE
+const _dataTable = new DataTable(".datatable");
+
+// AFTER — side effect only
+new DataTable(".datatable");
+```

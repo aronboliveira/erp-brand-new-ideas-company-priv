@@ -46,7 +46,11 @@
         "maxMerge": 3,
         "keywords": ["const", "let", "var"],
         "separator": ",",
-        "skipWhen": ["complex-destructuring", "multiline-initializers", "readability-concern"]
+        "skipWhen": [
+          "complex-destructuring",
+          "multiline-initializers",
+          "readability-concern"
+        ]
       },
       "braces": {
         "singleStatementIf": "omit",
@@ -76,11 +80,7 @@
         "required": false,
         "note": "Omit when intent is obvious from context"
       },
-      "doNotRepeat": [
-        "parameterTypes",
-        "returnType",
-        "generic constraints"
-      ]
+      "doNotRepeat": ["parameterTypes", "returnType", "generic constraints"]
     },
     "iife": {
       "tryCatch": {
@@ -95,16 +95,46 @@
     },
     "dom": {
       "queryPreference": [
-        { "rank": 1, "method": "document.getElementById", "returns": "Element | null" },
-        { "rank": 2, "method": "document.getElementsByClassName", "returns": "HTMLCollection" },
-        { "rank": 3, "method": "document.getElementsByTagName", "returns": "HTMLCollection" },
-        { "rank": 4, "method": "HTMLFormElement.elements", "returns": "HTMLFormControlsCollection" },
-        { "rank": 5, "method": "document.querySelector", "returns": "Element | null" },
-        { "rank": 6, "method": "document.querySelectorAll", "returns": "NodeList" }
+        {
+          "rank": 1,
+          "method": "document.getElementById",
+          "returns": "Element | null"
+        },
+        {
+          "rank": 2,
+          "method": "document.getElementsByClassName",
+          "returns": "HTMLCollection"
+        },
+        {
+          "rank": 3,
+          "method": "document.getElementsByTagName",
+          "returns": "HTMLCollection"
+        },
+        {
+          "rank": 4,
+          "method": "HTMLFormElement.elements",
+          "returns": "HTMLFormControlsCollection"
+        },
+        {
+          "rank": 5,
+          "method": "document.querySelector",
+          "returns": "Element | null"
+        },
+        {
+          "rank": 6,
+          "method": "document.querySelectorAll",
+          "returns": "NodeList"
+        }
       ],
       "observers": {
-        "MutationObserver": { "required": false, "note": "Use only when demonstrably beneficial" },
-        "IntersectionObserver": { "required": false, "note": "Use only when demonstrably beneficial" }
+        "MutationObserver": {
+          "required": false,
+          "note": "Use only when demonstrably beneficial"
+        },
+        "IntersectionObserver": {
+          "required": false,
+          "note": "Use only when demonstrably beneficial"
+        }
       },
       "formElements": {
         "preferHTMLFormControlsCollection": true,
@@ -141,6 +171,34 @@
         "benchmarkBeforeSwitching": true,
         "criteria": "most performant implementation wins"
       }
+    },
+    "cacheStringsRegexp": {
+      "enabled": true,
+      "stringThreshold": 2,
+      "regexpThreshold": 1,
+      "description": "Strings used 2+ times → local const. RegExp always cached at scope level. Cross-file shared strings → .constants.ts in Object.freeze({...} as const)",
+      "sharedFile": ".constants.ts",
+      "sharedFormat": "Object.freeze({ ... } as const)"
+    },
+    "sequentialToIterative": {
+      "enabled": true,
+      "description": "Sequential same-target calls must be iterative or combined",
+      "patterns": {
+        "appendChildChain": "for (const [p,c] of pairs) p.appendChild(c)",
+        "styleAssignments": "Object.assign(el.style, { ... })",
+        "jqueryRemoveClass": "el.removeClass('a b c') — space-separated"
+      }
+    },
+    "eventListenerGuards": {
+      "enabled": true,
+      "description": "Check el.dataset.<name>Bound before addEventListener; set to '1' after binding",
+      "check": "el.dataset.<name>Bound",
+      "setAfterBind": "\"1\""
+    },
+    "inlineSingleUse": {
+      "enabled": true,
+      "description": "Variables assigned once and used once should be inlined unless the name significantly clarifies intent",
+      "exceptions": ["complex-expressions-where-name-adds-clarity", "debugging-convenience"]
     }
   }
 }

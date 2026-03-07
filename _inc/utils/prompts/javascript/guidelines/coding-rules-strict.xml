@@ -283,4 +283,116 @@ document.readyState === "loading"
     </performance>
   </meta>
 
+  <!-- ===================================================================
+       RULE 9: Cache Hard-Coded Strings & RegExps
+       =================================================================== -->
+  <rule id="cache-strings-regexp">
+    <name>Cache Hard-Coded Strings &amp; RegExps</name>
+    <severity>warning</severity>
+    <description>
+      String literals used 2+ times must be stored as a const at the
+      nearest common scope. RegExp instances must always be cached at
+      module/scope level. Cross-file shared strings go in .constants.ts
+      inside a deep-frozen Record (Object.freeze({...} as const)).
+    </description>
+    <threshold strings="2" regexp="1" />
+    <shared-file>.constants.ts</shared-file>
+    <example>
+      <before><![CDATA[
+const m = html.match(/^[\s\n\t\r]*[0-9]+</);
+      ]]></before>
+      <after><![CDATA[
+const NUM_PREFIX_RE = /^[\s\n\t\r]*[0-9]+</;
+const m = html.match(NUM_PREFIX_RE);
+      ]]></after>
+    </example>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 10: Sequential Procedures → Iterative
+       =================================================================== -->
+  <rule id="sequential-to-iterative">
+    <name>Convert Sequential Procedures to Iterative</name>
+    <severity>warning</severity>
+    <description>
+      Repetitive sequential calls (appendChild chains, .style assignments,
+      jQuery .removeClass) must be converted to loops or combined calls.
+    </description>
+    <sub-rules>
+      <sub-rule id="append-chain">
+        <description>Sequential appendChild → for...of over parent-child pairs</description>
+        <example>
+          <before><![CDATA[
+card.appendChild(cardBody);
+overlay.appendChild(card);
+targetElement.appendChild(overlay);
+          ]]></before>
+          <after><![CDATA[
+for (const [p, c] of [
+  [card, cardBody],
+  [overlay, card],
+  [targetElement, overlay],
+] as [Node, Node][])
+  p.appendChild(c);
+          ]]></after>
+        </example>
+      </sub-rule>
+      <sub-rule id="style-assign">
+        <description>Sequential style assignments → Object.assign</description>
+        <example>
+          <before><![CDATA[
+overlay.style.zIndex = "2147483000";
+overlay.style.background = "rgba(0,0,0,.25)";
+          ]]></before>
+          <after><![CDATA[
+Object.assign(overlay.style, { zIndex: "2147483000", background: "rgba(0,0,0,.25)" });
+          ]]></after>
+        </example>
+      </sub-rule>
+    </sub-rules>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 11: Event Listener Guards
+       =================================================================== -->
+  <rule id="event-listener-guard">
+    <name>Guard Event Listeners with Dataset Checks</name>
+    <severity>warning</severity>
+    <description>
+      Before addEventListener, check el.dataset.&lt;name&gt;Bound. Set
+      it to "1" after binding to prevent duplicate registrations.
+    </description>
+    <example>
+      <before><![CDATA[
+slider.addEventListener("mousedown", handler);
+      ]]></before>
+      <after><![CDATA[
+if (slider.dataset.hscrollerBound) return;
+slider.dataset.hscrollerBound = "1";
+slider.addEventListener("mousedown", handler);
+      ]]></after>
+    </example>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 12: Inline Single-Use Values
+       =================================================================== -->
+  <rule id="inline-single-use">
+    <name>Inline Single-Use Values</name>
+    <severity>info</severity>
+    <description>
+      Variables assigned once and used once should be inlined. Exception:
+      when the variable name significantly clarifies complex logic.
+    </description>
+    <example>
+      <before><![CDATA[
+const content = targetElement.innerHTML;
+const m = content.match(RE);
+      ]]></before>
+      <after><![CDATA[
+const m = targetElement.innerHTML.match(RE);
+      ]]></after>
+    </example>
+  </rule>
+
 </guidelines>

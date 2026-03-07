@@ -3,19 +3,19 @@
 
 formatting:
   blank_lines:
-    between_related_statements: false          # no extra blank lines inside tight blocks
-    between_function_declarations: true        # one blank line between top-level fns
+    between_related_statements: false # no extra blank lines inside tight blocks
+    between_function_declarations: true # one blank line between top-level fns
   braces:
-    single_statement_if: omit                  # never wrap one-liners in { }
+    single_statement_if: omit # never wrap one-liners in { }
     single_statement_else: omit
   declaration_collapsing:
     enabled: true
-    max_declarations: 3                        # merge up to 3 sequential const/let/var
+    max_declarations: 3 # merge up to 3 sequential const/let/var
   semicolons: always
 
 naming:
-  cached_strings: UPPER_SNAKE or camelCase     # e.g. INFO_ICON or infoIcon
-  modules: kebab-case                          # file names
+  cached_strings: UPPER_SNAKE or camelCase # e.g. INFO_ICON or infoIcon
+  modules: kebab-case # file names
   functions: camelCase
   classes: PascalCase
 
@@ -33,26 +33,26 @@ dom:
 
 patterns:
   dry_setAttribute:
-    threshold: 3                               # loop when ≥3 calls on same element
+    threshold: 3 # loop when ≥3 calls on same element
     style: "Object.entries loop"
   dry_property_assign:
     threshold: 3
     style: "Object.entries loop with bracket access"
   cached_strings:
-    threshold: 2                               # extract when used >2 times
+    threshold: 2 # extract when used >2 times
   iife_try_catch:
     required: true
     catch_message: "[<module>] failed to initialise"
   one_liner_guards:
-    prefer: short-circuit                      # !cond && action()
+    prefer: short-circuit # !cond && action()
   symmetric_branches:
-    prefer: ternary                            # cond ? a : b
+    prefer: ternary # cond ? a : b
 
 jsdoc:
-  function_declarations: required              # at least one-line summary
+  function_declarations: required # at least one-line summary
   named_function_expressions: required
   arrow_callbacks: optional
-  do_not_repeat_types: true                    # TS handles params/return types
+  do_not_repeat_types: true # TS handles params/return types
 
 es_target: ES6+
 browser_support:
@@ -67,3 +67,39 @@ testing:
     - tsc --noEmit
   performance:
     benchmark_before_switching: true
+
+cache_strings_regexp:
+  description: >
+    Strings used 2+ times must be stored as const. RegExp instances
+    follow the same rule. Shared cross-file strings go in .constants.ts
+    inside a deep-frozen Record (Object.freeze).
+  threshold: 2
+  shared_file: ".constants.ts"
+  shared_format: "Object.freeze({ ... } as const)"
+  regexp_caching:
+    enabled: true
+    threshold: 1 # always cache RegExp at module scope
+
+sequential_to_iterative:
+  description: >
+    Repetitive sequential calls (appendChild chains, .style assignments,
+    jQuery .removeClass) must be converted to loops or combined calls.
+  patterns:
+    appendChild_chain: "for (const [p,c] of pairs) p.appendChild(c)"
+    style_assignments: "Object.assign(el.style, { ... })"
+    jquery_remove_class: "el.removeClass('a b c') — space-separated"
+
+event_listener_guards:
+  description: >
+    Before addEventListener, check el.dataset.<name>Bound. Set it to
+    "1" after binding. Prevents duplicate registrations on re-execution.
+  check: "el.dataset.<name>Bound"
+  set_after_bind: '"1"'
+
+inline_single_use:
+  description: >
+    Variables assigned once and used once should be inlined directly
+    unless the name significantly improves readability.
+  exceptions:
+    - complex_expressions_where_name_adds_clarity
+    - debugging_convenience
