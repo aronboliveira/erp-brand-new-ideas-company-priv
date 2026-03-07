@@ -395,4 +395,112 @@ const m = targetElement.innerHTML.match(RE);
     </example>
   </rule>
 
+  <!-- ===================================================================
+       RULE 13: Vendor File Marking
+       =================================================================== -->
+  <rule id="vendor-file-marking">
+    <name>Vendor File Header Marker</name>
+    <severity>error</severity>
+    <description>
+      All third-party / vendor / bundle files living inside ts/src/ must
+      carry the header comment '// # ! VENDOR FILE — DO NOT EDIT' on the
+      first non-empty line. The path must also be excluded from
+      tsconfig.json and eslint.config.mjs.
+    </description>
+    <header><![CDATA[// # ! VENDOR FILE — DO NOT EDIT]]></header>
+    <required-config>
+      <entry>tsconfig.json → exclude</entry>
+      <entry>eslint.config.mjs → ignores</entry>
+    </required-config>
+    <current-files>
+      <file>public/assets/js/vendor-all.ts</file>
+      <file>public/js/cookieconsent.ts</file>
+      <file>public/js/site.ts</file>
+      <file>public/js/app.ts</file>
+      <file>public/Modules/landingpage/js/vendor-all.ts</file>
+      <file>public/Modules/landingpage/js/app.ts</file>
+    </current-files>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 14: ESLint Migration-Phase Configuration
+       =================================================================== -->
+  <rule id="eslint-migration-config">
+    <name>ESLint Migration-Phase Disabled Rules</name>
+    <severity>info</severity>
+    <description>
+      During the JS → TS migration the following rules are intentionally
+      disabled to suppress thousands of false-positive warnings from
+      idiomatic DOM null-guard patterns. Re-enable after full retyping.
+    </description>
+    <disabled-rules>
+      <disabled rule="@typescript-eslint/strict-boolean-expressions"
+                reason="~1100 false positives from defensive if(el)/if(str) null-guards" />
+      <disabled rule="@typescript-eslint/no-unnecessary-condition"
+                reason="~1300 false positives from truthy checks on runtime-nullable values" />
+    </disabled-rules>
+    <config-notes>
+      <note>varsIgnorePattern: ^_|^\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula</note>
+      <note>caughtErrorsIgnorePattern: .*</note>
+    </config-notes>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 15: Async Function Return Types
+       =================================================================== -->
+  <rule id="async-return-types">
+    <name>Async Function Return Types</name>
+    <severity>error</severity>
+    <description>
+      Async functions must use Promise&lt;void&gt;, never bare void (tsc
+      error TS1064). Non-async void functions should annotate : void.
+      Functions returning a value with a complex inferred type should use
+      eslint-disable-next-line for explicit-function-return-type.
+    </description>
+    <sub-rules>
+      <sub-rule id="async-void">
+        <description>async () =&gt; ... must return Promise&lt;void&gt;</description>
+        <example>
+          <before><![CDATA[(async (): void => { await fetch(url); })();]]></before>
+          <after><![CDATA[(async (): Promise<void> => { await fetch(url); })();]]></after>
+        </example>
+      </sub-rule>
+      <sub-rule id="inferred-return">
+        <description>Complex returns — disable explicit-function-return-type</description>
+        <example>
+          <after><![CDATA[
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getMsg(key: string) { return messages[key] ?? key; }
+          ]]></after>
+        </example>
+      </sub-rule>
+    </sub-rules>
+  </rule>
+
+  <!-- ===================================================================
+       RULE 16: eslint-disable Patterns
+       =================================================================== -->
+  <rule id="eslint-disable-patterns">
+    <name>eslint-disable Usage Rules</name>
+    <severity>warning</severity>
+    <description>
+      eslint-disable-next-line must be used sparingly and correctly.
+      Never place inside template literals. Combine multiple rules in one
+      comment. Add a reason when non-obvious. Prefer fixing root cause.
+    </description>
+    <sub-rules>
+      <sub-rule id="no-disable-in-templates">
+        <description>Never place eslint-disable inside template literals — it becomes text</description>
+      </sub-rule>
+      <sub-rule id="combine-disables">
+        <description>Multiple rules → single comment, comma-separated</description>
+        <example>
+          <after><![CDATA[
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type
+          ]]></after>
+        </example>
+      </sub-rule>
+    </sub-rules>
+  </rule>
+
 </guidelines>

@@ -103,3 +103,54 @@ inline_single_use:
   exceptions:
     - complex_expressions_where_name_adds_clarity
     - debugging_convenience
+
+vendor_file_marking:
+  description: >
+    All third-party/vendor/bundle TS files inside ts/src/ must have
+    '// # ! VENDOR FILE — DO NOT EDIT' as the first non-empty line.
+    The path must also be excluded from tsconfig.json and eslint.config.mjs.
+  header: "// # ! VENDOR FILE — DO NOT EDIT"
+  required_config_entries:
+    - tsconfig.json > exclude
+    - eslint.config.mjs > ignores
+  current_files:
+    - public/assets/js/vendor-all.ts
+    - public/js/cookieconsent.ts
+    - public/js/site.ts
+    - public/js/app.ts
+    - public/Modules/landingpage/js/vendor-all.ts
+    - public/Modules/landingpage/js/app.ts
+
+eslint_migration_config:
+  description: >
+    During JS→TS migration certain rules are disabled to avoid
+    thousands of false-positive warnings from idiomatic DOM patterns.
+    Re-enable after full retyping.
+  disabled_rules:
+    - rule: "@typescript-eslint/strict-boolean-expressions"
+      reason: "~1100 false positives from defensive if(el)/if(str) null-guards"
+    - rule: "@typescript-eslint/no-unnecessary-condition"
+      reason: "~1300 false positives from truthy checks on runtime-nullable values"
+  vars_ignore_pattern: "^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula"
+  caught_errors_ignore_pattern: ".*"
+
+async_return_types:
+  description: >
+    Async functions must use Promise<void>, never bare void.
+    Functions returning a value should let TypeScript infer the type
+    and use eslint-disable-next-line for explicit-function-return-type.
+  rules:
+    non_async_void: ": void"
+    async_void: ": Promise<void>"
+    async_bare_void: forbidden # tsc error TS1064
+    complex_inferred_returns: "eslint-disable-next-line @typescript-eslint/explicit-function-return-type"
+
+eslint_disable_patterns:
+  description: >
+    eslint-disable-next-line should be used sparingly and only when
+    the rule cannot be satisfied without worse code.
+  rules:
+    never_inside_template_literals: true
+    combine_multiple_rules_in_one_comment: true
+    add_reason_when_non_obvious: true
+    prefer_fixing_root_cause: true

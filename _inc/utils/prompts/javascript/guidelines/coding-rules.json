@@ -198,7 +198,67 @@
     "inlineSingleUse": {
       "enabled": true,
       "description": "Variables assigned once and used once should be inlined unless the name significantly clarifies intent",
-      "exceptions": ["complex-expressions-where-name-adds-clarity", "debugging-convenience"]
+      "exceptions": [
+        "complex-expressions-where-name-adds-clarity",
+        "debugging-convenience"
+      ]
+    },
+    "vendorFileMarking": {
+      "enabled": true,
+      "severity": "error",
+      "description": "All third-party/vendor/bundle TS files inside ts/src/ must have '// # ! VENDOR FILE — DO NOT EDIT' as first non-empty line. Path must be excluded from tsconfig.json and eslint.config.mjs.",
+      "header": "// # ! VENDOR FILE — DO NOT EDIT",
+      "requiredConfigEntries": [
+        "tsconfig.json > exclude",
+        "eslint.config.mjs > ignores"
+      ],
+      "currentFiles": [
+        "public/assets/js/vendor-all.ts",
+        "public/js/cookieconsent.ts",
+        "public/js/site.ts",
+        "public/js/app.ts",
+        "public/Modules/landingpage/js/vendor-all.ts",
+        "public/Modules/landingpage/js/app.ts"
+      ]
+    },
+    "eslintMigrationConfig": {
+      "enabled": true,
+      "severity": "info",
+      "description": "During JS→TS migration certain rules are disabled. Re-enable after full retyping.",
+      "disabledRules": [
+        {
+          "rule": "@typescript-eslint/strict-boolean-expressions",
+          "reason": "~1100 false positives from defensive if(el)/if(str) null-guards"
+        },
+        {
+          "rule": "@typescript-eslint/no-unnecessary-condition",
+          "reason": "~1300 false positives from truthy checks on runtime-nullable values"
+        }
+      ],
+      "varsIgnorePattern": "^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula",
+      "caughtErrorsIgnorePattern": ".*"
+    },
+    "asyncReturnTypes": {
+      "enabled": true,
+      "severity": "error",
+      "description": "Async functions must use Promise<void>, never bare void (tsc TS1064). Non-async void → : void. Complex inferred returns → eslint-disable-next-line.",
+      "rules": {
+        "nonAsyncVoid": ": void",
+        "asyncVoid": ": Promise<void>",
+        "asyncBareVoid": "forbidden",
+        "complexInferredReturns": "eslint-disable-next-line @typescript-eslint/explicit-function-return-type"
+      }
+    },
+    "eslintDisablePatterns": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "eslint-disable-next-line must be used sparingly and correctly.",
+      "rules": {
+        "neverInsideTemplateLiterals": true,
+        "combineMultipleRulesInOneComment": true,
+        "addReasonWhenNonObvious": true,
+        "preferFixingRootCause": true
+      }
     }
   }
 }

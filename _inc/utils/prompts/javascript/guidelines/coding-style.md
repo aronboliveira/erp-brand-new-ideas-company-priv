@@ -223,7 +223,10 @@ overlay.style.zIndex = "2147483000";
 overlay.style.background = "rgba(0,0,0,.25)";
 
 // AFTER — Object.assign
-Object.assign(overlay.style, { zIndex: "2147483000", background: "rgba(0,0,0,.25)" });
+Object.assign(overlay.style, {
+  zIndex: "2147483000",
+  background: "rgba(0,0,0,.25)",
+});
 
 // BEFORE — sequential jQuery removeClass
 $tp.removeClass("bg-warning");
@@ -272,3 +275,95 @@ const _dataTable = new DataTable(".datatable");
 // AFTER — side effect only
 new DataTable(".datatable");
 ```
+---
+
+## 15. Vendor File Marking
+
+All third-party / vendor / bundle files that live inside `ts/src/` but should **not** be edited must carry a header comment on the first non-empty line:
+
+```ts
+// # ! VENDOR FILE — DO NOT EDIT
+```
+
+These files are also excluded from ESLint and `tsc` via their respective config `ignores` / `exclude` arrays. Currently marked vendor files:
+
+- `public/assets/js/vendor-all.ts`
+- `public/js/cookieconsent.ts`
+- `public/js/site.ts`
+- `public/js/app.ts`
+- `public/Modules/landingpage/js/vendor-all.ts`
+- `public/Modules/landingpage/js/app.ts`
+
+When adding a **new** vendor file, always:
+1. Add the `// # ! VENDOR FILE` header.
+2. Add the path to `tsconfig.json` → `exclude`.
+3. Add the glob to `eslint.config.mjs` → `ignores`.
+
+---
+
+## 16. ESLint Configuration Rationale (Migration Phase)
+
+During the JS → TS migration the following rules are intentionally **disabled** in `eslint.config.mjs`:
+
+| Rule | Reason |
+|---|---|
+| `@typescript-eslint/strict-boolean-expressions` | ~1 100 false positives from defensive `if (el)` / `if (str)` null-guards that are idiomatic in DOM code. |
+| `@typescript-eslint/no-unnecessary-condition` | ~1 300 false positives from truthy checks on values TypeScript narrows to non-nullable after assignment but that may be `null` at runtime. |
+
+Additional config notes:
+
+- `varsIgnorePattern` includes `^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula` to suppress warnings on intentionally unused ambient globals.
+- `caughtErrorsIgnorePattern: ".*"` — catch-block variables are often logged inline and the binding name itself is not used standalone.
+
+> **Re-enable these rules** after all JS-era patterns have been fully retyped/narrowed. Track with issue / task.
+
+---
+
+## 17. Async Function Return Types
+
+Async and non-async functions have different return type rules:
+
+```ts
+// ✅ Non-async IIFE returning nothing → : void
+((): void => { … })();
+
+// ✅ Async IIFE returning nothing → : Promise<void>
+(async (): Promise<void> => { … })();
+
+// ❌ NEVER annotate an async function as : void
+(async (): void => { … })();   // tsc error TS1064
+
+// ✅ Functions that return a value — let TypeScript infer, add eslint-disable
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getMsg(key: string) { return messages[key] ?? key; }
+```
+
+Key rules:
+- **`async` functions** must use `Promise<void>` (never bare `void`).
+- **Functions returning a value**: if the inferred type is complex or union-heavy, prefer `// eslint-disable-next-line @typescript-eslint/explicit-function-return-type` over an incorrect annotation.
+- **Non-async void functions** (IIFEs, event handlers): annotate `: void` explicitly.
+
+---
+
+## 18. `eslint-disable` Patterns
+
+Use `eslint-disable-next-line` sparingly, and **only** for cases where the ESLint rule genuinely cannot be satisfied without worse code:
+
+```ts
+// Acceptable — inferred return is complex union from JS-era code
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function buildPayload(data: unknown) { … }
+
+// Acceptable — uninitialized let re-assigned in branching logic
+// eslint-disable-next-line prefer-const
+let slider: Slider;
+```
+
+Rules:
+1. **Never** place `// eslint-disable-next-line` inside template literals or multi-line strings — it becomes literal text, not a directive.
+2. When multiple rules need disabling on the same line, combine them in a single comment:
+   ```ts
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type
+   ```
+3. Always add a brief reason if the disable is non-obvious.
+4. Prefer fixing the root cause over disabling.
