@@ -13,11 +13,12 @@ const path = require("path");
 
 module.exports = {
   rootDir: __dirname,
-  roots: ["<rootDir>/src/tests"],
+  roots: ["<rootDir>/src/tests", "<rootDir>/tests/unit"],
   testEnvironment: "jsdom",
   testMatch: [
     "<rootDir>/src/tests/**/*.test.ts",
     "<rootDir>/src/tests/**/*.spec.ts",
+    "<rootDir>/tests/unit/**/*.test.ts",
   ],
   transform: {
     "^.+\\.tsx?$": [

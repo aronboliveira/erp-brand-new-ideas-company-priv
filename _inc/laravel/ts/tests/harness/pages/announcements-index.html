@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="test-csrf-token">
+  <title>announcements.index - Test Harness</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+        rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+        crossorigin="anonymous">
+  <style>
+    .test-status { padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
+    .test-status.pass { background: #d4edda; color: #155724; }
+    .test-status.fail { background: #f8d7da; color: #721c24; }
+    .test-status.loading { background: #fff3cd; color: #856404; }
+    .mock-data { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid py-3">
+    <h1 class="h4 mb-3">announcements.index</h1>
+    <div class="test-status loading" id="test-status">Loading scripts...</div>
+    
+    <!-- Mock content area -->
+    
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>announcements List</span>
+        <a href="#" class="btn btn-primary btn-sm" id="create-btn">Create New</a>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped" id="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-id="1">
+              <td>1</td>
+              <td>Test Item 1</td>
+              <td><span class="badge bg-success">Active</span></td>
+              <td>
+                <a href="#" class="btn btn-sm btn-info view-btn" data-id="1">View</a>
+                <a href="#" class="btn btn-sm btn-warning edit-btn" data-id="1">Edit</a>
+                <a href="#" class="btn btn-sm btn-danger delete-btn" data-id="1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+              </td>
+            </tr>
+            <tr data-id="2">
+              <td>2</td>
+              <td>Test Item 2</td>
+              <td><span class="badge bg-warning">Pending</span></td>
+              <td>
+                <a href="#" class="btn btn-sm btn-info view-btn" data-id="2">View</a>
+                <a href="#" class="btn btn-sm btn-warning edit-btn" data-id="2">Edit</a>
+                <a href="#" class="btn btn-sm btn-danger delete-btn" data-id="2" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Delete</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete this item?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+          crossorigin="anonymous"></script>
+  
+    <script type="module" src="/dist/public/assets/js/routes/announcements/lang/index.js"></script>
+  
+  <script type="module">
+    window.addEventListener('load', () => {
+      const status = document.getElementById('test-status');
+      // Check if scripts loaded without errors
+      const hasErrors = window.__testErrors?.length > 0;
+      status.textContent = hasErrors ? 'Script errors detected' : 'Scripts loaded successfully';
+      status.className = 'test-status ' + (hasErrors ? 'fail' : 'pass');
+    });
+    window.__testErrors = [];
+    window.onerror = (msg, url, line, col, err) => {
+      window.__testErrors.push({ msg, url, line, col, err: err?.message });
+    };
+  </script>
+</body>
+</html>

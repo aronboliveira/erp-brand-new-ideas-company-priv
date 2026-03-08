@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="test-csrf-token">
+  <title>settings.company - Test Harness</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+        rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+        crossorigin="anonymous">
+  <style>
+    .test-status { padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
+    .test-status.pass { background: #d4edda; color: #155724; }
+    .test-status.fail { background: #f8d7da; color: #721c24; }
+    .test-status.loading { background: #fff3cd; color: #856404; }
+    .mock-data { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid py-3">
+    <h1 class="h4 mb-3">settings.company</h1>
+    <div class="test-status loading" id="test-status">Loading scripts...</div>
+    
+    <!-- Mock content area -->
+    
+    <div class="card">
+      <div class="card-header">settings.company</div>
+      <div class="card-body">
+        <p>Generic test content for route: <code>settings.company</code></p>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Sample Input</label>
+              <input type="text" class="form-control" id="sample-input" placeholder="Enter value">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Sample Select</label>
+              <select class="form-select" id="sample-select">
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <button type="button" class="btn btn-primary" id="action-btn">Execute Action</button>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+          crossorigin="anonymous"></script>
+  
+    <script type="module" src="/dist/public/assets/js/routes/settings/companies/business.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/system.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/company.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/email.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/emailTest.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/tracker.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/payment.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/zoom.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/slack.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/telegram.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/twilio.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/emailNotification.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/emailSettings.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/joiningLetter.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/experienceCertificate.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/noc.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/calendar.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/webhook.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/ip.js"></script>
+  <script type="module" src="/dist/public/assets/js/routes/settings/companies/lang/notes.js"></script>
+  
+  <script type="module">
+    window.addEventListener('load', () => {
+      const status = document.getElementById('test-status');
+      // Check if scripts loaded without errors
+      const hasErrors = window.__testErrors?.length > 0;
+      status.textContent = hasErrors ? 'Script errors detected' : 'Scripts loaded successfully';
+      status.className = 'test-status ' + (hasErrors ? 'fail' : 'pass');
+    });
+    window.__testErrors = [];
+    window.onerror = (msg, url, line, col, err) => {
+      window.__testErrors.push({ msg, url, line, col, err: err?.message });
+    };
+  </script>
+</body>
+</html>
