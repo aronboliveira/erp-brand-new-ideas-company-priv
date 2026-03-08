@@ -4,7 +4,6 @@
  * @module create
  */
 
-/* global bootstrap */
 // assets/js/routes/expenses/create.js
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -44,7 +43,7 @@
         el.textContent = html;
       }
     };
-    const toast = (msg: string): void=> {
+    const toast = (msg: string): void => {
       const hasBootstrap = !!(
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
@@ -59,9 +58,12 @@
       if (hasBootstrap) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -87,7 +89,9 @@
             "Store expense route is unavailable. Please contact technical support or your domain administrator.";
           toast(msg);
           fm.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[create] Error:`, err);
+  }
       });
     };
 
@@ -105,7 +109,9 @@
             "Route is unavailable. Please contact technical support or your domain administrator.";
           toast(msg);
           a.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[create] Error:`, err);
+  }
       });
     };
 
@@ -168,9 +174,11 @@
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           !(data?.html && String(data.html).trim().length),
         );
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[create] Error:`, err);
+  }
     };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const toNum = (v: unknown) => {
@@ -185,12 +193,8 @@
       let totalAmount = 0;
 
       qsa("tbody[data-repeater-item]").forEach(tbody => {
-        const row1 = tbody.querySelector(
-          "tr:nth-child(1)",
-        );
-        const row2 = tbody.querySelector(
-          "tr:nth-child(2)",
-        );
+        const row1 = tbody.querySelector("tr:nth-child(1)");
+        const row2 = tbody.querySelector("tr:nth-child(2)");
         if (row1) {
           const qty = toNum(
             (qs(".quantity", row1) as HTMLInputElement | null)?.value,
@@ -267,9 +271,7 @@
           const guard =
             itemSel.getAttribute("data-guard-msg") ?? "Endpoint unavailable.";
           const id = itemSel.value;
-          const tbody = container.closest(
-            "tbody[data-repeater-item]",
-          );
+          const tbody = container.closest("tbody[data-repeater-item]");
           if (!tbody || !id) return;
           if (url === "#") {
             toast(guard);
@@ -317,7 +319,9 @@
               taxRate.value = String(data.taxRate ?? "");
             if (taxPrice && data.taxPrice !== undefined)
               taxPrice.value = String(data.taxPrice ?? "");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[create] Error:`, err);
+  }
           recalcTable();
         });
       }
@@ -368,5 +372,7 @@
     });
 
     recalcTable();
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[create] Error:`, err);
+  }
 })();

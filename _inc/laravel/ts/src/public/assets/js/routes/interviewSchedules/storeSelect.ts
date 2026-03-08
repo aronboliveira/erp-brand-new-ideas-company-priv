@@ -84,9 +84,12 @@
           const toast = document.createElement("div");
           toast.id = "error-toast";
           toast.className = "toast align-items-center text-bg-danger border-0";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           toast.innerHTML = `
                     <div class="d-flex">
                     <div class="toast-body">${message}</div>

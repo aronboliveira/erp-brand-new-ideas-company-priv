@@ -4,7 +4,6 @@
  * @module printable
  */
 
-
 ((): void => {
   const BS_LINK = 'link[href*="bootstrap"]';
   const PRINTABLE_AREA = "printableArea";
@@ -105,7 +104,7 @@
     return toastContainer;
   };
 
-  const showError = (key: string, el: HTMLElement | null = null): void=> {
+  const showError = (key: string, el: HTMLElement | null = null): void => {
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
     const dataGuardMsg = "data-guard-msg";
@@ -142,9 +141,12 @@
       const container = getToastContainer();
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
-      toast.setAttribute("role", "alert");
-      toast.setAttribute("aria-live", "assertive");
-      toast.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
       toast.innerHTML = `
         <div class="d-flex">
           <div class="toast-body">${msg}</div>

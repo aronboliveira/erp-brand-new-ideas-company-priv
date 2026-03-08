@@ -6,7 +6,6 @@
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-
 interface CalendarHTMLElement extends HTMLElement {
   _fcInstance?: FullCalendarInstance | null;
 }
@@ -64,9 +63,12 @@ interface FullCalendarStatic {
         const newT = document.createElement("div");
         newT.id = "np-toast";
         newT.className = "toast";
-        newT.setAttribute("role", "alert");
-        newT.setAttribute("aria-live", "assertive");
-        newT.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  newT.setAttribute(k, v);
         newT.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(newT);
@@ -161,7 +163,9 @@ interface FullCalendarStatic {
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[calendar] Error:`, _);
+  }
       schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
       return false;
     }
@@ -176,7 +180,9 @@ interface FullCalendarStatic {
         window.location.hostname === "127.0.0.1"
       )
         console.error("FullCalendar unavailable");
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[calendar] Error:`, _);
+  }
     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
     return false;
   };
@@ -201,7 +207,9 @@ interface FullCalendarStatic {
     if (el._fcInstance) {
       try {
         el._fcInstance.destroy();
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[calendar] Error:`, _);
+  }
       el._fcInstance = null;
     }
     try {

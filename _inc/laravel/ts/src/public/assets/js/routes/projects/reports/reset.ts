@@ -4,7 +4,6 @@
  * @module reset
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const form = document.getElementById("project_report_submit");
@@ -39,9 +38,12 @@
             const toastEl = document.createElement("div");
             toastEl.className =
               "toast align-items-center text-bg-danger border-0";
-            toastEl.setAttribute("role", "alert");
-            toastEl.setAttribute("aria-live", "assertive");
-            toastEl.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
             toastEl.innerHTML =
               '<div class="d-flex"><div class="toast-body">' +
               msg +
@@ -51,10 +53,14 @@
           } else {
             alert(msg);
           }
-        } catch {}
+        } catch (__err) {
+    console.error(`[reset] Error:`, __err);
+  }
       });
     }
-  } catch {}
+  } catch (__err) {
+    console.error(`[reset] Error:`, __err);
+  }
   try {
     const selector = ".reset-project-report-link";
     const alias = "data-listening-resetprojectreportclick";
@@ -90,9 +96,12 @@
                 const toastEl = document.createElement("div");
                 toastEl.className =
                   "toast align-items-center text-bg-danger border-0";
-                toastEl.setAttribute("role", "alert");
-                toastEl.setAttribute("aria-live", "assertive");
-                toastEl.setAttribute("aria-atomic", "true");
+                for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
                 toastEl.innerHTML =
                   '<div class="d-flex"><div class="toast-body">' +
                   msg +
@@ -102,12 +111,18 @@
               } else {
                 alert(msg);
               }
-            } catch {}
+            } catch (__err) {
+    console.error(`[reset] Error:`, __err);
+  }
           });
         }
-      } catch {}
+      } catch (__err) {
+    console.error(`[reset] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[reset] Error:`, __err);
+  }
 })();
 
 export {};

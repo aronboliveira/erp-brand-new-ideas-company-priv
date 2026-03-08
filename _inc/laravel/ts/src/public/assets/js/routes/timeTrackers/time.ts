@@ -52,9 +52,12 @@ declare global {
         t = document.createElement("div");
         t.id = "np-toast";
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -132,7 +135,9 @@ declare global {
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[time] Error:`, _);
+  }
       scheduleClickError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -143,7 +148,9 @@ declare global {
           window.location.hostname === "127.0.0.1"
         )
           console.error("timeEntry unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[time] Error:`, _);
+  }
       scheduleClickError(getMsg(document.body, "time_unavailable"));
       return;
     }

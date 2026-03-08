@@ -22,9 +22,9 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       (
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ??
         qs('link[href*="bootstrap"]')
       )
     ) && !!window.bootstrap.Toast;
@@ -49,9 +49,12 @@
         t = document.createElement("div");
         t.id = "np-toast";
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -134,13 +137,17 @@
       if (!window.Pusher) {
         try {
           console.error("Pusher library unavailable");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[pusher] Error:`, _);
+  }
         schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
         return;
       }
       try {
         (window.Pusher as Record<string, unknown>).logToConsole = true;
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[pusher] Error:`, _);
+  }
       const key = "{{ config('chatify.pusher.key') }}" as string;
       const cluster =
         "{{ config('chatify.pusher.options.cluster') }}" as string;

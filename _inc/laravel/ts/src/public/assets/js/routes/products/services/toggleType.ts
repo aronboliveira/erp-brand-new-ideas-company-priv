@@ -31,7 +31,9 @@
       r.addEventListener("change", apply);
     });
     apply();
-  } catch {}
+  } catch (__err) {
+    console.error(`[toggleType] Error:`, __err);
+  }
 })();
 
 export {};

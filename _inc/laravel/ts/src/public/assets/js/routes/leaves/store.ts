@@ -4,7 +4,6 @@
  * @module store
  */
 
-
 ((): void => {
   try {
     const guardToast = (msg: string): void=> {
@@ -26,9 +25,12 @@
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent =
@@ -40,7 +42,9 @@
           toast.addEventListener("hidden.bs.toast", function (): void {
             try {
               toast.remove();
-            } catch (err) {}
+            } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
           });
           inst.show();
         } else {
@@ -49,7 +53,9 @@
               "Requested route is unavailable. Please contact technical support or your domain administrator."
           );
         }
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
     };
 
     const f = document.getElementById("store_leave");
@@ -72,7 +78,9 @@
               f.getAttribute("data-guard-msg") ?? "Create leave route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             f.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
         },
         { passive: false }
       );
@@ -99,7 +107,9 @@
               g.getAttribute("data-guard-msg") ?? "Grammar check route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             g.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
         },
         { passive: false }
       );
@@ -126,12 +136,16 @@
               ai.getAttribute("data-guard-msg") ?? "Generate leave content route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             ai.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
         },
         { passive: false }
       );
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[store] Error:`, error);
+  }
 })();
 
 export {};

@@ -4,7 +4,6 @@
  * @module print
  */
 
-
 declare const html2pdf: () => {
   set: (opt: unknown) => { from: (el: HTMLElement) => { save: () => void } };
 };
@@ -57,9 +56,12 @@ declare const html2pdf: () => {
         const t = document.createElement("div");
         t.id = "error-toast";
         t.className = "toast align-items-center text-bg-danger border-0";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         {
           t.replaceChildren();
           const _d = document.createElement("div");

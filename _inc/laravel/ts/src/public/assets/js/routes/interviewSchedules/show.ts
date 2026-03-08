@@ -4,7 +4,6 @@
  * @module show
  */
 
-/* global bootstrap */
 ((): void => {
   const DEFAULT_ROUTE_MSG =
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -23,9 +22,12 @@
     if (hasBs) {
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -70,9 +72,13 @@
         .forEach((el: Element): void => {
           try {
             bootstrap.Tooltip.getOrCreateInstance(el);
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[show] Error:`, _);
+  }
         });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[show] Error:`, _);
+  }
     document
       .querySelectorAll(
         ".modal-body a[data-guard-msg], .modal-body a[data-url]",

@@ -24,11 +24,15 @@
             detail: { active: !active },
           });
           document.dispatchEvent(ev);
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[filter] Error:`, _);
+  }
       },
       { passive: false }
     );
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[filter] Error:`, _);
+  }
 })();
 
 export {};

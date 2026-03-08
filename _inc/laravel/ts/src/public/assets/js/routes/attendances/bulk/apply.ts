@@ -4,7 +4,6 @@
  * @module apply
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const links = document.querySelectorAll("a.apply-bulkattendance");
@@ -44,9 +43,12 @@
             if (hasBootstrap) {
               const toast = document.createElement("div");
               toast.className = "toast";
-              toast.setAttribute("role", "alert");
-              toast.setAttribute("aria-live", "assertive");
-              toast.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -58,11 +60,17 @@
             }
             l.setAttribute("data-failed-route", "true");
             form.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[apply] Error:`, err);
+  }
         });
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[apply] Error:`, err);
+  }
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[apply] Error:`, err);
+  }
 })();
 
 export {};

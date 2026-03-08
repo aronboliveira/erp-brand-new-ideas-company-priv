@@ -4,7 +4,6 @@
  * @module apply
  */
 
-
 ((): void => {
   const Q = <T extends Element = Element>(s: string): T | null =>
     document.querySelector<T>(s);
@@ -28,9 +27,12 @@
     if (hasBs) {
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -79,9 +81,13 @@
       QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch {}
+        } catch (__err) {
+    console.error(`[apply] Error:`, __err);
+  }
       });
-    } catch {}
+    } catch (__err) {
+    console.error(`[apply] Error:`, __err);
+  }
   };
 
   const filenameFromInput = (inp: HTMLInputElement): string => {
@@ -102,9 +108,13 @@
       imgEl.onload = (): void => {
         try {
           URL.revokeObjectURL(url);
-        } catch {}
+        } catch (__err) {
+    console.error(`[apply] Error:`, __err);
+  }
       };
-    } catch {}
+    } catch (__err) {
+    console.error(`[apply] Error:`, __err);
+  }
   };
 
   const bindFileInputs = (): void => {

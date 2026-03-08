@@ -4,7 +4,6 @@
  * @module index
  */
 
-/* global bootstrap */
 (function (): void {
   const listened = "data-listener-active";
   function toast(message: string): void {
@@ -22,9 +21,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -93,9 +95,7 @@
         if (modalBody) modalBody.textContent = body;
         if (cancelBtn) cancelBtn.textContent = "Cancel";
         if (yesBtnEl) yesBtnEl.textContent = "OK";
-        const inst = (
-          window.bootstrap
-        ).Modal.getOrCreateInstance(modal);
+        const inst = window.bootstrap.Modal.getOrCreateInstance(modal);
         const yesBtn = modal.querySelector(
           "#confirm-yes-btn",
         ) as HTMLElement | null;
@@ -113,7 +113,9 @@
                 safeFormAction(yes, yesBtn ?? document.body);
               }
             }
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
           inst.hide();
         };
         if (yesBtn) yesBtn.addEventListener("click", handler, { once: true });
@@ -133,7 +135,9 @@
                 safeFormAction(yes, document.body);
               }
             }
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
         }
       }
     });
@@ -168,12 +172,14 @@
         el: Element,
       ): void {
         try {
-          (window.bootstrap).Tooltip.getOrCreateInstance(
-            el as HTMLElement,
-          );
-        } catch (_) {}
+          window.bootstrap.Tooltip.getOrCreateInstance(el as HTMLElement);
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
   }
   document.addEventListener("DOMContentLoaded", function (): void {
     init();

@@ -4,7 +4,6 @@
  * @module edit
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const fm = document.querySelector(
@@ -37,9 +36,12 @@
         if (hasBootstrap) {
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -50,9 +52,13 @@
           alert(msg);
         }
         fm.setAttribute("data-failed-route", "true");
-      } catch {}
+      } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
 })();
 
 ((): void => {
@@ -89,9 +95,12 @@
           if (hasBootstrap) {
             const t = document.createElement("div");
             t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -102,10 +111,14 @@
             alert(msg);
           }
           a.setAttribute("data-failed-route", "true");
-        } catch {}
+        } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
       });
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
 })();
 
 export {};

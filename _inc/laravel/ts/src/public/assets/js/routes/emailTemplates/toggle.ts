@@ -27,7 +27,7 @@
       window.translations?.[lang]?.[k] ||
       window.translations?.en?.[k] ||
       "# ERROR";
-    const pop = (msg: string, type = "error: Error"): void=> {
+    const pop = (msg: string, type = "error: Error"): void => {
       window.show_toastr ? window.show_toastr(type, msg, type) : alert(msg);
     };
     document.addEventListener("click", (e: Event) => {

@@ -4,7 +4,6 @@
  * @module print
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -60,9 +59,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         message +
@@ -112,7 +114,9 @@
       if (!document.body.contains(btn)) {
         try {
           if (window.jQuery) window.jQuery("#print").off("click", onClick);
-        } catch {}
+        } catch (__err) {
+    console.error(`[print] Error:`, __err);
+  }
         observer.disconnect();
       }
     });
@@ -130,7 +134,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("jQuery not found while initializing print handler");
-    } catch {}
+    } catch (__err) {
+    console.error(`[print] Error:`, __err);
+  }
   }
 })();
 

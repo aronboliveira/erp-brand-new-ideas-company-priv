@@ -4,7 +4,6 @@
  * @module store
  */
 
-
 ((): void => {
   try {
     const guardToast = (msg: string): void=> {
@@ -25,9 +24,12 @@
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent =
@@ -38,7 +40,9 @@
           toast.addEventListener("hidden.bs.toast", function (): void {
             try {
               toast.remove();
-            } catch (_) {}
+            } catch (_) {
+    console.error(`[store] Error:`, _);
+  }
           });
           inst.show();
         } else {
@@ -46,7 +50,9 @@
             msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
           );
         }
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[store] Error:`, _);
+  }
     };
 
     const f = document.getElementById("store_task");
@@ -69,7 +75,9 @@
               f.getAttribute("data-guard-msg") ?? "Create project task route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             f.setAttribute("data-failed-route", "true");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[store] Error:`, _);
+  }
         },
         { passive: false }
       );
@@ -96,12 +104,16 @@
               ai.getAttribute("data-guard-msg") ?? "Generate project task content route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             ai.setAttribute("data-failed-route", "true");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[store] Error:`, _);
+  }
         },
         { passive: false }
       );
     }
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[store] Error:`, _);
+  }
 })();
 
 export {};

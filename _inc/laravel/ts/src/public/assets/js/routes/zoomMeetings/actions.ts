@@ -54,9 +54,12 @@ interface DeleteAjaxResponse {
         const el = document.createElement("div");
         el.id = "np-toast";
         el.className = "toast";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
         el.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(el);
@@ -133,7 +136,9 @@ interface DeleteAjaxResponse {
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[actions] Error:`, _);
+  }
       schedulePointerupError(localize(document.body, "plugin_unavailable"));
       return false;
     }
@@ -191,7 +196,9 @@ interface DeleteAjaxResponse {
           window.location.hostname === "127.0.0.1"
         )
           console.error("deleteAjax unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[actions] Error:`, _);
+  }
       schedulePointerupError(localize(targetEl, "plugin_unavailable"));
       return;
     }
@@ -206,7 +213,9 @@ interface DeleteAjaxResponse {
         }
         try {
           $("#cModal").modal("hide");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[actions] Error:`, _);
+  }
       } catch (_) {
         schedulePointerupError(localize(targetEl, "delete_unavailable"));
       }

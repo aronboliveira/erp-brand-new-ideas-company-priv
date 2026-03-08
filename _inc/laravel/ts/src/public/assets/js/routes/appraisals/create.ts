@@ -4,7 +4,6 @@
  * @module create
  */
 
-/* global bootstrap */
 ((): void => {
   const el = document.getElementById("appraisal-create-link");
   const flagAttr = "data-listener-active";
@@ -32,9 +31,12 @@
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -46,7 +48,9 @@
         }
         el.setAttribute("data-failed-route", "true");
       }
-    } catch {}
+    } catch (__err) {
+    console.error(`[create] Error:`, __err);
+  }
   });
   const observer = new MutationObserver((): void => {
     if (!document.getElementById("appraisal-create-link"))

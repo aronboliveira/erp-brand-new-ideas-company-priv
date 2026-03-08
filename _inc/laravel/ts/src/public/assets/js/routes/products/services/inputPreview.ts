@@ -22,10 +22,14 @@
             : null;
           if (!img || !file) return;
           (img as HTMLImageElement).src = URL.createObjectURL(file);
-        } catch {}
+        } catch (__err) {
+    console.error(`[inputPreview] Error:`, __err);
+  }
       });
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[inputPreview] Error:`, __err);
+  }
 })();
 
 export {};

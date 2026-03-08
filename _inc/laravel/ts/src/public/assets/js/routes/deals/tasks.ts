@@ -4,7 +4,6 @@
  * @module tasks
  */
 
-
 declare global {
   interface JQuery {
     daterangepicker(options?: Record<string, unknown>): JQuery;

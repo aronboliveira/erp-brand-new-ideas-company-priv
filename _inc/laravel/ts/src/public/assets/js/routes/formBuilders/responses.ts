@@ -4,7 +4,6 @@
  * @module responses
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const showGuard = (msg: string): void=> {
@@ -25,9 +24,12 @@
       if (hasBootstrap) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = text;
@@ -51,7 +53,9 @@
           const msg = a.getAttribute("data-guard-msg") ?? "";
           showGuard(msg);
           a.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[responses] Error:`, err);
+  }
       });
     };
 
@@ -69,10 +73,16 @@
       els.forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch (e) {}
+        } catch (e) {
+    console.error(`[responses] Error:`, e);
+  }
       });
-    } catch (err) {}
-  } catch (err) {}
+    } catch (err) {
+    console.error(`[responses] Error:`, err);
+  }
+  } catch (err) {
+    console.error(`[responses] Error:`, err);
+  }
 })();
 
 export {};

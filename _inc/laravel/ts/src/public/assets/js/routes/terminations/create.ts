@@ -4,7 +4,6 @@
  * @module create
  */
 
-
 ((): void => {
   try {
     const a = document.getElementById("termination-create-link");
@@ -47,9 +46,12 @@
         ) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -68,9 +70,13 @@
         }
 
         a.setAttribute("data-failed-route", "true");
-      } catch {}
+      } catch (__err) {
+    console.error(`[create] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[create] Error:`, __err);
+  }
 })();
 
 export {};

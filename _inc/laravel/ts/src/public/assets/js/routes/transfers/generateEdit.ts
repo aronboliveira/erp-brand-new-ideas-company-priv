@@ -4,7 +4,6 @@
  * @module generateEdit
  */
 
-
 ((): void => {
   try {
     const links = document.querySelectorAll(
@@ -44,9 +43,12 @@
             if (bsLink && typeof window.bootstrap !== "undefined") {
               const toast = document.createElement("div");
               toast.className = "toast";
-              toast.setAttribute("role", "alert");
-              toast.setAttribute("aria-live", "assertive");
-              toast.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -57,11 +59,17 @@
               alert(msg);
             }
             l.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[generateEdit] Error:`, err);
+  }
         });
-      } catch (innerErr) {}
+      } catch (innerErr) {
+    console.error(`[generateEdit] Error:`, innerErr);
+  }
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[generateEdit] Error:`, error);
+  }
 })();
 
 export {};

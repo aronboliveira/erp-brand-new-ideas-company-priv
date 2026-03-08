@@ -4,7 +4,6 @@
  * @module edit
  */
 
-
 ((): void => {
   const DEFAULT_MSG =
     "The requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -28,9 +27,12 @@
         }
         const toastEl = document.createElement("div");
         toastEl.className = "toast show";
-        toastEl.setAttribute("role", "alert");
-        toastEl.setAttribute("aria-live", "assertive");
-        toastEl.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
         toastEl.style.minWidth = "280px";
         {
           const _b = document.createElement("div");

@@ -4,7 +4,6 @@
  * @module index
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const bindGuard = (el: Element | null): void=> {
@@ -43,9 +42,12 @@
             if (hasBootstrap) {
               const toast = document.createElement("div");
               toast.className = "toast";
-              toast.setAttribute("role", "alert");
-              toast.setAttribute("aria-live", "assertive");
-              toast.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -56,9 +58,13 @@
               alert(msg);
             }
             el.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[index] Error:`, err);
+  }
         });
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[index] Error:`, err);
+  }
     };
 
     const bindFormGuard = (fm: Element): void=> {
@@ -97,9 +103,12 @@
             if (hasBootstrap) {
               const toast = document.createElement("div");
               toast.className = "toast";
-              toast.setAttribute("role", "alert");
-              toast.setAttribute("aria-live", "assertive");
-              toast.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -110,9 +119,13 @@
               alert(msg);
             }
             fm.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[index] Error:`, err);
+  }
         });
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[index] Error:`, err);
+  }
     };
 
     bindGuard(document.getElementById("events-create-link"));
@@ -127,7 +140,9 @@
     document
       .querySelectorAll("form[id^='events-delete-form-']")
       .forEach(bindFormGuard);
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[index] Error:`, err);
+  }
 })();
 
 export {};

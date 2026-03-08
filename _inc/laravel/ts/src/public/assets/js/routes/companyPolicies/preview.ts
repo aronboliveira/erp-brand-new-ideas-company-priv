@@ -4,7 +4,6 @@
  * @module preview
  */
 
-
 ((): void => {
   const ERR_KEY = "image_preview_failed";
   const ATTACH_SELECTOR = "#attachment";

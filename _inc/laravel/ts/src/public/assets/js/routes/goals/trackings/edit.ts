@@ -4,7 +4,6 @@
  * @module edit
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const toast = (msg: string): void=> {
@@ -25,9 +24,12 @@
       if (hasBootstrap) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = text;
@@ -51,7 +53,9 @@
             toast(fm.getAttribute("data-guard-msg") ?? "");
             fm.setAttribute("data-failed-route", "true");
           }
-        } catch {}
+        } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
       });
     }
 
@@ -63,7 +67,9 @@
       const sync = (): void => {
         try {
           out.textContent = String(range.value ?? "0");
-        } catch {}
+        } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
       };
       range.addEventListener("input", sync);
       range.addEventListener("change", sync);
@@ -80,10 +86,16 @@
       els.forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch {}
+        } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
       });
-    } catch {}
-  } catch {}
+    } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
+  } catch (__err) {
+    console.error(`[edit] Error:`, __err);
+  }
 })();
 
 export {};

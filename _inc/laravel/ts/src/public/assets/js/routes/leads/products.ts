@@ -90,7 +90,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("jQuery not found for leads/productsUpdate");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[products] Error:`, _);
+  }
         return;
       }
       const form = document.getElementById(
@@ -119,12 +121,16 @@
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.leadsProductsUpdate");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[products] Error:`, _);
+  }
           obs.disconnect();
         }
       });
       obs.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[products] Error:`, _);
+  }
   }
   try {
     const $ = window.jQuery;
@@ -135,7 +141,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("Failed to initialize leads/productsUpdate");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[products] Error:`, _);
+  }
       return;
     }
     $(function (): void {
@@ -148,7 +156,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("Failed to run leads/productsUpdate");
-    } catch (__) {}
+    } catch (__) {
+    console.error(`[products] Error:`, __);
+  }
   }
 })();
 

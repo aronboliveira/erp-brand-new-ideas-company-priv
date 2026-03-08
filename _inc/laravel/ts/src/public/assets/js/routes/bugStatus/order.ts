@@ -4,7 +4,6 @@
  * @module order
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -15,7 +14,7 @@
   let errorMessage = "";
   const translations = (window as unknown as Record<string, unknown>)
     .translations as Record<string, Record<string, string>> | undefined;
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
@@ -44,7 +43,7 @@
     return msg;
   }
 
-  function showError(message: string): void{
+  function showError(message: string): void {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -59,9 +58,12 @@
       if (bs) {
         const toast = document.createElement("div");
         toast.className = "toast";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -112,7 +114,8 @@
                   order[idx] = li.getAttribute("data-id");
                 },
               );
-              const url = "{{route(ViewsConstants::BUG_STT.'.order')}}" as string;
+              const url =
+                "{{route(ViewsConstants::BUG_STT.'.order')}}" as string;
               if (url === "") throw new Error("bugstatus_order_failed");
               $.ajax({
                 url,

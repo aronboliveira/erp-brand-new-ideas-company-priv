@@ -4,7 +4,6 @@
  * @module viewImages
  */
 
-
 ((): void => {
   try {
     const items = document.querySelectorAll(".view-images");
@@ -38,9 +37,12 @@
               if (bsLink && window.bootstrap.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
-                toast.setAttribute("role", "alert");
-                toast.setAttribute("aria-live", "assertive");
-                toast.setAttribute("aria-atomic", "true");
+                for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -97,9 +99,12 @@
               if (bsLink && window.bootstrap.Toast) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
-                toast.setAttribute("role", "alert");
-                toast.setAttribute("aria-live", "assertive");
-                toast.setAttribute("aria-atomic", "true");
+                for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -114,9 +119,13 @@
                 alert(msg);
               }
             }
-          } catch {}
+          } catch (__err) {
+    console.error(`[viewImages] Error:`, __err);
+  }
         });
-      } catch {}
+      } catch (__err) {
+    console.error(`[viewImages] Error:`, __err);
+  }
     });
 
     // SECURITY: Safe HTML insertion helper
@@ -146,7 +155,9 @@
         el.textContent = html;
       }
     }
-  } catch {}
+  } catch (__err) {
+    console.error(`[viewImages] Error:`, __err);
+  }
 })();
 
 export {};

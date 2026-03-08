@@ -4,7 +4,6 @@
  * @module printBarcode
  */
 
-
 ((): void => {
   const toast = (msg: string): void=> {
     try {
@@ -19,9 +18,12 @@
           })();
         const el = document.createElement("div");
         el.className = "toast";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -66,9 +68,12 @@
       if (window.bootstrap.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -98,7 +103,9 @@
         }
       });
     });
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[printBarcode] Error:`, _);
+  }
 })();
 
 export {};

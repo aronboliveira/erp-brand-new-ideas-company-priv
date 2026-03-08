@@ -4,7 +4,6 @@
  * @module store
  */
 
-
 interface SvLang {
   zoomMeetings?: {
     store?: {
@@ -24,7 +23,9 @@ interface SvLang {
       svLang.zoomMeetings.store.routeGuardDefault =
         "Store zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
       (window as unknown as { svLang: SvLang }).svLang = svLang;
-    } catch {}
+    } catch (__err) {
+    console.error(`[store] Error:`, __err);
+  }
   })();
   try {
     const f = document.getElementById("store_zoom_meeting");
@@ -66,9 +67,12 @@ interface SvLang {
         if (hasBs) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -83,9 +87,13 @@ interface SvLang {
           alert(msg);
         }
         f.setAttribute("data-failed-route", "true");
-      } catch {}
+      } catch (__err) {
+    console.error(`[store] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[store] Error:`, __err);
+  }
 })();
 
 export {};

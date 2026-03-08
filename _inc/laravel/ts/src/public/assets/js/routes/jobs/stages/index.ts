@@ -4,10 +4,8 @@
  * @module index
  */
 
-
 ((): void => {
-  const Q = (sel: string): HTMLElement | null =>
-    document.querySelector(sel);
+  const Q = (sel: string): HTMLElement | null => document.querySelector(sel);
   const QA = (sel: string): HTMLElement[] =>
     Array.from(document.querySelectorAll(sel));
 
@@ -15,7 +13,7 @@
     "Requested route is unavailable. Please contact technical support or your domain administrator.";
   const DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
 
-  const toast = (message: string): void=> {
+  const toast = (message: string): void => {
     const text = message || DEFAULT_ROUTE_MSG;
     const hasBs = !!(
       document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
@@ -30,9 +28,12 @@
     if (hasBs) {
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -44,7 +45,7 @@
     }
   };
 
-  const bindLinkGuard = (el: HTMLElement | null): void=> {
+  const bindLinkGuard = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener("click", (e: Event) => {
@@ -57,7 +58,7 @@
     });
   };
 
-  const bindFormGuard = (fm: HTMLFormElement | null): void=> {
+  const bindFormGuard = (fm: HTMLFormElement | null): void => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
     fm.addEventListener("submit", (e: Event) => {
@@ -83,7 +84,7 @@
   };
 
   // Lightweight HTML5 drag & drop for <li> reordering
-  const enableDragSort = (list: HTMLElement | null): void=> {
+  const enableDragSort = (list: HTMLElement | null): void => {
     if (!list) return;
     const items = Array.from(list.children) as HTMLElement[];
     items.forEach((li: HTMLElement) => {
@@ -141,12 +142,12 @@
           }
         },
         { offset: Number.NEGATIVE_INFINITY, element: null },
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       ).element || null
     );
   };
 
-  const persistOrder = (list: HTMLElement): void=> {
+  const persistOrder = (list: HTMLElement): void => {
     const url = (list.getAttribute("data-order-url") ?? "#").trim();
     if (url === "#") {
       toast(list.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
@@ -206,9 +207,13 @@
       QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
 
     // drag & drop
     enableDragSort(Q("#job-stages-sortable"));

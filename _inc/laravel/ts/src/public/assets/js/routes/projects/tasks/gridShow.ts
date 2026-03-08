@@ -4,7 +4,6 @@
  * @module gridShow
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
@@ -26,9 +25,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       t.innerHTML = '<div class="toast-body"></div>';
       const tb = t.querySelector(".toast-body");
       if (tb) tb.textContent = m;

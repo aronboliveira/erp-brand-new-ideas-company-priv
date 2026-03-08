@@ -4,7 +4,6 @@
  * @module download
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     document
@@ -47,9 +46,12 @@
                     const toastEl = document.createElement("div");
                     toastEl.className =
                       "toast align-items-center text-bg-danger border-0";
-                    toastEl.setAttribute("role", "alert");
-                    toastEl.setAttribute("aria-live", "assertive");
-                    toastEl.setAttribute("aria-atomic", "true");
+                    for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
                     toastEl.innerHTML =
                       '<div class="d-flex"><div class="toast-body">' +
                       msg +
@@ -62,12 +64,18 @@
                   return;
                 }
                 (fn as () => void)();
-              } catch {}
+              } catch (__err) {
+    console.error(`[download] Error:`, __err);
+  }
             });
           }
-        } catch {}
+        } catch (__err) {
+    console.error(`[download] Error:`, __err);
+  }
       });
-  } catch {}
+  } catch (__err) {
+    console.error(`[download] Error:`, __err);
+  }
 })();
 
 export {};

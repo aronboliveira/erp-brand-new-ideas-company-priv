@@ -4,7 +4,6 @@
  * @module download
  */
 
-
 ((): void => {
   try {
     const host = document.documentElement;
@@ -37,7 +36,9 @@
           if (typeof fn === "function") {
             try {
               (fn as () => void)();
-            } catch (_) {}
+            } catch (_) {
+    console.error(`[download] Error:`, _);
+  }
             return;
           }
 
@@ -62,9 +63,12 @@
           if (linkEl && hasBootstrapToast) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
 
             const body = document.createElement("div");
             body.className = "toast-body";
@@ -77,7 +81,9 @@
             toast.addEventListener("hidden.bs.toast", function (): void {
               try {
                 toast.remove();
-              } catch (_) {}
+              } catch (_) {
+    console.error(`[download] Error:`, _);
+  }
             });
             inst.show();
           } else {
@@ -85,11 +91,15 @@
           }
 
           a.setAttribute("data-failed-route", "true");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[download] Error:`, _);
+  }
       },
       { passive: false },
     );
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[download] Error:`, _);
+  }
 })();
 
 export {};

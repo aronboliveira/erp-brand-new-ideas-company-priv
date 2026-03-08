@@ -4,7 +4,6 @@
  * @module link
  */
 
-/* global bootstrap */
 ((): void => {
   const el = document.getElementById("loginLink");
   if (!el || el.getAttribute("data-event-alias") === "true") return;
@@ -24,9 +23,12 @@
     if (bootstrapLink && window.bootstrap) {
       const toastEl = document.createElement("div");
       toastEl.className = "toast";
-      toastEl.setAttribute("role", "alert");
-      toastEl.setAttribute("aria-live", "assertive");
-      toastEl.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
       const body = document.createElement("div");
       body.className = "toast-body";
       body.textContent = msg;
@@ -43,7 +45,9 @@
     event.preventDefault();
     try {
       window.location.href = url;
-    } catch (e) {}
+    } catch (e) {
+    console.error(`[link] Error:`, e);
+  }
   });
 })();
 

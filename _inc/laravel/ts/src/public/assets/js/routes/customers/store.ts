@@ -4,7 +4,6 @@
  * @module store
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const formEl = document.getElementById("customers-store-form");
@@ -41,9 +40,12 @@
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -54,9 +56,13 @@
           alert(msg);
         }
         formEl.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
 })();
 
 export {};

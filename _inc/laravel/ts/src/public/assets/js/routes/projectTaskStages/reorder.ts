@@ -48,9 +48,12 @@
         t = document.createElement("div");
         t.id = "np-toast";
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -140,7 +143,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[reorder] Error:`, _);
+  }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -151,7 +156,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery UI sortable unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[reorder] Error:`, _);
+  }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -228,7 +235,9 @@
               (
                 $(el) as JQuery & { sortable: (cmd: string) => JQuery }
               ).sortable("destroy");
-            } catch (_) {}
+            } catch (_) {
+    console.error(`[reorder] Error:`, _);
+  }
             o.disconnect();
           }
         });

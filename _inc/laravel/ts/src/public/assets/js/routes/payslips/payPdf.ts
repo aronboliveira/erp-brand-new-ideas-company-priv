@@ -4,7 +4,6 @@
  * @module payPdf
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -68,9 +67,12 @@
       const node = document.createElement("div");
       node.id = id;
       node.className = "toast align-items-center text-bg-danger border-0";
-      node.setAttribute("role", "alert");
-      node.setAttribute("aria-live", "assertive");
-      node.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  node.setAttribute(k, v);
       node.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         text +
@@ -119,7 +121,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("html2pdf unavailable or printable area missing");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[payPdf] Error:`, _);
+  }
     }
   };
 

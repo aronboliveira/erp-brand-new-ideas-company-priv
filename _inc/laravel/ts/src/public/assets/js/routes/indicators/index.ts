@@ -4,7 +4,6 @@
  * @module index
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const showGuard = (msg: string): void=> {
@@ -25,9 +24,12 @@
       if (hasBootstrap) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = text;
@@ -50,7 +52,9 @@
           e.preventDefault();
           showGuard(a.getAttribute("data-guard-msg") ?? "");
           a.setAttribute("data-failed-route", "true");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
     };
 
@@ -65,7 +69,9 @@
           e.preventDefault();
           showGuard(fm.getAttribute("data-guard-msg") ?? "");
           fm.setAttribute("data-failed-route", "true");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
     };
 
@@ -82,10 +88,16 @@
         .forEach((el: Element): void => {
           try {
             bootstrap.Tooltip.getOrCreateInstance(el);
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
         });
-    } catch (_) {}
-  } catch (_) {}
+    } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
+  } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
 })();
 
 export {};

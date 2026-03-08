@@ -60,13 +60,16 @@ interface ProductItem {
     return wrap;
   };
 
-  const toast = (msg: string, variant = "danger"): void=> {
+  const toast = (msg: string, variant = "danger"): void => {
     const wrap = ensureToastContainer();
     const node = document.createElement("div");
     node.className = `toast align-items-center text-bg-${variant} border-0`;
-    node.setAttribute("role", "alert");
-    node.setAttribute("aria-live", "assertive");
-    node.setAttribute("aria-atomic", "true");
+    for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  node.setAttribute(k, v);
     node.innerHTML =
       `<div class="d-flex"><div class="toast-body">${msg}</div>` +
       `<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
@@ -108,17 +111,17 @@ interface ProductItem {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const items = Array.isArray(data)
             ? data
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            : Array.isArray(data?.items)
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-              ? data.items
+            : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              Array.isArray(data?.items)
+              ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                data.items
               : [];
           if (!list) return;
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           list.innerHTML = items.length
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            ? items
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              items
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 .map(
                   (p: ProductItem) => `
@@ -185,7 +188,10 @@ interface ProductItem {
     }
   };
 
-  const changeQty = async (input: HTMLInputElement, delta = 0): Promise<void> => {
+  const changeQty = async (
+    input: HTMLInputElement,
+    delta = 0,
+  ): Promise<void> => {
     const row = input.closest("tr[data-product-id]");
     const url = input.getAttribute("data-url") ?? "#";
     if (url === "#") {

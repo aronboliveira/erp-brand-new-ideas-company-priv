@@ -64,9 +64,12 @@ interface JQueryExtended extends JQuery<HTMLElement> {
         const toastEl = document.createElement("div");
         toastEl.id = "np-toast";
         toastEl.className = "toast";
-        toastEl.setAttribute("role", "alert");
-        toastEl.setAttribute("aria-live", "assertive");
-        toastEl.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
         toastEl.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(toastEl);
@@ -145,7 +148,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[confirm] Error:`, _);
+  }
       document
         .querySelectorAll("[data-confirm-delete]")
         .forEach((el: Element): void => {
@@ -196,7 +201,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                           safeFormAction(yesCode, me.get(0));
                         }
                       }
-                    } catch (_) {}
+                    } catch (_) {
+    console.error(`[confirm] Error:`, _);
+  }
                     try {
                       const destroyFn = $.destroyModal;
                       if (destroyFn) {
@@ -204,7 +211,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                       } else {
                         modal.remove();
                       }
-                    } catch (_) {}
+                    } catch (_) {
+    console.error(`[confirm] Error:`, _);
+  }
                   },
                 },
                 {
@@ -218,7 +227,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                       } else {
                         modal.remove();
                       }
-                    } catch (_) {}
+                    } catch (_) {
+    console.error(`[confirm] Error:`, _);
+  }
                     try {
                       const noCode = String(me.data("confirm-no") ?? "");
                       if (noCode) {
@@ -232,7 +243,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                           safeFormAction(noCode, me.get(0));
                         }
                       }
-                    } catch (_) {}
+                    } catch (_) {
+    console.error(`[confirm] Error:`, _);
+  }
                   },
                 },
               ],

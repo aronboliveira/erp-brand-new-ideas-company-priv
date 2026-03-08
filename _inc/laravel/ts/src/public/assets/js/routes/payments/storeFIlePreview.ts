@@ -23,10 +23,14 @@
           if (!target || !file) return;
           const url = URL.createObjectURL(file);
           target.setAttribute("src", url);
-        } catch {}
+        } catch (__err) {
+    console.error(`[storeFIlePreview] Error:`, __err);
+  }
       });
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[storeFIlePreview] Error:`, __err);
+  }
 })();
 
 export {};

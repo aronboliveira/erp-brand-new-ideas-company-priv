@@ -4,7 +4,6 @@
  * @module timesheetListLink
  */
 
-/* global bootstrap */
 ((): void => {
   const listenerAttr = "data-timesheet-listener-active";
   const el = document.getElementById("timesheet-list-link");
@@ -32,9 +31,12 @@
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -46,7 +48,9 @@
         }
         el.setAttribute("data-failed-route", "true");
       }
-    } catch (error) {}
+    } catch (error) {
+    console.error(`[timesheetListLink] Error:`, error);
+  }
   });
   const observer = new MutationObserver((): void => {
     if (!document.getElementById("timesheet-list-link")) observer.disconnect();

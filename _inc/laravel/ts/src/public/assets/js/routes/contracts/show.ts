@@ -4,7 +4,6 @@
  * @module show
  */
 
-
 (function (): void {
   try {
     if (!window.svToastOrAlert) {
@@ -21,9 +20,12 @@
             t.id = "route-guard-toast";
             t.className =
               "toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             t.innerHTML =
               '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
             document.body.appendChild(t);
@@ -105,7 +107,9 @@
 
     const grammarEl = document.querySelector<HTMLElement>("#grammarCheck");
     if (grammarEl) guardByHref(grammarEl);
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[show] Error:`, _);
+  }
 })();
 
 export {};

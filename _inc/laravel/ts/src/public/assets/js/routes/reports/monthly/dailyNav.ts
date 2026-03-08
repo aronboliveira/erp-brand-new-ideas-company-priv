@@ -4,7 +4,6 @@
  * @module dailyNav
  */
 
-
 ((): void => {
   try {
     const homeTab = document.getElementById("pills-home-tab");
@@ -35,7 +34,9 @@
         window.location.href = url ?? "#";
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[dailyNav] Error:`, error);
+  }
 })();
 
 export {};

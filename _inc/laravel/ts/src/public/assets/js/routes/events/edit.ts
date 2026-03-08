@@ -4,7 +4,6 @@
  * @module edit
  */
 
-/* global bootstrap */
 const showToast = (m: string): void=> {
   try {
     if (window.bootstrap.Toast) {
@@ -17,9 +16,12 @@ const showToast = (m: string): void=> {
       }
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
       const toastBody = t.querySelector(".toast-body");
@@ -28,7 +30,9 @@ const showToast = (m: string): void=> {
       bootstrap.Toast.getOrCreateInstance(t, { delay: 4000 }).show();
       return;
     }
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[edit] Error:`, _);
+  }
   alert(m);
 };
 const form = document.getElementById("edit_event_form");

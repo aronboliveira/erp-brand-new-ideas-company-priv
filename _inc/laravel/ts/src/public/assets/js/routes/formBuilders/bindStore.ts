@@ -4,7 +4,6 @@
  * @module bindStore
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const fm = document.getElementById("fm-bind-store-form");
@@ -35,9 +34,12 @@
           if (hasBootstrap) {
             const t = document.createElement("div");
             t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -48,7 +50,9 @@
             alert(msg);
           }
           fm.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[bindStore] Error:`, err);
+  }
       });
     }
 
@@ -65,7 +69,9 @@
         } else {
           section.classList.add("d-none");
         }
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[bindStore] Error:`, err);
+  }
     };
     if (radios.length !== 0) {
       radios.forEach(r => {
@@ -102,9 +108,12 @@
           if (hasBootstrap) {
             const t = document.createElement("div");
             t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -115,10 +124,14 @@
             alert(msg);
           }
           empLink.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[bindStore] Error:`, err);
+  }
       });
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[bindStore] Error:`, err);
+  }
 })();
 
 export {};

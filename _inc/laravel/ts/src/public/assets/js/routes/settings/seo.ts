@@ -4,7 +4,6 @@
  * @module seo
  */
 
-
 ((): void => {
   try {
     const seoGen = document.getElementById("generate-ai-seo-link");
@@ -31,9 +30,12 @@
           if (hasBootstrap) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -44,7 +46,9 @@
             alert(msg);
           }
           seoGen.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
       });
     }
 
@@ -75,9 +79,12 @@
           if (hasBootstrap) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -88,7 +95,9 @@
             alert(msg);
           }
           cookieGen.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
       });
     }
 
@@ -117,9 +126,12 @@
           if (hasBootstrap) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -130,7 +142,9 @@
             alert(msg);
           }
           seoForm.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
       });
     }
 
@@ -164,9 +178,12 @@
           if (hasBootstrap) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -177,7 +194,9 @@
             alert(msg);
           }
           cookiesForm.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
       });
     }
 
@@ -206,9 +225,12 @@
           if (hasBootstrap) {
             const toast = document.createElement("div");
             toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -219,10 +241,14 @@
             alert(msg);
           }
           chatForm.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
       });
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[seo] Error:`, err);
+  }
 })();
 
 export {};

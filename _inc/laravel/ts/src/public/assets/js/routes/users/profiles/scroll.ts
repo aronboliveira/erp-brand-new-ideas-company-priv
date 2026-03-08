@@ -47,9 +47,12 @@
         t = document.createElement("div");
         t.id = "np-toast";
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -129,7 +132,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("bootstrap.ScrollSpy unavailable");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[scroll] Error:`, _);
+  }
         scheduleClickError(getMsg(target, "scrollspy_unavailable"));
         return;
       }
@@ -160,7 +165,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[scroll] Error:`, _);
+  }
       return;
     }
     const ns = ".lgitem";
@@ -179,7 +186,9 @@
             .parent()
             .removeClass("text-primary");
         }
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[scroll] Error:`, _);
+  }
     });
     const mo = new MutationObserver((m, o) => {
       if (!document.body.contains(root)) {

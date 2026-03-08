@@ -4,7 +4,6 @@
  * @module update
  */
 
-
 ((): void => {
   try {
     const f = document.getElementById("edit_leave");
@@ -33,9 +32,12 @@
         if (hasBootstrap) {
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent =
@@ -46,7 +48,9 @@
           t.addEventListener("hidden.bs.toast", function (): void {
             try {
               t.remove();
-            } catch (e) {}
+            } catch (e) {
+    console.error(`[update] Error:`, e);
+  }
           });
           inst.show();
         } else {
@@ -54,7 +58,9 @@
             msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
           );
         }
-      } catch (e) {}
+      } catch (e) {
+    console.error(`[update] Error:`, e);
+  }
     };
     f.addEventListener(
       "submit",
@@ -67,11 +73,15 @@
             f.getAttribute("data-guard-msg") ?? "Update leave route is unavailable. Please contact technical support or your domain administrator.";
           toast(msg);
           f.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[update] Error:`, err);
+  }
       },
       { passive: false }
     );
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[update] Error:`, error);
+  }
 })();
 
 export {};

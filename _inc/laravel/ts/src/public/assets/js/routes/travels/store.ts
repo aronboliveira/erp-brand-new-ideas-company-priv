@@ -4,7 +4,6 @@
  * @module store
  */
 
-
 (function (): void {
   try {
     const form = document.getElementById("create_travel");
@@ -34,9 +33,12 @@
           if (bs?.Toast) {
             const t = document.createElement("div");
             t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -71,9 +73,12 @@
             if (bs2?.Toast) {
               const t2 = document.createElement("div");
               t2.className = "toast";
-              t2.setAttribute("role", "alert");
-              t2.setAttribute("aria-live", "assertive");
-              t2.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t2.setAttribute(k, v);
               const b2 = document.createElement("div");
               b2.className = "toast-body";
               b2.textContent = m;
@@ -86,9 +91,13 @@
             return;
           }
         }
-      } catch {}
+      } catch (__err) {
+    console.error(`[store] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[store] Error:`, __err);
+  }
 })();
 
 export {};

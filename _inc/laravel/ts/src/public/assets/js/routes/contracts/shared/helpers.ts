@@ -4,7 +4,6 @@
  * @module helpers
  */
 
-
 /** @requires ERPGuard, ERPUtils */
 /**
  * Shared helper functions for contracts module
@@ -148,7 +147,9 @@
     if (!$?.fn) {
       try {
         if (isLocalhost()) console.error("jQuery unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[helpers] Error:`, _);
+  }
       if (typeof onError === "function") onError();
       return false;
     }
@@ -166,7 +167,9 @@
     if (!global.Dropzone) {
       try {
         if (isLocalhost()) console.error("Dropzone unavailable");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[helpers] Error:`, _);
+  }
       if (typeof onError === "function") onError();
       return false;
     }

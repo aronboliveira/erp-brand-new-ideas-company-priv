@@ -17,7 +17,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("jQuery not found for anchors.js");
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[report] Error:`, _);
+  }
     return;
   }
   const ERR_FB = "# ERROR";
@@ -70,9 +72,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         msg +
@@ -92,7 +97,9 @@
         e.preventDefault();
         showError(el);
       }
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[report] Error:`, _);
+  }
   };
   const bind = (el: HTMLElement | null): void=> {
     if (!el || el.getAttribute(DLA) === "true") return;
@@ -123,7 +130,9 @@
   const ready = (): void => {
     try {
       scan(document);
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[report] Error:`, _);
+  }
   };
   if (document.readyState === "loading") {
     $(ready);
@@ -158,7 +167,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery not found for summary.js");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[report] Error:`, _);
+  }
       return;
     }
     const init = (): void => {
@@ -173,7 +184,9 @@
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).attr("data-dt-init", "true").DataTable({ order: [] });
         });
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[report] Error:`, _);
+  }
     };
     if (document.readyState === "loading") {
       $(init);

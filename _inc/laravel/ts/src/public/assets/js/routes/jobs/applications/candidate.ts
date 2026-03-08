@@ -27,9 +27,12 @@
     if (hasBs) {
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = txt;
@@ -75,9 +78,13 @@
       QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[candidate] Error:`, _);
+  }
       });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[candidate] Error:`, _);
+  }
   };
 
   const initDataTables = (): void => {
@@ -111,13 +118,17 @@
           if (n.matches('[data-bs-toggle="tooltip"]')) {
             try {
               bootstrap.Tooltip.getOrCreateInstance(n);
-            } catch (_) {}
+            } catch (_) {
+    console.error(`[candidate] Error:`, _);
+  }
           }
           n.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(
             (el: Element): void => {
               try {
                 bootstrap.Tooltip.getOrCreateInstance(el);
-              } catch (_) {}
+              } catch (_) {
+    console.error(`[candidate] Error:`, _);
+  }
             },
           );
         });

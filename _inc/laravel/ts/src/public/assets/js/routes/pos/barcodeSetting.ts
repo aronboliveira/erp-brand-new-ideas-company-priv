@@ -37,9 +37,12 @@
         }
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -111,7 +114,9 @@
       $f.off("submit.formGuard");
       f.removeAttribute(L);
       map.delete(f);
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
   }
   function observeRemoval(f: HTMLFormElement): void{
     try {
@@ -122,7 +127,9 @@
         }
       });
       obs.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
   }
   try {
     const $ = window.jQuery;
@@ -133,7 +140,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("jQuery not found for formGuard");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
       return;
     }
     $(function (): void {
@@ -145,7 +154,9 @@
           bindForm($f);
           observeRemoval($f.get(0));
         });
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
     });
   } catch (_) {
     try {
@@ -154,7 +165,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("Failed to initialize formGuard");
-    } catch (__) {}
+    } catch (__) {
+    console.error(`[barcodeSetting] Error:`, __);
+  }
   }
   (function (): void {
     const L = "data-listener-active";
@@ -169,7 +182,9 @@
           const v = $s.val();
           if (v == null) return;
           el.setAttribute("data-has-selection", String(v !== ""));
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
       });
     }
     function unbindSelect(el: HTMLSelectElement): void{
@@ -179,7 +194,9 @@
         const $s = window.jQuery(el);
         $s.off("change" + NS);
         el.removeAttribute(L);
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
     }
     function observeRemoval(nodeList: HTMLSelectElement[]): void{
       try {
@@ -191,7 +208,9 @@
           });
         });
         obs.observe(document.body, { childList: true, subtree: true });
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
     }
     try {
       const $ = window.jQuery;
@@ -202,7 +221,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("jQuery not found for barcodeSetting");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
         return;
       }
       $(function (): void {
@@ -219,7 +240,9 @@
             nodes.push(s);
           });
           observeRemoval(nodes);
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[barcodeSetting] Error:`, _);
+  }
       });
     } catch (_) {
       try {
@@ -228,7 +251,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("Failed to initialize barcodeSetting");
-      } catch (__) {}
+      } catch (__) {
+    console.error(`[barcodeSetting] Error:`, __);
+  }
     }
   })();
 })();

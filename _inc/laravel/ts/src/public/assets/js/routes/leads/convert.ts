@@ -37,9 +37,12 @@
         }
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -99,7 +102,9 @@
         $new.removeClass("d-none");
         $new.find("input").attr("required", "required");
       }
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
   }
   function bindToggle(): void{
     try {
@@ -118,18 +123,24 @@
           try {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             toggleBlocks(this.value === "exist");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
         });
       const obs = new MutationObserver(function (): void {
         if (!document.body.contains(el)) {
           try {
             $radios.off("click.convertDeal");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
           obs.disconnect();
         }
       });
       obs.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
   }
   function bindSubmitGuard(): void{
     try {
@@ -141,7 +152,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("jQuery not found for convertDeal");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
         return;
       }
       const form = document.getElementById(
@@ -170,12 +183,16 @@
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.convertDealGuard");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
           obs2.disconnect();
         }
       });
       obs2.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
   }
   try {
     const $ = window.jQuery;
@@ -186,7 +203,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("Failed to initialize convertDeal: jQuery missing");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
       return;
     }
     $(function (): void {
@@ -200,7 +219,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("Failed to initialize convertDeal");
-    } catch (__) {}
+    } catch (__) {
+    console.error(`[convert] Error:`, __);
+  }
   }
 })();
 

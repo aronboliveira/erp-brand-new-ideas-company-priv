@@ -4,7 +4,6 @@
  * @module url
  */
 
-
 declare const show_toastr: (type: string, msg: string, status: string) => void;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

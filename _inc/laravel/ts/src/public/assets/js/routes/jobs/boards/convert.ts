@@ -4,7 +4,6 @@
  * @module convert
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -17,9 +16,13 @@
         QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
           try {
             bootstrap.Tooltip.getOrCreateInstance(el);
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
         });
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
     };
   const L = (): void => {
     QA('input[type="file"][data-filename]').forEach(el => {
@@ -32,7 +35,7 @@
       i.addEventListener("change", set);
       set();
     });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const N = (d: unknown) => {
@@ -41,9 +44,9 @@
       return d
         .map(x =>
           typeof x === "object"
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-            ? { id: x.id ?? x.value ?? "", name: x.name ?? x.text ?? "" }
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+              { id: x.id ?? x.value ?? "", name: x.name ?? x.text ?? "" }
             : null,
         )
         .filter((x): x is { id: unknown; name: unknown } => x != null);
@@ -54,7 +57,11 @@
       }));
     return [];
   };
-  const P = (sel: HTMLSelectElement | null, items: unknown[], selId = ""): void=> {
+  const P = (
+    sel: HTMLSelectElement | null,
+    items: unknown[],
+    selId = "",
+  ): void => {
     if (!sel) return;
     sel.innerHTML = "";
     const def = document.createElement("option");
@@ -76,8 +83,10 @@
       const jQ = window.jQuery;
       if (jQ?.fn.select2 && jQ(sel).data("select2"))
         jQ(sel).trigger("change.select2");
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    } catch (_) {}
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const C = () => {
@@ -99,7 +108,7 @@
         (
           document.querySelector(
             'input[name="_token"]',
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
           ) as HTMLInputElement | null
         )?.value) ??
       "";
@@ -140,7 +149,9 @@
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         P(s, res?.data ?? res ?? []);
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[convert] Error:`, _);
+  }
     };
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     d.addEventListener("change", () => load(d.value));

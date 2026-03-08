@@ -4,7 +4,6 @@
  * @module regenerate
  */
 
-
 ((): void => {
   try {
     const out = document.getElementById("ai-description");
@@ -13,7 +12,7 @@
     if (copy.getAttribute("data-listener-active") === "true") return;
     copy.setAttribute("data-listener-active", "true");
 
-    const toast = (msg: string): void=> {
+    const toast = (msg: string): void => {
       try {
         if (!msg) return;
         let container = document.getElementById("toast-container");
@@ -29,9 +28,12 @@
         if (bsLink && window.bootstrap.Toast) {
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -46,7 +48,11 @@
       }
     };
 
-    const doCopy = async (text: string, okMsg: string, errMsg: string): Promise<void> => {
+    const doCopy = async (
+      text: string,
+      okMsg: string,
+      errMsg: string,
+    ): Promise<void> => {
       try {
         if (navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);

@@ -17,7 +17,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("jQuery not found for callsGuard.js");
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[call] Error:`, _);
+  }
     return;
   }
 
@@ -75,9 +77,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         msg +
@@ -103,7 +108,9 @@
           e.preventDefault();
           showError(el, "ld_call_route_unavailable");
         }
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[call] Error:`, _);
+  }
     };
     handlersClick.set(el, h);
     $(el).on("click", h);
@@ -123,7 +130,9 @@
           e.stopPropagation();
           showError(form, "ld_call_route_unavailable");
         }
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[call] Error:`, _);
+  }
     };
     handlersPointer.set(form, h);
     $btns.each(function (): void {
@@ -172,7 +181,9 @@
   const ready = (): void => {
     try {
       scan(document);
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[call] Error:`, _);
+  }
   };
   if (document.readyState === "loading") {
     $(ready);

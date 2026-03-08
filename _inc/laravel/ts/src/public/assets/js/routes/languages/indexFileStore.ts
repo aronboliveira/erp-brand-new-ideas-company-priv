@@ -4,7 +4,6 @@
  * @module indexFileStore
  */
 
-/* global bootstrap */
 ((): void => {
   const listenerAttr = "data-languages-store-listener-active";
   const form = document.getElementById("languages-store-data-form");
@@ -31,9 +30,12 @@
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -44,7 +46,9 @@
           alert(msg);
         }
       }
-    } catch {}
+    } catch (__err) {
+    console.error(`[indexFileStore] Error:`, __err);
+  }
   });
 
   const observer = new MutationObserver((): void => {

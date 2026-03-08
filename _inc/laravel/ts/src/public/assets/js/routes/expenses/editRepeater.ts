@@ -4,7 +4,6 @@
  * @module editRepeater
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -66,9 +65,12 @@
           ((): HTMLDivElement => {
             const t = document.createElement("div");
             t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             t.appendChild(body);

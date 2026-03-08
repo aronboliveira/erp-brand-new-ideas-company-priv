@@ -4,7 +4,6 @@
  * @module index
  */
 
-
 (function (): void {
   const listened = "data-listener-active";
   function toast(message: string): void{
@@ -22,9 +21,12 @@
       }
       const t = document.createElement("div");
       t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -103,7 +105,9 @@
               window.__confirmHandlers?.[yes]?.[0]?.() ||
                 safeFormAction(yes, yesBtn!);
             }
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
           inst.hide();
         };
         if (yesBtn) yesBtn.addEventListener("click", handler, { once: true });
@@ -117,7 +121,9 @@
               window.__confirmHandlers?.[yes]?.[0]?.() ||
                 safeFormAction(yes, document.body);
             }
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
         }
       }
     });
@@ -156,9 +162,13 @@
           (window.bootstrap).Tooltip.getOrCreateInstance(
             el,
           );
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
   }
   document.addEventListener("DOMContentLoaded", function (): void {
     init();

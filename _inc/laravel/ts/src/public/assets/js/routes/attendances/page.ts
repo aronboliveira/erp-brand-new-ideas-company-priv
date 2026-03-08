@@ -129,9 +129,12 @@
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
       toast.dataset.errorKey = key;
-      toast.setAttribute("role", "alert");
-      toast.setAttribute("aria-live", "assertive");
-      toast.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
       {
         toast.replaceChildren();
         const _d = document.createElement("div");

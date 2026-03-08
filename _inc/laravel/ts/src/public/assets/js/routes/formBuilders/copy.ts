@@ -50,7 +50,7 @@
     }
   };
 
-  const attach = (el: Element): void=> {
+  const attach = (el: Element): void => {
     if (el.getAttribute(LISTENER_ATTR) === "true") return;
     el.setAttribute(LISTENER_ATTR, "true");
     el.addEventListener("click", (e: Event) => {

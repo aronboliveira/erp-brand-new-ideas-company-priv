@@ -4,7 +4,6 @@
  * @module editList
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -63,9 +62,12 @@
         toast = document.createElement("div");
         toast.id = "np-error-toast";
         toast.className = "toast align-items-center text-bg-danger border-0";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
         toast.innerHTML = `
             <div class="d-flex">
               <div class="toast-body">${text}</div>

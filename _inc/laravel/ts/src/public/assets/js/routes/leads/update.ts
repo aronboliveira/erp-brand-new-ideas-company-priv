@@ -40,9 +40,12 @@
           }
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -97,7 +100,9 @@
               window.location.hostname === "127.0.0.1"
             )
               console.error("jQuery not found for leads/update");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
           return;
         }
         const form = document.getElementById(
@@ -126,12 +131,16 @@
           if (!document.body.contains(form) || !document.body.contains(btn)) {
             try {
               $(btn).off("click.leadsUpdateGuard");
-            } catch (_) {}
+            } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
             obs.disconnect();
           }
         });
         obs.observe(document.body, { childList: true, subtree: true });
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
     }
     try {
       const $ = window.jQuery;
@@ -142,7 +151,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("Failed to initialize leads/update");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
         return;
       }
       $(function (): void {
@@ -159,7 +170,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("Failed to run leads/update");
-      } catch (__) {}
+      } catch (__) {
+    console.error(`[update] Error:`, __);
+  }
     }
   })();
   const L = "data-guard-listener";
@@ -189,9 +202,12 @@
         }
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -246,7 +262,9 @@
             window.location.hostname === "127.0.0.1"
           )
             console.error("jQuery not found for aiGenerateGuard");
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
         return;
       }
       const a = document.getElementById(
@@ -273,12 +291,16 @@
         if (!document.body.contains(a)) {
           try {
             $(a).off("click.aiGuard");
-          } catch (_) {}
+          } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
           obs2.disconnect();
         }
       });
       obs2.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
   }
   try {
     const $ = window.jQuery;
@@ -289,7 +311,9 @@
           window.location.hostname === "127.0.0.1"
         )
           console.error("Failed to initialize aiGenerateGuard");
-      } catch (_) {}
+      } catch (_) {
+    console.error(`[update] Error:`, _);
+  }
       return;
     }
     $(function (): void {
@@ -302,7 +326,9 @@
         window.location.hostname === "127.0.0.1"
       )
         console.error("Failed to run aiGenerateGuard");
-    } catch (__) {}
+    } catch (__) {
+    console.error(`[update] Error:`, __);
+  }
   }
 })();
 

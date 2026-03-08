@@ -41,13 +41,17 @@
           }
           img.setAttribute("src", url);
           img.style.display = "";
-        } catch (err) {}
+        } catch (err) {
+    console.error(`[applyPreview] Error:`, err);
+  }
       });
     };
 
     wirePreview("profile", "profile_preview");
     wirePreview("resume", "resume_preview");
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[applyPreview] Error:`, err);
+  }
 })();
 
 export {};

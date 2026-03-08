@@ -21,10 +21,14 @@
           const inputEl = inp as HTMLInputElement;
           const file = inputEl.files?.[0] ? inputEl.files[0] : null;
           out.textContent = file ? file.name : "";
-        } catch {}
+        } catch (__err) {
+    console.error(`[filename] Error:`, __err);
+  }
       });
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[filename] Error:`, __err);
+  }
 })();
 
 export {};

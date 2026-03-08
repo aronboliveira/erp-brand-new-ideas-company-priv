@@ -4,7 +4,6 @@
  * @module store
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const f = document.getElementById("form-checklist");
@@ -32,9 +31,12 @@
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -45,9 +47,13 @@
           alert(msg);
         }
         f.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[store] Error:`, err);
+  }
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[store] Error:`, error);
+  }
 })();
 
 export {};

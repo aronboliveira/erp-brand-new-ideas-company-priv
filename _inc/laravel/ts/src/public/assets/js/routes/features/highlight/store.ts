@@ -4,7 +4,6 @@
  * @module store
  */
 
-
 ((): void => {
   const form = document.getElementById("highlight-feature-store-form");
   if (form) {
@@ -30,9 +29,12 @@
                 })();
               const el = document.createElement("div");
               el.className = "toast";
-              el.setAttribute("role", "alert");
-              el.setAttribute("aria-live", "assertive");
-              el.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;

@@ -4,7 +4,6 @@
  * @module index
  */
 
-
 declare const dragula:
   | ((containers: Element[]) => {
       on: (event: string, callback: () => void) => void;
@@ -34,9 +33,12 @@ declare const dragula:
     if (hasBs) {
       const el = document.createElement("div");
       el.className = "toast";
-      el.setAttribute("role", "alert");
-      el.setAttribute("aria-live", "assertive");
-      el.setAttribute("aria-atomic", "true");
+      for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = t;
@@ -74,9 +76,13 @@ declare const dragula:
       QA('[data-bs-toggle="tooltip"]').forEach((el: Element): void => {
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
-        } catch (_) {}
+        } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
       });
-    } catch (_) {}
+    } catch (_) {
+    console.error(`[index] Error:`, _);
+  }
   };
   const updateCounts = (): void => {
     QA(".kanban-box").forEach(box => {

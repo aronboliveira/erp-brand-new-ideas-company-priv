@@ -4,8 +4,7 @@
  * @module submit
  */
 
-/* global bootstrap */
-                                ((): void => {
+((): void => {
                                     const form = document.getElementById('customer_submit');
                                     if (!form || form.getAttribute('data-listener-active') === 'true') return;
                                     form.setAttribute('data-listener-active', 'true');
@@ -28,9 +27,12 @@
                                             if (bootstrapLink && window.bootstrap) {
                                                 const toastEl      = document.createElement('div');
                                                 toastEl.className  = 'toast';
-                                                toastEl.setAttribute('role', 'alert');
-                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                toastEl.setAttribute('aria-atomic', 'true');
+                                                for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
 
                                                 const body         = document.createElement('div');
                                                 body.className     = 'toast-body';
@@ -44,7 +46,9 @@
                                             }
 
                                             form.setAttribute('data-failed-route', 'true');
-                                        } catch (e) {}
+                                        } catch (e) {
+    console.error(`[submit] Error:`, e);
+  }
                                     });
                                 })();
 

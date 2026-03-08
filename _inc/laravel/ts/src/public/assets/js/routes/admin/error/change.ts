@@ -34,9 +34,12 @@
         }
         const el = document.createElement("div");
         el.className = "toast align-items-center text-bg-danger border-0";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
         {
           el.replaceChildren();
           const _d = document.createElement("div");
@@ -85,7 +88,9 @@
           (img as HTMLImageElement).onload = (): void => {
             try {
               URLAPI.revokeObjectURL(src);
-            } catch {}
+            } catch (__err) {
+    console.error(`[change] Error:`, __err);
+  }
           };
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

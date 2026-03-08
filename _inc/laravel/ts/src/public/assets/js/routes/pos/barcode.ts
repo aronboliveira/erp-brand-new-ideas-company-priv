@@ -4,7 +4,6 @@
  * @module barcode
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const backLink = document.getElementById("pos-barcode-back-link");
@@ -45,9 +44,12 @@
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -59,9 +61,13 @@
         }
 
         backLink.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[barcode] Error:`, err);
+  }
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[barcode] Error:`, err);
+  }
 })();
 /* assets/js/routes/posBarcodes/guard.js */
 ((): void => {
@@ -78,9 +84,12 @@
           })();
         const el = document.createElement("div");
         el.className = "toast";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -125,9 +134,12 @@
       if (window.bootstrap.Toast) {
         const t = document.createElement("div");
         t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -157,7 +169,9 @@
         }
       });
     });
-  } catch (_) {}
+  } catch (_) {
+    console.error(`[barcode] Error:`, _);
+  }
 })();
 
 export {};

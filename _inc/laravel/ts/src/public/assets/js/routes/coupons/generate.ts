@@ -4,7 +4,6 @@
  * @module generate
  */
 
-/* global bootstrap */
 ((): void => {
   const aiBtn = document.getElementById("coupon-generate-ai-btn");
   if (aiBtn && aiBtn.getAttribute("data-listener-active") !== "true") {
@@ -30,9 +29,12 @@
           if (bootstrapLink && window.bootstrap) {
             const toastEl = document.createElement("div");
             toastEl.className = "toast";
-            toastEl.setAttribute("role", "alert");
-            toastEl.setAttribute("aria-live", "assertive");
-            toastEl.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -45,7 +47,9 @@
           aiBtn.setAttribute("data-failed-route", "true");
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+    console.error(`[generate] Error:`, e);
+  }
     });
   }
 
@@ -92,7 +96,9 @@
           code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         input.value = code;
-      } catch (e) {}
+      } catch (e) {
+    console.error(`[generate] Error:`, e);
+  }
     });
   }
 })();

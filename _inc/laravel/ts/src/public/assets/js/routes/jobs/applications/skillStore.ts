@@ -4,7 +4,6 @@
  * @module skillStore
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const sel = 'form[id^="job-application-skill-store-form-"]';
@@ -42,9 +41,12 @@
         if (hasBootstrap) {
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -55,9 +57,13 @@
           alert(msg);
         }
         fm.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[skillStore] Error:`, err);
+  }
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[skillStore] Error:`, err);
+  }
 })();
 
 export {};

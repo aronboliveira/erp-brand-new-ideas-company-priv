@@ -4,7 +4,6 @@
  * @module users
  */
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
@@ -56,9 +55,12 @@
         toast.id = "np-error-toast";
         toast.className =
           "toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
         {
           toast.replaceChildren();
           const _d = document.createElement("div");
@@ -161,7 +163,9 @@
       if (selEl[choicesKey]) {
         try {
           (selEl[choicesKey] as { destroy(): void }).destroy();
-        } catch {}
+        } catch (__err) {
+    console.error(`[users] Error:`, __err);
+  }
         selEl[choicesKey] = null;
       }
       const inst = new Choices(selEl, { removeItemButton: true });
@@ -170,7 +174,9 @@
         if (!document.body.contains(selEl)) {
           try {
             inst.destroy();
-          } catch {}
+          } catch (__err) {
+    console.error(`[users] Error:`, __err);
+  }
           o.disconnect();
         }
       });

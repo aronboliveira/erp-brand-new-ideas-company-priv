@@ -4,7 +4,6 @@
  * @module index
  */
 
-
 ((): void => {
   try {
     const attach = (id: string, fallbackMsg: string): void=> {
@@ -34,9 +33,12 @@
         if (hasBS) {
           const t = document.createElement("div");
           t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -62,7 +64,9 @@
       "user-create-link",
       "Create user route is unavailable. Please contact technical support or your domain administrator.",
     );
-  } catch {}
+  } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
 })();
 
 export {};

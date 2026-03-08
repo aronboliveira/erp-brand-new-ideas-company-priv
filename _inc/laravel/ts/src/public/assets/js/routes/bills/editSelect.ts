@@ -4,7 +4,6 @@
  * @module editSelect
  */
 
-
 ((): void => {
   const select = document.getElementById("product-select");
   if (!select || select.getAttribute("data-listener-active") === "true") return;
@@ -29,9 +28,12 @@
         if (bootstrapLink && window.bootstrap) {
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -71,7 +73,9 @@
             el.textContent = val;
           }
         });
-    } catch (e) {}
+    } catch (e) {
+    console.error(`[editSelect] Error:`, e);
+  }
   });
 })();
 

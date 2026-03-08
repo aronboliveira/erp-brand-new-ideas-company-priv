@@ -7,7 +7,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 ((): void => {
-  const toast = (msg: string): void=> {
+  const toast = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -20,9 +20,12 @@
           })();
         const el = document.createElement("div");
         el.className = "toast";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
+        for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -60,8 +63,11 @@
     const w = window.open("about:blank", "_blank", "noopener,noreferrer");
     if (!w) return;
     const bootstrapHref =
-      (document.querySelector('link[href*="bootstrap"]') as HTMLLinkElement | null)
-        ?.href ?? "";
+      (
+        document.querySelector(
+          'link[href*="bootstrap"]',
+        ) as HTMLLinkElement | null
+      )?.href ?? "";
     const newDoc = w.document;
     newDoc.head.innerHTML = [
       "<title>Payslip</title>",

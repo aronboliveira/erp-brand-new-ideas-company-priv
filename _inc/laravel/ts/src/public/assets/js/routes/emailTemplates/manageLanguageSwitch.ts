@@ -4,7 +4,6 @@
  * @module manageLanguageSwitch
  */
 
-/* global bootstrap */
 ((): void => {
   try {
     const ls = document.querySelectorAll(".email-template-lang-link");
@@ -55,9 +54,12 @@
               const c = ensureToastContainer();
               const t = document.createElement("div");
               t.className = "toast";
-              t.setAttribute("role", "alert");
-              t.setAttribute("aria-live", "assertive");
-              t.setAttribute("aria-atomic", "true");
+              for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  t.setAttribute(k, v);
 
               const b = document.createElement("div");
               b.className = "toast-body";
@@ -71,11 +73,17 @@
             }
 
             l.setAttribute("data-failed-route", "true");
-          } catch (err) {}
+          } catch (err) {
+    console.error(`[manageLanguageSwitch] Error:`, err);
+  }
         });
-      } catch (err) {}
+      } catch (err) {
+    console.error(`[manageLanguageSwitch] Error:`, err);
+  }
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(`[manageLanguageSwitch] Error:`, err);
+  }
 })();
 
 export {};

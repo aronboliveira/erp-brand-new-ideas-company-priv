@@ -4,7 +4,6 @@
  * @module index
  */
 
-/* global bootstrap */
 // assets/js/routes/employeeAttendance/index.js
 ((): void => {
   try {
@@ -41,9 +40,12 @@
             const toastEl = document.createElement("div");
             toastEl.className =
               "toast align-items-center text-bg-danger border-0";
-            toastEl.setAttribute("role", "alert");
-            toastEl.setAttribute("aria-live", "assertive");
-            toastEl.setAttribute("aria-atomic", "true");
+            for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
             toastEl.innerHTML =
               '<div class="d-flex"><div class="toast-body">' +
               msg +
@@ -53,10 +55,14 @@
           } else {
             alert(msg);
           }
-        } catch {}
+        } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
       });
     }
-  } catch {}
+  } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
   try {
     const selector = ".reset-employee-attendance-link";
     const alias2 = "data-listening-resetemployeeattendanceclick";
@@ -93,9 +99,12 @@
                 const toastEl = document.createElement("div");
                 toastEl.className =
                   "toast align-items-center text-bg-danger border-0";
-                toastEl.setAttribute("role", "alert");
-                toastEl.setAttribute("aria-live", "assertive");
-                toastEl.setAttribute("aria-atomic", "true");
+                for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
                 toastEl.innerHTML =
                   '<div class="d-flex"><div class="toast-body">' +
                   msg +
@@ -105,10 +114,16 @@
               } else {
                 alert(msg);
               }
-            } catch {}
+            } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
           });
         }
-      } catch {}
+      } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
     });
-  } catch {}
+  } catch (__err) {
+    console.error(`[index] Error:`, __err);
+  }
 })();

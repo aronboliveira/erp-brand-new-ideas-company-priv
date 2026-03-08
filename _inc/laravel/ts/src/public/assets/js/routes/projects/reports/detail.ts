@@ -4,7 +4,6 @@
  * @module detail
  */
 
-/* global bootstrap */
 (function (): void {
   try {
     // eslint-disable-next-line no-inner-declarations

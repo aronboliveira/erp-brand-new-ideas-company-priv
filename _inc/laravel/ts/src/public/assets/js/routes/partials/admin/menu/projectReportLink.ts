@@ -4,7 +4,6 @@
  * @module projectReportLink
  */
 
-/* global bootstrap */
 ((): void => {
   const listenerAttr = "data-project-report-listener-active";
   const el = document.getElementById("project-report-index-link");
@@ -33,9 +32,12 @@
           console.info(container);
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toastEl.setAttribute(k, v);
           console.info(toastEl);
           const body = document.createElement("div");
           body.className = "toast-body";

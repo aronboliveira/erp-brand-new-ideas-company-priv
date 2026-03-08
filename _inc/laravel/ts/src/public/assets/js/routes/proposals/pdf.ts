@@ -4,7 +4,6 @@
  * @module pdf
  */
 
-
 declare const html2pdf:
   | (() => {
       set: (opt: unknown) => {
@@ -73,9 +72,12 @@ declare const html2pdf:
           toast.id = "np-error-toast";
           toast.className =
             "toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
+          for (const [k, v] of Object.entries({
+  "role": "alert",
+  "aria-live": "assertive",
+  "aria-atomic": "true",
+}))
+  toast.setAttribute(k, v);
           {
             toast.replaceChildren();
             const _d = document.createElement("div");
@@ -115,7 +117,9 @@ declare const html2pdf:
         window.open(window.location.href, "_self");
         window.close();
       }, 1000);
-    } catch {}
+    } catch (__err) {
+    console.error(`[pdf] Error:`, __err);
+  }
   };
 
   try {
