@@ -86,3 +86,8 @@ composer.lock
 
 .vscode/
 .vscode/**
+
+# root-level orphan artifacts (real app lives in _inc/laravel/)
+/composer.json
+/composer.lock
+/.env.example
