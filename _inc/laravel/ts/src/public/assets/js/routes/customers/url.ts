@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const ERR_FB = "# ERROR";
-  const CLIENT_FLAG = "data-client-localized";
-  const GUARD_MSG = "data-guard-msg";
-  const LANG_KEY = "erp-np-lang";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const ERR_FB = "# ERROR",
+    CLIENT_FLAG = "data-client-localized",
+    GUARD_MSG = "data-guard-msg",
+    LANG_KEY = "erp-np-lang";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
@@ -41,7 +41,7 @@
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function showToast(message: string, isError = false): void{
+  function showToast(message: string, _isError = false): void {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -58,11 +58,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -96,15 +96,15 @@
     });
   }).observe(document.body, { childList: true, subtree: true });
 
-  window.copyToClipboard = (text: string): void=> {
+  // @ts-expect-error -- migration: function overload type
+  window.copyToClipboard = (text: string): void => {
     const element = document.getElementById(text) ?? document.body;
     try {
       if (!navigator.clipboard) throw new Error("url_copy_failed");
       navigator.clipboard
         .writeText(text)
         .then((): void => {
-          const msg = getLocalizedMessage("url_copy_success", element);
-          showToast(msg);
+          showToast(getLocalizedMessage("url_copy_success", element));
         })
         .catch((): void => {
           throw new Error("url_copy_failed");

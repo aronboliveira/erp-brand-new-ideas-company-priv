@@ -1,0 +1,248 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/invoices/lang/edit.js
+ * @generated from original JavaScript — automated migration
+ * @module edit
+ */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+export {};
+declare global {
+  interface Window {
+    translations?: Record<string, Record<string, string>>;
+  }
+}
+
+((): void => {
+  if (!window.translations) {
+    window.translations = {};
+  }
+  const t: Record<string, Record<string, string>> = {
+    ar: {
+      repeater_show_unavailable: "فشل عرض المكرر",
+      repeater_hide_unavailable: "فشل إخفاء المكرر",
+      repeater_setlist_unavailable: "فشل إعداد قائمة المكرر",
+      repeater_create_unavailable: "فشل إنشاء عنصر المكرر",
+      repeater_delete_unavailable: "فشل حذف عنصر المكرر",
+      customer_change_unavailable: "فشل جلب تفاصيل العميل",
+      customer_remove_unavailable: "فشل إزالة تفاصيل العميل",
+      item_change_unavailable: "فشل جلب تفاصيل الصنف",
+      items_fetch_unavailable: "فشل جلب عناصر الفاتورة",
+      calculation_unavailable: "فشل الحساب",
+    },
+    da: {
+      repeater_show_unavailable: "Visning af gentager mislykkedes",
+      repeater_hide_unavailable: "Skjul af gentager mislykkedes",
+      repeater_setlist_unavailable: "Indstilling af gentagerliste mislykkedes",
+      repeater_create_unavailable:
+        "Oprettelse af gentagelseselement mislykkedes",
+      repeater_delete_unavailable: "Sletning af gentagelseselement mislykkedes",
+      customer_change_unavailable: "Hentning af kundedetaljer mislykkedes",
+      customer_remove_unavailable: "Fjernelse af kundedetaljer mislykkedes",
+      item_change_unavailable: "Hentning af vareoplysninger mislykkedes",
+      items_fetch_unavailable: "Hentning af fakturaelementer mislykkedes",
+      calculation_unavailable: "Beregning mislykkedes",
+    },
+    de: {
+      repeater_show_unavailable: "Wiederholer-Anzeige fehlgeschlagen",
+      repeater_hide_unavailable: "Wiederholer-Ausblenden fehlgeschlagen",
+      repeater_setlist_unavailable:
+        "Einrichten der Wiederholungsliste fehlgeschlagen",
+      repeater_create_unavailable:
+        "Erstellen des Wiederholungselements fehlgeschlagen",
+      repeater_delete_unavailable:
+        "Löschen des Wiederholungselements fehlgeschlagen",
+      customer_change_unavailable: "Abruf der Kundendetails fehlgeschlagen",
+      customer_remove_unavailable: "Entfernen der Kundendetails fehlgeschlagen",
+      item_change_unavailable: "Abruf der Artikeldetails fehlgeschlagen",
+      items_fetch_unavailable: "Abruf der Rechnungspositionen fehlgeschlagen",
+      calculation_unavailable: "Berechnung fehlgeschlagen",
+    },
+    en: {
+      repeater_show_unavailable: "Cannot show repeater",
+      repeater_hide_unavailable: "Cannot hide repeater",
+      repeater_setlist_unavailable: "Cannot set repeater list",
+      repeater_create_unavailable: "Cannot create repeater item",
+      repeater_delete_unavailable: "Cannot delete repeater item",
+      customer_change_unavailable: "Cannot fetch customer details",
+      customer_remove_unavailable: "Cannot remove customer details",
+      item_change_unavailable: "Cannot fetch item details",
+      items_fetch_unavailable: "Cannot fetch invoice items",
+      calculation_unavailable: "Calculation failed",
+    },
+    es: {
+      repeater_show_unavailable: "No se puede mostrar el repetidor",
+      repeater_hide_unavailable: "No se puede ocultar el repetidor",
+      repeater_setlist_unavailable:
+        "No se puede establecer la lista del repetidor",
+      repeater_create_unavailable:
+        "No se puede crear el elemento del repetidor",
+      repeater_delete_unavailable:
+        "No se puede eliminar el elemento del repetidor",
+      customer_change_unavailable:
+        "No se pueden obtener los detalles del cliente",
+      customer_remove_unavailable:
+        "No se pueden eliminar los detalles del cliente",
+      item_change_unavailable: "No se pueden obtener los detalles del artículo",
+      items_fetch_unavailable:
+        "No se pueden obtener los elementos de la factura",
+      calculation_unavailable: "Cálculo fallido",
+    },
+    fr: {
+      repeater_show_unavailable: "Impossible d'afficher le répéteur",
+      repeater_hide_unavailable: "Impossible de masquer le répéteur",
+      repeater_setlist_unavailable:
+        "Impossible de définir la liste du répéteur",
+      repeater_create_unavailable: "Impossible de créer l'élément du répéteur",
+      repeater_delete_unavailable:
+        "Impossible de supprimer l'élément du répéteur",
+      customer_change_unavailable:
+        "Impossible de récupérer les détails du client",
+      customer_remove_unavailable:
+        "Impossible de supprimer les détails du client",
+      item_change_unavailable:
+        "Impossible de récupérer les détails de l'article",
+      items_fetch_unavailable:
+        "Impossible de récupérer les éléments de la facture",
+      calculation_unavailable: "Calcul échoué",
+    },
+    he: {
+      repeater_show_unavailable: "לא ניתן להציג את המחזיר",
+      repeater_hide_unavailable: "לא ניתן להסתיר את המחזיר",
+      repeater_setlist_unavailable: "לא ניתן להגדיר את רשימת המחזיר",
+      repeater_create_unavailable: "לא ניתן ליצור את פריט המחזיר",
+      repeater_delete_unavailable: "לא ניתן למחוק את פריט המחזיר",
+      customer_change_unavailable: "לא ניתן לאחזר את פרטי הלקוח",
+      customer_remove_unavailable: "לא ניתן להסיר את פרטי הלקוח",
+      item_change_unavailable: "לא ניתן לאחזר את פרטי הפריט",
+      items_fetch_unavailable: "לא ניתן לאחזר את פריטי החשבונית",
+      calculation_unavailable: "החישוב נכשל",
+    },
+    it: {
+      repeater_show_unavailable: "Impossibile mostrare il ripetitore",
+      repeater_hide_unavailable: "Impossibile nascondere il ripetitore",
+      repeater_setlist_unavailable:
+        "Impossibile impostare la lista del ripetitore",
+      repeater_create_unavailable:
+        "Impossibile creare l'elemento del ripetitore",
+      repeater_delete_unavailable:
+        "Impossibile eliminare l'elemento del ripetitore",
+      customer_change_unavailable:
+        "Impossibile recuperare i dettagli del cliente",
+      customer_remove_unavailable:
+        "Impossibile rimuovere i dettagli del cliente",
+      item_change_unavailable:
+        "Impossibile recuperare i dettagli dell'articolo",
+      items_fetch_unavailable:
+        "Impossibile recuperare gli elementi della fattura",
+      calculation_unavailable: "Calcolo fallito",
+    },
+    ja: {
+      repeater_show_unavailable: "リピーターを表示できません",
+      repeater_hide_unavailable: "リピーターを非表示できません",
+      repeater_setlist_unavailable: "リピーターリストを設定できません",
+      repeater_create_unavailable: "リピーター項目を作成できません",
+      repeater_delete_unavailable: "リピーター項目を削除できません",
+      customer_change_unavailable: "顧客の詳細を取得できません",
+      customer_remove_unavailable: "顧客の詳細を削除できません",
+      item_change_unavailable: "アイテムの詳細を取得できません",
+      items_fetch_unavailable: "請求書項目を取得できません",
+      calculation_unavailable: "計算に失敗しました",
+    },
+    nl: {
+      repeater_show_unavailable: "Kan herhaler niet tonen",
+      repeater_hide_unavailable: "Kan herhaler niet verbergen",
+      repeater_setlist_unavailable: "Kan herhalerlijst niet instellen",
+      repeater_create_unavailable: "Kan herhalerelement niet maken",
+      repeater_delete_unavailable: "Kan herhalerelement niet verwijderen",
+      customer_change_unavailable: "Kan klantgegevens niet ophalen",
+      customer_remove_unavailable: "Kan klantgegevens niet verwijderen",
+      item_change_unavailable: "Kan itemgegevens niet ophalen",
+      items_fetch_unavailable: "Kan factuuritems niet ophalen",
+      calculation_unavailable: "Berekening mislukt",
+    },
+    pl: {
+      repeater_show_unavailable: "Nie można wyświetlić repeatera",
+      repeater_hide_unavailable: "Nie można ukryć repeatera",
+      repeater_setlist_unavailable: "Nie można ustawić listy repeatera",
+      repeater_create_unavailable: "Nie można utworzyć elementu repeatera",
+      repeater_delete_unavailable: "Nie można usunąć elementu repeatera",
+      customer_change_unavailable: "Nie można pobrać danych klienta",
+      customer_remove_unavailable: "Nie można usunąć danych klienta",
+      item_change_unavailable: "Nie można pobrać danych pozycji",
+      items_fetch_unavailable: "Nie można pobrać pozycji faktury",
+      calculation_unavailable: "Obliczenie nie powiodło się",
+    },
+    pt: {
+      repeater_show_unavailable: "Não é possível mostrar o repetidor",
+      repeater_hide_unavailable: "Não é possível ocultar o repetidor",
+      repeater_setlist_unavailable:
+        "Não é possível definir a lista do repetidor",
+      repeater_create_unavailable: "Não é possível criar o item do repetidor",
+      repeater_delete_unavailable:
+        "Não é possível eliminar o item do repetidor",
+      customer_change_unavailable:
+        "Não é possível obter os detalhes do cliente",
+      customer_remove_unavailable:
+        "Não é possível remover os detalhes do cliente",
+      item_change_unavailable: "Não é possível obter os detalhes do item",
+      items_fetch_unavailable: "Não é possível obter os itens da fatura",
+      calculation_unavailable: "Cálculo falhado",
+    },
+    "pt-br": {
+      repeater_show_unavailable: "Não é possível mostrar o repetidor",
+      repeater_hide_unavailable: "Não é possível ocultar o repetidor",
+      repeater_setlist_unavailable:
+        "Não é possível definir a lista do repetidor",
+      repeater_create_unavailable: "Não é possível criar o item do repetidor",
+      repeater_delete_unavailable: "Não é possível excluir o item do repetidor",
+      customer_change_unavailable:
+        "Não é possível obter os detalhes do cliente",
+      customer_remove_unavailable:
+        "Não é possível remover os detalhes do cliente",
+      item_change_unavailable: "Não é possível obter os detalhes do item",
+      items_fetch_unavailable: "Não é possível obter os itens da fatura",
+      calculation_unavailable: "Cálculo falhou",
+    },
+    ru: {
+      repeater_show_unavailable: "Не удалось отобразить повторитель",
+      repeater_hide_unavailable: "Не удалось скрыть повторитель",
+      repeater_setlist_unavailable: "Не удалось установить список повторителя",
+      repeater_create_unavailable: "Не удалось создать элемент повторителя",
+      repeater_delete_unavailable: "Не удалось удалить элемент повторителя",
+      customer_change_unavailable: "Не удалось получить данные клиента",
+      customer_remove_unavailable: "Не удалось удалить данные клиента",
+      item_change_unavailable: "Не удалось получить данные товара",
+      items_fetch_unavailable: "Не удалось получить элементы счета",
+      calculation_unavailable: "Ошибка расчета",
+    },
+    tr: {
+      repeater_show_unavailable: "Tekrarlayıcı gösterilemedi",
+      repeater_hide_unavailable: "Tekrarlayıcı gizlenemedi",
+      repeater_setlist_unavailable: "Tekrarlayıcı listesi ayarlanamadı",
+      repeater_create_unavailable: "Tekrarlayıcı öğesi oluşturulamadı",
+      repeater_delete_unavailable: "Tekrarlayıcı öğesi silinemedi",
+      customer_change_unavailable: "Müşteri detayları alınamadı",
+      customer_remove_unavailable: "Müşteri detayları kaldırılamadı",
+      item_change_unavailable: "Öğe detayları alınamadı",
+      items_fetch_unavailable: "Fatura öğeleri alınamadı",
+      calculation_unavailable: "Hesaplama başarısız",
+    },
+    zh: {
+      repeater_show_unavailable: "无法显示中继器",
+      repeater_hide_unavailable: "无法隐藏中继器",
+      repeater_setlist_unavailable: "无法设置中继器列表",
+      repeater_create_unavailable: "无法创建中继器项目",
+      repeater_delete_unavailable: "无法删除中继器项目",
+      customer_change_unavailable: "无法获取客户详细信息",
+      customer_remove_unavailable: "无法移除客户详细信息",
+      item_change_unavailable: "无法获取项目详细信息",
+      items_fetch_unavailable: "无法获取发票项目",
+      calculation_unavailable: "计算失败",
+    },
+  };
+  Object.keys(t).forEach(
+    k =>
+      (window.translations![k] = { ...(window.translations![k] || {}),
+        ...t[k],
+      })
+  );
+})();
