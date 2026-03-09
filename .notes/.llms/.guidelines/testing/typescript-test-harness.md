@@ -33,6 +33,7 @@ ts/
 End-to-end tests that run compiled JavaScript in real browsers.
 
 **Run commands:**
+
 ```bash
 npm run test:harness              # Run all browsers
 npm run test:harness:chromium     # Chromium only
@@ -42,6 +43,7 @@ npm run test:harness:ui           # Playwright UI mode
 ```
 
 **Test structure:**
+
 - Each resource has a dedicated `.spec.ts` file
 - Tests verify:
   - Page loads without JavaScript errors
@@ -55,6 +57,7 @@ npm run test:harness:ui           # Playwright UI mode
 DOM-based unit tests for TypeScript route handlers.
 
 **Run commands:**
+
 ```bash
 npm run test:unit                 # Run unit tests
 npm run test:unit -- --watch      # Watch mode
@@ -62,6 +65,7 @@ npm run test:coverage             # With coverage
 ```
 
 **Test structure:**
+
 - Each resource has a dedicated `.test.ts` file
 - Tests verify:
   - DOM manipulation logic
@@ -84,13 +88,13 @@ npm run typecheck:watch           # Watch mode
 
 Scripts are stored in `.tmp/copilot/scripts/`:
 
-| Script | Purpose |
-|--------|---------|
-| `scan-views.php` | Extract JS dependencies from Laravel blade views |
-| `generate-harness.cjs` | Generate mock HTML pages from view mapping |
-| `generate-playwright-tests.cjs` | Generate Playwright specs from manifest |
-| `generate-jest-tests.cjs` | Generate Jest tests from manifest |
-| `update-harness-index.cjs` | Update harness index with all pages |
+| Script                          | Purpose                                          |
+| ------------------------------- | ------------------------------------------------ |
+| `scan-views.php`                | Extract JS dependencies from Laravel blade views |
+| `generate-harness.cjs`          | Generate mock HTML pages from view mapping       |
+| `generate-playwright-tests.cjs` | Generate Playwright specs from manifest          |
+| `generate-jest-tests.cjs`       | Generate Jest tests from manifest                |
+| `update-harness-index.cjs`      | Update harness index with all pages              |
 
 ### Regenerating Tests
 
@@ -113,44 +117,49 @@ node .tmp/copilot/scripts/update-harness-index.cjs
 
 ## Test Coverage
 
-| Category | Count |
-|----------|-------|
-| Blade views with JS | 495 |
-| Generated HTML pages | 470 |
-| Playwright specs | 119 files (~2018 tests) |
-| Jest specs | 115 files (~1194 tests) |
-| Resources covered | 119 |
+| Category             | Count                   |
+| -------------------- | ----------------------- |
+| Blade views with JS  | 495                     |
+| Generated HTML pages | 470                     |
+| Playwright specs     | 119 files (~2018 tests) |
+| Jest specs           | 115 files (~1194 tests) |
+| Resources covered    | 119                     |
 
 ## Adding New Tests
 
 ### Manual Test Addition
 
 1. Create HTML page in `tests/harness/pages/`:
+
    ```html
    <!DOCTYPE html>
    <html>
-   <head>
-     <title>my-route - Test Harness</title>
-     <!-- Bootstrap CSS -->
-   </head>
-   <body>
-     <!-- Mock DOM matching production -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-     <script type="module" src="/dist/public/assets/js/routes/my/route.js"></script>
-   </body>
+     <head>
+       <title>my-route - Test Harness</title>
+       <!-- Bootstrap CSS -->
+     </head>
+     <body>
+       <!-- Mock DOM matching production -->
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+       <script
+         type="module"
+         src="/dist/public/assets/js/routes/my/route.js"
+       ></script>
+     </body>
    </html>
    ```
 
 2. Create spec in `tests/harness-specs/`:
+
    ```typescript
-   import { test, expect } from '@playwright/test';
-   
-   test.describe('my-route', () => {
-     test('should load without errors', async ({ page }) => {
+   import { test, expect } from "@playwright/test";
+
+   test.describe("my-route", () => {
+     test("should load without errors", async ({ page }) => {
        const errors: string[] = [];
-       page.on('pageerror', err => errors.push(err.message));
-       await page.goto('/harness/pages/my-route.html');
-       await page.waitForLoadState('networkidle');
+       page.on("pageerror", err => errors.push(err.message));
+       await page.goto("/harness/pages/my-route.html");
+       await page.waitForLoadState("networkidle");
        expect(errors).toHaveLength(0);
      });
    });
@@ -193,6 +202,14 @@ Tests can be run in CI pipelines:
 
 ## Troubleshooting
 
+### Test artifacts (gitignored)
+
+The following are generated at runtime and excluded from version control:
+
+- `playwright-report/` — HTML report from Playwright runs
+- `test-results/` — Playwright test result metadata
+- `test-results.json` — JSON summary of last Playwright run
+
 ### "Cannot find module" errors
 
 ```bash
@@ -217,6 +234,7 @@ pkill -f serve-harness
 ### Script loading errors
 
 Ensure scripts use `type="module"` since compiled JS includes ES module exports:
+
 ```html
 <script type="module" src="/dist/..."></script>
 ```
