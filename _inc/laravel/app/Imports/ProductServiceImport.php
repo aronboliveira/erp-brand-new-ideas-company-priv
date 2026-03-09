@@ -14,6 +14,7 @@ final class ProductServiceImport implements ToModel
     private ?int $headerStartIndex = null;
     private ?array $headers       = null;
 
+    /** @phpstan-return \App\Models\ProductService|null */
     public function model(array $row): ?ProductService
     {
         try {

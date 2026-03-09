@@ -176,6 +176,8 @@ class ClientPermission extends Model
 
     private static function normalizeClientIdentity(self $m): void
     {
+        $clientId = '';
+        $type = '';
         try {
             $clientId = $m->getAttribute(PJC::COL_CLIENT_ID);
             $clientId = is_scalar($clientId) ? trim((string) $clientId) : '';
@@ -262,6 +264,8 @@ class ClientPermission extends Model
             $m->setAttribute(PJC::COL_CLIENT_ID, $clientId);
             $m->setAttribute('type', $type);
         } catch (\Throwable $e) {
+            /** @var string $clientId */
+            /** @var string $type */
             ErrorHandler::evaluateExistenceToLogChannel(
                 'client_permission_errors',
                 [
@@ -285,6 +289,8 @@ class ClientPermission extends Model
 
     private static function enforceUniqueComposite(self $m): void
     {
+        $clientId = '';
+        $type = '';
         try {
             $clientId = (string) $m->getAttribute(PJC::COL_CLIENT_ID);
             $type = (string) $m->getAttribute('type');
@@ -306,6 +312,8 @@ class ClientPermission extends Model
             $m->setAttribute($m->getKeyName(), $existingId);
             $m->exists = true;
         } catch (\Throwable $e) {
+            /** @var string $clientId */
+            /** @var string $type */
             ErrorHandler::evaluateExistenceToLogChannel(
                 'client_permission_errors',
                 [

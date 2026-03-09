@@ -177,7 +177,7 @@ class SourceController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $source, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'edit source', self::REDIRECT_INDEX)) !== true) return $redirect;
             if ($source[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));

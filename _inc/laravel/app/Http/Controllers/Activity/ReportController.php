@@ -665,7 +665,7 @@ final class ReportController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             Log::info(get_class($this) . "::{$action}", [CompaniesConstants::COL_BRC_ID => $request[CompaniesConstants::COL_BRC_ID] ?? null]);
             $startLogin = microtime(true);
@@ -690,7 +690,7 @@ final class ReportController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             Log::info(get_class($this) . "::{$action}", [CompaniesConstants::COL_DEP_ID => $request[CompaniesConstants::COL_DEP_ID] ?? null]);
             $startLogin = microtime(true);
@@ -931,7 +931,7 @@ final class ReportController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startVal = microtime(true);
             $request->validate([CompaniesConstants::COL_BRC_ID => 'required|integer']);
@@ -961,7 +961,7 @@ final class ReportController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startVal = microtime(true);
             $request->validate([CompaniesConstants::COL_DEP_ID => 'integer']);
@@ -1061,7 +1061,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        return $this->measureProfile($action, function () use ($action, $method, $class) {
+        return $this->measureProfile($action, function () use ($action, $class) {
             $startOverall = microtime(true);
             if (self::$dealData !== null) {
                 Log::info("{$class}::{$action} cache hit", ['count' => self::$dealData->count()]);
@@ -1634,7 +1634,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'sales report')) return $r;
@@ -1665,7 +1665,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'sales report')) return $r;
@@ -1704,7 +1704,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'sales report')) return $r;
@@ -1741,7 +1741,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'receivable report')) return $r;
@@ -1772,7 +1772,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'receivable report')) return $r;
@@ -1809,7 +1809,7 @@ final class ReportController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class  = static::class;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $startOverall = microtime(true);
             $startAuth = microtime(true);
             if ($r = $this->authorizeReport($request, 'receivable report')) return $r;

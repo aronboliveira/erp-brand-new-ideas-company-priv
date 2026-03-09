@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\{
     Relations\HasOne
 };
 
+/**
+ * @property float|int|string|null $amount
+ * @property string|null $type
+ * @property mixed $created_by
+ */
 class OtherPayment extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields, ExtendsPaymentTable;
@@ -66,12 +71,12 @@ class OtherPayment extends Model
         static::saving(function (OtherPayment $m): void {
             if ($m->type !== null) {
                 $norm = PaymentPatternType::normalize($m->type);
-                if ($norm) $m->type = $norm;
+                if ($norm) $m->type = $norm->value;
             }
 
             if ($m->amount < 0) $m->amount = 0;
 
-            if ($m->type === PaymentPatternType::Percentage && $m->amount > 100)
+            if ($m->type === PaymentPatternType::Percentage->value && $m->amount > 100)
                 $m->amount = 100;
         });
     }

@@ -15,6 +15,21 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property float|int|string|null $depth
+ * @property array|string|null $rules
+ * @property int|string|null $user_id
+ * @property mixed $created_by
+ * @property float|int|null $current_balance
+ * @property float|int|null $expected_next_month_balance
+ * @property bool|null $has_pending_updates
+ * @property float|int|null $initial_balance
+ * @property bool|null $is_system_account
+ * @property int|null $responsible_id
+
+ * @property int|null $currency_id
+ * @property mixed $restrictions
+ */
 class ChartOfAccount extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
@@ -180,10 +195,10 @@ class ChartOfAccount extends Model
     {
         foreach ([CHTC::COL_NM, 'currency_id'] as $field)
             if (isset($coa->{$field}) && is_string($coa->{$field}))
-                $coa->{$field} = trim($coa->{$field});
+                $coa->{$field} = trim($coa->{$field}); // @phpstan-ignore assign.propertyType
 
         if ($coa->currency_id)
-            $coa->currency_id = strtoupper(substr($coa->currency_id, 0, 3));
+            $coa->currency_id = strtoupper(substr($coa->currency_id, 0, 3)); // @phpstan-ignore assign.propertyType
 
         foreach (['rules', 'restrictions'] as $jsonField) {
             if ($coa->{$jsonField} === null)
@@ -260,5 +275,11 @@ class ChartOfAccount extends Model
             'id',
             CHTC::COL_SUBTP
         );
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\ChartOfAccountSubType> */
+    public function sub_type(): HasOne
+    {
+        return $this->subType();
     }
 }

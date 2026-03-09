@@ -6,6 +6,8 @@ parameters:
         - app/
     level: 3
     tmpDir: storage/phpstan
+    stubFiles:
+        - stubs/chatify.stub
     parallel:
         maximumNumberOfProcesses: 8
         processTimeout: 3600.0

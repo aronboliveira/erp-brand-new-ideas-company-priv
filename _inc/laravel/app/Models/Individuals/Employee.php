@@ -31,6 +31,18 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Support\{Str, Facades\Hash};
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property string|null $account_number
+ * @property int|string|null $branch_id
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property float|int|string|null $salary
+ * @property int|null $department_id
+ * @property int|null $designation_id
+ * @property int|null $employee_id
+ * @property string|null $name
+ * @property string|null $email
+ */
 class Employee extends Model
 {
     use HasAuditFields, HasFactory, NormalizesAddresses, UsesUuids;

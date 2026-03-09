@@ -5,6 +5,13 @@ namespace App\Models;
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+/**
+ * @property mixed $created_by
+ * @property int|null $designation_id
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|string|null $promotion_date
+ * @property string|null $promotion_title
+ */
 
 class Promotion extends Model
 {

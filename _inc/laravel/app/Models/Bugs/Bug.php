@@ -115,4 +115,15 @@ class Bug extends Model
             ->belongsTo(User::class, self::COL_PROJECT_ID);
         // ! ALERT BUG: likely should reference Project::class here
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
+    public function created_by(): HasOne
+    {
+        return $this->createdBy();
+    }
+
+    public function project_bug(): BelongsTo
+    {
+        return $this->projectBug();
+    }
 }

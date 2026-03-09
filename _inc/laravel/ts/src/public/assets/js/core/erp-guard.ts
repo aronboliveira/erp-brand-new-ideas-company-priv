@@ -1,5 +1,12 @@
 /**
- * erp-guard.ts — Route Guard & Listener Dedup Utilities
+ * erp-guard.ts — Route Guard & Listener Dedup Utilities (AUXILIARY)
+ *
+ * ⚠ NOT THE RUNTIME VERSION. The authoritative runtime singleton is the
+ * hand-written OOP class in public/assets/js/core/erp-guard.js (1,672 lines),
+ * loaded by Blade layouts. This file is a simplified TypeScript extraction of
+ * common patterns — it does NOT replace the original.
+ *
+ * For global type declarations of the original, see ./globals.d.ts.
  *
  * Extracts massively duplicated guard / dedup / toast / devError
  * patterns into reusable functions.
@@ -45,20 +52,14 @@ export interface ToastOptions {
  * if (isGuarded(btn, "data-listener-bound-click")) return;
  * ```
  */
-export function isGuarded(
-  el: Element,
-  attr = "data-listener-active"
-): boolean {
+export function isGuarded(el: Element, attr = "data-listener-active"): boolean {
   return el.getAttribute(attr) === "true";
 }
 
 /**
  * Marks `el` with the dedup attribute.
  */
-export function markGuarded(
-  el: Element,
-  attr = "data-listener-active"
-): void {
+export function markGuarded(el: Element, attr = "data-listener-active"): void {
   el.setAttribute(attr, "true");
 }
 
@@ -82,13 +83,11 @@ export function guardClick(el: HTMLElement, opts?: GuardOptions): void {
   if (isGuarded(el, attr)) return;
   markGuarded(el, attr);
 
-  el.addEventListener("click", (ev) => {
-    const href =
-      el.getAttribute("href") ?? el.getAttribute("data-url") ?? "";
+  el.addEventListener("click", ev => {
+    const href = el.getAttribute("href") ?? el.getAttribute("data-url") ?? "";
     if (href === "#" || href === "" || href === "javascript:void(0)") {
       if (opts?.preventDefault !== false) ev.preventDefault();
-      const msg =
-        el.getAttribute("data-guard-msg") ?? "This action is not available.";
+      const msg = el.getAttribute("data-guard-msg") ?? "This action is not available.";
       toast(msg, { type: "warning" });
       markFailed(el);
     }
@@ -99,10 +98,7 @@ export function guardClick(el: HTMLElement, opts?: GuardOptions): void {
  * Attaches a submit guard on a `<form>`. Prevents double-submission
  * by flagging `data-submit-guarded`.
  */
-export function guardSubmit(
-  form: HTMLFormElement,
-  opts?: GuardOptions
-): void {
+export function guardSubmit(form: HTMLFormElement, opts?: GuardOptions): void {
   const attr = opts?.boundAttr ?? "data-listener-bound-submit";
   if (isGuarded(form, attr)) return;
   markGuarded(form, attr);
@@ -130,13 +126,8 @@ export function resolveAction(form: HTMLFormElement): string {
  * bindGuardAll("a[data-guard-msg]");
  * ```
  */
-export function bindGuardAll(
-  selector: string,
-  opts?: GuardOptions
-): void {
-  document
-    .querySelectorAll<HTMLElement>(selector)
-    .forEach((el) => guardClick(el, opts));
+export function bindGuardAll(selector: string, opts?: GuardOptions): void {
+  document.querySelectorAll<HTMLElement>(selector).forEach(el => guardClick(el, opts));
 }
 
 /* ---------- Toast ------------------------------------------------------- */
@@ -170,9 +161,7 @@ export function toast(msg: string, opts?: ToastOptions): void {
       </div>`;
     container.appendChild(wrapper);
 
-    const bs = (window as unknown as Record<string, unknown>).bootstrap as
-      | { Toast: { getOrCreateInstance: (el: Element) => { show: () => void } } }
-      | undefined;
+    const bs = (window as unknown as Record<string, unknown>).bootstrap as { Toast: { getOrCreateInstance: (el: Element) => { show: () => void } } } | undefined;
 
     if (bs?.Toast) {
       bs.Toast.getOrCreateInstance(wrapper).show();
@@ -182,11 +171,7 @@ export function toast(msg: string, opts?: ToastOptions): void {
     }
 
     // Auto-remove from DOM after dismissal
-    wrapper.addEventListener(
-      "hidden.bs.toast",
-      () => wrapper.remove(),
-      { once: true }
-    );
+    wrapper.addEventListener("hidden.bs.toast", () => wrapper.remove(), { once: true });
   } catch {
     alert(msg); // ultimate fallback
   }
@@ -199,12 +184,7 @@ export function toast(msg: string, opts?: ToastOptions): void {
  * The same `if (location.hostname === ...)` pattern appeared in 814 files.
  */
 export function devError(context: string, err: unknown): void {
-  if (
-    typeof location !== "undefined" &&
-    (location.hostname === "localhost" ||
-      location.hostname === "127.0.0.1" ||
-      location.hostname === "0.0.0.0")
-  ) {
+  if (typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "0.0.0.0")) {
     console.error(`[ERP:${context}]`, err);
   }
 }

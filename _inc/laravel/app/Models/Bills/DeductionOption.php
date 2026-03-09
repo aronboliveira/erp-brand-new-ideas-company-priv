@@ -6,6 +6,15 @@ use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{CalculationBase, Frequency, DeductionType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
+/**
+ * @property string|null $calculation_basis
+ * @property string|null $deduction_type
+ * @property float|int|null $maximum_percentage
+ * @property float|int|null $minimum_percentage
+ * @property float|int|null $month_day_limit
+
+ * @property mixed $frequency
+ */
 
 class DeductionOption extends Model
 {

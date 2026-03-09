@@ -14,13 +14,12 @@
   ).toLowerCase();
   const dict =
     (window.translations &&
-      (window.translations[lang] || window.translations[lang.split("-")[0]])) ||
+      (window.translations![lang] || window.translations![lang.split("-")[0]])) ||
     window.translations?.en ||
     {};
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const tr = (k: string) => dict[k] || k;
-
-  const showToastOrAlert = (msg: string): void=> {
+  const showToastOrAlert = (msg: string): void => {
     try {
       const hasBootstrapToast = !!window.bootstrap.Toast;
       if (hasBootstrapToast) {
@@ -28,20 +27,22 @@
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
-          container.style.position = "fixed";
-          container.style.top = "1rem";
-          container.style.right = "1rem";
-          container.style.zIndex = "1080";
+          Object.assign(container.style, {
+            position: "fixed",
+            top: "1rem",
+            right: "1rem",
+            zIndex: "1080",
+          });
           document.body.appendChild(container);
         }
         const toastEl = document.createElement("div");
         toastEl.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toastEl.setAttribute(k, v);
         toastEl.innerHTML = `
                     <div class="d-flex">
                     <div class="toast-body">${msg}</div>
@@ -60,7 +61,7 @@
       alert(msg);
     }
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ensure = (selector: string) => {
@@ -78,8 +79,7 @@
     const $name = $("#client_name");
     const $email = $("#client_email");
     const $password = $("#client_password");
-
-    const safeToggle = (mode: unknown): void=> {
+    const safeToggle = (mode: unknown): void => {
       const exist = mode === "exist";
       if ($existWrap.length) $existWrap.toggleClass("d-none", !exist);
       if ($newWrap.length) $newWrap.toggleClass("d-none", exist);
@@ -102,17 +102,21 @@
     ).toLowerCase();
     safeToggle(current);
 
-    $(document).on("click", "input[name='client_check']", function (): void {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const mode = String($(this).val() ?? "new").toLowerCase();
-        safeToggle(mode);
-      } catch (e: unknown) {
-        showToastOrAlert(
-          (e instanceof Error ? e.message : null) || tr("request_failed"),
-        );
-      }
-    });
+    $(document).on(
+      "click",
+      "input[name='client_check']",
+      function (this: HTMLInputElement): void {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          const mode = String($(this).val() ?? "new").toLowerCase();
+          safeToggle(mode);
+        } catch (e: unknown) {
+          showToastOrAlert(
+            (e instanceof Error ? e.message : null) || tr("request_failed"),
+          );
+        }
+      },
+    );
   };
 
   const start = (): void => {
@@ -126,11 +130,9 @@
     }
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", start, { once: true })
+    : start();
 })();
 
 export {};

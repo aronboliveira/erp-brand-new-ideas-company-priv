@@ -4,16 +4,16 @@
  * @module url
  */
 
-declare const show_toastr: (type: string, msg: string, status: string) => void;
+import "../../../../../declarations/routes/vendor-libs";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const SUCCESS_KEY = "url_copy_success";
-  const ERROR_KEY = "url_copy_failed";
-  const ATTR_ACTIVE = "data-listener-active";
-  const SELECTOR = ".copy_link";
-
-  const showError = (msg: string): void=> {
+  const SUCCESS_KEY = "url_copy_success",
+    ERROR_KEY = "url_copy_failed",
+    ATTR_ACTIVE = "data-listener-active",
+    SELECTOR = ".copy_link";
+  const showError = (msg: string): void => {
     const hasBs = window.bootstrap.Toast;
     if (hasBs) {
       const toast = document.createElement("div");
@@ -32,10 +32,10 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
     }
   };
 
-  const showSuccess = (msg: string): void=> {
+  const showSuccess = (msg: string): void => {
     show_toastr("success", msg, "success");
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
@@ -56,7 +56,6 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
 
   const els = document.querySelectorAll(SELECTOR);
   if (els.length === 0) return;
-
   const handlers = new WeakMap<Element, (e: Event) => Promise<void>>();
 
   els.forEach((el): void => {
@@ -76,7 +75,10 @@ declare const show_toastr: (type: string, msg: string, status: string) => void;
     };
     handlers.set(el, handler);
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    el.addEventListener("click", handler);
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", handler);
+    }
   });
 
   const mo = new MutationObserver((_, obs) => {

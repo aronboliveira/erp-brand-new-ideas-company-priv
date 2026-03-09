@@ -20,6 +20,8 @@ use Illuminate\Support\{Carbon, Facades\Log, Str};
  * @property int|string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $priority_level
+ * @property string|null $status_enum
  */
 class DealTask extends Model
 {
@@ -214,7 +216,8 @@ class DealTask extends Model
         return Attribute::make(
             get: function (): string {
                 $lvl = $this->priority_level; // Attribute acima
-                return PriorityLevel::labels(DC::DEFAULT_LANG)[$lvl->value] ?? $lvl->value;
+                $val = $lvl instanceof PriorityLevel ? $lvl->value : (string)$lvl;
+                return PriorityLevel::labels(DC::DEFAULT_LANG)[$val] ?? $val;
             }
         );
     }
@@ -234,7 +237,8 @@ class DealTask extends Model
         return Attribute::make(
             get: function (): string {
                 $st = $this->status_enum;
-                return EvaluationStatus::labels(DC::DEFAULT_LANG)[$st->value] ?? $st->value;
+                $val = $st instanceof EvaluationStatus ? $st->value : (string)$st;
+                return EvaluationStatus::labels(DC::DEFAULT_LANG)[$val] ?? $val;
             }
         );
     }

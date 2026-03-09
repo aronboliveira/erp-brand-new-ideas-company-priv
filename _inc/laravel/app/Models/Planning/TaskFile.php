@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+/**
+ * @property mixed $created_by
+ * @property string|null $deleteUrl
+ * @property string|null $file
+
+ * @property mixed $delete
+ */
 
 class TaskFile extends AbstractFile
 {
@@ -40,7 +47,7 @@ class TaskFile extends AbstractFile
                 $norm = $raw instanceof UserType
                     ? $raw
                     : UserType::normalize(is_string($raw) ? $raw : null);
-                $m->setAttribute(UC::COL_U_TP, ($norm ?? UserType::Customer)->value);
+                $m->setAttribute(UC::COL_U_TP, ($norm ?: UserType::Customer)->value);
                 $legacy = $m->getAttribute('file');
                 $path   = $m->getAttribute(DC::COL_FL_PT);
                 if ((is_string($legacy) && trim($legacy) !== '') && (!is_string($path) || trim($path) === ''))

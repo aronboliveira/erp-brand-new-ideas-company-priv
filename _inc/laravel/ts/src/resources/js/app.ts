@@ -4,7 +4,6 @@
  * @module app
  */
 
-
 import "./bootstrap";
 
 // @ts-expect-error - alpinejs is a runtime dependency without type declarations

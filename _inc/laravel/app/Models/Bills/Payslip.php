@@ -14,6 +14,19 @@ use Illuminate\Database\Eloquent\{
     Relations\HasOne
 };
 
+/**
+ * @property float|int|string|null $allowance
+ * @property float|int|string|null $commission
+ * @property float|int|string|null $gross_salary
+ * @property float|int|string|null $loan
+ * @property float|int|string|null $net_payable
+ * @property float|int|string|null $net_salary
+ * @property float|int|string|null $other_payment
+ * @property float|int|string|null $overtime
+ * @property string|null $status
+ * @property string|null $salary_month
+ * @property mixed $saturation_deduction
+ */
 class Payslip extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
@@ -100,9 +113,9 @@ class Payslip extends Model
             if (isset($payslip->{BC::COL_SLR_M}) && is_string($payslip->{BC::COL_SLR_M}))
                 $payslip->{BC::COL_SLR_M} = trim($payslip->{BC::COL_SLR_M});
             if ($payslip->status === null)
-                $payslip->status = 0;
+                $payslip->status = '0';
             elseif ($payslip->status < 0)
-                $payslip->status = 0;
+                $payslip->status = '0';
         });
     }
 

@@ -7,6 +7,9 @@ use App\Enums\Visibility;
 use App\Traits\{FiltersSecureAttachments, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\Log;
+/**
+ * @property string|null $img_path
+ */
 
 class TrackPhoto extends Model
 {

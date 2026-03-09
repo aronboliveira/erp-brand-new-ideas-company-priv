@@ -6,7 +6,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\{Log, Route};
 use Illuminate\Support\Str;
 use Modules\LandingPage\Config\Constants\MiddlewaresConstants;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\NullOutput; // TEMP: was ConsoleOutput
 use Throwable;
 
 final class RouteServiceProvider extends ServiceProvider
@@ -20,7 +20,7 @@ final class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $tag   = 'Landing ' . class_basename(self::class) . '::' . __FUNCTION__;
-        $output = new ConsoleOutput();
+        $output = new NullOutput(); // TEMP: was ConsoleOutput
         $msg = 'Booting Landing Page ' . class_basename(RouteServiceProvider::class) . '...';
         Log::debug("{$tag} called");
         app()->runningInConsole()
@@ -47,7 +47,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag   = 'Landing ' . class_basename(self::class) . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = new NullOutput(); // TEMP: was ConsoleOutput
         $output->writeln("[{$tag}] Mapping Landing Page routes");
         try {
             $this->mapWebRoutes();
@@ -64,7 +64,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag   = 'Landing ' . class_basename(self::class) . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = new NullOutput(); // TEMP: was ConsoleOutput
         $output->writeln("[{$tag}] Registering Landing Page web routes");
         try {
             Route::middleware([
@@ -83,7 +83,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $tag   = 'Landing ' . class_basename(self::class) . '::' . __FUNCTION__;
         Log::debug("{$tag} called");
-        $output = new ConsoleOutput();
+        $output = new NullOutput(); // TEMP: was ConsoleOutput
         $output->writeln("[{$tag}] Registering Landing Page API routes");
         try {
             Route::prefix(self::API_PREFIX)

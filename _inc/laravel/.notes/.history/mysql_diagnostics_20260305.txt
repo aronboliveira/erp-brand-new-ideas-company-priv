@@ -1,0 +1,65 @@
+═══ MySQL Diagnostics — Thu Mar  5 01:16:15 PM -03 2026 ═══
+
+── Server Version ──
+version
+8.4.7-0ubuntu0.25.04.2
+
+── Database Size ──
+size_mb
+1.16
+
+── Table Counts ──
+TABLE_NAME	TABLE_ROWS
+migrations	23
+personal_access_tokens	0
+users	0
+user_deals	0
+stages	0
+sources	0
+settings	0
+schedules	0
+projects	0
+project_stages	0
+planning_schedules	0
+pipelines	0
+ch_favorites	0
+password_resets	0
+messages	0
+languages	0
+labels	0
+failed_jobs	0
+deals	0
+clients	0
+ch_messages	0
+
+── Empty Tables ──
+TABLE_NAME
+ch_favorites
+ch_messages
+clients
+deals
+failed_jobs
+labels
+languages
+messages
+password_resets
+personal_access_tokens
+pipelines
+planning_schedules
+project_stages
+projects
+schedules
+settings
+sources
+stages
+user_deals
+users
+
+── Connection Stats ──
+Variable_name	Value
+Threads_cached	6
+Threads_connected	5
+Threads_created	12
+Threads_running	3
+
+══ Diagnostics Complete ═══

@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-env-error";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-env-error";
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
@@ -20,8 +20,10 @@
   const hasBootstrapUi = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
@@ -30,13 +32,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -45,11 +45,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -65,7 +65,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (message: string): void=> {
+  const scheduleClickError = (message: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -77,14 +77,14 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -123,10 +123,10 @@
     el.style.display = show ? "block" : "none";
     return true;
   };
-  const checkEnvironment = (val?: unknown): void=> {
+  const checkEnvironment = (val?: unknown): void => {
     try {
-      const el = qs("#environment_text_input");
-      const ok = safeDisplay(el, val === "other");
+      const el = qs("#environment_text_input"),
+        ok = safeDisplay(el, val === "other");
       if (!ok)
         scheduleClickError(
           getMsg(el ?? document.body, "env_toggle_unavailable"),
@@ -159,9 +159,12 @@
       scheduleClickError(getMsg(document.body, "tab_app_unavailable"));
     }
   };
-  window.checkEnvironment = checkEnvironment;
-  window.showDatabaseSettings = showDatabaseSettings;
-  window.showApplicationSettings = showApplicationSettings;
+  for (const [k, v] of Object.entries({
+    checkEnvironment: checkEnvironment,
+    showDatabaseSettings: showDatabaseSettings,
+    showApplicationSettings: showApplicationSettings,
+  }))
+    (window as unknown as Record<string, unknown>)[k] = v;
 })();
 
 export {};

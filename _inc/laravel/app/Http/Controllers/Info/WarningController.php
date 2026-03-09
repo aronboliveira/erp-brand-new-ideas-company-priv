@@ -29,7 +29,7 @@ class WarningController extends Controller
         $action = "$cls::$fn";
         $view = ViewsConstants::WRN . '.index';
 
-        return $this->measureProfile($action, function () use ($request, $cls, $action, $view) {
+        return $this->measureProfile($action, function () use ($request, $action, $view) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $guard = $this->guard($request, PermissionsConstants::MNG_WRN, self::ROUTE_INDEX);
@@ -154,7 +154,7 @@ class WarningController extends Controller
                     Log::info($action . ' created warning', ['id' => $warning->id]);
                 });
 
-                $settings = Utility::settings($request->user()->creatorId());
+                $settings = Utility::settingsById($request->user()->creatorId());
                 if (!empty($settings['warning_sent'])) {
                     $employee = Employee::find($data['warning_to']);
                     $mailData = [

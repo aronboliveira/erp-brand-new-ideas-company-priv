@@ -6,6 +6,14 @@ use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, Use
 use App\Models\Employee;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+/**
+ * @property string|null $complaint_against
+ * @property \Illuminate\Support\Carbon|string|null $complaint_date
+ * @property \Illuminate\Support\Carbon|string|null $complaint_from
+ * @property mixed $created_by
+ * @property string|null $title
+ * @property string|null $description
+ */
 
 class Complaint extends Model
 {

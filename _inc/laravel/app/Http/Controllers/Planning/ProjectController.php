@@ -201,7 +201,7 @@ class ProjectController extends Controller
                 $this->logExecutionTime($t, $action . '::attachUsers', 'completed');
 
                 $t = microtime(true);
-                $setting = Utility::settings($creator->creatorId());
+                $setting = Utility::settingsById($creator->creatorId());
                 $notif  = ['project_name' => $project[ProjectsConstants::COL_NM], 'user_name' => $creator[UsersConstants::COL_NM]];
                 foreach (['project_notification' => 'send_slack_msg', 'telegram_project_notification' => 'send_telegram_msg'] as $key => $method) {
                     if (!empty($setting[$key])) Utility::$method('new_project', $notif);
@@ -551,7 +551,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse)
                 return response()->json(['error' => 'Permission denied.'], 401);
@@ -630,7 +630,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return null;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -670,7 +670,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -752,7 +752,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -855,7 +855,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -986,7 +986,7 @@ class ProjectController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
             $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;

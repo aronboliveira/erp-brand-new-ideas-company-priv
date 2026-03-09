@@ -6,6 +6,10 @@ use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\User;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+/**
+ * @property mixed $created_by
+ * @property string|null $name
+ */
 
 class TerminationType extends Model
 {

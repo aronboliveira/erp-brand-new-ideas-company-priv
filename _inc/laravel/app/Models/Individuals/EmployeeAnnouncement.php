@@ -8,6 +8,9 @@ use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+/**
+ * @property mixed $role
+ */
 
 class EmployeeAnnouncement extends Model
 {

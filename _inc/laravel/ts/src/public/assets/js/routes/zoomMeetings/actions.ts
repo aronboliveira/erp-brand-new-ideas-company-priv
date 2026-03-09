@@ -4,10 +4,7 @@
  * @module actions
  */
 
-interface DeleteAjaxResponse {
-  flag?: number;
-  msg?: string;
-}
+import type { DeleteAjaxResponse } from "../../../../../declarations/routes/ajax-responses.interfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -15,13 +12,13 @@ interface DeleteAjaxResponse {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const _dataClientLocalized = "data-client-localized";
-  const _dataGuardMsg = "data-guard-msg";
-  const _dataSvLocalized = "data-sv-localized";
-  const dataInit = "data-zoomdel-bound";
-  const dataErr = "data-zoomdel-error";
-  const ns = "._npZoomDel";
+  const errFb = "# ERROR",
+    _dataClientLocalized = "data-client-localized",
+    _dataGuardMsg = "data-guard-msg",
+    _dataSvLocalized = "data-sv-localized",
+    dataInit = "data-zoomdel-bound",
+    dataErr = "data-zoomdel-error",
+    ns = "._npZoomDel";
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
@@ -30,8 +27,10 @@ interface DeleteAjaxResponse {
   const hasBS = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     const existing = qs("#np-toast-container");
@@ -40,13 +39,11 @@ interface DeleteAjaxResponse {
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -55,11 +52,11 @@ interface DeleteAjaxResponse {
         el.id = "np-toast";
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         el.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(el);
@@ -76,7 +73,7 @@ interface DeleteAjaxResponse {
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string): void=> {
+  const schedulePointerupError = (msg: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErr) === "true") return;
     host.setAttribute(dataErr, "true");
@@ -88,26 +85,25 @@ interface DeleteAjaxResponse {
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, key: string) => {
-    const err = errFb;
-    const dataClientLocalized = "data-client-localized";
-    const dataGuardMsg = "data-guard-msg";
+    const err = errFb,
+      dataClientLocalized = "data-client-localized",
+      dataGuardMsg = "data-guard-msg";
     if (
       el.getAttribute("data-sv-localized") === "true" ||
       el.getAttribute(dataClientLocalized) === "true"
-    ) {
+    )
       return el.getAttribute(dataGuardMsg) || err;
-    }
     let lang = (
       window.sessionStorage.getItem("erp-np-lang") ??
       document.documentElement.lang ??
@@ -137,8 +133,8 @@ interface DeleteAjaxResponse {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[actions] Error:`, _);
-  }
+        console.error(`[actions] Error:`, _);
+      }
       schedulePointerupError(localize(document.body, "plugin_unavailable"));
       return false;
     }
@@ -153,8 +149,8 @@ interface DeleteAjaxResponse {
     return btn;
   };
   const buildDeleteUrl = (id: string | number, el: HTMLElement): string => {
-    const url = el.getAttribute("data-url");
-    const href = el.getAttribute("href");
+    const url = el.getAttribute("data-url"),
+      href = el.getAttribute("href");
     if ((!url || url === "#") && (!href || href === "#")) {
       const fallback =
         "{{ url('zoom-meeting') }}".replace(/\/$/, "") + "/" + id;
@@ -170,17 +166,21 @@ interface DeleteAjaxResponse {
     $c.addClass("m_remove");
     $c.attr("uid", rid);
     try {
-      $("#cModal").modal("show");
+      (
+        $("#cModal") as JQuery<HTMLElement> & {
+          modal: (action: string) => void;
+        }
+      ).modal("show");
     } catch (_) {
       schedulePointerupError(localize(document.body, "confirm_unavailable"));
     }
   };
   const onConfirmDelete = function (this: HTMLElement): void {
-    const id = String(this.getAttribute("uid") ?? "");
-    const targetEl = this;
-    const url = buildDeleteUrl(id, targetEl);
-    const urlAttr = targetEl.getAttribute("data-url");
-    const hrefAttr = targetEl.getAttribute("href");
+    const id = String(this.getAttribute("uid") ?? ""),
+      targetEl = this,
+      url = buildDeleteUrl(id, targetEl),
+      urlAttr = targetEl.getAttribute("data-url"),
+      hrefAttr = targetEl.getAttribute("href");
     if (
       (!urlAttr || urlAttr === "#") &&
       (!hrefAttr || hrefAttr === "#") &&
@@ -197,25 +197,26 @@ interface DeleteAjaxResponse {
         )
           console.error("deleteAjax unavailable");
       } catch (_) {
-    console.error(`[actions] Error:`, _);
-  }
+        console.error(`[actions] Error:`, _);
+      }
       schedulePointerupError(localize(targetEl, "plugin_unavailable"));
       return;
     }
     const data = { id: id };
     window.deleteAjax(url, data, function (res: DeleteAjaxResponse) {
       try {
-        if (typeof window.toastr === "object" && window.toastr) {
+        if (typeof window.toastr === "object" && window.toastr)
           window.toastr.success(String(res.msg ?? ""));
-        }
-        if (res.flag === 1) {
-          window.location.reload();
-        }
+        if (res.flag === 1) window.location.reload();
         try {
-          $("#cModal").modal("hide");
+          (
+            $("#cModal") as JQuery<HTMLElement> & {
+              modal: (action: string) => void;
+            }
+          ).modal("hide");
         } catch (_) {
-    console.error(`[actions] Error:`, _);
-  }
+          console.error(`[actions] Error:`, _);
+        }
       } catch (_) {
         schedulePointerupError(localize(targetEl, "delete_unavailable"));
       }
@@ -249,11 +250,9 @@ interface DeleteAjaxResponse {
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bind, { once: true });
-  } else {
-    bind();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", bind, { once: true })
+    : bind();
 })();
 
 export {};

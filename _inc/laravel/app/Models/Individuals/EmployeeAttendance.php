@@ -10,6 +10,22 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\BelongsTo
 };
+/**
+ * @property \Illuminate\Support\Carbon|string|null $clock_in
+ * @property \Illuminate\Support\Carbon|string|null $clock_out
+ * @property mixed $created_by
+ * @property float|int|null $early_arrival_count
+ * @property string|null $early_leaving
+ * @property float|int|null $early_leaving_count
+ * @property float|int|null $late_count
+ * @property float|int|null $total_rest
+ * @property float|int|null $total_work
+ * @property \Illuminate\Support\Carbon|null $date
+ * @property mixed $late
+
+ * @property mixed $overtime
+ * @property int|null $status
+ */
 
 class EmployeeAttendance extends Model
 {
@@ -69,25 +85,25 @@ class EmployeeAttendance extends Model
     protected static function booted(): void
     {
         static::creating(function (self $model): void {
-            if (!$model->{AC::COL_TT_RST}) $model->{AC::COL_TT_RST} = '00:00:00';
+            if (!$model->{AC::COL_TT_RST}) $model->{AC::COL_TT_RST} = '00:00:00'; // @phpstan-ignore assign.propertyType
         });
 
         static::saving(function (self $model): void {
-            $model->status = AttendanceStatus::normalize($model->status ?? null)->value;
+            $model->status = (int)AttendanceStatus::normalize($model->status ?? null)->value;
 
             $model->{AC::COL_ERL_AV_CT}  = max(0, (int) ($model->{AC::COL_ERL_AV_CT} ?? 0));
             $model->{AC::COL_LT_CT}      = max(0, (int) ($model->{AC::COL_LT_CT} ?? 0));
             $model->{AC::COL_ERL_LV_CT}  = max(0, (int) ($model->{AC::COL_ERL_LV_CT} ?? 0));
             $model->{AC::COL_OVT_CT}     = max(0, (int) ($model->{AC::COL_OVT_CT} ?? 0));
 
-            $model->{AC::COL_TT_RST} = $model->normalizeDuration($model->{AC::COL_TT_RST} ?? '00:00:00') ?? '00:00:00';
+            $model->{AC::COL_TT_RST} = $model->normalizeDuration($model->{AC::COL_TT_RST} ?? '00:00:00') ?? '00:00:00'; // @phpstan-ignore assign.propertyType
 
             $model->ensureBefore(AC::COL_ERL_ARV, AC::COL_CLK_IN, AC::COL_ERL_AV_CT);
             $model->ensureAfter('late', AC::COL_CLK_IN, AC::COL_LT_CT);
             $model->ensureBefore(AC::COL_ERL_LV, AC::COL_CLK_OUT, AC::COL_ERL_LV_CT);
             $model->ensureAfter('overtime', AC::COL_CLK_OUT, AC::COL_OVT_CT);
 
-            $model->{AC::COL_TT_WRK} = $model->normalizeDuration(
+            $model->{AC::COL_TT_WRK} = $model->normalizeDuration( // @phpstan-ignore assign.propertyType
                 $model->{AC::COL_TT_WRK} ?: $model->calculateTotalWork()
             ) ?? '00:00:00';
         });

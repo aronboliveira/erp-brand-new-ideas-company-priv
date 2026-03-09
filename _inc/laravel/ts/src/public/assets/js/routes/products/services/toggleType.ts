@@ -6,13 +6,10 @@
 
 ((): void => {
   try {
-    const qtyWrap = document.querySelector<HTMLElement>(".quantity");
-    const qtyInput = document.getElementById("quantity");
-    const radios = Array.from(
-      document.querySelectorAll('input.type[name="type"]'),
-    );
+    const qtyWrap = document.querySelector<HTMLElement>(".quantity"),
+      qtyInput = document.getElementById("quantity"),
+      radios = Array.from(document.querySelectorAll('input.type[name="type"]'));
     if (!qtyWrap || !qtyInput || radios.length === 0) return;
-
     const apply = (): void => {
       const val =
         radios

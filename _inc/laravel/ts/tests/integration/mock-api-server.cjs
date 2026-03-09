@@ -92,9 +92,9 @@ const ROUTES = {
 
   // Customers
   "GET:/api/customers": () => ({ body: { data: MOCK_CUSTOMERS, total: MOCK_CUSTOMERS.length } }),
-  "GET:/api/customers/:id": (url) => {
+  "GET:/api/customers/:id": url => {
     const id = parseInt(url.pathname.split("/").pop() || "0", 10);
-    const c = MOCK_CUSTOMERS.find((c) => c.id === id);
+    const c = MOCK_CUSTOMERS.find(c => c.id === id);
     return c ? { body: { data: c } } : { status: 404, body: { error: "Not found" } };
   },
   "POST:/api/customers": (_url, body) => ({
@@ -105,17 +105,17 @@ const ROUTES = {
 
   // Invoices
   "GET:/api/invoices": () => ({ body: { data: MOCK_INVOICES, total: MOCK_INVOICES.length } }),
-  "GET:/api/invoices/:id": (url) => {
+  "GET:/api/invoices/:id": url => {
     const id = parseInt(url.pathname.split("/").pop() || "0", 10);
-    const inv = MOCK_INVOICES.find((i) => i.id === id);
+    const inv = MOCK_INVOICES.find(i => i.id === id);
     return inv ? { body: { data: inv } } : { status: 404, body: { error: "Not found" } };
   },
 
   // Products
   "GET:/api/products": () => ({ body: { data: MOCK_PRODUCTS, total: MOCK_PRODUCTS.length } }),
-  "GET:/api/products/:id": (url) => {
+  "GET:/api/products/:id": url => {
     const id = parseInt(url.pathname.split("/").pop() || "0", 10);
-    const p = MOCK_PRODUCTS.find((p) => p.id === id);
+    const p = MOCK_PRODUCTS.find(p => p.id === id);
     return p ? { body: { data: p } } : { status: 404, body: { error: "Not found" } };
   },
 
@@ -124,7 +124,7 @@ const ROUTES = {
 
   // Translations
   "GET:/api/translations": () => ({ body: { data: MOCK_TRANSLATIONS } }),
-  "GET:/api/translations/:lang": (url) => {
+  "GET:/api/translations/:lang": url => {
     const lang = url.pathname.split("/").pop() || "en";
     const t = MOCK_TRANSLATIONS[lang];
     return t ? { body: { data: t } } : { status: 404, body: { error: `Lang '${lang}' not found` } };
@@ -222,7 +222,7 @@ const server = http.createServer((req, res) => {
 
   // Collect body
   let body = "";
-  req.on("data", (chunk) => (body += chunk));
+  req.on("data", chunk => (body += chunk));
   req.on("end", () => {
     let parsedBody;
     try {

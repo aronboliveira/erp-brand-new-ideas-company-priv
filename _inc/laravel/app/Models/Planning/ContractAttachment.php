@@ -187,7 +187,7 @@ final class ContractAttachment extends AbstractFile
                 'max_attempts' => $max,
             ]);
 
-        $this->setAttribute('code', $candidate ?? ('CTC-ATC-' . strtoupper((string) Str::uuid())));
+        $this->setAttribute('code', $candidate);
     }
 
     protected function normalizeAttachmentType(): void

@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langKey = "erp-np-lang";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    langKey = "erp-np-lang";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
@@ -40,7 +40,7 @@
     return msg;
   }
 
-  function showError(message: string): void{
+  function showError(message: string): void {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -55,11 +55,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -100,11 +100,11 @@
         if ($el.data("listener-income") === true) return;
         $el.data("listener-income", true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const handler = (e?: Event): void=> {
+        const handler = (_e?: Event): void => {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
-            $row.find(".income_data").each((i: number, inp) => {
+            $row.find(".income_data").each((_i: number, inp) => {
               const v = parseFloat(String($(inp).val() ?? "")) || 0;
               catTotal += v;
             });
@@ -116,7 +116,7 @@
               // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
               // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
               .find(`.${month}_income`)
-              .each((i: number, inp) => {
+              .each((_i: number, inp) => {
                 mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -126,7 +126,7 @@
             $row
               .parent()
               .find(".totalIncome")
-              .each((i: number, td) => {
+              .each((_i: number, td) => {
                 grand += parseFloat($(td).text()) || 0;
               });
             $row.parent().find(".income").text(String(grand));
@@ -155,11 +155,11 @@
         if ($el.data("listener-expense") === true) return;
         $el.data("listener-expense", true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const handler = (e?: Event): void=> {
+        const handler = (_e?: Event): void => {
           try {
             const $row = $el.closest("tr");
             let catTotal = 0;
-            $row.find(".expense_data").each((i: number, inp) => {
+            $row.find(".expense_data").each((_i: number, inp) => {
               catTotal += parseFloat(String($(inp).val() ?? "")) || 0;
             });
             $row.find(".totalExpense").text(String(catTotal));
@@ -170,7 +170,7 @@
               // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
               // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
               .find(`.${month}_expense`)
-              .each((i: number, inp) => {
+              .each((_i: number, inp) => {
                 mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
               });
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -180,7 +180,7 @@
             $row
               .parent()
               .find(".totalExpense")
-              .each((i: number, td) => {
+              .each((_i: number, td) => {
                 grand += parseFloat($(td).text()) || 0;
               });
             $row.parent().find(".expense").text(String(grand));
@@ -212,7 +212,7 @@
         if ($el.data("listener-period") === true) return;
         $el.data("listener-period", true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const handler = (e?: Event): void=> {
+        const handler = (_e?: Event): void => {
           try {
             const val = $el.val() ?? "";
             $(".budget_plan").addClass("d-none");

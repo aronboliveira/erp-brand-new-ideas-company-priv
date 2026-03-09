@@ -131,7 +131,7 @@ final class DeductionOptionController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($action, $method, $base) {
             Log::info("[{$base}::{$action}] redirect", [UsersConstants::COL_USER_ID => Auth::id(), 'method' => $method]);
             $redirStart = microtime(true);
             $resp = redirect()->route(VW::DDT_OPT . '.index');

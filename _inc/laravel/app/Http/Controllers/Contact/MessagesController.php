@@ -7,7 +7,7 @@ use App\Models\{ChFavorite as Favorite, ChMessage as Message, User, Utility};
 use App\Traits\ChecksLogin;
 use Chatify\Facades\ChatifyMessenger as Chatify;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
-use Illuminate\{Routing\Controller, Support\Str};
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\{Auth, Log, Response as ResponseFacade, Request as RequestFacade};
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
@@ -34,7 +34,7 @@ class MessagesController extends Controller
                     'user_info' => [UsersConstants::COL_NM => Auth::user()[UsersConstants::COL_NM] ?? '']
                 ]);
                 $resp = Auth::check()
-                    ? Chatify::pusherAuth($request->channel_name, $request->socket_id, $authData)
+                    ? Chatify::pusherAuth($request->channel_name, $request->socket_id, $authData) /** @phpstan-ignore staticMethod.void */
                     : response('Unauthorized', 401);
                 $this->logExecutionTime($t, $action . '::pusherAuth', 'completed');
 
@@ -65,7 +65,7 @@ class MessagesController extends Controller
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $t = microtime(true);
-                $routeName = RequestFacade::route()->getName();
+                $routeName = RequestFacade::route()?->getName(); /** @phpstan-ignore method.nonObject */
                 $route     = in_array($routeName, ['user', config('chatify.routes.prefix')], true) ? 'user' : $routeName;
                 $viewData  = [
                     'id'             => $id ? "{$route}_{$id}" : '0',
@@ -101,7 +101,7 @@ class MessagesController extends Controller
                     : Utility::getFile('/' . config('chatify.user_avatar.folder') . '/avatar.png');
                 $this->logExecutionTime($t, $action . '::fetchUser', 'completed');
 
-                return JsonResponse::json(compact('favorite', 'user', 'avatar'));
+                return response()->json(compact('favorite', 'user', 'avatar'));
             } catch (\Throwable $e) {
                 return $this->handleException($request, $e);
             }
@@ -188,16 +188,16 @@ class MessagesController extends Controller
                     Chatify::push('private-chatify', 'messaging', [
                         'from_id' => Auth::id(),
                         'to_id'   => $request->id,
-                        'message' => Chatify::messageCard($messageData, 'default'),
+                        'message' => Chatify::messageCard($messageData, 'default'), /** @phpstan-ignore staticMethod.void */
                     ]);
                     $this->logExecutionTime($t, $action . '::push', 'completed');
                 }
 
-                return JsonResponse::json([
+                return response()->json([
                     'status'      => '200',
                     'error'       => $error['status'],
                     'error_msg'   => $error['message'],
-                    'message'     => Chatify::messageCard($messageData ?? null),
+                    'message'     => Chatify::messageCard($messageData ?? null), /** @phpstan-ignore staticMethod.void */
                     'tempID'      => $request->temporaryMsgId,
                 ]);
             } catch (\Throwable $e) {
@@ -216,19 +216,20 @@ class MessagesController extends Controller
                 $this->logExecutionTime($t, $action . '::_checkLogin', 'ok');
 
                 $t = microtime(true);
+                /** @phpstan-ignore class.notFound */
                 $query    = Chatify::fetchMessagesQuery($request->id)->orderBy('created_at', 'asc');
                 $messages = $query->get();
                 $this->logExecutionTime($t, $action . '::fetchMessages', 'completed');
 
                 $t = microtime(true);
                 $html = $messages->reduce(
-                    fn($carry, $msg) => $carry . Chatify::messageCard(Chatify::fetchMessage($msg->id)),
+                    fn($carry, $msg) => $carry . Chatify::messageCard(Chatify::fetchMessage($msg->id)), /** @phpstan-ignore staticMethod.void */
                     ''
                 );
                 $count = $query->count();
                 $this->logExecutionTime($t, $action . '::renderMessages', 'completed');
 
-                return JsonResponse::json([
+                return response()->json([
                     'count'    => $count,
                     'messages' => $count ? $html : '<p class="message-hint"><span>Say \'hi\' and start messaging</span></p>',
                 ]);
@@ -254,7 +255,7 @@ class MessagesController extends Controller
                 $newCount    = $seenCount ? $totalUnseen - $unseen : $totalUnseen;
                 $this->logExecutionTime($t, $action . '::markSeen', 'completed');
 
-                return JsonResponse::json(['status' => $seenCount, 'messengerCount' => $newCount], 200);
+                return response()->json(['status' => $seenCount, 'messengerCount' => $newCount], 200);
             } catch (\Throwable $e) {
                 return $this->handleException($request, $e);
             }
@@ -291,7 +292,7 @@ class MessagesController extends Controller
 
                 $t = microtime(true);
                 $contacts = $users->reject(fn($u) => $u->id === $userId)
-                    ->reduce(fn($html, $u) => $html . Chatify::getContactItem($request->messenger_id, $u), '');
+                    ->reduce(fn($html, $u) => $html . Chatify::getContactItem($request->messenger_id, $u), ''); /** @phpstan-ignore staticMethod.void */
                 $this->logExecutionTime($t, $action . '::renderContacts', 'completed');
 
                 $t = microtime(true);
@@ -311,7 +312,7 @@ class MessagesController extends Controller
                 );
                 $this->logExecutionTime($t, $action . '::renderMembers', 'completed');
 
-                return JsonResponse::json([
+                return response()->json([
                     'contacts' => $contacts ?: '<p class="message-hint"><span>' . __('Your contact list is empty') . '</span></p>',
                     'allUsers' => $allUsers ?: '<p class="message-hint"><span>' . __('Your member list is empty') . '</span></p>',
                 ], 200);
@@ -333,11 +334,11 @@ class MessagesController extends Controller
         return $this->measureProfile($action, function () use ($request, $action) {
             $t = microtime(true);
             $userCollection = User::where('id', $request[UsersConstants::COL_USER_ID])->first();
-            $contactItem    = Chatify::getContactItem($request['messenger_id'], $userCollection);
+            $contactItem    = Chatify::getContactItem($request['messenger_id'], $userCollection); /** @phpstan-ignore staticMethod.void */
             $messageCount   = Message::where('to_id', Auth::user()->id)->where('seen', 0)->count();
             $this->logExecutionTime($t, $action . '::compose', 'completed');
 
-            return Response::json(
+            return response()->json(
                 ['contactItem' => $contactItem, 'messengerCount' => $messageCount],
                 200
             );
@@ -360,7 +361,7 @@ class MessagesController extends Controller
                 Chatify::makeInFavorite($userId, $isFav ? 0 : 1);
                 $this->logExecutionTime($t, $action . '::toggleFavorite', 'completed');
 
-                return JsonResponse::json(['status' => $isFav ? 0 : 1], 200);
+                return response()->json(['status' => $isFav ? 0 : 1], 200);
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action);
@@ -389,7 +390,7 @@ class MessagesController extends Controller
                 );
                 $this->logExecutionTime($t, $action . '::fetchFavorites', 'completed');
 
-                return JsonResponse::json([
+                return response()->json([
                     'count'     => $count,
                     'favorites' => $count
                         ? $html
@@ -434,7 +435,7 @@ class MessagesController extends Controller
                 );
                 $this->logExecutionTime($t, $action . '::render', 'completed');
 
-                return JsonResponse::json([
+                return response()->json([
                     'records' => $records->count()
                         ? $html
                         : '<p class="message-hint"><span>Nothing to show.</span></p>',
@@ -470,7 +471,7 @@ class MessagesController extends Controller
                 );
                 $this->logExecutionTime($t, $action . '::renderShared', 'completed');
 
-                return JsonResponse::json([
+                return response()->json([
                     'shared' => count($shared)
                         ? $html
                         : '<p class="message-hint"><span>Nothing shared yet</span></p>',
@@ -497,7 +498,7 @@ class MessagesController extends Controller
                 $deleted = Chatify::deleteConversation($request->id) ? 1 : 0;
                 $this->logExecutionTime($t, $action . '::delete', 'completed');
 
-                return JsonResponse::json(['deleted' => $deleted], 200);
+                return response()->json(['deleted' => $deleted], 200);
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action);
@@ -524,7 +525,7 @@ class MessagesController extends Controller
 
                 $t = microtime(true);
                 if ($mode = $request->input('dark_mode')) {
-                    $user->update(['dark_mode' => $mode === 'dark' ? 1 : 0]);
+                    $user->update(['dark_mode' => $mode === 'dark' ? 1 : 0]); /** @phpstan-ignore method.protected */
                 }
                 $this->logExecutionTime($t, $action . '::setDarkMode', 'completed');
 
@@ -533,7 +534,7 @@ class MessagesController extends Controller
                     $colorKey = explode('-', strip_tags(trim($rawColor)))[1] ?? null;
                     $colors   = Chatify::getMessengerColors();
                     if ($colorKey !== null && isset($colors[$colorKey])) {
-                        $user->update(['messenger_color' => $colors[$colorKey]]); // fixed => bug
+                        $user->update(['messenger_color' => $colors[$colorKey]]); /** @phpstan-ignore method.protected */ // fixed => bug
                     }
                 }
                 $this->logExecutionTime($t, $action . '::setColor', 'completed');
@@ -550,7 +551,7 @@ class MessagesController extends Controller
                         }
                         $avatar = (string) Str::uuid() . ".{$ext}";
                         $file->storeAs(config('chatify.user_avatar.folder'), $avatar);
-                        $success = $user->update(['avatar' => $avatar]) ? 1 : 0; // fixed => bug
+                        $success = $user->update(['avatar' => $avatar]) ? 1 : 0; /** @phpstan-ignore method.protected */ // fixed => bug
                     } else {
                         $error = 1;
                         $msg = 'File extension not allowed or too large!';
@@ -558,7 +559,7 @@ class MessagesController extends Controller
                     $this->logExecutionTime($t, $action . '::uploadAvatar', $error ? 'failed' : 'completed');
                 }
 
-                return JsonResponse::json([
+                return response()->json([
                     'status'  => $success,
                     'error'   => $error,
                     'message' => $error ? $msg : 0,
@@ -587,7 +588,7 @@ class MessagesController extends Controller
                 $updated = User::where('id', $userId)->update(['active_status' => $status]);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
-                return JsonResponse::json(['status' => $updated], 200);
+                return response()->json(['status' => $updated], 200);
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action);

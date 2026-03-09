@@ -7,6 +7,9 @@ use App\Traits\{HasAuditFields, NormalizesAddresses, StoresManyRefJson, UsesCoun
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+/**
+ * @property string|null $address
+ */
 class Branch extends Model
 {
     use UsesUuids, HasAuditFields, NormalizesAddresses, UsesCountryRegions, StoresManyRefJson;
@@ -69,7 +72,7 @@ class Branch extends Model
                         $departmentsArray
                     );
                     $branchCompany = $m->getAttribute('company');
-                    if (empty($branchCompany))
+                    if ($branchCompany === null || (string) $branchCompany === '')
                         $validDepartments = $unspecificDepartments;
                     else {
                         $validSpecificDepartments = DB::table(DC::TABLE_DEPARTMENTS)
@@ -107,7 +110,7 @@ class Branch extends Model
 
     public function getDepartmentById(string $deptId): ?string
     {
-        $departments = $this->getDepartments($this->attributes['departments']);
+        $departments = $this->getDepartmentsAttribute($this->attributes['departments'] ?? null);
         return in_array($deptId, $departments, true) ? $deptId : null;
     }
 
@@ -118,19 +121,19 @@ class Branch extends Model
 
     public function hasDepartmentById(string $deptId): bool
     {
-        $departments = $this->getDepartments($this->attributes['departments']);
+        $departments = $this->getDepartmentsAttribute($this->attributes['departments'] ?? null);
         return in_array($deptId, $departments, true);
     }
 
     public function getFirstDepartment(): ?string
     {
-        $departments = $this->getDepartments($this->attributes['departments']);
+        $departments = $this->getDepartmentsAttribute($this->attributes['departments'] ?? null);
         return $departments[0] ?? null;
     }
 
     public function getLastDepartment(): ?string
     {
-        $departments = $this->getDepartments($this->attributes['departments']);
+        $departments = $this->getDepartmentsAttribute($this->attributes['departments'] ?? null);
         return end($departments) ?: null;
     }
 

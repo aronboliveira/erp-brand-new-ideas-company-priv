@@ -41,6 +41,15 @@ use Illuminate\Support\Facades\Log;
  * @property string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|string|null $available_from
+ * @property \Illuminate\Support\Carbon|string|null $available_until
+ * @property array|string|null $customField
+ * @property string|null $item
+ * @property string|null $pro_image
+ * @property string|null $tax
+ * @property string|null $unit
+
+ * @property mixed $custom
  */
 class ProductService extends Model
 {
@@ -333,5 +342,11 @@ class ProductService extends Model
             ->where('product_id', $productId)
             ->first();
         return $wp->quantity ?? 0;
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\ProductServiceUnit, $this> */
+    public function unit(): BelongsTo
+    {
+        return $this->legacyUnit();
     }
 }

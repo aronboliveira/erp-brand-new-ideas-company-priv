@@ -18,16 +18,16 @@
       )
         console.error("jQuery not found for anchors.js");
     } catch (_) {
-    console.error(`[report] Error:`, _);
-  }
+      console.error(`[report] Error:`, _);
+    }
     return;
   }
-  const ERR_FB = "# ERROR";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const DLA = "data-listener-active";
-  const MSG_KEY = "pos_route_unavailable";
+  const ERR_FB = "# ERROR",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    DLA = "data-listener-active",
+    MSG_KEY = "pos_route_unavailable";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -59,7 +59,7 @@
     }
     return msg;
   };
-  const showError = (el: HTMLElement | null): void=> {
+  const showError = (el: HTMLElement | null): void => {
     const msg = getMsg(el);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-pos-guard");
@@ -73,11 +73,11 @@
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         msg +
@@ -89,26 +89,28 @@
     }
   };
   const handlers = new WeakMap();
-  const onClick = (el: HTMLElement) => (e: Event): void=> {
-    try {
-      const url = el.getAttribute("data-url");
-      const href = el.getAttribute("href");
-      if ((!url || url === "#") && (!href || href === "#")) {
-        e.preventDefault();
-        showError(el);
+  const onClick =
+    (el: HTMLElement) =>
+    (e: Event): void => {
+      try {
+        const url = el.getAttribute("data-url"),
+          href = el.getAttribute("href");
+        if ((!url || url === "#") && (!href || href === "#")) {
+          e.preventDefault();
+          showError(el);
+        }
+      } catch (_) {
+        console.error(`[report] Error:`, _);
       }
-    } catch (_) {
-    console.error(`[report] Error:`, _);
-  }
-  };
-  const bind = (el: HTMLElement | null): void=> {
+    };
+  const bind = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
     const h = onClick(el);
     handlers.set(el, h);
     $(el as Element).on("click", h);
   };
-  const unbind = (el: HTMLElement | null): void=> {
+  const unbind = (el: HTMLElement | null): void => {
     if (!el) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlers.get(el);
@@ -119,10 +121,8 @@
     }
     el.removeAttribute(DLA);
   };
-  const scan = (root?: Element | Document): void=> {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const r = root || document;
-    const list = r.querySelectorAll<HTMLElement>(
+  const scan = (root?: Element | Document): void => {
+    const list = (root ?? document).querySelectorAll<HTMLElement>(
       "a[" + DGM + "]:not([" + DLA + '="true"])',
     );
     list.forEach(bind);
@@ -131,8 +131,8 @@
     try {
       scan(document);
     } catch (_) {
-    console.error(`[report] Error:`, _);
-  }
+      console.error(`[report] Error:`, _);
+    }
   };
   if (document.readyState === "loading") {
     $(ready);
@@ -150,9 +150,7 @@
           if (n.nodeType === 1) {
             const el = n as HTMLElement;
             if (el.hasAttribute(DLA)) unbind(el);
-            el.querySelectorAll<HTMLElement>("a[" + DLA + "]").forEach(
-              unbind,
-            );
+            el.querySelectorAll<HTMLElement>("a[" + DLA + "]").forEach(unbind);
           }
         });
     });
@@ -168,25 +166,25 @@
         )
           console.error("jQuery not found for summary.js");
       } catch (_) {
-    console.error(`[report] Error:`, _);
-  }
+        console.error(`[report] Error:`, _);
+      }
       return;
     }
     const init = (): void => {
       try {
         if (!$.fn.DataTable) return;
         const $t = $(".datatable").filter(
-          (i: number, el: HTMLElement) =>
+          (_i: number, el: HTMLElement) =>
             el.getAttribute("data-dt-init") !== "true",
         );
         if (!$t.length) return;
-        $t.each(function (): void {
+        $t.each(function (this: HTMLElement): void {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).attr("data-dt-init", "true").DataTable({ order: [] });
         });
       } catch (_) {
-    console.error(`[report] Error:`, _);
-  }
+        console.error(`[report] Error:`, _);
+      }
     };
     if (document.readyState === "loading") {
       $(init);

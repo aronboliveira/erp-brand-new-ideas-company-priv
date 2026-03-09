@@ -7,6 +7,11 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * @property string|null $name
+ * @property float|int|string|null $rate
+ * @property mixed $created_by
+ */
 class Tax extends Model
 {
     use UsesUuids, HasAuditFields;

@@ -24,6 +24,10 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
+/**
+ * @property string|\Illuminate\Support\Carbon|null $reconciled_at
+ * @property string|null $status
+ */
 class Revenue extends Model
 {
     use UsesUuids;

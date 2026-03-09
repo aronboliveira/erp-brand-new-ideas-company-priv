@@ -58,7 +58,7 @@ class TrainerController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $action, $method) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create trainer', self::REDIRECT_INDEX)) !== true) return $redirect;

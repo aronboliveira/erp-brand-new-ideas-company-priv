@@ -70,7 +70,7 @@ class BillAccount extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(DC::ORDER_NEW, function (Builder $builder) {
-            $table = (new static)->getTable();
+            $table = (new static)->getTable(); // @phpstan-ignore new.static
             $col = Schema::hasColumn($table, 'created_at') ? 'created_at' : 'id';
             $builder->orderBy($col, 'desc');
         });

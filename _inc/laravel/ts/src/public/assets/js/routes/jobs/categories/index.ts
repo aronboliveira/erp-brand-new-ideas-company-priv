@@ -6,7 +6,7 @@
 
 ((): void => {
   const F = {
-    toast(message: string): void{
+    toast(message: string): void {
       const text =
         message ??
         "Requested route is unavailable. Please contact technical support or your domain administrator.";
@@ -24,11 +24,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = text;
@@ -39,31 +39,34 @@
         alert(text);
       }
     },
-    bindLinkGuard(a: HTMLElement | null): void{
+    bindLinkGuard(a: HTMLElement | null): void {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
-        const href = (a.getAttribute("href") ?? "#").trim();
-        const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
+        const href = (a.getAttribute("href") ?? "#").trim(),
+          url = (a.getAttribute("data-url") ?? href ?? "#").trim();
         if (url !== "#" && href !== "#") return;
         e.preventDefault();
         F.toast(a.getAttribute("data-guard-msg") ?? "");
         a.setAttribute("data-failed-route", "true");
       });
     },
-    bindFormGuard(fm: HTMLElement | null): void{
+    bindFormGuard(fm: HTMLElement | null): void {
       if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
       fm.setAttribute("data-submit-guarded", "true");
-      fm.addEventListener("submit", (e: Event) => {
-        const action = (fm.getAttribute("action") ?? "#").trim();
-        const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
-        if (url !== "#" && action !== "#") return;
-        e.preventDefault();
-        F.toast(fm.getAttribute("data-guard-msg") ?? "");
-        fm.setAttribute("data-failed-route", "true");
-      });
+      if (!fm.getAttribute("data-listener-bound-submit")) {
+        fm.setAttribute("data-listener-bound-submit", "1");
+        fm.addEventListener("submit", (e: Event) => {
+          const action = (fm.getAttribute("action") ?? "#").trim(),
+            url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+          if (url !== "#" && action !== "#") return;
+          e.preventDefault();
+          F.toast(fm.getAttribute("data-guard-msg") ?? "");
+          fm.setAttribute("data-failed-route", "true");
+        });
+      }
     },
-    initTooltips(): void{
+    initTooltips(): void {
       try {
         document
           .querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -71,12 +74,12 @@
             try {
               bootstrap.Tooltip.getOrCreateInstance(el);
             } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+              console.error(`[index] Error:`, _);
+            }
           });
       } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+        console.error(`[index] Error:`, _);
+      }
     },
   };
 

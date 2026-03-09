@@ -23,7 +23,7 @@ class LeadStageController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = 'leadStages.index';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, PermissionsConstants::MNG_LD_ST)) return $r;
       try {
@@ -50,7 +50,7 @@ class LeadStageController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = 'leadStages.create';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, 'create lead stage')) return $r;
       try {
@@ -73,7 +73,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId(), 'input_keys' => array_keys($req->all())]);
       if ($r = self::_deny($req, 'create lead stage')) return $r;
       if ($v = self::_validate($req->all(), ['name' => 'required|max:20', 'pipeline_id' => 'required'])) return $v;
@@ -95,7 +95,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey()]);
       try {
         $redirStart = microtime(true);
@@ -116,7 +116,7 @@ class LeadStageController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = 'leadStages.edit';
-    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, 'edit lead stage')) return $r;
       if ($leadStage->created_by !== $req->user()->ownerId()) return defaultPermissionDenial($req, new AuthorizationException('lead owner'), $class . '::' . $action);
@@ -140,7 +140,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId(), 'input_keys' => array_keys($req->all())]);
       if ($r = self::_deny($req, 'edit lead stage')) return $r;
       if ($leadStage->created_by !== $req->user()->ownerId()) return defaultPermissionDenial($req, new AuthorizationException('lead owner'), $class . '::' . $action);
@@ -163,7 +163,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $leadStage, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, 'delete lead stage')) return $r;
       try {
@@ -184,7 +184,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId(), 'payload_count' => is_array($req->input('order')) ? count($req->input('order')) : 0]);
       if ($r = self::_deny($req, 'edit lead stage')) return $r;
       $payload = $req->input('order', []);

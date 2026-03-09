@@ -9,11 +9,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const L = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const ERR = "# ERROR";
+  const L = "data-guard-listener",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    ERR = "# ERROR";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const NS = ".detailGuards";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -26,7 +26,7 @@
       return false;
     }
   }
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
@@ -38,11 +38,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -54,7 +54,7 @@
       }
     } catch (_) {
       alert(msg);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -87,16 +87,16 @@
       return ERR;
     }
   }
-  function bindLink(a: HTMLAnchorElement): void{
+  function bindLink(a: HTMLAnchorElement): void {
     if (!a || a.getAttribute(L) === "true") return;
     a.setAttribute(L, "true");
     const jQuery = window.jQuery;
     if (!jQuery) return;
     const $a = jQuery(a);
-    const handler = function (e: Event): void{
+    const handler = function (e: Event): void {
       try {
-        const url = a.getAttribute("data-url");
-        const href = a.href;
+        const url = a.getAttribute("data-url"),
+          href = a.href;
         if ((!url || url === "#") && (!href || href === "#")) {
           e.preventDefault();
           toast(getMsg(a, "action_unavailable"));
@@ -112,16 +112,16 @@
         try {
           $a.off("click" + NS);
         } catch (_) {
-    console.error(`[view] Error:`, _);
-  }
+          console.error(`[view] Error:`, _);
+        }
         obs.disconnect();
       }
     });
     try {
       obs.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[view] Error:`, _);
-  }
+      console.error(`[view] Error:`, _);
+    }
   }
   try {
     const $ = window.jQuery;
@@ -133,8 +133,8 @@
         )
           console.error("jQuery not found for detailGuards");
       } catch (_) {
-    console.error(`[view] Error:`, _);
-  }
+        console.error(`[view] Error:`, _);
+      }
       return;
     }
     $(function (): void {
@@ -146,8 +146,8 @@
           bindLink(el as HTMLAnchorElement);
         });
       } catch (_) {
-    console.error(`[view] Error:`, _);
-  }
+        console.error(`[view] Error:`, _);
+      }
     });
   } catch (_) {
     try {
@@ -157,8 +157,8 @@
       )
         console.error("Failed to initialize detailGuards");
     } catch (__) {
-    console.error(`[view] Error:`, __);
-  }
+      console.error(`[view] Error:`, __);
+    }
   }
 })();
 

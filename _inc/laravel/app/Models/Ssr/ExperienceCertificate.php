@@ -59,7 +59,7 @@ class ExperienceCertificate extends Model
 
     public static function defaultExpCertificate(?string $userId = null): void
     {
-        app(TemplateRequestService::class)->ensureDefaultExpCertificate(new static(), $userId);
+        app(TemplateRequestService::class)->ensureDefaultExpCertificate(new static(), $userId); // @phpstan-ignore new.static, argument.type
     }
 
     public const DEF_EXP_CRT_REG = 'defaultExpCertificateRegister';

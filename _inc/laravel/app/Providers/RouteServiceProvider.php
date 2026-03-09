@@ -47,6 +47,7 @@ final class RouteServiceProvider extends ServiceProvider
             parent::boot();
             /** @var \Illuminate\Routing\RouteCollection $routes */
             $routes = Route::getRoutes();
+            /** @phpstan-ignore-next-line */
             foreach ($routes as $route) {
                 $specialRoutes = ['login', 'password', 'register', 'verification'];
                 $converted = Str::kebab($route->uri());

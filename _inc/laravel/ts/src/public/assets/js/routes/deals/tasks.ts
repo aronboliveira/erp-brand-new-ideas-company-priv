@@ -4,31 +4,27 @@
  * @module tasks
  */
 
-declare global {
-  interface JQuery {
-    daterangepicker(options?: Record<string, unknown>): JQuery;
-    timepicker(options?: Record<string, unknown>): JQuery;
-  }
-}
+import "../../../../../declarations/routes/vendor-libs";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
     const lang = (
-      sessionStorage.getItem("erp-np-lang") ??
-      (document.documentElement.lang || "en")
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    const short = lang === "pt-br" ? lang : lang.slice(0, 2);
+        sessionStorage.getItem("erp-np-lang") ??
+        (document.documentElement.lang || "en")
+      )
+        .toLowerCase()
+        .replace(/_/g, "-"),
+      short = lang === "pt-br" ? lang : lang.slice(0, 2);
     return (
       window.translations?.[short]?.[key] ||
       window.translations?.en?.[key] ||
       "# ERROR"
     );
   };
-  const toast = (msg: string): void=> {
+  const toast = (msg: string): void => {
     window.show_toastr ? window.show_toastr("error", msg, "error") : alert(msg);
   };
 

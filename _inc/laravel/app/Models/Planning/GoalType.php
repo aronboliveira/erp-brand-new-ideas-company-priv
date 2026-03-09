@@ -8,6 +8,10 @@ use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon};
 use Illuminate\Support\Facades\{Log};
+/**
+ * @property mixed $created_by
+ * @property string|null $name
+ */
 
 class GoalType extends Model
 {

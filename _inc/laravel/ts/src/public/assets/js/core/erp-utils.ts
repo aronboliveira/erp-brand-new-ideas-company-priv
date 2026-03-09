@@ -1,5 +1,12 @@
 /**
- * erp-utils.ts — General-Purpose Typed Utility Functions
+ * erp-utils.ts — General-Purpose Typed Utility Functions (AUXILIARY)
+ *
+ * ⚠ NOT THE RUNTIME VERSION. The authoritative runtime singleton is the
+ * hand-written OOP class in public/assets/js/core/erp-utils.js (548 lines),
+ * loaded by Blade layouts. This file is a simplified TypeScript set of
+ * utilities — it does NOT replace the original.
+ *
+ * For global type declarations of the original, see ./globals.d.ts.
  *
  * Pure utility functions with no side effects, available for import.
  * Consolidates DOM helpers (821+ files), translation helpers (326+ files),
@@ -19,29 +26,21 @@
  * const btn = qs<HTMLButtonElement>("#submit-btn");
  * ```
  */
-export function qs<T extends Element = Element>(
-  selector: string,
-  root: ParentNode = document
-): T | null {
+export function qs<T extends Element = Element>(selector: string, root: ParentNode = document): T | null {
   return root.querySelector<T>(selector);
 }
 
 /**
  * Typed `document.querySelectorAll` as an array.
  */
-export function qsa<T extends Element = Element>(
-  selector: string,
-  root: ParentNode = document
-): T[] {
+export function qsa<T extends Element = Element>(selector: string, root: ParentNode = document): T[] {
   return Array.from(root.querySelectorAll<T>(selector));
 }
 
 /**
  * Typed `document.getElementById`.
  */
-export function byId<T extends HTMLElement = HTMLElement>(
-  id: string
-): T | null {
+export function byId<T extends HTMLElement = HTMLElement>(id: string): T | null {
   return document.getElementById(id) as T | null;
 }
 
@@ -52,10 +51,7 @@ export function byId<T extends HTMLElement = HTMLElement>(
  * const div = createEl("div", { className: "wrapper", id: "root" });
  * ```
  */
-export function createEl<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  attrs?: Partial<HTMLElementTagNameMap[K]>
-): HTMLElementTagNameMap[K] {
+export function createEl<K extends keyof HTMLElementTagNameMap>(tag: K, attrs?: Partial<HTMLElementTagNameMap[K]>): HTMLElementTagNameMap[K] {
   const el = document.createElement(tag);
   if (attrs) {
     Object.entries(attrs).forEach(([key, val]) => {
@@ -70,10 +66,7 @@ export function createEl<K extends keyof HTMLElementTagNameMap>(
 /**
  * Sets multiple attributes on an element in one call.
  */
-export function setAttrs(
-  el: Element,
-  map: Record<string, string>
-): void {
+export function setAttrs(el: Element, map: Record<string, string>): void {
   Object.entries(map).forEach(([k, v]) => el.setAttribute(k, v));
 }
 
@@ -92,14 +85,8 @@ type TranslationsMap = Record<string, Record<string, string>>;
  * const label = t("invoice", "total_due"); // window.translations.invoice.total_due
  * ```
  */
-export function t(
-  namespace: string,
-  key: string,
-  lang?: string
-): string {
-  const w = (window as unknown as Record<string, unknown>).translations as
-    | TranslationsMap
-    | undefined;
+export function t(namespace: string, key: string, lang?: string): string {
+  const w = (window as unknown as Record<string, unknown>).translations as TranslationsMap | undefined;
   if (!w) return key;
   const ns = lang ? (w[lang] as Record<string, string> | undefined) : w[namespace];
   if (!ns || typeof ns !== "object") return key;
@@ -114,15 +101,13 @@ export function t(
  * mergeTranslations({ en: { greeting: "Hello" }, fr: { greeting: "Bonjour" } });
  * ```
  */
-export function mergeTranslations(
-  map: TranslationsMap
-): void {
+export function mergeTranslations(map: TranslationsMap): void {
   const w = window as unknown as Record<string, unknown>;
   if (!w.translations || typeof w.translations !== "object") {
     w.translations = {};
   }
   const t = w.translations as TranslationsMap;
-  Object.keys(map).forEach((lang) => {
+  Object.keys(map).forEach(lang => {
     t[lang] = Object.assign({}, t[lang] || {}, map[lang]);
   });
 }
@@ -134,12 +119,7 @@ export function getLang(): string {
   const w = window as unknown as Record<string, unknown>;
   const appLang = w.__APP_LANG__;
   if (typeof appLang === "string") return appLang;
-  return (
-    document.documentElement.lang ||
-    document.querySelector<HTMLMetaElement>('meta[name="app-locale"]')
-      ?.content ||
-    "en"
-  );
+  return document.documentElement.lang || document.querySelector<HTMLMetaElement>('meta[name="app-locale"]')?.content || "en";
 }
 
 /* ======================================================================== *
@@ -173,10 +153,7 @@ export function isNil(v: unknown): v is null | undefined {
  * const el = nonNull(byId("my-el"), "Element #my-el missing");
  * ```
  */
-export function nonNull<T>(
-  value: T | null | undefined,
-  message = "Unexpected null/undefined"
-): T {
+export function nonNull<T>(value: T | null | undefined, message = "Unexpected null/undefined"): T {
   if (value === null || value === undefined) {
     throw new Error(message);
   }
@@ -190,10 +167,7 @@ export function nonNull<T>(
 /**
  * Returns a debounced version of `fn`. Trailing-edge by default.
  */
-export function debounce<T extends (...args: unknown[]) => void>(
-  fn: T,
-  ms: number
-): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): (...args: Parameters<T>) => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   return (...args: Parameters<T>) => {
     clearTimeout(timer);
@@ -225,19 +199,14 @@ export function safeJsonParse<T = unknown>(str: string): T | null {
  * Reads the CSRF token from `<meta name="csrf-token">`.
  */
 export function getCsrf(): string {
-  const meta = document.querySelector<HTMLMetaElement>(
-    'meta[name="csrf-token"]'
-  );
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
   return meta?.content ?? "";
 }
 
 /**
  * Typed `fetch` wrapper for POST requests with CSRF token.
  */
-export async function postAjax<T = unknown>(
-  url: string,
-  data: Record<string, unknown>
-): Promise<T> {
+export async function postAjax<T = unknown>(url: string, data: Record<string, unknown>): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -254,10 +223,7 @@ export async function postAjax<T = unknown>(
 /**
  * Typed `fetch` wrapper for DELETE requests with CSRF token.
  */
-export async function deleteAjax<T = unknown>(
-  url: string,
-  data?: Record<string, unknown>
-): Promise<T> {
+export async function deleteAjax<T = unknown>(url: string, data?: Record<string, unknown>): Promise<T> {
   const res = await fetch(url, {
     method: "DELETE",
     headers: {
@@ -295,19 +261,16 @@ const DEFAULT_PDF_OPTS: PdfOptions = {
  * Saves the given HTML element as a PDF using `html2pdf`.
  * Falls back gracefully if `html2pdf` is not loaded.
  */
-export function saveAsPDF(
-  el: HTMLElement,
-  opts?: Partial<PdfOptions>
-): void {
-  const h2p = (window as unknown as Record<string, unknown>).html2pdf as
-    | ((el: HTMLElement) => { set: (o: PdfOptions) => { save: () => void } })
-    | undefined;
+export function saveAsPDF(el: HTMLElement, opts?: Partial<PdfOptions>): void {
+  const h2p = (window as unknown as Record<string, unknown>).html2pdf as ((el: HTMLElement) => { set: (o: PdfOptions) => { save: () => void } }) | undefined;
   if (!h2p) {
     console.warn("[erp-utils] html2pdf is not loaded.");
     return;
   }
   const merged = { ...DEFAULT_PDF_OPTS, ...opts };
-  h2p(el).set(merged as PdfOptions).save();
+  h2p(el)
+    .set(merged as PdfOptions)
+    .save();
 }
 
 /**
@@ -324,10 +287,7 @@ export function printArea(areaId: string): void {
   if (!printWin) return;
   printWin.document.write(`
     <html><head><title>Print</title>
-    <link rel="stylesheet" href="${
-      document.querySelector<HTMLLinkElement>('link[rel="stylesheet"]')?.href ??
-      ""
-    }">
+    <link rel="stylesheet" href="${document.querySelector<HTMLLinkElement>('link[rel="stylesheet"]')?.href ?? ""}">
     </head><body>${el.innerHTML}</body></html>
   `);
   printWin.document.close();

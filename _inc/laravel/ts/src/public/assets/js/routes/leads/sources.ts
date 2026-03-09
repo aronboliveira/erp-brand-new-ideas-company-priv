@@ -18,23 +18,22 @@
       )
         console.error("jQuery not found for sourcesGuard.js");
     } catch (_) {
-    console.error(`[sources] Error:`, _);
-  }
+      console.error(`[sources] Error:`, _);
+    }
     return;
   }
 
-  const ERR_FB = "# ERROR";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const DPL = "data-pointer-listener";
-  const FORM_ID = "leads-sources-form";
-  const MSG_KEY = "leads_sources_update_route_unavailable";
-
+  const ERR_FB = "# ERROR",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    DPL = "data-pointer-listener",
+    FORM_ID = "leads-sources-form",
+    MSG_KEY = "leads_sources_update_route_unavailable";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement) => {
@@ -63,7 +62,7 @@
     return msg;
   };
 
-  const showError = (el: HTMLElement): void=> {
+  const showError = (el: HTMLElement): void => {
     const msg = getMsg(el);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-leads-sources");
@@ -77,11 +76,11 @@
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         msg +
@@ -94,39 +93,38 @@
   };
 
   const handlersPointer = new WeakMap();
-
-  const bindFormPointerGuard = (form: HTMLFormElement): void=> {
+  const bindFormPointerGuard = (form: HTMLFormElement): void => {
     if (form.getAttribute(DPL) === "true") return;
     form.setAttribute(DPL, "true");
     const $btns = $(form).find('button[type="submit"], input[type="submit"]');
     if (!$btns.length) return;
-    const h = (e: Event): void=> {
+    const h = (e: Event): void => {
       try {
-        const url = form.getAttribute("data-url");
-        const action = form.getAttribute("action");
+        const url = form.getAttribute("data-url"),
+          action = form.getAttribute("action");
         if ((!url || url === "#") && (!action || action === "#")) {
           e.preventDefault();
           e.stopPropagation();
           showError(form);
         }
       } catch (_) {
-    console.error(`[sources] Error:`, _);
-  }
+        console.error(`[sources] Error:`, _);
+      }
     };
     handlersPointer.set(form, h);
-    $btns.each(function (): void {
+    $btns.each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(this).on("pointerup", h);
     });
   };
 
-  const unbindFormPointerGuard = (form: HTMLFormElement): void=> {
+  const unbindFormPointerGuard = (form: HTMLFormElement): void => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersPointer.get(form);
     if (h) {
       $(form)
         .find('button[type="submit"], input[type="submit"]')
-        .each(function (): void {
+        .each(function (this: HTMLElement): void {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           $(this).off("pointerup", h);
         });
@@ -135,7 +133,7 @@
     form.removeAttribute(DPL);
   };
 
-  const scan = (root: Document | Element): void=> {
+  const scan = (root: Document | Element): void => {
     const form = root.querySelector<HTMLFormElement>("#" + FORM_ID);
     if (form) bindFormPointerGuard(form);
   };
@@ -144,8 +142,8 @@
     try {
       scan(document);
     } catch (_) {
-    console.error(`[sources] Error:`, _);
-  }
+      console.error(`[sources] Error:`, _);
+    }
   };
   if (document.readyState === "loading") {
     $(ready);

@@ -371,7 +371,7 @@ final class BankTransferPaymentController extends Controller
       Log::info("[{$base}::{$action}] start", ['invoice_id' => $invoiceId, 'order_id' => $orderId, 'status' => $status, UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
       try {
         $txnStart = microtime(true);
-        $resp = DB::transaction(function () use ($req, $invoiceId, $orderId, $status, $action, $base) {
+        $resp = DB::transaction(function () use ($invoiceId, $orderId, $status, $action, $base) {
           $findStart = microtime(true);
           $transfer = InvoiceBankTransfer::where('invoice_id', $invoiceId)->where('order_id', $orderId)->firstOrFail();
           $this->logExecutionTime($findStart, $action, 'findTransfer');

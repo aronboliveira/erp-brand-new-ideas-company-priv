@@ -5,6 +5,11 @@ namespace App\Models;
 use App\Config\Constants\DatabaseConstants;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
+/**
+ * @property array|string|null $fieldJson
+
+ * @property mixed $field
+ */
 
 class Template extends Model
 {

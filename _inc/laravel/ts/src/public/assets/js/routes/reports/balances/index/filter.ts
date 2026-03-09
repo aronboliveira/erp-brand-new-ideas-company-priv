@@ -25,10 +25,10 @@
           });
           document.dispatchEvent(ev);
         } catch (_) {
-    console.error(`[filter] Error:`, _);
-  }
+          console.error(`[filter] Error:`, _);
+        }
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {
     console.error(`[filter] Error:`, _);

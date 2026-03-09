@@ -9,10 +9,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataGuardListener = "data-guard-listener";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataGuardListener = "data-guard-listener";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const msgKey = "leads_unavailable";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -52,7 +52,7 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null): void=> {
+  const showError = (el: HTMLElement | null): void => {
     try {
       const message = getMsg(el);
       if (hasBootstrapCss() && window.bootstrap.Toast) {
@@ -65,11 +65,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = message;
@@ -97,14 +97,14 @@
       return;
     }
     jq((): void => {
-      const bindClick = (el: HTMLElement | null): void=> {
+      const bindClick = (el: HTMLElement | null): void => {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const onClick = (e: Event): void=> {
+        const onClick = (e: Event): void => {
           try {
-            const url = el.getAttribute("data-url");
-            const href = el.getAttribute("href");
+            const url = el.getAttribute("data-url"),
+              href = el.getAttribute("href");
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
               showError(el);
@@ -120,23 +120,23 @@
             try {
               $el.off("click.leadsShowGuard", onClick);
             } catch (__err) {
-    console.error(`[show] Error:`, __err);
-  }
+              console.error(`[show] Error:`, __err);
+            }
             obs.disconnect();
           }
         });
         obs.observe(document.body, { childList: true, subtree: true });
       };
-      const bindPointerUp = (el: HTMLElement | null): void=> {
+      const bindPointerUp = (el: HTMLElement | null): void => {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const onPointerUp = (e: Event): void=> {
+        const onPointerUp = (e: Event): void => {
           try {
-            const url = el.getAttribute("data-url");
-            const href = (el as HTMLInputElement).form
-              ? (el as HTMLInputElement).form!.getAttribute("action")
-              : el.getAttribute("action");
+            const url = el.getAttribute("data-url"),
+              href = (el as HTMLInputElement).form
+                ? (el as HTMLInputElement).form!.getAttribute("action")
+                : el.getAttribute("action");
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
               showError(el);
@@ -152,8 +152,8 @@
             try {
               $el.off("pointerup.leadsDeleteGuard", onPointerUp);
             } catch (__err) {
-    console.error(`[show] Error:`, __err);
-  }
+              console.error(`[show] Error:`, __err);
+            }
             obs.disconnect();
           }
         });
@@ -178,8 +178,8 @@
     try {
       alert(errFb);
     } catch (__err) {
-    console.error(`[show] Error:`, __err);
-  }
+      console.error(`[show] Error:`, __err);
+    }
   }
 })();
 

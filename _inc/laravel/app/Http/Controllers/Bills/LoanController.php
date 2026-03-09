@@ -32,8 +32,8 @@ final class LoanController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $employeeId, $action, $method, $class, $base) {
-            Log::debug("{$class}::{$action} start", [UsersConstants::COL_EMP_ID => $employeeId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+        return $this->measureProfile($action, function () use ($request, $employeeId, $action, $class) {
+            Log::debug("{$class}::{$action} start", [UsersConstants::COL_EMP_ID => $employeeId, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($deny = self::guard($request, 'create loan', VW::LN . '.index')) !== true) return $deny;
             try {
@@ -47,7 +47,7 @@ final class LoanController extends Controller
                 $typeStart = microtime(true);
                 $types = self::loanTypes();
                 $this->logExecutionTime($typeStart, $action, 'loadTypes');
-                Log::debug("{$class}::{$action} ready form", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'option_count' => $options->count(), 'type_count' => count($types)]);
+                Log::debug("{$class}::{$action} ready form", [UsersConstants::COL_EMP_ID => $employeeId, 'option_count' => $options->count(), 'type_count' => count($types)]);
                 $viewPath = VW::LN . '.create';
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("{$class}::{$action} missing view", ['view_path' => $viewPath]);
@@ -58,8 +58,8 @@ final class LoanController extends Controller
                 $this->logExecutionTime($renderStart, $action, 'renderView');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'exception' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'exception' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                Log::error("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId, 'exception' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId, 'exception' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action);
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, UsersConstants::COL_EMP_ID => $employeeId]);
@@ -72,7 +72,7 @@ final class LoanController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class) {
             Log::debug("{$class}::{$action} start", ['input' => $request->all(), UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($deny = self::guard($request, 'create loan', VW::LN . '.index')) !== true) return $deny;
@@ -120,8 +120,8 @@ final class LoanController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $loanId, $action, $method, $class, $base) {
-            Log::debug("{$class}::{$action} start", ['loan_id' => $loanId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+        return $this->measureProfile($action, function () use ($request, $loanId, $action, $class) {
+            Log::debug("{$class}::{$action} start", ['loan_id' => $loanId, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($deny = self::guard($request, 'edit loan', VW::LN . '.index')) !== true) return $deny;
             try {
@@ -129,7 +129,7 @@ final class LoanController extends Controller
                 $loan = Loan::findOrFail($loanId);
                 $this->logExecutionTime($findStart, $action, 'findLoan');
                 if (($loan->created_by ?? null) !== ($request->user()?->creatorId() ?? null)) {
-                    Log::warning("{$class}::{$action} forbidden", ['loan_id' => $loanId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+                    Log::warning("{$class}::{$action} forbidden", ['loan_id' => $loanId, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), "{$class}::{$action}");
                 }
                 $optStart = microtime(true);
@@ -138,7 +138,7 @@ final class LoanController extends Controller
                 $typeStart = microtime(true);
                 $types = self::loanTypes();
                 $this->logExecutionTime($typeStart, $action, 'loadTypes');
-                Log::debug("{$class}::{$action} ready form", ['loan_id' => $loanId ?? null]);
+                Log::debug("{$class}::{$action} ready form", ['loan_id' => $loanId]);
                 $viewPath = VW::LN . '.edit';
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("{$class}::{$action} missing view", ['view_path' => $viewPath]);
@@ -149,7 +149,7 @@ final class LoanController extends Controller
                 $this->logExecutionTime($renderStart, $action, 'renderView');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::{$action} error", ['loan_id' => $loanId ?? null, 'exception' => $e->getMessage()]);
+                Log::error("{$class}::{$action} error", ['loan_id' => $loanId, 'exception' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$class}::{$action}");
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'loan_id' => $loanId]);
@@ -162,7 +162,7 @@ final class LoanController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $loan, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $loan, $action, $class) {
             Log::debug("{$class}::{$action} start", ['loan_id' => $loan->id ?? null, 'input' => $request->all(), UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($deny = self::guard($request, 'edit loan', VW::LN . '.index')) !== true) return $deny;
@@ -206,7 +206,7 @@ final class LoanController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $loan, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $loan, $action, $class) {
             Log::debug("{$class}::{$action} start", ['loan_id' => $loan->id ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($deny = self::guard($request, 'delete loan', VW::LN . '.index')) !== true) return $deny;
@@ -262,7 +262,6 @@ final class LoanController extends Controller
     private static function loanTypes(): array
     {
         return Loan::$loanTypes
-            ?? Loan::$Loantypes
             ?? [];
     }
 }

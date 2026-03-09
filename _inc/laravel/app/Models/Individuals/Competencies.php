@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Models\PerformanceType;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
+/**
+ * @property mixed $created_by
+ */
 
 class Competencies extends Model
 {

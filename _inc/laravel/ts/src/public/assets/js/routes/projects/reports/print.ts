@@ -4,17 +4,16 @@
  * @module print
  */
 
-declare const html2pdf: () => {
-  set: (opt: unknown) => { from: (el: HTMLElement) => { save: () => void } };
-};
+import "../../../../../../declarations/routes/vendor-libs";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const DATA_LISTENER_ADDED = "data-listener-added";
-  const ERR_FB = "# ERROR";
-  const DATA_CLIENT_LOCALIZED = "data-client-localized";
-  const DATA_GUARD_MSG = "data-guard-msg";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const DATA_LISTENER_ADDED = "data-listener-added",
+    ERR_FB = "# ERROR",
+    DATA_CLIENT_LOCALIZED = "data-client-localized",
+    DATA_GUARD_MSG = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (el: HTMLElement, key: string) => {
@@ -46,22 +45,22 @@ declare const html2pdf: () => {
     return msg;
   };
 
-  const handleErrorDisplay = (el: HTMLElement, key: string): void=> {
-    const message = getLocalizedMessage(el ?? document.body, key);
-    const hasBootstrap =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap.Toast;
+  const handleErrorDisplay = (el: HTMLElement, key: string): void => {
+    const message = getLocalizedMessage(el ?? document.body, key),
+      hasBootstrap =
+        document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
     if (hasBootstrap) {
       if (!document.querySelector<HTMLElement>("#error-toast")) {
         const t = document.createElement("div");
         t.id = "error-toast";
         t.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         {
           t.replaceChildren();
           const _d = document.createElement("div");
@@ -87,12 +86,15 @@ declare const html2pdf: () => {
     }
   };
 
-  const attachPointerGuard = (el: HTMLElement, key: string): void=> {
+  const attachPointerGuard = (el: HTMLElement, key: string): void => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const onceHandler = (): void => {
       handleErrorDisplay(el, key);
     };
-    el.addEventListener("pointerup", onceHandler, { once: true });
+    if (!el.getAttribute("data-listener-bound-pointerup")) {
+      el.setAttribute("data-listener-bound-pointerup", "1");
+      el.addEventListener("pointerup", onceHandler, { once: true });
+    }
     el.setAttribute(DATA_LISTENER_ADDED, "true");
     const mo = new MutationObserver((_, o) => {
       if (!document.body.contains(el)) {
@@ -119,14 +121,14 @@ declare const html2pdf: () => {
       try {
         if (!el || typeof html2pdf === "undefined")
           throw new Error("html2pdf missing or target not found");
-        const currentName = $("#filename").val() ?? initialFilename;
-        const opt = {
-          margin: 0.3,
-          filename: currentName,
-          image: { type: "jpeg", quality: 1 },
-          html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-          jsPDF: { unit: "in", format: "A2" },
-        };
+        const currentName = $("#filename").val() ?? initialFilename,
+          opt = {
+            margin: 0.3,
+            filename: currentName,
+            image: { type: "jpeg", quality: 1 },
+            html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+            jsPDF: { unit: "in", format: "A2" },
+          };
         html2pdf().set(opt).from(el).save();
       } catch (e) {
         if (
@@ -176,10 +178,7 @@ declare const html2pdf: () => {
               : {},
         });
       } catch {
-        attachPointerGuard(
-          $table.get(0),
-          "datatable_unavailable",
-        );
+        attachPointerGuard($table.get(0), "datatable_unavailable");
       }
     });
   } catch (e) {

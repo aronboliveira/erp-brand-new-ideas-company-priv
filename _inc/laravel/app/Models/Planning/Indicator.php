@@ -24,6 +24,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property int|null $rating
+ */
 class Indicator extends Model
 {
     use UsesUuids;

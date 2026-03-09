@@ -50,7 +50,7 @@ final class VerifyCsrfToken extends Middleware
             $output->writeln('[VerifyCsrfToken] CSRF token valid');
             return $response;
         } catch (TokenMismatchException $e) {
-            $headers = $response?->headers->all() ?? ['FAILED' => 'Failed to parse cookies'];
+            $headers = $response?->headers?->all() ?? ['FAILED' => 'Failed to parse cookies']; // @phpstan-ignore-line
             Log::warning('CSRF token mismatch', [
                 'uri'    => $request->getRequestUri(),
                 'method' => $request->getMethod(),
@@ -64,7 +64,7 @@ final class VerifyCsrfToken extends Middleware
                 );
             abort(419, 'CSRF token mismatch');
         } catch (\Throwable $e) {
-            $headers = $response?->headers->all() ?? ['FAILED' => 'Failed to parse cookies'];
+            $headers = $response?->headers?->all() ?? ['FAILED' => 'Failed to parse cookies'];
             Log::error('VerifyCsrfToken error', [
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),

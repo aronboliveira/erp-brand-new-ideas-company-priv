@@ -8,61 +8,59 @@
   const aiBtn = document.getElementById("coupon-generate-ai-btn");
   if (aiBtn && aiBtn.getAttribute("data-listener-active") !== "true") {
     aiBtn.setAttribute("data-listener-active", "true");
-    aiBtn.addEventListener("click", event => {
-      try {
-        const url = aiBtn.getAttribute("data-url");
-        if (!url || url === "#") {
-          event.preventDefault();
-          const msg = aiBtn.getAttribute("data-guard-msg") ?? "# ERROR";
-          const bootstrapLink = document.querySelector(
-            'link[href*="bootstrap"]',
-          );
-          let container = document.getElementById("toast-container");
-          if (!container) {
-            container = document.createElement("div");
-            container.id = "toast-container";
-            container.className =
-              "toast-container position-fixed top-0 end-0 p-3";
-            container.style.zIndex = "1080";
-            document.body.appendChild(container);
+    if (!aiBtn.getAttribute("data-listener-bound-click")) {
+      aiBtn.setAttribute("data-listener-bound-click", "1");
+      aiBtn.addEventListener("click", event => {
+        try {
+          const url = aiBtn.getAttribute("data-url");
+          if (!url || url === "#") {
+            event.preventDefault();
+            const msg = aiBtn.getAttribute("data-guard-msg") ?? "# ERROR",
+              bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+            let container = document.getElementById("toast-container");
+            if (!container) {
+              container = document.createElement("div");
+              container.id = "toast-container";
+              container.className =
+                "toast-container position-fixed top-0 end-0 p-3";
+              container.style.zIndex = "1080";
+              document.body.appendChild(container);
+            }
+            if (bootstrapLink && window.bootstrap) {
+              const toastEl = document.createElement("div");
+              toastEl.className = "toast";
+              for (const [k, v] of Object.entries({
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                toastEl.setAttribute(k, v);
+              const body = document.createElement("div");
+              body.className = "toast-body";
+              body.textContent = msg;
+              toastEl.appendChild(body);
+              container.appendChild(toastEl);
+              bootstrap.Toast.getOrCreateInstance(toastEl).show();
+            } else {
+              alert(msg);
+            }
+            aiBtn.setAttribute("data-failed-route", "true");
+            return;
           }
-          if (bootstrapLink && window.bootstrap) {
-            const toastEl = document.createElement("div");
-            toastEl.className = "toast";
-            for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
-            const body = document.createElement("div");
-            body.className = "toast-body";
-            body.textContent = msg;
-            toastEl.appendChild(body);
-            container.appendChild(toastEl);
-            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-          } else {
-            alert(msg);
-          }
-          aiBtn.setAttribute("data-failed-route", "true");
-          return;
+        } catch (e) {
+          console.error(`[generate] Error:`, e);
         }
-      } catch (e) {
-    console.error(`[generate] Error:`, e);
-  }
-    });
+      });
+    }
   }
 
   const manualRad = document.getElementById(
-    "manual_code",
-  ) as HTMLInputElement | null;
-  const autoRad = document.getElementById(
-    "auto_code",
-  ) as HTMLInputElement | null;
-  const manualDiv = document.getElementById("manual");
-  const autoDiv = document.getElementById("auto");
-  const generateBtn = document.getElementById("code-generate");
-
+      "manual_code",
+    ) as HTMLInputElement | null,
+    autoRad = document.getElementById("auto_code") as HTMLInputElement | null,
+    manualDiv = document.getElementById("manual"),
+    autoDiv = document.getElementById("auto"),
+    generateBtn = document.getElementById("code-generate");
   if (manualRad && autoRad && manualDiv && autoDiv) {
     const toggle = (): void => {
       if (manualRad.checked) {
@@ -73,8 +71,14 @@
         manualDiv.classList.add("d-none");
       }
     };
-    manualRad.addEventListener("change", toggle);
-    autoRad.addEventListener("change", toggle);
+    if (!manualRad.getAttribute("data-listener-bound-change")) {
+      manualRad.setAttribute("data-listener-bound-change", "1");
+      manualRad.addEventListener("change", toggle);
+    }
+    if (!autoRad.getAttribute("data-listener-bound-change")) {
+      autoRad.setAttribute("data-listener-bound-change", "1");
+      autoRad.addEventListener("change", toggle);
+    }
     toggle();
   }
 
@@ -83,23 +87,26 @@
     generateBtn.getAttribute("data-listener-active") !== "true"
   ) {
     generateBtn.setAttribute("data-listener-active", "true");
-    generateBtn.addEventListener("click", event => {
-      try {
-        event.preventDefault();
-        const input = document.getElementById(
-          "auto-code",
-        ) as HTMLInputElement | null;
-        if (!input) return;
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        let code = "";
-        for (let i = 0; i < 8; i++) {
-          code += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (!generateBtn.getAttribute("data-listener-bound-click")) {
+      generateBtn.setAttribute("data-listener-bound-click", "1");
+      generateBtn.addEventListener("click", event => {
+        try {
+          event.preventDefault();
+          const input = document.getElementById(
+            "auto-code",
+          ) as HTMLInputElement | null;
+          if (!input) return;
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          let code = "";
+          for (let i = 0; i < 8; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          input.value = code;
+        } catch (e) {
+          console.error(`[generate] Error:`, e);
         }
-        input.value = code;
-      } catch (e) {
-    console.error(`[generate] Error:`, e);
-  }
-    });
+      });
+    }
   }
 })();
 

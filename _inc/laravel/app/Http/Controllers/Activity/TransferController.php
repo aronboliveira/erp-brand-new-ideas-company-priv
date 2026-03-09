@@ -74,7 +74,7 @@ class TransferController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = ViewsConstants::TRF . '.create';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'create transfer', self::ROUTE_INDEX)) !== true) return $redirect;
             $user = $req->user();
@@ -165,7 +165,7 @@ class TransferController extends Controller
                     $this->logExecutionTime($createStart, $action, 'createTransfer');
                     Log::info("[{$base}::{$action}] created transfer", ['id' => $transfer->id]);
                     $settingsStart = microtime(true);
-                    $settings = Utility::settings($user?->creatorId());
+                    $settings = Utility::settingsById($user?->creatorId());
                     $this->logExecutionTime($settingsStart, $action, 'loadSettings');
                     if ($settings['transfer_sent'] ?? false) {
                         $mailPrepStart = microtime(true);

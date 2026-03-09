@@ -7,30 +7,32 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  function toast(msg: string | null): void{
+  function toast(msg: string | null): void {
     const m =
-      msg ??
-      "Requested route is unavailable. Please contact technical support or your domain administrator.";
-    const hasBootstrap = typeof window.bootstrap.Toast !== "undefined";
+        msg ??
+        "Requested route is unavailable. Please contact technical support or your domain administrator.",
+      hasBootstrap = typeof window.bootstrap.Toast !== "undefined";
     if (hasBootstrap) {
       let box = document.getElementById("toast-container");
       if (!box) {
         box = document.createElement("div");
         box.id = "toast-container";
-        box.style.position = "fixed";
-        box.style.zIndex = "1080";
-        box.style.right = "1rem";
-        box.style.bottom = "1rem";
+        Object.assign(box.style, {
+          position: "fixed",
+          zIndex: "1080",
+          right: "1rem",
+          bottom: "1rem",
+        });
         document.body.appendChild(box);
       }
       const t = document.createElement("div");
       t.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML = '<div class="toast-body"></div>';
       const tb = t.querySelector(".toast-body");
       if (tb) tb.textContent = m;
@@ -40,12 +42,12 @@
       alert(m);
     }
   }
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function disabledUrl(a: Element) {
-    const href = (a.getAttribute("href") ?? "").trim();
-    const url = (a.getAttribute("data-url") || href || "").trim();
+    const href = (a.getAttribute("href") ?? "").trim(),
+      url = (a.getAttribute("data-url") || href || "").trim();
     if (!url || url === "#" || href === "#") return true;
     try {
       new URL(url, window.location.origin);
@@ -55,24 +57,28 @@
     }
   }
 
-  function guard(el: HTMLElement): void{
-    if (!el || el.dataset.guardBound === "1") return;
-    el.dataset.guardBound = "1";
+  function guard(el: Element): void {
+    const htmlEl = el as HTMLElement;
+    if (!el || htmlEl.dataset.guardBound === "1") return;
+    htmlEl.dataset.guardBound = "1";
     el.addEventListener("click", function (e: Event) {
       if (disabledUrl(el)) {
         e.preventDefault();
         toast(el.getAttribute("data-guard-msg"));
       }
     });
-    el.addEventListener("keydown", function (e: KeyboardEvent) {
-      if ((e.key === "Enter" || e.key === " ") && disabledUrl(el)) {
-        e.preventDefault();
-        toast(el.getAttribute("data-guard-msg"));
-      }
-    });
+    if (!el.getAttribute("data-listener-bound-keydown")) {
+      el.setAttribute("data-listener-bound-keydown", "1");
+      htmlEl.addEventListener("keydown", function (e: KeyboardEvent) {
+        if ((e.key === "Enter" || e.key === " ") && disabledUrl(el)) {
+          e.preventDefault();
+          toast(el.getAttribute("data-guard-msg"));
+        }
+      });
+    }
   }
 
-  function bind(): void{
+  function bind(): void {
     document.querySelectorAll("a.project-task-index-link").forEach(guard);
     document
       .querySelectorAll<HTMLElement>(".card-progress")
@@ -105,7 +111,7 @@
     if (
       window.bootstrap &&
       document.querySelector('[data-bs-toggle="tooltip"]')
-    ) {
+    )
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       [].slice
         .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -113,10 +119,9 @@
         .forEach(function (el: HTMLElement) {
           window.bootstrap.Tooltip.getOrCreateInstance(el);
         });
-    }
   }
 
-  function observe(): void{
+  function observe(): void {
     if (!("MutationObserver" in window)) return;
     const mo = new MutationObserver(function (muts) {
       // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -130,14 +135,14 @@
     mo.observe(document.body, { childList: true, subtree: true });
   }
 
-  function init(): void{
+  function init(): void {
     bind();
     observe();
   }
 
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", init);
-  else init();
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init)
+    : init();
 })();
 
 export {};

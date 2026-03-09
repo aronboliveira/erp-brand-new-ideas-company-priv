@@ -6,7 +6,7 @@
 
 ((): void => {
   try {
-    const showGuard = (msg: string): void=> {
+    const showGuard = (msg: string): void => {
       const hasBootstrap = !!(
         document.querySelector('link[href*="bootstrap"]') && window.bootstrap
       );
@@ -22,11 +22,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent =
@@ -42,13 +42,13 @@
         );
       }
     };
-    const bindGuard = (a: Element | null): void=> {
+    const bindGuard = (a: Element | null): void => {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
       a.addEventListener("click", (e: Event) => {
         try {
-          const href = (a.getAttribute("href") ?? "#").trim();
-          const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
+          const href = (a.getAttribute("href") ?? "#").trim(),
+            url = (a.getAttribute("data-url") ?? href ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
           const msg =
@@ -57,8 +57,8 @@
           showGuard(msg);
           a.setAttribute("data-failed-route", "true");
         } catch (err) {
-    console.error(`[index] Error:`, err);
-  }
+          console.error(`[index] Error:`, err);
+        }
       });
     };
     document

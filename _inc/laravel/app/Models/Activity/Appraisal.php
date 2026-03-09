@@ -25,6 +25,14 @@ use Illuminate\Support\Facades\{
     Schema
 };
 use Illuminate\Support\Carbon;
+/**
+ * @property \Illuminate\Support\Carbon|string|null $appraisal_date
+ * @property int|null $rating
+ * @property string|null $remark
+
+ * @property mixed $branch
+ * @property mixed $employee
+ */
 
 class Appraisal extends Model
 {
@@ -463,5 +471,17 @@ class Appraisal extends Model
     public function appraiserUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'appraiser', 'id');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Branch, $this> */
+    public function branches(): BelongsTo
+    {
+        return $this->branch();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Employee, $this> */
+    public function employees(): BelongsTo
+    {
+        return $this->employee();
     }
 }

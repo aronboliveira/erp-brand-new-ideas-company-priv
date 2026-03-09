@@ -68,7 +68,7 @@ class IndicatorController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
 
-        return $this->measureProfile($action, function () use ($request, $action) {
+        return $this->measureProfile(function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'create indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $validator = Validator::make($request->all(), ['branch' => 'required', 'department' => 'required', 'designation' => 'required']);
@@ -127,7 +127,7 @@ class IndicatorController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
 
-        return $this->measureProfile($action, function () use ($request, $indicator, $action) {
+        return $this->measureProfile(function () use ($request, $indicator) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'edit indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $validator = Validator::make($request->all(), ['branch' => 'required', 'department' => 'required', 'designation' => 'required']);

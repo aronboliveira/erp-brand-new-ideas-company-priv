@@ -4,10 +4,9 @@
  * @module jest.frontend.config
  */
 
-// @ts-check
-const path = require("path");
+import path from "path";
 
-module.exports = {
+export default {
   rootDir: path.resolve(__dirname, "../.."),
   roots: ["<rootDir>/tests/frontend/js"],
   testEnvironment: "jsdom",

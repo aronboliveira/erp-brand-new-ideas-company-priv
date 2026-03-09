@@ -7,76 +7,75 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 ((): void => {
-  const BS_LINK = 'link[href*="bootstrap"]';
-  const PRINTABLE_AREA_ID = "printableArea";
-  const FILENAME_INPUT = "#filename";
-  const _translations = {
-    ar: {
-      pdf_save_failed: "فشل حفظ PDF",
-      printable_not_found: "لم يتم العثور على المنطقة القابلة للطباعة",
-    },
-    da: {
-      pdf_save_failed: "Kunne ikke gemme PDF",
-      printable_not_found: "Printbart område ikke fundet",
-    },
-    de: {
-      pdf_save_failed: "PDF konnte nicht gespeichert werden",
-      printable_not_found: "Druckbereich nicht gefunden",
-    },
-    en: {
-      pdf_save_failed: "Failed to save as PDF",
-      printable_not_found: "Printable area not found",
-    },
-    es: {
-      pdf_save_failed: "Error al guardar PDF",
-      printable_not_found: "Área imprimible no encontrada",
-    },
-    fr: {
-      pdf_save_failed: "Échec de l'enregistrement PDF",
-      printable_not_found: "Zone imprimable introuvable",
-    },
-    he: {
-      pdf_save_failed: "שמירת PDF נכשלה",
-      printable_not_found: "אזור ההדפסה לא נמצא",
-    },
-    it: {
-      pdf_save_failed: "Salvataggio PDF non riuscito",
-      printable_not_found: "Area stampabile non trovata",
-    },
-    ja: {
-      pdf_save_failed: "PDFの保存に失敗しました",
-      printable_not_found: "印刷可能な領域が見つかりません",
-    },
-    nl: {
-      pdf_save_failed: "PDF opslaan mislukt",
-      printable_not_found: "Afdrukbaar gebied niet gevonden",
-    },
-    pl: {
-      pdf_save_failed: "Nie udało się zapisać PDF",
-      printable_not_found: "Nie znaleziono obszaru do druku",
-    },
-    pt: {
-      pdf_save_failed: "Falha ao salvar PDF",
-      printable_not_found: "Área imprimível não encontrada",
-    },
-    "pt-br": {
-      pdf_save_failed: "Falha ao salvar PDF",
-      printable_not_found: "Área imprimível não encontrada",
-    },
-    ru: {
-      pdf_save_failed: "Не удалось сохранить PDF",
-      printable_not_found: "Область для печати не найдена",
-    },
-    tr: {
-      pdf_save_failed: "PDF kaydedilemedi",
-      printable_not_found: "Yazdırılabilir alan bulunamadı",
-    },
-    zh: {
-      pdf_save_failed: "保存PDF失败",
-      printable_not_found: "未找到可打印区域",
-    },
-  };
-
+  const BS_LINK = 'link[href*="bootstrap"]',
+    PRINTABLE_AREA_ID = "printableArea",
+    FILENAME_INPUT = "#filename",
+    _translations = {
+      ar: {
+        pdf_save_failed: "فشل حفظ PDF",
+        printable_not_found: "لم يتم العثور على المنطقة القابلة للطباعة",
+      },
+      da: {
+        pdf_save_failed: "Kunne ikke gemme PDF",
+        printable_not_found: "Printbart område ikke fundet",
+      },
+      de: {
+        pdf_save_failed: "PDF konnte nicht gespeichert werden",
+        printable_not_found: "Druckbereich nicht gefunden",
+      },
+      en: {
+        pdf_save_failed: "Failed to save as PDF",
+        printable_not_found: "Printable area not found",
+      },
+      es: {
+        pdf_save_failed: "Error al guardar PDF",
+        printable_not_found: "Área imprimible no encontrada",
+      },
+      fr: {
+        pdf_save_failed: "Échec de l'enregistrement PDF",
+        printable_not_found: "Zone imprimable introuvable",
+      },
+      he: {
+        pdf_save_failed: "שמירת PDF נכשלה",
+        printable_not_found: "אזור ההדפסה לא נמצא",
+      },
+      it: {
+        pdf_save_failed: "Salvataggio PDF non riuscito",
+        printable_not_found: "Area stampabile non trovata",
+      },
+      ja: {
+        pdf_save_failed: "PDFの保存に失敗しました",
+        printable_not_found: "印刷可能な領域が見つかりません",
+      },
+      nl: {
+        pdf_save_failed: "PDF opslaan mislukt",
+        printable_not_found: "Afdrukbaar gebied niet gevonden",
+      },
+      pl: {
+        pdf_save_failed: "Nie udało się zapisać PDF",
+        printable_not_found: "Nie znaleziono obszaru do druku",
+      },
+      pt: {
+        pdf_save_failed: "Falha ao salvar PDF",
+        printable_not_found: "Área imprimível não encontrada",
+      },
+      "pt-br": {
+        pdf_save_failed: "Falha ao salvar PDF",
+        printable_not_found: "Área imprimível não encontrada",
+      },
+      ru: {
+        pdf_save_failed: "Не удалось сохранить PDF",
+        printable_not_found: "Область для печати не найдена",
+      },
+      tr: {
+        pdf_save_failed: "PDF kaydedilemedi",
+        printable_not_found: "Yazdırılabilir alan bulunamadı",
+      },
+      zh: {
+        pdf_save_failed: "保存PDF失败",
+        printable_not_found: "未找到可打印区域",
+      },
+    };
   let toastContainer: HTMLElement | null = null;
   const getToastContainer = (): HTMLElement => {
     if (toastContainer) return toastContainer;
@@ -92,10 +91,10 @@
     return container;
   };
 
-  const showError = (key: string, el: HTMLElement | null = null): void=> {
-    const errFb = "# ERROR";
-    const dataClientLocalized = "data-client-localized";
-    const dataGuardMsg = "data-guard-msg";
+  const showError = (key: string, el: HTMLElement | null = null): void => {
+    const errFb = "# ERROR",
+      dataClientLocalized = "data-client-localized",
+      dataGuardMsg = "data-guard-msg";
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -127,11 +126,11 @@
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toast.setAttribute(k, v);
       {
         toast.replaceChildren();
         const _d = document.createElement("div");
@@ -176,7 +175,8 @@
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      (window.html2pdf)()
+      window
+        .html2pdf()
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .set({
           margin: 0.3,

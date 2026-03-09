@@ -21,6 +21,25 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property bool|null $confirmed
+ * @property bool|null $is_internal
+ * @property array|string|null $organizers
+ * @property int|string|null $responsible_id
+ * @property array|string|null $sponsors
+ * @property int|null $branch_id
+ * @property float|int|null $colorId
+ * @property int|null $department_id
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|string|null $endDateTime
+ * @property \Illuminate\Support\Carbon|string|null $end_date
+ * @property string|null $name
+ * @property \Illuminate\Support\Carbon|string|null $startDateTime
+ * @property \Illuminate\Support\Carbon|string|null $start_date
+ * @property string|null $color
+ * @property string|null $title
+ * @property string|null $description
+ */
 class Event extends Model
 {
     use HasAuditFields;

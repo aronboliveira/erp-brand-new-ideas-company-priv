@@ -4,21 +4,11 @@
  * @module calendar
  */
 
-interface FullCalendarInstance {
-  render(): void;
-  destroy(): void;
-}
-
-interface FullCalendarStatic {
-  Calendar: new (
-    el: HTMLElement,
-    options: Record<string, unknown>,
-  ) => FullCalendarInstance;
-}
-
-interface CalendarHTMLElement extends HTMLElement {
-  _fcInstance?: FullCalendarInstance | null;
-}
+import type {
+  FullCalendarInstance,
+  FullCalendarStatic,
+  CalendarHTMLElement,
+} from "../../../../../declarations/routes/fullcalendar.interfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -26,28 +16,24 @@ interface CalendarHTMLElement extends HTMLElement {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataCalGuard = "data-cal-guard";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataCalGuard = "data-cal-guard";
   const ensureToastContainer = (): HTMLElement => {
     let c = document.getElementById("np-toast-container");
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ??
         document.querySelector('link[href*="bootstrap"]')) &&
@@ -60,19 +46,17 @@ interface CalendarHTMLElement extends HTMLElement {
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = t.querySelector(".toast-body");
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -82,11 +66,9 @@ interface CalendarHTMLElement extends HTMLElement {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -96,14 +78,14 @@ interface CalendarHTMLElement extends HTMLElement {
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -135,7 +117,7 @@ interface CalendarHTMLElement extends HTMLElement {
     }
     return msg;
   };
-  const initCalendar = (events: unknown): void=> {
+  const initCalendar = (events: unknown): void => {
     const el = document.getElementById(
       "calendar",
     ) as CalendarHTMLElement | null;
@@ -155,8 +137,8 @@ interface CalendarHTMLElement extends HTMLElement {
           )
             console.error("FullCalendar unavailable");
         } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+          console.error(`[calendar] Error:`, _);
+        }
         scheduleInteractiveError(getMsg(el, "plugin_unavailable"));
         return;
       }
@@ -164,8 +146,8 @@ interface CalendarHTMLElement extends HTMLElement {
         try {
           el._fcInstance.destroy();
         } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+          console.error(`[calendar] Error:`, _);
+        }
         el._fcInstance = null;
       }
       const calendar = new FullCalendar.Calendar(el, {
@@ -194,13 +176,13 @@ interface CalendarHTMLElement extends HTMLElement {
       el._fcInstance = calendar;
       if (el.getAttribute(dataCalGuard) !== "true") {
         el.setAttribute(dataCalGuard, "true");
-        const mo = new MutationObserver((m, o) => {
+        const mo = new MutationObserver((_m, o) => {
           if (!document.body.contains(el)) {
             try {
               calendar.destroy();
             } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+              console.error(`[calendar] Error:`, _);
+            }
             o.disconnect();
           }
         });
@@ -219,8 +201,8 @@ interface CalendarHTMLElement extends HTMLElement {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+        console.error(`[calendar] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -230,20 +212,18 @@ interface CalendarHTMLElement extends HTMLElement {
     const calendar_type = $sel.find(":selected").val();
     $calendar.removeClass("local_calendar");
     $calendar.removeClass("google_calendar");
-    if (calendar_type === undefined) {
-      $calendar.addClass("local_calendar");
-    }
+    if (calendar_type === undefined) $calendar.addClass("local_calendar");
     const calType = typeof calendar_type === "string" ? calendar_type : "";
     $calendar.addClass(calType);
-    const base = String(jQ("#task_calendar").val() ?? "").trim();
-    const endpoint =
-      base && base !== "#"
-        ? base.replace(/\/$/, "") + "/calendar/get_task_data"
-        : "";
-    const urlAttr = $calendar.attr("data-url");
-    const hrefAttr = $calendar.is("form")
-      ? ($calendar.attr("action") ?? "")
-      : ($calendar.attr("href") ?? "");
+    const base = String(jQ("#task_calendar").val() ?? "").trim(),
+      endpoint =
+        base && base !== "#"
+          ? base.replace(/\/$/, "") + "/calendar/get_task_data"
+          : "",
+      urlAttr = $calendar.attr("data-url"),
+      hrefAttr = $calendar.is("form")
+        ? ($calendar.attr("action") ?? "")
+        : ($calendar.attr("href") ?? "");
     if (
       (!endpoint || endpoint === "#") &&
       (!urlAttr || urlAttr === "#") &&

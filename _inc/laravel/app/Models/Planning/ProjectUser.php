@@ -429,7 +429,7 @@ class ProjectUser extends Model
                 $exists = (bool) self::query()->where(PJC::COL_INV_CD, $code)->exists();
             } while ($exists && $attempts < $cap);
 
-            if (!isset($code) || ($exists ?? true)) {
+            if ($exists) {
                 Log::warning(self::class . ' invite_code generation attempts exhausted', [
                     'project_id' => (string) ($this->getAttribute(PJC::COL_PJ_ID) ?? ''),
                     'user_id' => (string) ($this->getAttribute(UC::COL_USER_ID) ?? ''),

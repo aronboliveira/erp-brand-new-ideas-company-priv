@@ -30,6 +30,9 @@ use Illuminate\Support\Facades\{
     DB,
     Log
 };
+/**
+ * @property mixed $created_by
+ */
 
 class Warehouse extends Model
 {

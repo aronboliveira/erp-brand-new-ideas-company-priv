@@ -5,9 +5,9 @@
  */
 
 /* global bootstrap, $, jQuery */
-// @ts-check
-const { test, expect } = require("@playwright/test");
-const path = require("path");
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import path from "path";
+import type { AssertPageOptions } from "../../declarations/tests/e2e.interfaces";
 
 /**
  * ERP Prestech – Product Control Route Rendering E2E Tests
@@ -24,15 +24,25 @@ test.use({ storageState: STORAGE_STATE });
 
 test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async (): void => {
-    const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
-  });
+  page.addLocatorHandler(
+    page.locator("#cc--main, .c--anim"),
+    async (): Promise<void> => {
+      const btn = page
+        .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
+        .first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
+        await btn.click({ force: true });
+    },
+  );
 });
 
-async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
-  await test.step(`Navigate to ${label}`, async (): void => {
+async function assertPageRenders(
+  page: Page,
+  route: string,
+  label: string,
+  opts: AssertPageOptions = {},
+): Promise<void> {
+  await test.step(`Navigate to ${label}`, async (): Promise<void> => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
       timeout: 45000,
@@ -43,7 +53,7 @@ async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
       .catch((): void => {});
   });
 
-  await test.step(`${label}: layout renders`, async (): void => {
+  await test.step(`${label}: layout renders`, async (): Promise<void> => {
     const layout = page.locator(
       ".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body",
     );
@@ -51,7 +61,7 @@ async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   });
 
   if (opts.expectTable) {
-    await test.step(`${label}: table visible`, async (): void => {
+    await test.step(`${label}: table visible`, async (): Promise<void> => {
       const table = page.locator(
         "table.dataTable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])",
       );
@@ -60,21 +70,21 @@ async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   }
 
   if (opts.expectCard) {
-    await test.step(`${label}: card visible`, async (): void => {
+    await test.step(`${label}: card visible`, async (): Promise<void> => {
       const card = page.locator(".card, .card-body");
       await expect(card.first()).toBeVisible({ timeout: 15000 });
     });
   }
 
   if (opts.expectForm) {
-    await test.step(`${label}: form visible`, async (): void => {
+    await test.step(`${label}: form visible`, async (): Promise<void> => {
       const form = page.locator("form:not(#frm-logout):not(.d-none)");
       await expect(form.first()).toBeVisible({ timeout: 15000 });
     });
   }
 
   if (opts.expectBreadcrumb) {
-    await test.step(`${label}: breadcrumb visible`, async (): void => {
+    await test.step(`${label}: breadcrumb visible`, async (): Promise<void> => {
       const bc = page.locator(
         ".breadcrumb, .breadcrumb-item, [aria-label='breadcrumb']",
       );
@@ -83,14 +93,14 @@ async function assertPageRenders(page, route, label, opts = {}): Promise<void> {
   }
 
   if (opts.expectText) {
-    await test.step(`${label}: contains keyword "${opts.expectText}"`, async (): void => {
+    await test.step(`${label}: contains keyword "${opts.expectText}"`, async (): Promise<void> => {
       const body = await page.textContent("body");
-      expect(body?.toLowerCase()).toContain(opts.expectText.toLowerCase());
+      expect(body?.toLowerCase()).toContain(opts.expectText?.toLowerCase());
     });
   }
 
   if (opts.expectSelect2) {
-    await test.step(`${label}: select2 elements present`, async (): void => {
+    await test.step(`${label}: select2 elements present`, async (): Promise<void> => {
       const select = page.locator(
         ".select2, .select2-container, select.form-control, select.form-select",
       );
@@ -298,7 +308,7 @@ test.describe("Proposal Products", (): void => {
 
 test.describe("Product View Toggles", (): void => {
   test("product_services grid view renders", async ({ page }) => {
-    await test.step("Navigate to products", async (): void => {
+    await test.step("Navigate to products", async (): Promise<void> => {
       const resp = await page.goto(`${BASE_URL}/product_services`, {
         waitUntil: "domcontentloaded",
         timeout: 45000,
@@ -306,15 +316,14 @@ test.describe("Product View Toggles", (): void => {
       expect(resp?.status()).toBeLessThan(500);
     });
 
-    await test.step("Check for view toggle buttons", async (): void => {
+    await test.step("Check for view toggle buttons", async (): Promise<void> => {
       const toggleBtns = page.locator(
-        '[data-view="grid"], [data-view="list"], .view-toggle, .btn-group .btn',
-      );
-      const count = await toggleBtns.count();
+          '[data-view="grid"], [data-view="list"], .view-toggle, .btn-group .btn',
+        ),
+        count = await toggleBtns.count();
       // Either there are toggle buttons or we're in a default view
-      if (count > 0) {
+      if (count > 0)
         await expect(toggleBtns.first()).toBeVisible({ timeout: 10000 });
-      }
     });
   });
 });

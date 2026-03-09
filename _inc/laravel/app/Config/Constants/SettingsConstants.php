@@ -401,7 +401,8 @@ class SettingsConstants
 		'google_calendar_enable' => 'on',
 		'google_calendar_json_file' => '',
 
-		self::MT_IMG_K => '',
+		// PHPSTAN: duplicate key removed
+		// self::MT_IMG_K => '',
 		self::MT_DSC_K => '',
 
 		'enable_cookie' => 'on',
@@ -416,7 +417,8 @@ class SettingsConstants
 
 		'twilio_sid' => '',
 		'twilio_token' => '',
-		'twilio_from' => '',
+		// PHPSTAN: duplicate key removed
+		// 'twilio_from' => '',
 		'chat_gpt_key' => '',
 		"ip_restrict" => "off",
 		"timezone" => '',

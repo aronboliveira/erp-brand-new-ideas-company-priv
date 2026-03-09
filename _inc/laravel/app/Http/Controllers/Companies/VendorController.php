@@ -36,7 +36,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 if (($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) !== true) return $c;
@@ -59,7 +59,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 if (($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) !== true) return $c;
@@ -82,7 +82,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) !== true) return $c;
             $t = microtime(true);
@@ -101,7 +101,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 if (($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) !== true) return $c;
@@ -134,7 +134,7 @@ class VendorController extends Controller
                             $vendor->{$key} = $request->{$key} ?? '';
                         }
                     }
-                    $vendor->lang = Utility::settings($user?->creatorId())[SettingsConstants::DEF_LNG] ?? '';
+                    $vendor->lang = Utility::settingsById($user?->creatorId())[SettingsConstants::DEF_LNG] ?? '';
                     $vendor->save();
                     CustomField::saveData($vendor, $request->customField);
                     $vendor->assignRole(Role::where('name', 'vendor')->firstOrFail());
@@ -144,7 +144,7 @@ class VendorController extends Controller
                         'vendor_name' => $vendor->name,
                         'vendor_email' => $vendor->email
                     ];
-                    if (Utility::settings($user?->creatorId())['twilio_vendor_notification'] ?? false) {
+                    if (Utility::settingsById($user?->creatorId())['twilio_vendor_notification'] ?? false) {
                         Utility::sendTwilioMsg($vendor->contact, 'new_vendor', $notify);
                     }
                 });
@@ -161,7 +161,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $ids, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $ids, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 $t = microtime(true);
@@ -183,7 +183,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $vendor, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
             $user = $request->user();
@@ -207,7 +207,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $vendor, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
@@ -247,7 +247,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $vendor, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
                 if (($c = self::guard($request, 'delete vendor', self::ROUTE_INDEX)) !== true) return $c;
@@ -270,7 +270,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request) {
             auth()->guard('vendor')->logout();
             $request->session()->invalidate();
             return redirect()->route(self::SINGULAR . '.login'); // ! ALERT
@@ -282,7 +282,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($c = self::guard($request, 'manage vendor payment', self::ROUTE_INDEX)) !== true) return $c; // ! ALERT
@@ -311,7 +311,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($request, 'manage vendor transaction', self::ROUTE_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[$base::$action] start", ['user_id' => auth()->id()]);
@@ -337,7 +337,7 @@ class VendorController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $base = class_basename(static::class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug("[$base::$action] start", ['user_id' => $user?->id]);

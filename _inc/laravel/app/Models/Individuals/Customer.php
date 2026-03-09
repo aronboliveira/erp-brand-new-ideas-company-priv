@@ -32,6 +32,36 @@ use Illuminate\Support\Facades\{
 };
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property string|null $lang
+ * @property string|null $type
+ * @property string|null $avatar
+ * @property string|null $billing_address
+ * @property string|null $billing_city
+ * @property string|null $billing_country
+ * @property string|null $billing_name
+ * @property string|null $billing_phone
+ * @property string|null $billing_state
+ * @property string|null $billing_zip
+ * @property mixed $created_by
+ * @property array|string|null $customField
+ * @property string|null $email
+ * @property \Illuminate\Support\Carbon|string|null $email_verified_at
+ * @property bool|null $is_active
+ * @property string|null $name
+ * @property string|null $shipping_address
+ * @property string|null $shipping_city
+ * @property string|null $shipping_country
+ * @property string|null $shipping_name
+ * @property string|null $shipping_phone
+ * @property string|null $shipping_state
+ * @property string|null $shipping_zip
+ * @property int|string|null $customer_id
+ * @property string|null $contact
+ * @property float|int|null $balance
+
+ * @property mixed $custom
+ */
 class Customer extends Authenticatable
 {
     use UsesUuids,

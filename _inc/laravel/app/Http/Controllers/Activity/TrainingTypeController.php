@@ -64,7 +64,7 @@ class TrainingTypeController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = VW::TNG_TP . '.create';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($redirect = self::guard($req, 'create training type', self::ROUTE_INDEX)) !== true) return $redirect;
             Log::info("[{$base}::{$action}] displaying create form", ['user_id' => $req->user()->id, 'method' => $method]);
@@ -122,7 +122,7 @@ class TrainingTypeController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($trainingType, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($trainingType, $action, $method, $base) {
             Log::info("[{$base}::{$action}] called", ['training_type_id' => $trainingType->id, 'method' => $method]);
             try {
                 $redirStart = microtime(true);

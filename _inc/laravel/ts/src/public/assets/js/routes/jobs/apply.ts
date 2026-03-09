@@ -6,18 +6,17 @@
 
 ((): void => {
   const Q = <T extends Element = Element>(s: string): T | null =>
-    document.querySelector<T>(s);
-  const QA = <T extends Element = Element>(s: string): T[] =>
-    Array.from(document.querySelectorAll<T>(s));
-  const DEFAULT_ROUTE_MSG =
-    "Requested route is unavailable. Please contact technical support or your domain administrator.";
-
-  const toast = (message: string): void=> {
-    const text = message || DEFAULT_ROUTE_MSG;
-    const hasBs = !!(
-      document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      window.bootstrap
-    );
+      document.querySelector<T>(s),
+    QA = <T extends Element = Element>(s: string): T[] =>
+      Array.from(document.querySelectorAll<T>(s)),
+    DEFAULT_ROUTE_MSG =
+      "Requested route is unavailable. Please contact technical support or your domain administrator.";
+  const toast = (message: string): void => {
+    const text = message || DEFAULT_ROUTE_MSG,
+      hasBs = !!(
+        document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+        window.bootstrap
+      );
     let box = document.getElementById("toast-container");
     if (!box) {
       box = document.createElement("div");
@@ -28,11 +27,11 @@
       const t = document.createElement("div");
       t.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -50,8 +49,8 @@
     a.addEventListener(
       "click",
       function (this: HTMLAnchorElement, e: Event): void {
-        const href = (this.getAttribute("href") ?? "#").trim();
-        const url = (this.getAttribute("data-url") ?? href ?? "#").trim();
+        const href = (this.getAttribute("href") ?? "#").trim(),
+          url = (this.getAttribute("data-url") ?? href ?? "#").trim();
         if (url !== "#" && href !== "#") return;
         e.preventDefault();
         toast(this.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
@@ -66,8 +65,8 @@
     fm.addEventListener(
       "submit",
       function (this: HTMLFormElement, e: Event): void {
-        const action = (this.getAttribute("action") ?? "#").trim();
-        const url = (this.getAttribute("data-url") ?? action ?? "#").trim();
+        const action = (this.getAttribute("action") ?? "#").trim(),
+          url = (this.getAttribute("data-url") ?? action ?? "#").trim();
         if (url !== "#" && action !== "#") return;
         e.preventDefault();
         toast(this.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
@@ -82,12 +81,12 @@
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
         } catch (__err) {
-    console.error(`[apply] Error:`, __err);
-  }
+          console.error(`[apply] Error:`, __err);
+        }
       });
     } catch (__err) {
-    console.error(`[apply] Error:`, __err);
-  }
+      console.error(`[apply] Error:`, __err);
+    }
   };
 
   const filenameFromInput = (inp: HTMLInputElement): string => {
@@ -109,12 +108,12 @@
         try {
           URL.revokeObjectURL(url);
         } catch (__err) {
-    console.error(`[apply] Error:`, __err);
-  }
+          console.error(`[apply] Error:`, __err);
+        }
       };
     } catch (__err) {
-    console.error(`[apply] Error:`, __err);
-  }
+      console.error(`[apply] Error:`, __err);
+    }
   };
 
   const bindFileInputs = (): void => {
@@ -122,19 +121,24 @@
       (inp: HTMLInputElement): void => {
         if (inp.getAttribute("data-file-listener") === "true") return;
         inp.setAttribute("data-file-listener", "true");
-        const outClass = inp.getAttribute("data-filename") ?? "";
-        const out = outClass ? Q(`.${CSS.escape(outClass)}`) : null;
-        inp.addEventListener("change", function (this: HTMLInputElement): void {
-          const txt = filenameFromInput(this);
-          if (out) out.textContent = txt ?? "";
-          const id = this.id ?? "";
-          if (this.files?.[0]) {
-            if (id === "profile")
-              previewImage(this.files[0], Q<HTMLImageElement>("#blah"));
-            if (id === "resume")
-              previewImage(this.files[0], Q<HTMLImageElement>("#blah1"));
-          }
-        });
+        const outClass = inp.getAttribute("data-filename") ?? "",
+          out = outClass ? Q(`.${CSS.escape(outClass)}`) : null;
+        if (!inp.getAttribute("data-listener-bound-change")) {
+          inp.setAttribute("data-listener-bound-change", "1");
+          inp.addEventListener(
+            "change",
+            function (this: HTMLInputElement): void {
+              if (out) out.textContent = filenameFromInput(this) ?? "";
+              const id = this.id ?? "";
+              if (this.files?.[0]) {
+                if (id === "profile")
+                  previewImage(this.files[0], Q<HTMLImageElement>("#blah"));
+                if (id === "resume")
+                  previewImage(this.files[0], Q<HTMLImageElement>("#blah1"));
+              }
+            },
+          );
+        }
       },
     );
   };

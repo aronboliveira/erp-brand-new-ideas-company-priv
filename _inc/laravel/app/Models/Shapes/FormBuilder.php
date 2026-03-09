@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
+/**
+ * @property array|string|null $form_field
+ * @property bool|null $is_lead_active
+
+ * @property mixed $field
+ */
 
 class FormBuilder extends Model
 {
@@ -150,6 +156,15 @@ class FormBuilder extends Model
         'tags'      => 'array',
         'allowed_methods' => 'array',
         'allowed_enctypes' => 'array',
+    ];
+
+    /** @var array<string,string> */
+    public static array $fieldTypes = [
+        'text'     => 'Text',
+        'email'    => 'Email',
+        'number'   => 'Number',
+        'date'     => 'Date',
+        'textarea' => 'Textarea',
     ];
 
     protected $appends = [

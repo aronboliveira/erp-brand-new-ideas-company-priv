@@ -31,7 +31,7 @@ final class AwardController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::AWD . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id]);
       if ($deny = $this->authorizeOrDeny($req, PermissionsConstants::MNG_AWD, $action)) return $deny;
       try {
@@ -63,7 +63,7 @@ final class AwardController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::AWD . '.create';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id]);
       if ($deny = $this->authorizeOrDeny($req, 'create award', $action)) return $deny;
       try {
@@ -86,7 +86,7 @@ final class AwardController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id, 'input' => $req->all()]);
       if ($deny = $this->authorizeOrDeny($req, 'create award', $action)) return $deny;
       $valStart = microtime(true);
@@ -106,7 +106,7 @@ final class AwardController extends Controller
         Log::info("[{$class}::{$action}] created award", ['award_id' => $award->id]);
         try {
           $creatorId = $req->user()->creatorId();
-          $setting = Utility::settings($creatorId);
+          $setting = Utility::settingsById($creatorId);
           $employee = Employee::findOrFail($award->employee_id);
           $awardType = AwardType::findOrFail($award->award_type);
           $data = ['award_name' => $awardType->name, 'employee_name' => $employee->name, 'award_date' => $award->date];
@@ -148,7 +148,7 @@ final class AwardController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::AWD . '.edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $award, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $award, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['award_id' => $award->id, UsersConstants::COL_USER_ID => $req->user()->id]);
       if ($deny = $this->authorizeOrDeny($req, 'edit award', $action)) return $deny;
       if ($award->created_by !== $req->user()->creatorId()) {
@@ -175,7 +175,7 @@ final class AwardController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $award, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $award, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['award_id' => $award->id, 'input' => $req->all()]);
       if ($deny = $this->authorizeOrDeny($req, 'edit award', $action)) return $deny;
       if ($award->created_by !== $req->user()->creatorId()) return redirect()->back()->with('error', __('Permission denied.'));
@@ -208,7 +208,7 @@ final class AwardController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $award, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $award, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['award_id' => $award->id]);
       if ($deny = $this->authorizeOrDeny($req, 'delete award', $action)) return $deny;
       if ($award->created_by !== $req->user()->creatorId()) return redirect()->back()->with('error', __('Permission denied.'));

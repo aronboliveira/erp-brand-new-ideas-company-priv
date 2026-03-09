@@ -8,6 +8,15 @@ use App\Traits\{HasAuditFields, TracksFailures, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\Log;
+/**
+ * @property mixed $created_by
+ * @property int|null $invoice_id
+ * @property int|null $order_id
+
+ * @property float|null $amount
+ * @property mixed $receipt
+ * @property int|null $status
+ */
 
 class InvoiceBankTransfer extends Model
 {

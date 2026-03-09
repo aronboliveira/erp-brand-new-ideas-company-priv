@@ -12,6 +12,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{DB, Log, Redirect};
 
+/**
+ * @property string|null $name
+ * @property string|null $cssClass
+
+ * @property mixed $css
+ */
 class TaskStage extends Model
 {
     use UsesUuids;
@@ -243,7 +249,7 @@ class TaskStage extends Model
 
     public static function getChartData(): array|RedirectResponse
     {
-        return app(TaskRequestService::class)->getStageChartData();
+        return app(TaskRequestService::class)->getChartData();
     }
 
     private function ensureDefaults(): void
@@ -265,6 +271,43 @@ class TaskStage extends Model
 
         $ord = $this->getAttribute('order');
         $this->setAttribute('order', $this->clampInt($ord, 0, 65535));
+    }
+
+    /**
+     * Resolve enum label safely via labels() static method or case label() method.
+     */
+    private function resolveEnumLabelSafe(string $enumClass, string $value, ?string $lang = null): string
+    {
+        $value = trim($value);
+        if ($value === '') return '';
+
+        try {
+            if (method_exists($enumClass, 'labels')) {
+                $labels = $enumClass::labels($lang ?? DC::DEFAULT_LANG);
+                if (is_array($labels) && array_key_exists($value, $labels))
+                    return (string) $labels[$value];
+            }
+        } catch (\Throwable) {
+            Log::debug(static::class . ' failed to resolve enum labels', [
+                'enum' => $enumClass,
+                'value' => $value,
+                'lang' => $lang,
+            ]);
+        }
+
+        try {
+            $case = method_exists($enumClass, 'tryFrom') ? $enumClass::tryFrom($value) : null;
+            if (is_object($case) && is_callable([$case, 'label']))
+                return (string) call_user_func([$case, 'label'], $lang ?? DC::DEFAULT_LANG);
+        } catch (\Throwable) {
+            Log::debug(static::class . ' failed to resolve enum label via case method', [
+                'enum' => $enumClass,
+                'value' => $value,
+                'lang' => $lang,
+            ]);
+        }
+
+        return $value;
     }
 
     private function normalizeCoreFields(): void

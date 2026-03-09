@@ -34,7 +34,7 @@ final class AllowanceOptionController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $viewPath = ViewsConstants::ALW_OPT . '.' . $action;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'manage allowance option')) !== true) return $r;
@@ -68,7 +68,7 @@ final class AllowanceOptionController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $viewPath = ViewsConstants::ALW_OPT . '.create';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'create allowance option')) !== true) return $r;
@@ -96,7 +96,7 @@ final class AllowanceOptionController extends Controller
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'create allowance option')) !== true) return $r;
@@ -133,7 +133,7 @@ final class AllowanceOptionController extends Controller
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
-    return $this->measureProfile($action, function () use ($req, $allowanceOption, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($req, $allowanceOption, $action, $method, $base) {
       Log::info("[{$base}::{$action}] redirecting", [UsersConstants::COL_USER_ID => Auth::id(), 'allowance_option_id' => $allowanceOption->id, 'method' => $method]);
       try {
         $redirStart = microtime(true);
@@ -156,7 +156,7 @@ final class AllowanceOptionController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $viewPath = ViewsConstants::ALW_OPT . '.edit';
-    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $class, $base, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $base, $viewPath) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'opt_id' => $opt->id, 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'edit allowance option')) !== true) return $r;
@@ -185,7 +185,7 @@ final class AllowanceOptionController extends Controller
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
-    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $base) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'opt_id' => $opt->id, 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'edit allowance option')) !== true) return $r;
@@ -224,7 +224,7 @@ final class AllowanceOptionController extends Controller
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
-    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($req, $opt, $action, $method, $base) {
       Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'opt_id' => $opt->id, 'method' => $method]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($r = self::authorizePerm($req, 'delete allowance option')) !== true) return $r;

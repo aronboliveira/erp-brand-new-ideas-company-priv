@@ -14,6 +14,9 @@ use App\Traits\{
 };
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model, Relations\BelongsTo, Relations\HasMany};
 use Illuminate\Http\RedirectResponse;
+/**
+ * @property mixed $created_by
+ */
 
 class LeadStage extends Model
 {

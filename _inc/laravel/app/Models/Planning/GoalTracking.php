@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\{Builder, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Str};
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property int|null $rating
+ */
 class GoalTracking extends Model
 {
     use UsesUuids, HasAuditFields, DescribesCompanyBranch, NormalizesArrays, FiltersSecureAttachments;
@@ -328,7 +331,7 @@ class GoalTracking extends Model
 
         if (!$start instanceof Carbon || !$end instanceof Carbon) return null;
 
-        return $start->diffInDays($end, includeEnd: true);
+        return $start->diffInDays($end) + 1;
     }
 
     public function getProgressClampedAttribute(): float

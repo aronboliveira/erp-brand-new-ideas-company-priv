@@ -23,7 +23,7 @@ class OvertimeController extends Controller
     $class = static::class;
     $viewPath = VW::OVT . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizePerm($req, self::PERM_MANAGE)) return redirect()->back();
       try {
@@ -48,7 +48,7 @@ class OvertimeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = VW::OVT . '.create';
-    return $this->measureProfile($action, function () use ($id, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($id, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['employee_id_param' => $id]);
       try {
         $findStart = microtime(true);
@@ -74,7 +74,7 @@ class OvertimeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if (!self::authorizePerm($req, self::PERM_CREATE)) return redirect()->back();
       $rules = ['employee_id' => 'required', 'title' => 'required', 'number_of_days' => 'required', 'hours' => 'required', 'rate' => 'required'];
@@ -103,7 +103,7 @@ class OvertimeController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($overtime, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($overtime, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['overtime_id' => $overtime->getKey()]);
       try {
         $redirStart = microtime(true);
@@ -126,7 +126,7 @@ class OvertimeController extends Controller
     $class = static::class;
     $viewPath = VW::OVT . '.edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $overtime, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $overtime, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['overtime_param' => $overtime, 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizePerm($req, self::PERM_EDIT)) return response()->json(['error' => __('Permission denied.')], 401);
       try {
@@ -153,7 +153,7 @@ class OvertimeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $overtime, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $overtime, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['overtime_param' => $overtime, 'creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if (!self::authorizePerm($req, self::PERM_EDIT)) return redirect()->back();
       $ot = self::getOvertime($req, $overtime);
@@ -183,7 +183,7 @@ class OvertimeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $overtime, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $overtime, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['overtime_id' => $overtime->getKey(), 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizePerm($req, self::PERM_DELETE)) return redirect()->back();
       if ($overtime->created_by !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);

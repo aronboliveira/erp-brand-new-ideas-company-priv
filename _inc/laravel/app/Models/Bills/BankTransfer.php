@@ -10,6 +10,26 @@ use DateTime;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property float|int|string|null $amount
+ * @property string|\Illuminate\Support\Carbon|null $failed_at
+ * @property string|null $taxes_fee
+ * @property \Illuminate\Support\Carbon|string|null $cancelled_at
+ * @property \Illuminate\Support\Carbon|string|null $completed_at
+ * @property mixed $created_by
+ * @property float|int|null $current_installment_number
+ * @property \Illuminate\Support\Carbon|string|null $executed_at
+ * @property float|int|null $number_of_installments
+ * @property string|null $payment_method
+ * @property string|null $payment_method_label
+ * @property string|null $purpose_code
+ * @property float|int|null $retry_count
+ * @property \Illuminate\Support\Carbon|string|null $scheduled_transfer_timestamp
+ * @property float|int|null $service_fee
+ * @property array|string|null $terms_and_conditions
+
+ * @property mixed $attachments
+ */
 class BankTransfer extends Model
 {
     use UsesUuids, HasAuditFields, HasPaymentColumns, TracksFailures, DefinesDates;
@@ -125,7 +145,7 @@ class BankTransfer extends Model
             $value = $transfer->{$field} ?? null;
 
             if ($value === null || (is_string($value) && trim($value) === '')) {
-                $transfer->{$field} = 0.0;
+                $transfer->{$field} = 0.0; // @phpstan-ignore assign.propertyType
                 continue;
             }
 
@@ -144,7 +164,7 @@ class BankTransfer extends Model
                 $floatVal = 0.0;
             }
 
-            $transfer->{$field} = $floatVal;
+            $transfer->{$field} = $floatVal; // @phpstan-ignore assign.propertyType
         }
 
         $intFields = [
@@ -158,7 +178,7 @@ class BankTransfer extends Model
             $value = $transfer->{$field} ?? null;
 
             if ($value === null || (is_string($value) && trim($value) === '')) {
-                $transfer->{$field} = 0;
+                $transfer->{$field} = 0; // @phpstan-ignore assign.propertyType
                 continue;
             }
 
@@ -177,7 +197,7 @@ class BankTransfer extends Model
                 $intVal = 0;
             }
 
-            $transfer->{$field} = $intVal;
+            $transfer->{$field} = $intVal; // @phpstan-ignore assign.propertyType
         }
 
         $total = (int) ($transfer->{BC::COL_N_INTR} ?? 1);
@@ -285,11 +305,11 @@ class BankTransfer extends Model
         $transfer->{BC::COL_PAY_MTD_LB} = $channel->value;
 
         if ($channel === PaymentMethod::CardDebit) {
-            $transfer->{BC::COL_PAY_MTD} = 0;
+            $transfer->{BC::COL_PAY_MTD} = '0';
         } elseif ($channel === PaymentMethod::CardCredit) {
-            $transfer->{BC::COL_PAY_MTD} = 1;
+            $transfer->{BC::COL_PAY_MTD} = '1';
         } elseif ($transfer->{BC::COL_PAY_MTD} === null) {
-            $transfer->{BC::COL_PAY_MTD} = 0;
+            $transfer->{BC::COL_PAY_MTD} = '0';
         }
     }
 

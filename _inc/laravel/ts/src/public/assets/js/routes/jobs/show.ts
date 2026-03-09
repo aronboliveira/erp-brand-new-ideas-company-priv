@@ -5,7 +5,7 @@
  */
 
 ((): void => {
-  const showMsg = (msg: string): void=> {
+  const showMsg = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -19,11 +19,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;

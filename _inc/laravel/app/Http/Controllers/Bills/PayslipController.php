@@ -268,7 +268,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             Log::debug($action . ' start', [
                 'fmt' => $request->datePicker ?? null,
                 UsersConstants::COL_USER_ID => $request->user()?->id ?? null
@@ -372,7 +372,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($date, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($date, $action) {
             Log::debug($action . ' start', ['date' => $date]);
 
             $ur = self::_checkLogin();
@@ -407,7 +407,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $date, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($request, $date, $action) {
             Log::debug($action . ' start', ['date' => $date]);
 
             $ur = self::_checkLogin();
@@ -447,7 +447,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($action) {
             Log::debug($action . ' start');
 
             $ur = self::_checkLogin();
@@ -477,7 +477,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($id, $month, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($id, $month, $action) {
             Log::debug($action . ' start', ['employee_id' => $id, 'month' => $month]);
 
             $ur = self::_checkLogin();
@@ -513,7 +513,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($id, $month, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($id, $month, $action) {
             Log::debug($action . ' start', ['employee_id' => $id, 'month' => $month]);
 
             $ur = self::_checkLogin();
@@ -563,7 +563,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($id, $month, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($id, $month, $action) {
             Log::debug($action . ' start', ['encrypted_id' => $id, 'month' => $month]);
 
             $ur = self::_checkLogin();
@@ -599,7 +599,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($id, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($id, $action) {
             Log::debug($action . ' start', ['payslip_id' => $id]);
 
             $ur = self::_checkLogin();
@@ -622,7 +622,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $id, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
             Log::debug($action . ' start', [
                 'payslip_id' => $id,
                 'input'      => $request->only(
@@ -695,7 +695,7 @@ final class PayslipController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $action, $cls, $func) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
             $ur = self::_checkLogin();

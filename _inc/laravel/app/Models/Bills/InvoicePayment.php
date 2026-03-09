@@ -20,6 +20,23 @@ use App\Traits\{
 };
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
+/**
+ * @property string|null $currency
+ * @property string|null $status
+ * @property int|null $account_id
+ * @property int|null $currency_id
+ * @property string|null $description
+ * @property int|null $invoice_id
+ * @property int|null $order_id
+ * @property string|null $payment_method
+ * @property string|null $payment_method_label
+ * @property string|null $payment_type
+ * @property string|null $receipt
+ * @property \Illuminate\Support\Carbon|string|null $reconciled_at
+ * @property string|null $reference
+ * @property float|null $amount
+ * @property \Illuminate\Support\Carbon|null $date
+ */
 class InvoicePayment extends Model
 {
     use UsesUuids;

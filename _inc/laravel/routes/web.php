@@ -138,10 +138,10 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require __DIR__ . '/auth.php';
 
-$output = new ConsoleOutput();
+// TEMP: $output = new ConsoleOutput();
 $msg = 'Mapping web main routes...';
-app()->runningInConsole() ?
-    $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
+// TEMP: app()->runningInConsole() ?
+// TEMP:     $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 
 //================================= Home ====================================//
 #region

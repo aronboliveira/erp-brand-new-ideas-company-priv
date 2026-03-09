@@ -5,9 +5,8 @@
  */
 
 /* global bootstrap, $, jQuery */
-// @ts-check
-const { test, expect } = require("@playwright/test");
-const path = require("path");
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import path from "path";
 
 /**
  * ERP Prestech - Financial Module E2E Tests
@@ -30,13 +29,12 @@ test.beforeEach(async ({ page }) => {
   page.on("dialog", dialog => dialog.accept());
 
   // Add handler to dismiss cookie banner after page load
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async el => {
+  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async _el => {
     const acceptBtn = page
       .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
       .first();
-    if (await acceptBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await acceptBtn.isVisible({ timeout: 1000 }).catch(() => false))
       await acceptBtn.click({ force: true });
-    }
   });
 });
 
@@ -52,8 +50,8 @@ test.describe("Invoice Module", (): void => {
     await expect(table).toBeVisible();
 
     // Check for expected columns in main content area
-    const headers = page.locator(".card-body th, .table-responsive th");
-    const headerCount = await headers.count();
+    const headers = page.locator(".card-body th, .table-responsive th"),
+      headerCount = await headers.count();
     expect(headerCount).toBeGreaterThan(0);
   });
 
@@ -73,7 +71,9 @@ test.describe("Invoice Module", (): void => {
     await expect(customerSelectContainer).toBeAttached();
   });
 
-  test("should have create button: HTMLButtonElement on invoice form: HTMLFormElement", async ({ page }) => {
+  test("should have create button: HTMLButtonElement on invoice form: HTMLFormElement", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/invoices/create`);
 
     // Verify submit button exists
@@ -211,10 +211,9 @@ test.describe("Data Accuracy Tests", (): void => {
 
     // Find cells that might contain amounts (in data table only)
     const amountCells = page
-      .locator("table.datatable td, table.dataTable-table td")
-      .filter({ hasText: /[\d,.]+/ });
-    const count = await amountCells.count();
-
+        .locator("table.datatable td, table.dataTable-table td")
+        .filter({ hasText: /[\d,.]+/ }),
+      count = await amountCells.count();
     // Should have some numeric data
     expect(count).toBeGreaterThanOrEqual(0);
   });
@@ -223,9 +222,9 @@ test.describe("Data Accuracy Tests", (): void => {
     await page.goto(`${BASE_URL}/bills`);
 
     const amountCells = page
-      .locator("table.datatable td, table.dataTable-table td")
-      .filter({ hasText: /[\d,.]+/ });
-    const count = await amountCells.count();
+        .locator("table.datatable td, table.dataTable-table td")
+        .filter({ hasText: /[\d,.]+/ }),
+      count = await amountCells.count();
     expect(count).toBeGreaterThanOrEqual(0);
   });
 
@@ -233,8 +232,8 @@ test.describe("Data Accuracy Tests", (): void => {
     await page.goto(`${BASE_URL}/reports/invoice-summary`);
 
     // Reports should have numeric data
-    const numericContent = page.locator("text=/\\d+/");
-    const count = await numericContent.count();
+    const numericContent = page.locator("text=/\\d+/"),
+      count = await numericContent.count();
     expect(count).toBeGreaterThan(0);
   });
 });
@@ -326,14 +325,18 @@ test.describe("Corrected Financial Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("should create journal entry form: HTMLFormElement", async ({ page }) => {
+  test("should create journal entry form: HTMLFormElement", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/journal_entries/create`);
     await expect(page).toHaveURL(/.*journal_entries\/create/);
     const form = page.locator("#jrn-et-store-form");
     await expect(form).toBeVisible();
   });
 
-  test("should create chart_of_accounts form: HTMLFormElement", async ({ page }) => {
+  test("should create chart_of_accounts form: HTMLFormElement", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/chart_of_accounts/create`);
     await expect(page).toHaveURL(/.*chart_of_accounts.*modal=create/);
     const content = page
@@ -381,7 +384,9 @@ test.describe("Modal Pattern Routes", (): void => {
     await expect(content).toBeVisible();
   });
 
-  test("set_salaries/create redirects to index (no create form)", async ({ page }) => {
+  test("set_salaries/create redirects to index (no create form)", async ({
+    page,
+  }) => {
     // set_salaries has no create.blade.php — the controller redirects to index
     // with an info flash because salary setup is managed per employee.
     await page.goto(`${BASE_URL}/set_salaries/create`);

@@ -727,4 +727,16 @@ class Training extends Model
             return -1;
         }
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Branch, $this> */
+    public function branches(): BelongsTo
+    {
+        return $this->branchModel();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\TrainingType, $this> */
+    public function types(): BelongsTo
+    {
+        return $this->trainingType();
+    }
 }

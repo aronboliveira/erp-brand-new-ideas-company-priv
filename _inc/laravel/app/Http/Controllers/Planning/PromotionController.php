@@ -106,8 +106,8 @@ class PromotionController extends Controller
                 $this->logExecutionTime($empStart, $action, 'pluckEmployees');
 
                 Log::info("[{$class}::{$action}] ready", [
-                    'designations' => count($designations ?? []),
-                    'employees'    => count($employees ?? []),
+                    'designations' => count($designations),
+                    'employees'    => count($employees),
                 ]);
 
                 return $this->renderViewChecked($viewPath, [
@@ -287,8 +287,8 @@ class PromotionController extends Controller
 
                 Log::info("[{$class}::{$action}] ready", [
                     'promotion_id'  => $promotion->id,
-                    'designations'  => count($designations ?? []),
-                    'employees'     => count($employees ?? []),
+                    'designations'  => count($designations),
+                    'employees'     => count($employees),
                 ]);
 
                 return $this->renderViewChecked($viewPath, [

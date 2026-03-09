@@ -83,7 +83,7 @@ class SupportController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = self::ENTITY . 's.' . $action;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) return $denial;
@@ -198,7 +198,7 @@ class SupportController extends Controller
                 });
                 $this->logExecutionTime($txnStart, $action, 'transaction');
                 $settingStart = microtime(true);
-                $setting = Utility::settings($user?->creatorId());
+                $setting = Utility::settingsById($user?->creatorId());
                 $prioLabel = Support::$priority?->{$support[PJC::COL_PRT]} ?? $support[PJC::COL_PRT];
                 $targetUser = User::find($support[SC::COL_USR]);
                 $notifyPayload = ['support_priority' => $prioLabel, 'support_user_name' => $targetUser[UC::COL_NM]];
@@ -419,7 +419,7 @@ class SupportController extends Controller
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($replies, $action) {
                     $loopStart = microtime(true);
-                    foreach ($replies as $r) $r->markAsRead();
+                    foreach ($replies as $r) $r->markRead();
                     $this->logExecutionTime($loopStart, $action, 'markRepliesRead');
                 });
                 $this->logExecutionTime($txnStart, $action, 'transaction');

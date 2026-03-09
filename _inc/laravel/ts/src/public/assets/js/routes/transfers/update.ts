@@ -14,20 +14,18 @@
       f.hasAttribute("action") &&
       f.getAttribute("action") === "#" &&
       resolved !== "#"
-    ) {
+    )
       f.setAttribute("action", resolved);
-    }
     f.addEventListener("submit", (e: Event) => {
       try {
         const action = f.getAttribute("action") ?? "#";
         if (action !== "#") return;
         e.preventDefault();
-        const msgAttr = f.getAttribute("data-guard-msg") ?? "";
-        const msg =
-          msgAttr.trim().length
+        const msgAttr = f.getAttribute("data-guard-msg") ?? "",
+          msg = msgAttr.trim().length
             ? msgAttr
-            : "Update transfer route is unavailable. Please contact technical support or your domain administrator.";
-        const bsLink = document.querySelector('link[href*="bootstrap"]');
+            : "Update transfer route is unavailable. Please contact technical support or your domain administrator.",
+          bsLink = document.querySelector('link[href*="bootstrap"]');
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -41,11 +39,11 @@
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -57,8 +55,8 @@
         }
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-    console.error(`[update] Error:`, err);
-  }
+        console.error(`[update] Error:`, err);
+      }
     });
   } catch (error) {
     console.error(`[update] Error:`, error);

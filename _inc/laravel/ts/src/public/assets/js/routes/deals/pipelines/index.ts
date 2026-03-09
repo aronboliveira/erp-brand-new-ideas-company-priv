@@ -7,12 +7,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const ERR_FB = "# ERROR";
-  const FL_CLIENT = "data-client-localized";
-  const FL_GUARD = "data-guard-msg";
-  const LANG_KEY = "erp-np-lang";
+  const ERR_FB = "# ERROR",
+    FL_CLIENT = "data-client-localized",
+    FL_GUARD = "data-guard-msg",
+    LANG_KEY = "erp-np-lang";
   let errorMessage = "";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
@@ -40,7 +40,7 @@
     return msg;
   };
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -55,11 +55,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = message;
@@ -110,7 +110,10 @@
       }
     };
 
-    sel.addEventListener("change", handler);
+    if (!sel.getAttribute("data-listener-bound-change")) {
+      sel.setAttribute("data-listener-bound-change", "1");
+      sel.addEventListener("change", handler);
+    }
     new MutationObserver((m, obs) => {
       m.forEach(mut => {
         Array.from(mut.removedNodes).forEach(n => {

@@ -4,18 +4,11 @@
  * @module pdf
  */
 
-interface DataTablesStaticExt {
-  (options?: DataTablesSettings): DataTablesApi;
-  isDataTable(selector: JQuery | string): boolean;
-}
-
-interface DataTablesJQueryFnExtension {
-  dataTable?: {
-    Buttons?: unknown;
-  };
-}
-
-type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
+import type {
+  DataTablesStaticExt,
+  DataTablesJQueryFnExtension,
+  EventHandler,
+} from "../../../../../../declarations/routes/datatables.interfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -27,26 +20,21 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     s: string,
     r: ParentNode = document,
   ): T | null => r.querySelector<T>(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataListenerGuard = "data-listener-guard";
-
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataListenerGuard = "data-listener-guard";
   const ensureToastContainer = (): HTMLDivElement => {
-    const id = "np-toast-container";
-    const existing = qs<HTMLDivElement>("#" + id);
-    if (existing) {
-      return existing;
-    }
+    const id = "np-toast-container",
+      existing = qs<HTMLDivElement>("#" + id);
+    if (existing) return existing;
     const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
@@ -64,19 +52,17 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t as HTMLElement, {
           autohide: true,
@@ -90,11 +76,9 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     }
   };
 
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -104,7 +88,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -112,7 +96,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -150,9 +134,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     handler: EventHandler,
     flag: string,
   ): void => {
-    if (!el || el.getAttribute(flag) === "true") {
-      return;
-    }
+    if (!el || el.getAttribute(flag) === "true") return;
     el.setAttribute(flag, "true");
     $(el).on(evt, handler as unknown as (e: JQueryEventObject) => void);
     const mo = new MutationObserver((_m, o) => {
@@ -170,14 +152,14 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name = String($("#filename").val() ?? "").trim();
-    const opt = {
-      margin: 0.3,
-      filename: name,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-      jsPDF: { unit: "in", format: "A2" },
-    };
+    const name = String($("#filename").val() ?? "").trim(),
+      opt = {
+        margin: 0.3,
+        filename: name,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+        jsPDF: { unit: "in", format: "A2" },
+      };
     try {
       if (typeof window.html2pdf !== "function") {
         try {
@@ -187,8 +169,8 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
           )
             console.error("html2pdf unavailable");
         } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+          console.error(`[pdf] Error:`, _);
+        }
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
@@ -204,9 +186,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
 
   const initDataTable = (): void => {
     const $table = $("#report-dataTable");
-    if (!$table.length) {
-      return;
-    }
+    if (!$table.length) return;
     const dtFn = $.fn.DataTable as DataTablesStaticExt | undefined;
     if (!dtFn) {
       try {
@@ -216,18 +196,14 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
         )
           console.error("DataTables unavailable");
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
-      scheduleInteractiveError(
-        getMsg($table.get(0), "plugin_unavailable"),
-      );
+        console.error(`[pdf] Error:`, _);
+      }
+      scheduleInteractiveError(getMsg($table.get(0), "plugin_unavailable"));
       return;
     }
-    if (dtFn.isDataTable($table)) {
-      return;
-    }
-    const title = ($("#filename").val() ?? "").toString().trim();
-    const hasButtons = ($.fn as DataTablesJQueryFnExtension).dataTable?.Buttons;
+    if (dtFn.isDataTable($table)) return;
+    const title = ($("#filename").val() ?? "").toString().trim(),
+      hasButtons = ($.fn as DataTablesJQueryFnExtension).dataTable?.Buttons;
     const opts: DataTablesSettings = hasButtons
       ? {
           dom: "lBfrtip",
@@ -246,24 +222,19 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
         )
           console.error("DataTables Buttons unavailable");
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
-      scheduleInteractiveError(
-        getMsg($table.get(0), "datatable_unavailable"),
-      );
+        console.error(`[pdf] Error:`, _);
+      }
+      scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"));
     }
     try {
       $table.DataTable(opts);
     } catch (_) {
-      scheduleInteractiveError(
-        getMsg($table.get(0), "datatable_unavailable"),
-      );
+      scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"));
     }
   };
 
   const onTypeChange = function (this: HTMLElement): void {
-    const v = $(this).val();
-    if (v === "monthly") {
+    if ($(this).val() === "monthly") {
       $(".month").addClass("d-block").removeClass("d-none");
       $(".year").addClass("d-none").removeClass("d-block");
     } else {
@@ -287,9 +258,7 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     const checked = document.querySelector<HTMLInputElement>(
       'input[name="type"][type="radio"]:checked',
     );
-    if (checked) {
-      onTypeChange.call(checked);
-    }
+    if (checked) onTypeChange.call(checked);
   };
 
   const init = (): void => {
@@ -297,11 +266,9 @@ type EventHandler = (this: HTMLElement, e: JQueryEventObject) => void;
     initTypeRadios();
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

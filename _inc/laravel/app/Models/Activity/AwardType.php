@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Traits\{HasAuditFields, UsesUuids};
 use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
+/**
+ * @property mixed $created_by
+ * @property string|null $name
+ */
 
 class AwardType extends Model
 {

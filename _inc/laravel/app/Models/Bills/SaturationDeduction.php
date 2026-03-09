@@ -14,6 +14,12 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\HasOne
 };
+/**
+ * @property string|null $deduction_option
+
+ * @property float|null $amount
+ * @property int|null $type
+ */
 
 class SaturationDeduction extends Model
 {
@@ -64,13 +70,13 @@ class SaturationDeduction extends Model
         static::saving(function (SaturationDeduction $m): void {
             if ($m->type !== null) {
                 $norm = PaymentPatternType::normalize($m->type);
-                if ($norm) $m->type = $norm;
+                if ($norm) $m->type = (int) $norm->value;
             }
 
             if ($m->amount < 0)
                 $m->amount = 0;
 
-            if ($m->type === PaymentPatternType::Percentage) {
+            if ($m->type === PaymentPatternType::Percentage->value) {
                 $value = (float) $m->amount;
                 if ($value < 0) $value = 0;
                 if ($value > 100) $value = 100;

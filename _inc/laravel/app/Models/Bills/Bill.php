@@ -48,9 +48,9 @@ use App\Models\Utility;
 /**
  * @property string $id
  * @property string $bill_id
- * @property string|null $bill_date
- * @property string|null $send_date
- * @property string|null $due_date
+ * @property \Illuminate\Support\Carbon|string|null $bill_date
+ * @property \Illuminate\Support\Carbon|string|null $send_date
+ * @property \Illuminate\Support\Carbon|string|null $due_date
  * @property string|null $vendor_id
  * @property string|null $category_id
  * @property string|null $order_id
@@ -77,6 +77,7 @@ use App\Models\Utility;
  * @property string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property array|string|null $taxes
  */
 class Bill extends Model
 {
@@ -900,7 +901,7 @@ class Bill extends Model
     /**
      * Bill line-item products (bill_products table).
      *
-     * @return HasMany<BillProduct, $this>
+     * @return HasMany<BillProduct>
      */
     public function items(): HasMany
     {

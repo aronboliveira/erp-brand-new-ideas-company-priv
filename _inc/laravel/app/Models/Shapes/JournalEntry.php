@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+/**
+ * @property int|null $journal_id
+ * @property mixed $items
+ */
 
 class JournalEntry extends Model
 {

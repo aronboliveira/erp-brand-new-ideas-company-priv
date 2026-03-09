@@ -79,7 +79,7 @@ class EmployeeController extends Controller
             $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
             $employees   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
-            $employeesId = $u->employeeIdFormat(self::nextEmployeeNumber());
+            ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat(self::nextEmployeeNumber());
             $this->logExecutionTime($t, $action, 'formDataLoaded');
             $view = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
@@ -153,7 +153,7 @@ class EmployeeController extends Controller
                     DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId(),
                 ]);
                 self::syncDocs($r, $employee->employee_id);
-                $settings = Utility::settings($u->creatorId());
+                $settings = Utility::settingsById($u->creatorId());
                 if (!empty($settings['new_user']) && (int) $settings['new_user'] === 1)
                     Utility::sendEmailTemplate('new_user', [$employeeUser->id => $employeeUser->email], ['email' => $employeeUser->email, 'password' => $r->password]);
                 if (!empty($settings['slack_employee_notification']) && (int) $settings['slack_employee_notification'] === 1)
@@ -190,7 +190,7 @@ class EmployeeController extends Controller
                 $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-                $employeesId = $u->employeeIdFormat($employee->employee_id);
+                ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat($employee->employee_id);
                 $departmentData = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->where(CompaniesConstants::COL_BRC_ID, $employee[CompaniesConstants::COL_BRC_ID])
                     ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
@@ -286,7 +286,7 @@ class EmployeeController extends Controller
                 $branches   = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-                $employeesId = $u->employeeIdFormat($employee->employee_id);
+                ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'detailLoaded');
                 $view = self::SINGULAR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT

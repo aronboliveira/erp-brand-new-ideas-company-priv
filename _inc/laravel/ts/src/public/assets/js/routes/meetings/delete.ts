@@ -8,17 +8,17 @@
 
 ((): void => {
   try {
-    const selector = ".delete-meeting-link";
-    const alias = "data-listening-deletemeetingclick";
+    const selector = ".delete-meeting-link",
+      alias = "data-listening-deletemeetingclick";
 
     document.querySelectorAll(selector).forEach((el: Element): void => {
       if (!el.hasAttribute(alias)) {
         el.setAttribute(alias, "true");
         el.addEventListener("click", event => {
-          const url = el.getAttribute("data-url");
-          const href = (el as HTMLAnchorElement).href
-            .replace(window.location.origin, "")
-            .replace(window.location.pathname, "");
+          const url = el.getAttribute("data-url"),
+            href = (el as HTMLAnchorElement).href
+              .replace(window.location.origin, "")
+              .replace(window.location.pathname, "");
           if ((!url || url === "#") && (!href || href === "#")) {
             event.preventDefault();
             const hasBS = Array.from(document.scripts).some(
@@ -28,9 +28,9 @@
                 window.bootstrap &&
                 typeof window.bootstrap.Modal === "function",
             );
-            const errFb = "# ERROR";
-            const dataClientLocalized = "data-client-localized";
-            const dataGuardMsg = "data-guard-msg";
+            const errFb = "# ERROR",
+              dataClientLocalized = "data-client-localized",
+              dataGuardMsg = "data-guard-msg";
             let msg = errFb;
             if (
               el.getAttribute("data-sv-localized") === "true" ||
@@ -75,7 +75,9 @@
   															</div>
   													</div>`;
               document.body.appendChild(wrapper);
-              new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
+              new window.bootstrap.Modal(
+                wrapper.querySelector(".modal")!,
+              ).show();
             } else {
               alert(msg);
             }

@@ -13,6 +13,46 @@
  */
 
 // ---------------------------------------------------------------------------
+// Type Definitions
+// ---------------------------------------------------------------------------
+export interface RoleTemplate {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+
+export interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  role: RoleTemplate;
+  permissions: string[];
+  company_id: string;
+  is_active: boolean;
+  isAuthenticated: boolean;
+  session_token: string;
+  session_expires_at: Date;
+  [key: string]: unknown;
+}
+
+export interface TestResult {
+  name: string;
+  passed: boolean;
+  message: string;
+  duration: number;
+}
+
+export interface TestSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  duration: number;
+}
+
+// Note: Window augmentation is defined in ../utils/rbac-test-utils.ts
+// This file uses the same interface but avoids redeclaring the global
+
+// ---------------------------------------------------------------------------
 // Permission constants
 // ---------------------------------------------------------------------------
 export const Permissions = {
@@ -183,26 +223,31 @@ const RoleTemplates = {
   },
 };
 
+type RoleKey = keyof typeof RoleTemplates;
+
 // ---------------------------------------------------------------------------
 // createMockUser(role, overrides?)
 // ---------------------------------------------------------------------------
-export function createMockUser(role, overrides) {
-  const tpl = RoleTemplates[role] || RoleTemplates.guest;
-  const base = {
-    id: "user-" + role + "-" + Date.now(),
-    name: "Test " + tpl.name,
-    email: "test." + role.toLowerCase() + "@prestech.com.br",
-    role: tpl,
-    permissions: tpl.permissions,
-    company_id: "company-1",
-    is_active: true,
-    isAuthenticated: role !== "guest",
-    session_token: "token-" + Date.now(),
-    session_expires_at: new Date(Date.now() + 3600000),
-  };
-  if (overrides) {
-    for (const k in overrides) base[k] = overrides[k];
-  }
+export function createMockUser(
+  role: RoleKey | string,
+  overrides?: Partial<MockUser>,
+): MockUser {
+  const tpl = RoleTemplates[role as RoleKey] || RoleTemplates.guest,
+    base: MockUser = {
+      id: "user-" + role + "-" + Date.now(),
+      name: "Test " + tpl.name,
+      email: "test." + role.toLowerCase() + "@prestech.com.br",
+      role: tpl,
+      permissions: tpl.permissions,
+      company_id: "company-1",
+      is_active: true,
+      isAuthenticated: role !== "guest",
+      session_token: "token-" + Date.now(),
+      session_expires_at: new Date(Date.now() + 3600000),
+    };
+  if (overrides)
+    for (const k in overrides)
+      (base as Record<string, unknown>)[k] = overrides[k as keyof MockUser];
   return base;
 }
 
@@ -210,7 +255,7 @@ export function createMockUser(role, overrides) {
 // userCan(user, permission)
 // Super-admin shortcut: if user holds SA permission, all checks pass.
 // ---------------------------------------------------------------------------
-export function userCan(user, permission) {
+export function userCan(user: MockUser | null, permission: string): boolean {
   if (!user?.is_active) return false;
   if (user.role.permissions.indexOf(Permissions.SA) !== -1) return true;
   return user.role.permissions.indexOf(permission) !== -1;
@@ -220,7 +265,7 @@ export function userCan(user, permission) {
 // setUserContext(user)
 // Stores session data in localStorage / window.__mockUser.
 // ---------------------------------------------------------------------------
-export function setUserContext(user: unknown) {
+export function setUserContext(user: MockUser | null): void {
   window.__mockUser = user;
   if (user) {
     localStorage.setItem("auth_token", user.session_token ?? "");
@@ -241,23 +286,24 @@ export function setUserContext(user: unknown) {
 // Hides [data-permission] elements the user lacks and [data-role] elements
 // (except <body>) that don't match the user's role.
 // ---------------------------------------------------------------------------
-export function hideElementsWithoutPermission(user: unknown) {
-  document.querySelectorAll("[data-permission]").forEach(function (el: HTMLElement) {
-    const req = el.getAttribute("data-permission");
+export function hideElementsWithoutPermission(user: MockUser | null): void {
+  document.querySelectorAll("[data-permission]").forEach(function (
+    el: Element,
+  ) {
+    const htmlEl = el as HTMLElement;
+    const req = htmlEl.getAttribute("data-permission");
     if (req && !userCan(user, req)) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
+      htmlEl.style.display = "none";
+      htmlEl.setAttribute("aria-hidden", "true");
     }
   });
-  document.querySelectorAll("[data-role]").forEach(function (el: HTMLElement) {
-    if (el === document.body) return;
-    const reqRole = el.getAttribute("data-role");
-    if (
-      reqRole &&
-      user?.role.name.toLowerCase() !== reqRole.toLowerCase()
-    ) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
+  document.querySelectorAll("[data-role]").forEach(function (el: Element) {
+    const htmlEl = el as HTMLElement;
+    if (htmlEl === document.body) return;
+    const reqRole = htmlEl.getAttribute("data-role");
+    if (reqRole && user?.role.name.toLowerCase() !== reqRole.toLowerCase()) {
+      htmlEl.style.display = "none";
+      htmlEl.setAttribute("aria-hidden", "true");
     }
   });
 }
@@ -267,12 +313,12 @@ export function hideElementsWithoutPermission(user: unknown) {
 // Returns a lightweight test-runner compatible with window.runRbacTests().
 // ---------------------------------------------------------------------------
 export function createTestRunner() {
-  const results = [];
+  const results: TestResult[] = [];
   return {
     test: function (name: string, fn: (...args: unknown[]) => unknown) {
       const start = performance.now();
       try {
-        const result = fn();
+        const result = fn() as { then?: (fn: () => void) => Promise<unknown> };
         if (result && typeof result.then === "function") {
           return result
             .then(function (): void {
@@ -300,25 +346,26 @@ export function createTestRunner() {
         });
         return Promise.resolve();
       } catch (err) {
+        const error = err as Error;
         results.push({
           name: name,
           passed: false,
-          message: err.message || String(err),
+          message: error.message || String(err),
           duration: performance.now() - start,
         });
         return Promise.resolve();
       }
     },
-    assert: function (cond, msg: string) {
+    assert: function (cond: boolean, msg: string): void {
       if (!cond) throw new Error("Assertion failed: " + msg);
     },
-    assertEqual: function (a, b, msg: string) {
+    assertEqual: function (a: unknown, b: unknown, msg?: string): void {
       if (a !== b)
         throw new Error(
           msg ?? "Expected " + JSON.stringify(b) + ", got " + JSON.stringify(a),
         );
     },
-    assertVisible: function (sel) {
+    assertVisible: function (sel: string): void {
       const el = document.querySelector(sel);
       if (!el) throw new Error("Element not found: " + sel);
       const s = window.getComputedStyle(el);
@@ -329,7 +376,7 @@ export function createTestRunner() {
       )
         throw new Error("Element not visible: " + sel);
     },
-    assertHidden: function (sel) {
+    assertHidden: function (sel: string): void {
       const el = document.querySelector(sel);
       if (!el) return; // element absent → treated as hidden
       const s = window.getComputedStyle(el);
@@ -340,10 +387,10 @@ export function createTestRunner() {
       )
         throw new Error("Element should be hidden: " + sel);
     },
-    getResults: function (): void {
+    getResults: function (): TestResult[] {
       return results;
     },
-    getSummary: function (): void {
+    getSummary: function (): TestSummary {
       return {
         total: results.length,
         passed: results.filter(function (r) {
@@ -352,7 +399,7 @@ export function createTestRunner() {
         failed: results.filter(function (r) {
           return !r.passed;
         }).length,
-        duration: results.reduce(function (s: string, r) {
+        duration: results.reduce(function (s: number, r) {
           return s + r.duration;
         }, 0),
       };

@@ -4,28 +4,16 @@
  * @module pdf
  */
 
-declare const html2pdf:
-  | (() => {
-      set: (opt: unknown) => {
-        from: (el: HTMLElement) => {
-          save: () => {
-            then: (fn: () => void) => {
-              catch: (fn: (err: unknown) => void) => void;
-            };
-          };
-        };
-      };
-    })
-  | undefined;
+import "../../../../../declarations/routes/vendor-libs";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const DATA_BOUND = "data-np-bound";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    DATA_BOUND = "data-np-bound";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, msgKey: string) => {
@@ -57,14 +45,14 @@ declare const html2pdf:
     return msg;
   };
 
-  const showErrorOnPointer = (key: string): void=> {
+  const showErrorOnPointer = (key: string): void => {
     const target = document.body;
     if (!target || target.getAttribute(DATA_BOUND) === "true") return;
     const handler = (): void => {
-      const text = localize(document.body, key);
-      const hasBootstrap =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap.Toast;
+      const text = localize(document.body, key),
+        hasBootstrap =
+          document.querySelector('link[href*="bootstrap"]') &&
+          window.bootstrap.Toast;
       if (hasBootstrap) {
         let toast = document.querySelector<HTMLElement>("#np-error-toast");
         if (!toast) {
@@ -73,11 +61,11 @@ declare const html2pdf:
           toast.className =
             "toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           {
             toast.replaceChildren();
             const _d = document.createElement("div");
@@ -100,7 +88,10 @@ declare const html2pdf:
         alert(text);
       }
     };
-    target.addEventListener("pointerup", handler, { once: true });
+    if (!target.getAttribute("data-listener-bound-pointerup")) {
+      target.setAttribute("data-listener-bound-pointerup", "1");
+      target.addEventListener("pointerup", handler, { once: true });
+    }
     target.setAttribute(DATA_BOUND, "true");
     const mo = new MutationObserver((_, obs) => {
       if (!document.body.contains(target)) {
@@ -118,8 +109,8 @@ declare const html2pdf:
         window.close();
       }, 1000);
     } catch (__err) {
-    console.error(`[pdf] Error:`, __err);
-  }
+      console.error(`[pdf] Error:`, __err);
+    }
   };
 
   try {

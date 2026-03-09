@@ -32,7 +32,7 @@ final class BillExport implements FromCollection, WithHeadings, WithEvents
         if (
             ($userOrRedirect = self::_checkLogin())
             instanceof RedirectResponse
-        ) return $userOrRedirect;
+        ) return collect();
         $user = $userOrRedirect;
         Log::info(__METHOD__ . ' started', ['user_id' => $user?->id]);
 
@@ -50,13 +50,19 @@ final class BillExport implements FromCollection, WithHeadings, WithEvents
 
         foreach ($bills as $bill) {
             foreach (self::UNSET_FIELDS as $f) unset($bill->$f);
+            /** @var \Carbon\Carbon|null $billDate */
+            $billDate = $bill->bill_date;
+            /** @var \Carbon\Carbon|null $dueDate */
+            $dueDate = $bill->due_date;
+            /** @var \Carbon\Carbon|null $sendDate */
+            $sendDate = $bill->send_date;
             $rows[] = [
                 $user?->billNumberFormat($bill->bill_id),
-                $bill->bill_date->format('Y-m-d') ?? '',
-                $bill->due_date->format('Y-m-d') ?? '',
+                $billDate?->format('Y-m-d') ?? '',
+                $dueDate?->format('Y-m-d') ?? '',
                 $bill->order_no ?? '',
                 Bill::$statuses[$bill->status] ?? '',
-                $bill->send_date->format('Y-m-d') ?? '',
+                $sendDate?->format('Y-m-d') ?? '',
                 $category
             ];
         }

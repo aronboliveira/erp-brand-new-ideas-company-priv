@@ -7,8 +7,7 @@
 ((): void => {
   const form = document.getElementById("payment-update-form");
   if (!form) return;
-
-  const toast = (msg: string): void=> {
+  const toast = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -22,11 +21,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -58,20 +57,20 @@
   );
 
   const fileInput = document.getElementById(
-    "payment-files",
-  ) as HTMLInputElement | null;
-  const img = document.getElementById(
-    "payment-image",
-  ) as HTMLImageElement | null;
-
+      "payment-files",
+    ) as HTMLInputElement | null,
+    img = document.getElementById("payment-image") as HTMLImageElement | null;
   if (fileInput && img) {
-    fileInput.addEventListener("change", function (): void {
-      if (fileInput.files?.[0]) {
-        const src = URL.createObjectURL(fileInput.files[0]);
-        img.src = src;
-        img.style.display = "";
-      }
-    });
+    if (!fileInput.getAttribute("data-listener-bound-change")) {
+      fileInput.setAttribute("data-listener-bound-change", "1");
+      fileInput.addEventListener("change", function (): void {
+        if (fileInput.files?.[0]) {
+          const src = URL.createObjectURL(fileInput.files[0]);
+          img.src = src;
+          img.style.display = "";
+        }
+      });
+    }
   }
 })();
 

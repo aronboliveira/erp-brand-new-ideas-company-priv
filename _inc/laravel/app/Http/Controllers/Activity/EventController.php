@@ -97,7 +97,7 @@ class EventController extends Controller
         $settings = Utility::settings();
         $this->logExecutionTime($settingsStart, $action, 'loadSettings');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
-        Log::info("[{$class}::{$action}] ready", ['employees' => count($employees ?? []), 'branches' => $branch->count(), 'departments' => $departments->count()]);
+        Log::info("[{$class}::{$action}] ready", ['employees' => count($employees), 'branches' => $branch->count(), 'departments' => $departments->count()]);
         return view($viewPath, ['employees' => $employees, 'branch' => $branch, 'departments' => $departments, 'settings' => $settings]);
       } catch (AuthorizationException $e) {
         Log::debug("[{$class}::{$action}] debug auth error", ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);
@@ -131,8 +131,8 @@ class EventController extends Controller
         }
         $event = new Event();
         $event->branch_id = $req->input(UsersConstants::COL_BRC_ID);
-        $event->department_id = json_encode($req->input(UsersConstants::COL_DEP_ID));
-        $event->employee_id = json_encode($req->input(UsersConstants::COL_EMP_ID));
+        $event->department_id = json_encode($req->input(UsersConstants::COL_DEP_ID)) ?: null; /** @phpstan-ignore assign.propertyType */
+        $event->employee_id = json_encode($req->input(UsersConstants::COL_EMP_ID)) ?: null; /** @phpstan-ignore assign.propertyType */
         $event->title = $req->input('title');
         $event->start_date = $req->input('start_date');
         $event->end_date = $req->input('end_date');
@@ -149,10 +149,10 @@ class EventController extends Controller
         foreach ($deptEmployees as $emp) EventEmployee::create(['event_id' => $event->id, UsersConstants::COL_EMP_ID => $emp, DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()]);
         $this->logExecutionTime($linkStart, $action, 'linkEventEmployees');
         $settingsStart = microtime(true);
-        $setting = Utility::settings($req->user()->creatorId());
+        $setting = Utility::settingsById($req->user()->creatorId());
         $this->logExecutionTime($settingsStart, $action, 'loadSettings');
         $branchStart = microtime(true);
-        $branchName = $req->input(UsersConstants::COL_BRC_ID) == 0 ? implode(',', Branch::all()->pluck('name')->toArray()) : Branch::find($req->input(UsersConstants::COL_BRC_ID))->name;
+        $branchName = $req->input(UsersConstants::COL_BRC_ID) == 0 ? implode(',', Branch::all()->pluck('name')->toArray()) : Branch::find($req->input(UsersConstants::COL_BRC_ID))?->name; /** @phpstan-ignore property.notFound */
         $this->logExecutionTime($branchStart, $action, 'resolveBranchName');
         $notif = ['event_title' => $req->input('title'), CompaniesConstants::COL_BRC_NM => $branchName, 'event_start_date' => $req->input('start_date'), 'event_end_date' => $req->input('end_date')];
         isset($setting['event_notification']) && $setting['event_notification'] == 1 ? (function () use ($notif, $action) {
@@ -228,7 +228,7 @@ class EventController extends Controller
         $employees = Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
         $this->logExecutionTime($empStart, $action, 'pluckEmployees');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
-        Log::info("[{$class}::{$action}] ready", ['event_id' => $event->id, 'employees' => count($employees ?? [])]);
+        Log::info("[{$class}::{$action}] ready", ['event_id' => $event->id, 'employees' => count($employees)]);
         return view($viewPath, ['event' => $event, 'employees' => $employees]);
       } catch (AuthorizationException $e) {
         Log::debug("[{$class}::{$action}] debug auth error", ['event_id' => $id, 'route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);

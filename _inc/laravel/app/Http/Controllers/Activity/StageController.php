@@ -110,7 +110,7 @@ class StageController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $stage, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $stage, $action, $class) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user_id' => $user?->id, 'stageId' => $stage->id]);
             if ($denial = $this->guard($req, PermissionsConstants::MNG_ST, self::REDIRECT_ROUTE)) {

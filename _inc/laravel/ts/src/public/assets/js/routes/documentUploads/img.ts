@@ -6,11 +6,10 @@
 
 ((): void => {
   const fileInput = document.getElementById(
-    "document",
-  ) as HTMLInputElement | null;
-  const imgEl = document.getElementById("image") as HTMLImageElement | null;
+      "document",
+    ) as HTMLInputElement | null,
+    imgEl = document.getElementById("image") as HTMLImageElement | null;
   if (!fileInput || !imgEl) return;
-
   const langShort = (): string => {
     const l = (
       sessionStorage.getItem("erp-np-lang") ??
@@ -26,12 +25,11 @@
     window.translations?.[langShort()]?.[k] ??
     window.translations?.en?.[k] ??
     "# ERROR";
-  const toast = (m: string): void=> {
+  const toast = (m: string): void => {
     window.show_toastr ? window.show_toastr("error", m, "error") : alert(m);
   };
 
   let lastUrl = "";
-
   const previewHandler = (): void => {
     try {
       const file = fileInput.files?.[0];
@@ -44,7 +42,10 @@
     }
   };
 
-  fileInput.addEventListener("change", previewHandler);
+  if (!fileInput.getAttribute("data-listener-bound-change")) {
+    fileInput.setAttribute("data-listener-bound-change", "1");
+    fileInput.addEventListener("change", previewHandler);
+  }
   new MutationObserver((ms, obs) => {
     ms.forEach(m => {
       m.removedNodes.forEach(n => {

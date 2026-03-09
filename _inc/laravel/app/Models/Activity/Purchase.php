@@ -206,7 +206,7 @@ class Purchase extends Model
     }
 
 
-    public function vender(): HasOne
+    public function vender(): ?BelongsTo
     {
         return $this->vendor();
     }
@@ -1639,7 +1639,7 @@ class Purchase extends Model
                 $price = (float) ($p->price ?? 0);
                 $qty   = (float) ($p->quantity ?? 0);
                 $disc  = (float) ($p->discount ?? 0);
-                $rate  = method_exists(Utility::class, 'totalTaxRate') ? (float) (Utility::totalTaxRate($p->tax) ?? 0) : 0.0;
+                $rate  = method_exists(Utility::class, 'totalTaxRate') ? (float) (Utility::totalTaxRate($p->tax) ?? 0) : 0.0; // @phpstan-ignore property.notFound
                 return ($rate / 100.0) * max(0.0, ($price * $qty) - $disc);
             });
 
@@ -2081,7 +2081,7 @@ class Purchase extends Model
             }
         }
 
-        return $explicit ?? PurchaseStatus::Unpaid;
+        return $explicit ?: PurchaseStatus::Unpaid;
     }
 
     private function resolveAuthorizedPaymentValues(): array

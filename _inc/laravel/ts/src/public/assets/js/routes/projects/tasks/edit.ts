@@ -18,9 +18,8 @@
       f.hasAttribute("action") &&
       (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
       resolved !== "#"
-    ) {
+    )
       f.setAttribute("action", resolved);
-    }
 
     const assigneesInput = document.getElementById(
       "project-task-assignees",
@@ -50,21 +49,20 @@
               toSet.add(id);
               wrap.classList.add("selected");
             }
-            if (assigneesInput) {
+            if (assigneesInput)
               assigneesInput.value = Array.from(toSet).join(",");
-            }
 
-            const icon = document.getElementById(`usr_icon_${id}`);
-            const txt = document.getElementById(`usr_txt_${id}`);
+            const icon = document.getElementById(`usr_icon_${id}`),
+              txt = document.getElementById(`usr_txt_${id}`);
             if (icon) {
               icon.classList.toggle("ti-plus", !toSet.has(id));
               icon.classList.toggle("ti-check", toSet.has(id));
             }
             if (txt) {
-              const added = toSet.has(id);
-              const current = txt.textContent;
-              const addLabel = "Add";
-              const addedLabel = "Added";
+              const added = toSet.has(id),
+                current = txt.textContent,
+                addLabel = "Add",
+                addedLabel = "Added";
               if (added && current !== addedLabel) txt.textContent = addedLabel;
               if (!added && current !== addLabel) txt.textContent = addLabel;
             }
@@ -76,9 +74,9 @@
               console.error(
                 "[assets/js/routes/projects/tasks/edit.js] add_usr click error:",
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                err?.constructor?.name ?? "Error",
+                (err as Error)?.constructor?.name ?? "Error",
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                err?.message ?? "Unknown error",
+                (err as Error)?.message ?? "Unknown error",
               );
           }
         });
@@ -90,9 +88,9 @@
           console.error(
             "[assets/js/routes/projects/tasks/edit.js] bind add_usr error:",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.constructor?.name ?? "Error",
+            (err as Error)?.constructor?.name ?? "Error",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.message ?? "Unknown error",
+            (err as Error)?.message ?? "Unknown error",
           );
       }
     });
@@ -105,11 +103,13 @@
       const auto = (): void => {
         try {
           ta.style.height = "auto";
-          ta.style.overflowY = "hidden";
-          ta.style.height = `${ta.scrollHeight}px`;
+          Object.assign(ta.style, {
+            overflowY: "hidden",
+            height: `${ta.scrollHeight}px`,
+          });
         } catch (_) {
-    console.error(`[edit] Error:`, _);
-  }
+          console.error(`[edit] Error:`, _);
+        }
       };
       ["input", "change"].forEach(ev => {
         ta.addEventListener(ev, auto);
@@ -141,11 +141,11 @@
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -164,9 +164,9 @@
               console.error(
                 "[assets/js/routes/projects/tasks/edit.js] Bootstrap toast instantiation error:",
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                err?.constructor?.name ?? "Error",
+                (err as Error)?.constructor?.name ?? "Error",
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                err?.message ?? "Unknown error",
+                (err as Error)?.message ?? "Unknown error",
               );
             alert(msg);
           }
@@ -183,9 +183,9 @@
           console.error(
             "[assets/js/routes/projects/tasks/edit.js] Submit handler error:",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.constructor?.name ?? "Error",
+            (err as Error)?.constructor?.name ?? "Error",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.message ?? "Unknown error",
+            (err as Error)?.message ?? "Unknown error",
           );
       }
     });
@@ -197,9 +197,9 @@
       console.error(
         "[assets/js/routes/projects/tasks/edit.js] Initialization error:",
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error?.constructor?.name ?? "Error",
+        (error as Error)?.constructor?.name ?? "Error",
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error?.message ?? "Unknown error",
+        (error as Error)?.message ?? "Unknown error",
       );
   }
 })();

@@ -17,6 +17,13 @@ use Illuminate\{Database\Eloquent\Builder, Database\Eloquent\Model, Support\Coll
 use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo, BelongsToMany};
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * @property array|string|null $checklist
+ * @property string|null $image
+ * @property string|null $name
+ * @property string|null $project_image
+ * @property \Illuminate\Support\Carbon|string|null $end_date
+ */
 class Project extends Model
 {
     use UsesUuids, HasAuditFields, DefinesDates, StoresManyRefJson, PlansWithSchedule;

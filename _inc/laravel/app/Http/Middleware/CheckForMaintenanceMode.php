@@ -42,6 +42,7 @@ final class CheckForMaintenanceMode extends Middleware
             'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
         ]);
         $output->writeln("[{$base}] Checking maintenance mode for {$request->getMethod()} {$request->getRequestUri()}");
+        $response = null;
         try {
             $response = parent::handle($request, $next);
             $status = $response instanceof Response ? $response->getStatusCode() : 500;

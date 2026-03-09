@@ -7,6 +7,14 @@ use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\Log;
+/**
+ * @property int|null $branch_id
+ * @property mixed $created_by
+ * @property int|null $department_id
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|string|null $transfer_date
+ * @property string|null $description
+ */
 
 class Transfer extends Model
 {

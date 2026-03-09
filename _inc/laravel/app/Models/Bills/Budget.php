@@ -10,6 +10,14 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
+/**
+ * @property array|string|null $expense_data
+ * @property array|string|null $income_data
+ * @property mixed $from
+ * @property mixed $period
+
+ * @property mixed $frequency
+ */
 
 class Budget extends Model
 {
@@ -87,6 +95,20 @@ class Budget extends Model
         'receipts'       => 'array',
         'attachments'    => 'array',
         'metadata'       => 'array',
+    ];
+
+    /** @var array<string,string> */
+    public static array $frequency = [
+        'monthly'     => 'Monthly',
+        'weekly'      => 'Weekly',
+        'biweekly'    => 'Biweekly',
+        'quaternaly'  => 'Quarterly',
+        'semimonthly' => 'Semimonthly',
+        'semestral'   => 'Semestral',
+        'annual'      => 'Annual',
+        'once'        => 'Once',
+        'variable'    => 'Variable',
+        'hourly'      => 'Hourly',
     ];
 
     protected array $runtimeCache = [];

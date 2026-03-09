@@ -46,11 +46,11 @@
                     toastEl.className =
                       "toast align-items-center text-bg-danger border-0";
                     for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+                      role: "alert",
+                      "aria-live": "assertive",
+                      "aria-atomic": "true",
+                    }))
+                      toastEl.setAttribute(k, v);
                     toastEl.innerHTML =
                       '<div class="d-flex"><div class="toast-body">' +
                       msg +
@@ -64,13 +64,13 @@
                 }
                 fn();
               } catch (__err) {
-    console.error(`[save] Error:`, __err);
-  }
+                console.error(`[save] Error:`, __err);
+              }
             });
           }
         } catch (__err) {
-    console.error(`[save] Error:`, __err);
-  }
+          console.error(`[save] Error:`, __err);
+        }
       });
   } catch (__err) {
     console.error(`[save] Error:`, __err);

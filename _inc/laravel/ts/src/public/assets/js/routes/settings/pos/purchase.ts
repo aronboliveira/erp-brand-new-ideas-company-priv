@@ -8,9 +8,9 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const DATA_LISTENER_ADDED = "data-listener-added";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -43,11 +43,11 @@
     }
     return msg;
   };
-  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
-    const text = getMsg(el ?? document.body, key);
-    const hasBs =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap.Toast;
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void => {
+    const text = getMsg(el ?? document.body, key),
+      hasBs =
+        document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
     if (hasBs) {
       let toast = document.querySelector<HTMLElement>("#np-error-toast");
       if (!toast) {
@@ -55,11 +55,11 @@
         toast.id = "np-error-toast";
         toast.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         {
           toast.replaceChildren();
           const _d = document.createElement("div");
@@ -98,7 +98,7 @@
       document.addEventListener(ev, handler, { once: true });
     }
   };
-  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -117,7 +117,7 @@
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     element: HTMLElement | undefined,
     alt: string | undefined,
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
     const url = element?.getAttribute("data-url");
     const href =
@@ -154,11 +154,11 @@
       function (this: HTMLElement): void {
         try {
           const template = String(
-            $("select[name='purchase_template']").val() ?? "",
-          );
-          const color = String(
-            $("input[name='purchase_color']:checked").val() ?? "",
-          );
+              $("select[name='purchase_template']").val() ?? "",
+            ),
+            color = String(
+              $("input[name='purchase_color']:checked").val() ?? "",
+            );
           const $frame = $("#purchase_frame");
           const preview = `{{url('/purchase/preview')}}/${template}/${color}`;
           if (!$frame.length || routeGuard($frame.get(0), preview)) {
@@ -177,11 +177,11 @@
     );
     ((): void => {
       const input = document.getElementById(
-        "purchase_logo",
-      ) as HTMLInputElement | null;
-      const img = document.getElementById(
-        "purchase_image",
-      ) as HTMLImageElement | null;
+          "purchase_logo",
+        ) as HTMLInputElement | null,
+        img = document.getElementById(
+          "purchase_image",
+        ) as HTMLImageElement | null;
       if (!input || !img) {
         guardOnce(document.body, "purchase_logo_unavailable", "click");
         return;
@@ -192,9 +192,7 @@
           (): void => {
             try {
               const f = input.files?.[0];
-              if (!f) {
-                return;
-              }
+              if (!f) return;
               const src = URL.createObjectURL(f);
               img.src = src;
             } catch {
@@ -218,10 +216,8 @@
       "select[name='pos_template'], input[name='pos_color']",
       function (this: HTMLElement): void {
         try {
-          const template = String($("select[name='pos_template']").val() ?? "");
-          const color = String(
-            $("input[name='pos_color']:checked").val() ?? "",
-          );
+          const template = String($("select[name='pos_template']").val() ?? ""),
+            color = String($("input[name='pos_color']:checked").val() ?? "");
           const $frame = $("#pos_frame");
           const preview = `{{url('/pos/preview')}}/${template}/${color}`;
           if (!$frame.length || routeGuard($frame.get(0), preview)) {
@@ -240,11 +236,9 @@
     );
     ((): void => {
       const input = document.getElementById(
-        "pos_logo",
-      ) as HTMLInputElement | null;
-      const img = document.getElementById(
-        "pos_image",
-      ) as HTMLImageElement | null;
+          "pos_logo",
+        ) as HTMLInputElement | null,
+        img = document.getElementById("pos_image") as HTMLImageElement | null;
       if (!input || !img) {
         guardOnce(document.body, "pos_logo_unavailable", "click");
         return;
@@ -255,9 +249,7 @@
           (): void => {
             try {
               const f = input.files?.[0];
-              if (!f) {
-                return;
-              }
+              if (!f) return;
               const src = URL.createObjectURL(f);
               img.src = src;
             } catch {

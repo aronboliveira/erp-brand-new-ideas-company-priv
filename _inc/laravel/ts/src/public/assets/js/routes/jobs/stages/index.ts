@@ -5,20 +5,18 @@
  */
 
 ((): void => {
-  const Q = (sel: string): HTMLElement | null => document.querySelector(sel);
-  const QA = (sel: string): HTMLElement[] =>
-    Array.from(document.querySelectorAll(sel));
-
-  const DEFAULT_ROUTE_MSG =
-    "Requested route is unavailable. Please contact technical support or your domain administrator.";
-  const DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
-
+  const Q = (sel: string): HTMLElement | null => document.querySelector(sel),
+    QA = (sel: string): HTMLElement[] =>
+      Array.from(document.querySelectorAll(sel)),
+    DEFAULT_ROUTE_MSG =
+      "Requested route is unavailable. Please contact technical support or your domain administrator.",
+    DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
   const toast = (message: string): void => {
-    const text = message || DEFAULT_ROUTE_MSG;
-    const hasBs = !!(
-      document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      window.bootstrap
-    );
+    const text = message || DEFAULT_ROUTE_MSG,
+      hasBs = !!(
+        document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+        window.bootstrap
+      );
     let box = document.getElementById("toast-container");
     if (!box) {
       box = document.createElement("div");
@@ -29,11 +27,11 @@
       const t = document.createElement("div");
       t.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -48,27 +46,33 @@
   const bindLinkGuard = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", (e: Event) => {
-      const href = (el.getAttribute("href") ?? "#").trim();
-      const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
-      if (url !== "#" && href !== "#") return;
-      e.preventDefault();
-      toast(el.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
-      el.setAttribute("data-failed-route", "true");
-    });
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", (e: Event) => {
+        const href = (el.getAttribute("href") ?? "#").trim(),
+          url = (el.getAttribute("data-url") ?? href ?? "#").trim();
+        if (url !== "#" && href !== "#") return;
+        e.preventDefault();
+        toast(el.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+        el.setAttribute("data-failed-route", "true");
+      });
+    }
   };
 
   const bindFormGuard = (fm: HTMLFormElement | null): void => {
     if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", (e: Event) => {
-      const action = (fm.getAttribute("action") ?? "#").trim();
-      const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
-      if (url !== "#" && action !== "#") return;
-      e.preventDefault();
-      toast(fm.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
-      fm.setAttribute("data-failed-route", "true");
-    });
+    if (!fm.getAttribute("data-listener-bound-submit")) {
+      fm.setAttribute("data-listener-bound-submit", "1");
+      fm.addEventListener("submit", (e: Event) => {
+        const action = (fm.getAttribute("action") ?? "#").trim(),
+          url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+        if (url !== "#" && action !== "#") return;
+        e.preventDefault();
+        toast(fm.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+        fm.setAttribute("data-failed-route", "true");
+      });
+    }
   };
 
   const getCsrf = (): string => {
@@ -102,22 +106,28 @@
       li.addEventListener("dragend", () => li.classList.remove("dragging"));
     });
 
-    list.addEventListener("dragover", (e: DragEvent) => {
-      e.preventDefault();
-      const dragging = list.querySelector(".dragging");
-      if (!dragging) return;
-      const after = getDragAfterElement(list, e.clientY);
-      if (after == null) {
-        list.appendChild(dragging);
-      } else {
-        list.insertBefore(dragging, after);
-      }
-    });
+    if (!list.getAttribute("data-listener-bound-dragover")) {
+      list.setAttribute("data-listener-bound-dragover", "1");
+      list.addEventListener("dragover", (e: DragEvent) => {
+        e.preventDefault();
+        const dragging = list.querySelector(".dragging");
+        if (!dragging) return;
+        const after = getDragAfterElement(list, e.clientY);
+        if (after == null) {
+          list.appendChild(dragging);
+        } else {
+          list.insertBefore(dragging, after);
+        }
+      });
+    }
 
-    list.addEventListener("drop", (): void => {
-      // on drop, attempt to persist order
-      persistOrder(list);
-    });
+    if (!list.getAttribute("data-listener-bound-drop")) {
+      list.setAttribute("data-listener-bound-drop", "1");
+      list.addEventListener("drop", (): void => {
+        // on drop, attempt to persist order
+        persistOrder(list);
+      });
+    }
   };
 
   const getDragAfterElement = (
@@ -133,8 +143,8 @@
           closest: { offset: number; element: HTMLElement | null },
           child: HTMLElement,
         ) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - (box.top + box.height / 2);
+          const box = child.getBoundingClientRect(),
+            offset = y - (box.top + box.height / 2);
           if (offset < 0 && offset > closest.offset) {
             return { offset, element: child };
           } else {
@@ -157,10 +167,8 @@
       .map((li: HTMLElement) => li.getAttribute("data-id"))
       .filter(Boolean);
     if (ids.length === 0) return;
-
-    const payload = { order: ids };
-    const csrf = getCsrf();
-
+    const payload = { order: ids },
+      csrf = getCsrf();
     // Prefer fetch; fallback to jQuery if present
     const doFetch = (): Promise<unknown> =>
       fetch(url, {
@@ -208,12 +216,12 @@
         try {
           bootstrap.Tooltip.getOrCreateInstance(el);
         } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+          console.error(`[index] Error:`, _);
+        }
       });
     } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+      console.error(`[index] Error:`, _);
+    }
 
     // drag & drop
     enableDragSort(Q("#job-stages-sortable"));

@@ -5,6 +5,12 @@ namespace App\Models;
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+/**
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|string|null $notice_date
+ * @property \Illuminate\Support\Carbon|string|null $termination_date
+ * @property string|null $termination_type
+ */
 
 class Termination extends Model
 {
@@ -36,5 +42,11 @@ class Termination extends Model
     public function terminationType(): BelongsTo
     {
         return $this->belongsTo(TerminationType::class, UC::COL_TERMINATION_TP, 'id');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\TerminationType, $this> */
+    public function termination_type(): BelongsTo
+    {
+        return $this->terminationType();
     }
 }

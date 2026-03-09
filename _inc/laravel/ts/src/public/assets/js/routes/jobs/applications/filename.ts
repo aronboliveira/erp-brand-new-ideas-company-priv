@@ -15,15 +15,15 @@
       inp.setAttribute("data-filename-guarded", "true");
       inp.addEventListener("change", (): void => {
         try {
-          const sel = inp.getAttribute("data-filename") ?? "";
-          const out = sel ? document.querySelector("." + sel) : null;
+          const sel = inp.getAttribute("data-filename") ?? "",
+            out = sel ? document.querySelector("." + sel) : null;
           if (!out) return;
-          const inputEl = inp as HTMLInputElement;
-          const file = inputEl.files?.[0] ? inputEl.files[0] : null;
+          const inputEl = inp as HTMLInputElement,
+            file = inputEl.files?.[0] ? inputEl.files[0] : null;
           out.textContent = file ? file.name : "";
         } catch (__err) {
-    console.error(`[filename] Error:`, __err);
-  }
+          console.error(`[filename] Error:`, __err);
+        }
       });
     });
   } catch (__err) {

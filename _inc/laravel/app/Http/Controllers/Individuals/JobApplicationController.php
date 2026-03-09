@@ -59,7 +59,7 @@ class JobApplicationController extends Controller
 	{
 		$action = __FUNCTION__;
 		$method = __METHOD__;
-		return $this->measureProfile($action, function () use ($request, $action, $method) {
+		return $this->measureProfile(function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index'))) return $c;
@@ -82,7 +82,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		$method = __METHOD__;
 		$request = request();
-		return $this->measureProfile($action, function () use ($request, $action, $method) {
+		return $this->measureProfile(function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index'))) return $c;
@@ -140,7 +140,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		$method = __METHOD__;
 		$request = request();
-		return $this->measureProfile($action, function () use ($encId, $request, $action, $method) {
+		return $this->measureProfile(function () use ($encId, $request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, 'show job application', ViewsConstants::JB_APL . '.index'))) return $c;

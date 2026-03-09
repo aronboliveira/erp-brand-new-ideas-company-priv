@@ -15,10 +15,8 @@
           const url = el.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           event.preventDefault();
-          const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
-          const bootstrapLink = document.querySelector(
-            'link[href*="bootstrap"]'
-          );
+          const msg = el.getAttribute("data-guard-msg") ?? "# ERROR",
+            bootstrapLink = document.querySelector('link[href*="bootstrap"]');
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -32,11 +30,11 @@
             const toastEl = document.createElement("div");
             toastEl.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toastEl.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -48,8 +46,8 @@
           }
           el.setAttribute("data-failed-route", "true");
         } catch (e) {
-    console.error(`[bankPaymentReceipt] Error:`, e);
-  }
+          console.error(`[bankPaymentReceipt] Error:`, e);
+        }
       });
     });
 })();

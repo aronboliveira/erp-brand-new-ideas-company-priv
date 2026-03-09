@@ -4,13 +4,8 @@
  * @module store
  */
 
-interface SvLang {
-  zoomMeetings?: {
-    store?: {
-      routeGuardDefault?: string;
-    };
-  };
-}
+import type { SvLang } from "../../../../../declarations/routes/ajax-responses.interfaces";
+
 ((): void => {
   (function (): void {
     try {
@@ -24,8 +19,8 @@ interface SvLang {
         "Store zoom meeting route is unavailable. Please contact technical support or your domain administrator.";
       (window as unknown as { svLang: SvLang }).svLang = svLang;
     } catch (__err) {
-    console.error(`[store] Error:`, __err);
-  }
+      console.error(`[store] Error:`, __err);
+    }
   })();
   try {
     const f = document.getElementById("store_zoom_meeting");
@@ -38,9 +33,8 @@ interface SvLang {
       (!(f as HTMLFormElement).getAttribute("action") ||
         (f as HTMLFormElement).getAttribute("action") === "#") &&
       resolved !== "#"
-    ) {
+    )
       (f as HTMLFormElement).setAttribute("action", resolved);
-    }
 
     f.addEventListener("submit", (e: Event) => {
       try {
@@ -48,12 +42,12 @@ interface SvLang {
         if (action && action !== "#") return;
         e.preventDefault();
         const fallback =
-          (window as unknown as { svLang?: SvLang }).svLang?.zoomMeetings?.store
-            ?.routeGuardDefault || "";
-        const msg =
-          f.getAttribute("data-guard-msg") ??
-          (fallback ||
-            "Requested route is unavailable. Please contact technical support or your domain administrator.");
+            (window as unknown as { svLang?: SvLang }).svLang?.zoomMeetings
+              ?.store?.routeGuardDefault || "",
+          msg =
+            f.getAttribute("data-guard-msg") ??
+            (fallback ||
+              "Requested route is unavailable. Please contact technical support or your domain administrator.");
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -68,11 +62,11 @@ interface SvLang {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -88,8 +82,8 @@ interface SvLang {
         }
         f.setAttribute("data-failed-route", "true");
       } catch (__err) {
-    console.error(`[store] Error:`, __err);
-  }
+        console.error(`[store] Error:`, __err);
+      }
     });
   } catch (__err) {
     console.error(`[store] Error:`, __err);

@@ -75,6 +75,11 @@ class LanguageController extends Controller
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             $currentLang = $lang ?: DatabaseConstants::DEFAULT_LANG;
             Log::warning($currentLang);
+            $settings = [];
+            $disabled = [];
+            $baseDir = base_path("resources/lang/{$currentLang}");
+            $labelFilePath = base_path('resources/lang/en.json');
+            $viewName = 'lang.index';
             try {
                 $startFetchLangs = microtime(true);
                 $languages = Language::pluck('full_name', 'code');

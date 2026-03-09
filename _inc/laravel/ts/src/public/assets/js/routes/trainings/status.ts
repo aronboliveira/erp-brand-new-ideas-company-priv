@@ -16,9 +16,8 @@
       f.hasAttribute("action") &&
       (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
       resolved !== "#"
-    ) {
+    )
       f.setAttribute("action", resolved);
-    }
 
     f.addEventListener("submit", (e: Event) => {
       try {
@@ -27,7 +26,8 @@
         e.preventDefault();
 
         const msg =
-          f.getAttribute("data-guard-msg") ?? "Update training status route is unavailable. Please contact technical support or your domain administrator.";
+          f.getAttribute("data-guard-msg") ??
+          "Update training status route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -39,18 +39,15 @@
         }
 
         const bs = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bs &&
-          window.bootstrap.Toast
-        ) {
+        if (bs && window.bootstrap.Toast) {
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
 
           const b = document.createElement("div");
           b.className = "toast-body";

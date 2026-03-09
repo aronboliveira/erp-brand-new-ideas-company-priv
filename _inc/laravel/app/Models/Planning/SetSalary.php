@@ -7,6 +7,11 @@ use App\Enums\{Frequency, SalaryType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
+/**
+ * @property string|null $frequency
+ * @property string|null $salary_type
+ * @property float|int|null $month_day_limit
+ */
 class SetSalary extends Model
 {
 	use HasAuditFields, UsesUuids;

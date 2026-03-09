@@ -10,6 +10,11 @@ use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string|null $from
+ * @property bool|null $is_follow_up
+ * @property string|null $to
+ */
 class LeadEmail extends Model
 {
     use HasAuditFields, UsesUuids, NormalizesAddresses;

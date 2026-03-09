@@ -16,23 +16,7 @@ import globals from "globals";
  */
 export default tseslint.config(
   {
-    ignores: [
-      "src/tests/**",
-      "tests/**",
-      "src/public/js/**",
-      "src/public/assets/js/pages/**",
-      "src/public/assets/js/dash.ts",
-      "src/public/assets/js/vendor-all.ts",
-      "src/public/Modules/**",
-      "utils/**",
-      "eslint.config.mjs",
-      "jest.config.cjs",
-      "playwright.config.ts",
-      "playwright.harness.config.ts",
-      "playwright-report/**",
-      "test-results/**",
-      "test-results.json",
-    ],
+    ignores: ["src/tests/**", "tests/**", "src/public/js/**", "src/public/assets/js/pages/**", "src/public/assets/js/dash.ts", "src/public/assets/js/vendor-all.ts", "src/public/Modules/**", "utils/**", "eslint.config.mjs", "jest.config.cjs", "playwright.config.ts", "playwright.harness.config.ts", "playwright-report/**", "test-results/**", "test-results.json"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -78,8 +62,7 @@ export default tseslint.config(
         "warn",
         {
           argsIgnorePattern: "^_",
-          varsIgnorePattern:
-            "^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula",
+          varsIgnorePattern: "^_|^\\$|^jQuery|^bootstrap|^feather|^SimpleBar|^dragula",
           caughtErrorsIgnorePattern: ".*",
         },
       ],
@@ -130,8 +113,7 @@ export default tseslint.config(
         {
           types: {
             Function: {
-              message:
-                "Avoid using Function. Use specific function types instead.",
+              message: "Avoid using Function. Use specific function types instead.",
               fixWith: "(...args: unknown[]) => unknown",
             },
           },
@@ -151,13 +133,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: [
-      "dist/**",
-      "node_modules/**",
-      "**/*.d.ts",
-      "**/vendor-all.ts",
-      "**/site.ts",
-      "**/cookieconsent.ts",
-    ],
+    ignores: ["dist/**", "node_modules/**", "**/*.d.ts", "**/vendor-all.ts", "**/site.ts", "**/cookieconsent.ts"],
   },
 );

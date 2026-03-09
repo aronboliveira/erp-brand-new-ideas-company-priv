@@ -132,7 +132,7 @@ class TravelController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request) {
+        return $this->measureProfile($action, function () {
             return redirect()->route(self::REDIRECT_INDEX);
         });
     }

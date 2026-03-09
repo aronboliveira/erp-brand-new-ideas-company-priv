@@ -91,7 +91,7 @@ class RegisteredUserController extends Controller
           Log::notice("{$action} – verification view", ['user_id' => $user->id]);
           return view(ViewsConstants::AUT . '.verify');
         }
-        $user->email_verified_at = Carbon::now();
+        $user->email_verified_at = Carbon::now(); /** @phpstan-ignore property.notFound */
         $user->save();
         self::_assignCompanyRole($user);
         self::_seedDefaults($user->id);

@@ -31,7 +31,7 @@ function processFile(result) {
   let content = fs.readFileSync(filePath, "utf8");
   let lines = content.split("\n");
   const warnings = result.messages
-    .filter((m) => m.severity === 1)
+    .filter(m => m.severity === 1)
     .sort((a, b) => b.line - a.line || b.column - a.column); // bottom-up
 
   // Track which lines already have eslint-disable comments
@@ -151,9 +151,7 @@ function fixUnusedVars(lines, lineIdx, w) {
   }
 
   // Check if this is a /* global X */ comment
-  const globalMatch = line.match(
-    /^\s*\/\*\s*global\s+([\w$,\s]+)\s*\*\/\s*$/
-  );
+  const globalMatch = line.match(/^\s*\/\*\s*global\s+([\w$,\s]+)\s*\*\/\s*$/);
   if (globalMatch) {
     // Remove the entire /* global */ line
     lines[lineIdx] = "";
@@ -167,15 +165,12 @@ function fixUnusedVars(lines, lineIdx, w) {
     // Check if it's a function parameter
     const paramRegex = new RegExp(
       `([(,]\\s*)\\b${escapeRegex(varName)}\\b(?=\\s*[,:)])`,
-      "g"
+      "g",
     );
     if (paramRegex.test(line)) {
       lines[lineIdx] = line.replace(
-        new RegExp(
-          `([(,]\\s*)\\b${escapeRegex(varName)}\\b(?=\\s*[,:)])`,
-          "g"
-        ),
-        `$1_${varName}`
+        new RegExp(`([(,]\\s*)\\b${escapeRegex(varName)}\\b(?=\\s*[,:)])`, "g"),
+        `$1_${varName}`,
       );
       log(w.ruleId, "fixed");
       totalFixed++;
@@ -186,7 +181,7 @@ function fixUnusedVars(lines, lineIdx, w) {
   // For assigned-but-unused vars — prefix with _
   if (w.message.includes("is assigned a value but never used")) {
     const varDeclRegex = new RegExp(
-      `((?:const|let|var)\\s+)\\b${escapeRegex(varName)}\\b`
+      `((?:const|let|var)\\s+)\\b${escapeRegex(varName)}\\b`,
     );
     if (varDeclRegex.test(line)) {
       lines[lineIdx] = line.replace(varDeclRegex, `$1_${varName}`);
@@ -198,7 +193,7 @@ function fixUnusedVars(lines, lineIdx, w) {
 
   // Generic: try to prefix the variable name
   const genericRegex = new RegExp(
-    `((?:const|let|var|function)\\s+)\\b${escapeRegex(varName)}\\b`
+    `((?:const|let|var|function)\\s+)\\b${escapeRegex(varName)}\\b`,
   );
   if (genericRegex.test(line)) {
     lines[lineIdx] = line.replace(genericRegex, `$1_${varName}`);
@@ -222,7 +217,7 @@ function fixReturnType(lines, lineIdx, w) {
 
   // Arrow function: (...) => {  →  (...): void => {
   const arrowMatch = line.match(
-    /^(.*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*=>\s*\{.*)$/
+    /^(.*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*=>\s*\{.*)$/,
   );
   if (arrowMatch && !arrowMatch[2]) {
     lines[lineIdx] = arrowMatch[1] + ": void" + arrowMatch[3];
@@ -234,7 +229,7 @@ function fixReturnType(lines, lineIdx, w) {
   // Arrow without parens: x =>  (skip these, too complex)
   // Function declaration: function name(...)  {  →  function name(...): void {
   const funcMatch = line.match(
-    /^(.*function\s*\w*\s*\([^)]*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*\{.*)$/
+    /^(.*function\s*\w*\s*\([^)]*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*\{.*)$/,
   );
   if (funcMatch && !funcMatch[2]) {
     lines[lineIdx] = funcMatch[1] + ": void" + funcMatch[3];
@@ -245,7 +240,7 @@ function fixReturnType(lines, lineIdx, w) {
 
   // Method: name(...) { → name(...): void {
   const methodMatch = line.match(
-    /^(\s*\w+\s*\([^)]*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*\{.*)$/
+    /^(\s*\w+\s*\([^)]*\))\s*(:\s*\w[\w<>[\]|,\s]*)?(\s*\{.*)$/,
   );
   if (methodMatch && !methodMatch[2]) {
     lines[lineIdx] = methodMatch[1] + ": void" + methodMatch[3];
@@ -266,7 +261,7 @@ function fixPreferForOf(lines, lineIdx, w) {
   const line = lines[lineIdx];
   // for (let i = 0; i < arr.length; i++) → for (const _item of arr)
   const forMatch = line.match(
-    /^(\s*)for\s*\(\s*let\s+(\w+)\s*=\s*0\s*;\s*\2\s*<\s*(\w[\w.]*?)\.length\s*;\s*\2\+\+\s*\)/
+    /^(\s*)for\s*\(\s*let\s+(\w+)\s*=\s*0\s*;\s*\2\s*<\s*(\w[\w.]*?)\.length\s*;\s*\2\+\+\s*\)/,
   );
   if (forMatch) {
     const [, indent, indexVar, arrExpr] = forMatch;
@@ -530,13 +525,14 @@ function addDisableComment(lines, lineIdx, ruleId, disabledLines) {
   const prevLine = lineIdx > 0 ? lines[lineIdx - 1] : "";
 
   const disableMatch = prevLine.match(
-    /^(\s*)\/\/\s*eslint-disable-next-line\s+([\w@/,-\s]+)$/
+    /^(\s*)\/\/\s*eslint-disable-next-line\s+([\w@/,-\s]+)$/,
   );
   if (disableMatch) {
     // Merge rule into existing disable comment
     const existingRules = disableMatch[2].trim();
     if (!existingRules.includes(ruleId)) {
-      lines[lineIdx - 1] = `${disableMatch[1]}// eslint-disable-next-line ${existingRules}, ${ruleId}`;
+      lines[lineIdx - 1] =
+        `${disableMatch[1]}// eslint-disable-next-line ${existingRules}, ${ruleId}`;
     }
   } else {
     // Add new disable comment
@@ -549,7 +545,7 @@ function addDisableComment(lines, lineIdx, ruleId, disabledLines) {
 // ========================================================================
 
 console.log(`Processing ${data.length} files...`);
-const filesWithWarnings = data.filter((f) => f.warningCount > 0);
+const filesWithWarnings = data.filter(f => f.warningCount > 0);
 console.log(`Files with warnings: ${filesWithWarnings.length}`);
 
 for (const result of filesWithWarnings) {
@@ -565,9 +561,7 @@ console.log(`Total fixed: ${totalFixed}`);
 console.log(`Total skipped: ${totalSkipped}`);
 console.log("\nBy rule:");
 for (const [rule, stats] of Object.entries(fixLog).sort(
-  (a, b) => b[1].fixed + b[1].skipped - (a[1].fixed + a[1].skipped)
+  (a, b) => b[1].fixed + b[1].skipped - (a[1].fixed + a[1].skipped),
 )) {
-  console.log(
-    `  ${rule}: ${stats.fixed} fixed, ${stats.skipped} skipped`
-  );
+  console.log(`  ${rule}: ${stats.fixed} fixed, ${stats.skipped} skipped`);
 }

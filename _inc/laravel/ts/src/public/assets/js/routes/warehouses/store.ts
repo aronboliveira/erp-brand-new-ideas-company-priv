@@ -7,7 +7,7 @@
 ((): void => {
   try {
     const forms = document.querySelectorAll(
-      "form[data-resolved-action][data-guard-msg]"
+      "form[data-resolved-action][data-guard-msg]",
     );
     forms.forEach(f => {
       if (f.getAttribute("data-listener-active") === "true") return;
@@ -16,16 +16,16 @@
       if (
         (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
         resolved !== "#"
-      ) {
+      )
         f.setAttribute("action", resolved);
-      }
       f.addEventListener("submit", (e: Event) => {
         try {
           const action = f.getAttribute("action") ?? "#";
           if (action && action !== "#") return;
           e.preventDefault();
           const msg =
-            f.getAttribute("data-guard-msg") ?? "Store warehouse route is unavailable. Please contact technical support or your domain administrator.";
+            f.getAttribute("data-guard-msg") ??
+            "Store warehouse route is unavailable. Please contact technical support or your domain administrator.";
           let c = document.getElementById("toast-container");
           if (!c) {
             c = document.createElement("div");
@@ -39,11 +39,11 @@
             const t = document.createElement("div");
             t.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -59,8 +59,8 @@
           }
           f.setAttribute("data-failed-route", "true");
         } catch (__err) {
-    console.error(`[store] Error:`, __err);
-  }
+          console.error(`[store] Error:`, __err);
+        }
       });
     });
   } catch (__err) {

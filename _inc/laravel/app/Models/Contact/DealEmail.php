@@ -12,6 +12,9 @@ use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property bool|null $is_follow_up
+ */
 class DealEmail extends Model
 {
     use HasAuditFields, UsesUuids, NormalizesAddresses;

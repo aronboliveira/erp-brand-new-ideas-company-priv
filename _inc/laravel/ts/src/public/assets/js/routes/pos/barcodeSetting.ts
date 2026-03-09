@@ -9,11 +9,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const L = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const ERR = "# ERROR";
+  const L = "data-guard-listener",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    ERR = "# ERROR";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const map = new WeakMap();
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -26,7 +26,7 @@
       return false;
     }
   }
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
@@ -38,11 +38,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -54,7 +54,7 @@
       }
     } catch (_) {
       alert(msg);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -74,8 +74,7 @@
         lang = lang === "pt-br" ? lang : lang.slice(0, 2);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dict = window.translations || {};
-        msg =
-          dict[lang][key] || el.getAttribute(DGM) || dict.en[key] || ERR;
+        msg = dict[lang][key] || el.getAttribute(DGM) || dict.en[key] || ERR;
         if (msg !== ERR) {
           el.setAttribute(DGM, msg);
           el.setAttribute(DCL, "true");
@@ -86,14 +85,14 @@
       return ERR;
     }
   }
-  function bindForm($f: JQuery<HTMLFormElement>): void{
+  function bindForm($f: JQuery<HTMLFormElement>): void {
     const f = $f.get(0);
     if (!f || f.getAttribute(L) === "true") return;
     f.setAttribute(L, "true");
-    const handler = function (e: Event): void{
+    const handler = function (e: Event): void {
       try {
-        const url = f.getAttribute("data-url");
-        const href = f.action;
+        const url = f.getAttribute("data-url"),
+          href = f.action;
         if ((!url || url === "#") && (!href || href === "#")) {
           e.preventDefault();
           toast(getMsg(f, "action_unavailable"));
@@ -106,7 +105,7 @@
     $f.on("submit.formGuard", handler);
     map.set(f, handler);
   }
-  function unbindForm(f: HTMLFormElement): void{
+  function unbindForm(f: HTMLFormElement): void {
     try {
       if (!f) return;
       if (!window.jQuery) return;
@@ -115,10 +114,10 @@
       f.removeAttribute(L);
       map.delete(f);
     } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
+      console.error(`[barcodeSetting] Error:`, _);
+    }
   }
-  }
-  function observeRemoval(f: HTMLFormElement): void{
+  function observeRemoval(f: HTMLFormElement): void {
     try {
       const obs = new MutationObserver(function (): void {
         if (!document.body.contains(f)) {
@@ -128,8 +127,8 @@
       });
       obs.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+      console.error(`[barcodeSetting] Error:`, _);
+    }
   }
   try {
     const $ = window.jQuery;
@@ -141,22 +140,22 @@
         )
           console.error("jQuery not found for formGuard");
       } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+        console.error(`[barcodeSetting] Error:`, _);
+      }
       return;
     }
     $(function (): void {
       try {
         const $forms = $("form[data-guard-msg], form[data-url]");
-        $forms.each(function (): void {
+        $forms.each(function (this: HTMLFormElement): void {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const $f = $(this) as JQuery<HTMLFormElement>;
           bindForm($f);
           observeRemoval($f.get(0));
         });
       } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+        console.error(`[barcodeSetting] Error:`, _);
+      }
     });
   } catch (_) {
     try {
@@ -166,13 +165,13 @@
       )
         console.error("Failed to initialize formGuard");
     } catch (__) {
-    console.error(`[barcodeSetting] Error:`, __);
-  }
+      console.error(`[barcodeSetting] Error:`, __);
+    }
   }
   (function (): void {
-    const L = "data-listener-active";
-    const NS = ".barcodeSetting";
-    function bindSelect($s: JQuery<HTMLSelectElement>): void{
+    const L = "data-listener-active",
+      NS = ".barcodeSetting";
+    function bindSelect($s: JQuery<HTMLSelectElement>): void {
       const el = $s.get(0);
       if (!el || el.getAttribute(L) === "true") return;
       el.setAttribute(L, "true");
@@ -183,11 +182,11 @@
           if (v == null) return;
           el.setAttribute("data-has-selection", String(v !== ""));
         } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+          console.error(`[barcodeSetting] Error:`, _);
+        }
       });
     }
-    function unbindSelect(el: HTMLSelectElement): void{
+    function unbindSelect(el: HTMLSelectElement): void {
       try {
         if (!el) return;
         if (!window.jQuery) return;
@@ -195,22 +194,20 @@
         $s.off("change" + NS);
         el.removeAttribute(L);
       } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+        console.error(`[barcodeSetting] Error:`, _);
+      }
     }
-    function observeRemoval(nodeList: HTMLSelectElement[]): void{
+    function observeRemoval(nodeList: HTMLSelectElement[]): void {
       try {
         const obs = new MutationObserver(function (): void {
           nodeList.forEach(function (el: HTMLSelectElement) {
-            if (!document.body.contains(el)) {
-              unbindSelect(el);
-            }
+            if (!document.body.contains(el)) unbindSelect(el);
           });
         });
         obs.observe(document.body, { childList: true, subtree: true });
       } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+        console.error(`[barcodeSetting] Error:`, _);
+      }
     }
     try {
       const $ = window.jQuery;
@@ -222,8 +219,8 @@
           )
             console.error("jQuery not found for barcodeSetting");
         } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+          console.error(`[barcodeSetting] Error:`, _);
+        }
         return;
       }
       $(function (): void {
@@ -241,8 +238,8 @@
           });
           observeRemoval(nodes);
         } catch (_) {
-    console.error(`[barcodeSetting] Error:`, _);
-  }
+          console.error(`[barcodeSetting] Error:`, _);
+        }
       });
     } catch (_) {
       try {
@@ -252,8 +249,8 @@
         )
           console.error("Failed to initialize barcodeSetting");
       } catch (__) {
-    console.error(`[barcodeSetting] Error:`, __);
-  }
+        console.error(`[barcodeSetting] Error:`, __);
+      }
     }
   })();
 })();

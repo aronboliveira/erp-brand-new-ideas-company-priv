@@ -55,7 +55,7 @@ class NewPasswordController extends Controller
         Log::debug("{$action} – attempting password reset", ['email' => $request->email]);
         $status = Password::reset(
           $request->only('email', 'password', 'password_confirmation', 'token'),
-          fn ($user) => tap($user)->forceFill([
+          fn ($user) => tap($user)->forceFill([ /** @phpstan-ignore method.notFound */
             'password'       => Hash::make($request->password),
             'remember_token' => Str::random(60),
           ])->save() && event(new PasswordReset($user))

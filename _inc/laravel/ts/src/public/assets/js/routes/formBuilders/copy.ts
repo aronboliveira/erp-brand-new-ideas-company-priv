@@ -7,9 +7,9 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const SUCCESS_KEY = "link_copy_success";
-  const FAILURE_KEY = "link_copy_failed";
-  const LISTENER_ATTR = "data-copy-listener";
+  const SUCCESS_KEY = "link_copy_success",
+    FAILURE_KEY = "link_copy_failed",
+    LISTENER_ATTR = "data-copy-listener";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const SELECTOR = [".cp_link", ".iframe_link"];
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -53,15 +53,18 @@
   const attach = (el: Element): void => {
     if (el.getAttribute(LISTENER_ATTR) === "true") return;
     el.setAttribute(LISTENER_ATTR, "true");
-    el.addEventListener("click", (e: Event) => {
-      e.preventDefault();
-      const link = el.getAttribute("data-link");
-      if (!link) {
-        showMsg(FAILURE_KEY, true);
-        return;
-      }
-      void copyText(link);
-    });
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", (e: Event) => {
+        e.preventDefault();
+        const link = el.getAttribute("data-link");
+        if (!link) {
+          showMsg(FAILURE_KEY, true);
+          return;
+        }
+        void copyText(link);
+      });
+    }
   };
 
   const init = (): void => {
@@ -77,11 +80,9 @@
     mo.observe(document.body, { childList: true, subtree: true });
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init)
+    : init();
 })();
 
 export {};

@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langKey = "erp-np-lang";
-  const errFb = "# ERROR";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    langKey = "erp-np-lang",
+    errFb = "# ERROR";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
@@ -43,7 +43,7 @@
     return msg;
   };
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       const hasBs =
         Array.from(
@@ -63,11 +63,11 @@
           t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           t.appendChild(b);
@@ -87,7 +87,7 @@
     selector: string,
     handler: (el: T) => void,
     key: string,
-  ): void=> {
+  ): void => {
     document.addEventListener(eventType, e => {
       const target = e.target as Element | null;
       if (!target) return;
@@ -98,10 +98,8 @@
       } catch {
         showError(getMsg(key, el));
       }
-      const obs = new MutationObserver((m, o) => {
-        if (!document.body.contains(el)) {
-          o.disconnect();
-        }
+      const obs = new MutationObserver((_m, o) => {
+        if (!document.body.contains(el)) o.disconnect();
       });
       obs.observe(document.body, { childList: true, subtree: true });
     });
@@ -228,10 +226,10 @@
   );
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el: HTMLElement, html: string): void{
+  function safeSethtmlContent(el: HTMLElement, html: string): void {
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
+      const parser = new DOMParser(),
+        doc = parser.parseFromString(html, "text/html");
       if (doc.body.innerHTML.includes("PARSER ERROR")) {
         el.textContent = html;
         return;

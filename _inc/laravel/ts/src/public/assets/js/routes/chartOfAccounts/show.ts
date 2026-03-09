@@ -10,7 +10,7 @@
     eventType: string,
     urlAttr = "data-url",
     msgAttr = "data-guard-msg",
-  ): void=> {
+  ): void => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
     el.addEventListener(eventType, e => {
@@ -18,8 +18,8 @@
         const url = el.getAttribute(urlAttr) ?? "#";
         if (url !== "#") return;
         e.preventDefault();
-        const msg = el.getAttribute(msgAttr) ?? "# ERROR";
-        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+        const msg = el.getAttribute(msgAttr) ?? "# ERROR",
+          bootstrapLink = document.querySelector('link[href*="bootstrap"]');
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -33,11 +33,11 @@
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toastEl.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -49,8 +49,8 @@
         }
         el.setAttribute("data-failed-route", "true");
       } catch (err) {
-    console.error(`[show] Error:`, err);
-  }
+        console.error(`[show] Error:`, err);
+      }
     });
   };
 

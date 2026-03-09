@@ -21,13 +21,13 @@ caches/       — Cached outputs (nohup, PHPUnit results, PHPStan caches)
 
 Located in `scripts/ts-harness/`:
 
-| Script | Purpose |
-|--------|---------|
-| `scan-views.php` | Extract JS dependencies from Laravel blade views |
-| `generate-harness.cjs` | Generate mock HTML pages from view mapping |
-| `generate-playwright-tests.cjs` | Generate Playwright e2e test specs |
-| `generate-jest-tests.cjs` | Generate Jest unit test files |
-| `update-harness-index.cjs` | Update harness index with all pages |
+| Script                          | Purpose                                          |
+| ------------------------------- | ------------------------------------------------ |
+| `scan-views.php`                | Extract JS dependencies from Laravel blade views |
+| `generate-harness.cjs`          | Generate mock HTML pages from view mapping       |
+| `generate-playwright-tests.cjs` | Generate Playwright e2e test specs               |
+| `generate-jest-tests.cjs`       | Generate Jest unit test files                    |
+| `update-harness-index.cjs`      | Update harness index with all pages              |
 
 ### Usage
 

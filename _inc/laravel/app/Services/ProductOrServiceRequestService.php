@@ -58,13 +58,14 @@ class ProductOrServiceRequestService
 		if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
 			return $userOrRedirect;
 
+		/** @var \App\Models\User $user */
 		$user = $userOrRedirect;
 		$userId = $user->creatorId();
 		$pid = $product->id;
 
 		$purchases = Purchase::where(DC::COL_TABLE_CREATOR, $userId);
 		if ($user->isUser())
-			$purchases->where(BC::COL_WRH_ID, $user->{BC::COL_WRH_ID});
+			$purchases->where(BC::COL_WRH_ID, $user->getAttribute(BC::COL_WRH_ID)); // @phpstan-ignore-line
 
 		$purchasedQty = $purchases->get()->sum(
 			fn($p) => optional(
@@ -76,7 +77,7 @@ class ProductOrServiceRequestService
 
 		$poses = Pos::where(DC::COL_TABLE_CREATOR, $userId);
 		if ($user->isUser())
-			$poses->where(BC::COL_WRH_ID, $user->{BC::COL_WRH_ID});
+			$poses->where(BC::COL_WRH_ID, $user->getAttribute(BC::COL_WRH_ID)); // @phpstan-ignore-line
 
 		$posQty = $poses->get()->sum(
 			fn($p) => optional(
@@ -176,8 +177,9 @@ class ProductOrServiceRequestService
 
 	/**
 	 * Get all categories with product/service counts
-	 * 
-	 * @return Collection|RedirectResponse Collection of categories or redirect if not authenticated
+	 *
+	 * @phpstan-return \Illuminate\Support\Collection<int, \stdClass>|RedirectResponse
+	 * @return \Illuminate\Support\Collection|RedirectResponse Collection of categories or redirect if not authenticated
 	 */
 	public function getAllCategories(): \Illuminate\Support\Collection|RedirectResponse
 	{

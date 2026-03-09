@@ -135,7 +135,7 @@ class AnnouncementController extends Controller
             DatabaseConstants::COL_TABLE_CREATOR => $creatorId
           ]);
         }
-        $settings = Utility::settings($creatorId);
+        $settings = Utility::settingsById($creatorId);
         $branchNames = $branchId === 0
           ? Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name')->toArray()
           : [Branch::whereKey($branchId)->value('name')];
@@ -253,7 +253,7 @@ class AnnouncementController extends Controller
   {
     $cls = __CLASS__;
     $action = __FUNCTION__;
-    return $this->measureProfile("$cls::$action", function () use ($request, $cls, $action) {
+    return $this->measureProfile("$cls::$action", function () use ($request) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       $branchId = (int) $request->input(CompaniesConstants::COL_BRC_ID, 0);
@@ -269,7 +269,7 @@ class AnnouncementController extends Controller
   {
     $cls = __CLASS__;
     $action = __FUNCTION__;
-    return $this->measureProfile("$cls::$action", function () use ($request, $cls, $action) {
+    return $this->measureProfile("$cls::$action", function () use ($request) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       $deptIds = (array) $request->input(CompaniesConstants::COL_DEP_ID, []);

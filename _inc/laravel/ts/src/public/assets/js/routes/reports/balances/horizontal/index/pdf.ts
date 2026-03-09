@@ -12,13 +12,13 @@
   const $ = window.jQuery;
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
-    r.querySelector(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const _dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataListenerGuard = "data-listener-guard";
+      r.querySelector(s),
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    _dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataListenerGuard = "data-listener-guard";
   if (!$) {
     try {
       if (
@@ -27,54 +27,48 @@
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+      console.error(`[pdf] Error:`, _);
+    }
     scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
     return;
   }
   const ensureToastContainer = (): HTMLDivElement => {
-    const id = "np-toast-container";
-    const existing = qs("#" + id);
-    if (existing) {
-      return existing as HTMLDivElement;
-    }
+    const id = "np-toast-container",
+      existing = qs("#" + id);
+    if (existing) return existing as HTMLDivElement;
     const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
       window.bootstrap.Toast;
     if (hasBootstrap) {
-      const container = ensureToastContainer();
-      const toastId = "np-toast";
+      const container = ensureToastContainer(),
+        toastId = "np-toast";
       let t = qs("#" + toastId, container);
       if (!t) {
         t = document.createElement("div");
         t.id = toastId;
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -84,11 +78,9 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string): void{
+  function scheduleInteractiveError(message: string): void {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -98,7 +90,7 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -140,20 +132,18 @@
     evt: string,
     handler: (e: Event) => void,
     flag: string,
-  ): void=> {
-    if (!el || el.getAttribute(flag) === "true") {
-      return;
-    }
+  ): void => {
+    if (!el || el.getAttribute(flag) === "true") return;
     el.setAttribute(flag, "true");
     $(el).on(evt, handler);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(el)) {
         $(el).off(evt, handler);
         o.disconnect();
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _safeFloat = (v: unknown) => {
@@ -166,15 +156,14 @@
       showErrorNow(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const nameInput = $("#filename").val();
-    const filename = String(nameInput ?? "").trim();
-    const opt = {
-      margin: 0.3,
-      filename: filename,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-      jsPDF: { unit: "in", format: "A2" },
-    };
+    const filename = String($("#filename").val() ?? "").trim(),
+      opt = {
+        margin: 0.3,
+        filename: filename,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+        jsPDF: { unit: "in", format: "A2" },
+      };
     try {
       if (typeof window.html2pdf !== "function") {
         try {
@@ -184,8 +173,8 @@
           )
             console.error("html2pdf unavailable");
         } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+          console.error(`[pdf] Error:`, _);
+        }
         showErrorNow(getMsg(el, "plugin_unavailable"));
         return;
       }
@@ -201,21 +190,20 @@
     $("#show_filter").toggle();
   };
   const copyDates = (): void => {
-    const startVal = $(".startDate").val() ?? "";
-    const endVal = $(".endDate").val() ?? "";
+    const startVal = $(".startDate").val() ?? "",
+      endVal = $(".endDate").val() ?? "";
     $(".start_date").val(startVal);
     $(".end_date").val(endVal);
   };
   const init = (): void => {
     const filterBtn = document.getElementById("filter");
-    if (filterBtn) {
+    if (filterBtn)
       bindWithObserver(
         filterBtn,
         "click",
         onFilterClick,
         dataListenerGuard + "-filter",
       );
-    }
     const exportBtnCandidates = Array.from(
       document.querySelectorAll(
         '[data-export-pdf], [data-action="export-pdf"], #saveAsPDF',
@@ -231,11 +219,9 @@
     });
     copyDates();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

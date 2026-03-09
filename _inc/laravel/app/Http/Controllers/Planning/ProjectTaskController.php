@@ -45,7 +45,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = self::SINGULAR . 's.index';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -73,7 +73,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = self::SINGULAR . 's.create';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $stageId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $stageId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, 'create project task', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -81,7 +81,7 @@ class ProjectTaskController extends Controller
                 $creatorId = $user?->creatorId();
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
                 $hrs = Project::projectHrs($projectId);
-                $settings = Utility::settings($creatorId);
+                $settings = Utility::settingsById($creatorId);
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 return view($viewPath, compact(self::ENTITY, 'stageId', 'hrs', DatabaseConstants::TABLE_SETTINGS));
             } catch (Throwable $e) {
@@ -97,7 +97,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $stageId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $stageId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, 'create project task', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -112,7 +112,7 @@ class ProjectTaskController extends Controller
                 if ($stageId == TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first()->id) $data['marked_at'] = now()->toDateString();
                 $task = ProjectTask::create($data);
                 ActivityLog::create([UsersConstants::COL_USER_ID => $user?->id, ProjectsConstants::COL_PJ_ID => $project->id, ActivitiesConstants::COL_TSK_ID => $task->id, 'log_type' => 'Create Task', 'remark' => json_encode(['title' => $task[ProjectsConstants::COL_NM]])]);
-                $settings = Utility::settings($creatorId);
+                $settings = Utility::settingsById($creatorId);
                 $payload = ['taskName' => $task[ProjectsConstants::COL_NM], 'projectName' => $project[ProjectsConstants::COL_NM], 'userName' => $user[UsersConstants::COL_NM]];
                 $settings['taskNotification'] ?? null ? Utility::sendSlackMsg('new_task', $payload) : null;
                 $settings['telegramTaskNotification'] ?? null ? Utility::sendTelegramMsg('new_task', $payload) : null;
@@ -140,7 +140,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $view, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $view, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -183,7 +183,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return null;
             $user = $userOrRedirect;
             if (!$req->ajax() || !$req->has(['view', 'sort'])) return null;
@@ -224,7 +224,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $view, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $view, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -258,7 +258,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = self::SINGULAR . 's.view';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -286,7 +286,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = self::SINGULAR . 's.edit';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
@@ -313,7 +313,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -346,7 +346,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'delete project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -378,7 +378,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $stageId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $stageId, $action, $class) {
             if ((self::_checkLogin()) instanceof RedirectResponse) return null;
             if (self::guard($req, 'view project task', self::REDIRECT_INDEX)) return response()->json(['error' => __('Permission denied.')], 401);
             Log::info("[{$class}::{$action}] start", ['stage_id' => $stageId]);
@@ -399,7 +399,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -429,7 +429,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -455,7 +455,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -481,7 +481,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -511,7 +511,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -540,7 +540,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -568,7 +568,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -600,7 +600,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $fileId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $fileId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -629,7 +629,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $commentId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $commentId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -657,7 +657,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -688,7 +688,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -718,7 +718,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = self::SINGULAR . 's.partials.card';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -743,7 +743,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json([], Response::HTTP_UNAUTHORIZED);
             $user = $userOrRedirect;
             if (self::guard($req, 'view project task', self::REDIRECT_INDEX)) return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
@@ -768,7 +768,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = 'tasks.calendar';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $taskBy, $projectId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $taskBy, $projectId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
@@ -786,6 +786,7 @@ class ProjectTaskController extends Controller
                 $tasks = $tasksQuery->get();
                 $transdate = date('Y-m-d');
                 $arrTasks = Utility::getTaskCalendarArray($tasks);
+                ${ProjectsConstants::COL_PJ_ID} = $projectId;
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 return view($viewPath, compact('arrTasks', ProjectsConstants::COL_PJ_ID, 'taskBy', 'transdate'));
             } catch (\Throwable $e) {
@@ -803,7 +804,7 @@ class ProjectTaskController extends Controller
         $class = static::class;
         $viewPath = 'tasks.calendar_show';
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
@@ -825,7 +826,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $taskId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ActivitiesConstants::COL_TSK_ID => $taskId, 'start' => $req->start, 'end' => $req->end]);
@@ -851,7 +852,7 @@ class ProjectTaskController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $projectId, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;

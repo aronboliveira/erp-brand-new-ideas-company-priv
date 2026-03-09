@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string|int $id
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|string|null $notice_date
+ * @property \Illuminate\Support\Carbon|string|null $resignation_date
  */
 class Resignation extends Model
 {

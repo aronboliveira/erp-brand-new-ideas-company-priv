@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\{
     Relations\HasMany
 };
 
+/**
+ * @property array|string|null $metrics
+ * @property string|null $main_metric
+ * @property string|null $name
+ */
 class PerformanceType extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
@@ -75,7 +80,7 @@ class PerformanceType extends Model
 
     public function getHasMainMetricAttribute(): bool
     {
-        return !empty($thisd->{PJC::COL_M_METRIC});
+        return !empty($this->{PJC::COL_M_METRIC});
     }
 
     public function types(): HasMany

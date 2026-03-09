@@ -82,7 +82,7 @@ class HolidayController extends Controller
                 'occasion'   => $data['occasion'],
                 DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
             ]);
-            $setting = Utility::settings($user?->creatorId());
+            $setting = Utility::settingsById($user?->creatorId());
             $notifyData = ['holiday_title' => $holiday->occasion, 'holiday_date' => $holiday->date];
             if (!empty($setting['holiday_notification'])) Utility::sendSlackMsg('new_holiday', $notifyData);
             if (!empty($setting['telegram_holiday_notification'])) Utility::sendTelegramMsg('new_holiday', $notifyData);

@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\{Builder, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{Cache, DB, Log, Schema};
 use Illuminate\Support\Str;
 
+/**
+ * @property \Illuminate\Support\Carbon|null $date
+ * @property mixed $time
+
+ * @property mixed $comment
+ */
 class InterviewSchedule extends Model
 {
     use UsesUuids, HasAuditFields, NormalizesArrays, StoresManyRefJson, FiltersSecureAttachments;

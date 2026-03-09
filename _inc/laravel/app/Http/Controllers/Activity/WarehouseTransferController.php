@@ -140,7 +140,7 @@ class WarehouseTransferController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -229,7 +229,7 @@ class WarehouseTransferController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json([], Response::HTTP_UNAUTHORIZED);
             $user = $userOrRedirect;
             try {
@@ -258,7 +258,7 @@ class WarehouseTransferController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json([], Response::HTTP_UNAUTHORIZED);
             $user = $userOrRedirect;
             try {

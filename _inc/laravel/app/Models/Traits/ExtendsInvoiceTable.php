@@ -26,6 +26,7 @@ trait ExtendsInvoiceTable
 	protected static function bootExtendsInvoice(): void
 	{
 		try {
+			/** @phpstan-ignore new.static */
 			$instance = new static;
 
 			if (!static::$extendsInvoiceInitialized) {
@@ -54,7 +55,8 @@ trait ExtendsInvoiceTable
 			}
 
 			static::saved(function (Model $model) {
-				$model->handleExtendsInvoiceSaved();
+				if (method_exists($model, 'handleExtendsInvoiceSaved'))
+					$model->handleExtendsInvoiceSaved();
 			});
 
 			Log::debug('ExtendsInvoiceTable::bootExtendsInvoice - Trait booted successfully', [

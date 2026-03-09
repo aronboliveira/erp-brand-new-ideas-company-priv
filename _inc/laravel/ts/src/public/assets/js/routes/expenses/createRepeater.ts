@@ -9,12 +9,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langSessionKey = "erp-np-lang";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    langSessionKey = "erp-np-lang";
   let errorMessage = "";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getLocalizedMessage = (msgKey: string, el: HTMLElement) => {
@@ -45,7 +45,7 @@
     return msg;
   };
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       const bsLink = document.querySelector('link[href*="bootstrap"]');
       let container = document.getElementById("toast-container");
@@ -61,11 +61,11 @@
         const toastEl = document.createElement("div");
         toastEl.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toastEl.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -92,17 +92,20 @@
   document.querySelectorAll("[data-repeater-delete]").forEach((el): void => {
     if (el.getAttribute("data-guard-listener-active") === "true") return;
     el.setAttribute("data-guard-listener-active", "true");
-    el.addEventListener("click", (): void => {
-      try {
-        $(".price").change();
-        $(".discount").change();
-      } catch {
-        errorMessage = getLocalizedMessage(
-          "repeater_delete_failed",
-          el as HTMLElement,
-        );
-      }
-    });
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", (): void => {
+        try {
+          $(".price").change();
+          $(".discount").change();
+        } catch {
+          errorMessage = getLocalizedMessage(
+            "repeater_delete_failed",
+            el as HTMLElement,
+          );
+        }
+      });
+    }
   });
 
   new MutationObserver((muts, obs) => {

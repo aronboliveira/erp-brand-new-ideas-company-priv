@@ -9,19 +9,17 @@
 
   const form = document.getElementById("leaveType-edit-form");
   if (!form) return;
-
   const guardMsg =
-    form.getAttribute("data-guard-msg") ?? "Update route is unavailable.";
-  const submitBtn = form.querySelector('input[type="submit"]');
-  const titleEl = form.querySelector<HTMLInputElement>("#title");
-  const daysEl = form.querySelector<HTMLInputElement>("#days");
-
+      form.getAttribute("data-guard-msg") ?? "Update route is unavailable.",
+    submitBtn = form.querySelector('input[type="submit"]'),
+    titleEl = form.querySelector<HTMLInputElement>("#title"),
+    daysEl = form.querySelector<HTMLInputElement>("#days");
   const actionIsBlocked = (): boolean => {
     const act = form.getAttribute("action") ?? "#";
     return !act || act === "#";
   };
 
-  const showErr = (msg: string): void=> {
+  const showErr = (msg: string): void => {
     try {
       alert(msg);
     } catch {
@@ -44,23 +42,26 @@
     return true;
   };
 
-  if (actionIsBlocked() && submitBtn) {
-    submitBtn.addEventListener("click", (e: Event) => {
-      e.preventDefault();
-      showErr(guardMsg);
+  if (actionIsBlocked() && submitBtn)
+    if (!submitBtn.getAttribute("data-listener-bound-click")) {
+      submitBtn.setAttribute("data-listener-bound-click", "1");
+      submitBtn.addEventListener("click", (e: Event) => {
+        e.preventDefault();
+        showErr(guardMsg);
+      });
+    }
+
+  if (!form.getAttribute("data-listener-bound-submit")) {
+    form.setAttribute("data-listener-bound-submit", "1");
+    form.addEventListener("submit", (e: Event) => {
+      if (actionIsBlocked()) {
+        e.preventDefault();
+        showErr(guardMsg);
+        return;
+      }
+      if (!validate()) e.preventDefault();
     });
   }
-
-  form.addEventListener("submit", (e: Event) => {
-    if (actionIsBlocked()) {
-      e.preventDefault();
-      showErr(guardMsg);
-      return;
-    }
-    if (!validate()) {
-      e.preventDefault();
-    }
-  });
 })();
 
 export {};

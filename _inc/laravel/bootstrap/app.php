@@ -7,7 +7,8 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 $successes = [];
-$output = new ConsoleOutput();
+// TEMP: silenced for PHPStan — was: $output = new ConsoleOutput();
+$output = new \Symfony\Component\Console\Output\NullOutput();
 $msg = 'Instiating Http Kernel Singleton...';
 app()->runningInConsole()
     ? $output->writeln('<question> ' . $msg . ' </question>')

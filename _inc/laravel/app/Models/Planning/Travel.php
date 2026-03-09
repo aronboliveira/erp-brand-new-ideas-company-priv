@@ -5,6 +5,13 @@ namespace App\Models;
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+/**
+ * @property \Illuminate\Support\Carbon|string|null $end_date
+ * @property string|null $place_of_visit
+ * @property string|null $purpose_of_visit
+ * @property \Illuminate\Support\Carbon|string|null $start_date
+ * @property string|null $description
+ */
 
 class Travel extends Model
 {

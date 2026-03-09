@@ -54,7 +54,7 @@ final class RedirectIfAuthenticated
                     'uri'    => $request->getRequestUri(),
                     'method' => $request->getMethod(),
                     'bearer_present' => (bool)$request->bearerToken(),
-                    'referrer' => $request->header('Referer'),
+                    // 'referrer' => $request->header('Referer'), // PHPStan: duplicate key
                 ]);
                 $output->writeln("[{$class}] Checking host and referer for {$request->getRequestUri()}");
                 $appHost       = parse_url(config('app.url'), PHP_URL_HOST);

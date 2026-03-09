@@ -5,9 +5,9 @@
  */
 
 /* global ApexCharts, $, jQuery */
-// @ts-check
-const { test, expect } = require("@playwright/test");
-const path = require("path");
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import path from "path";
+import type { AssertPageOptions } from "../../declarations/tests/e2e.interfaces";
 
 /**
  * ERP Prestech – Report Rendering E2E Tests
@@ -26,11 +26,16 @@ test.use({ storageState: STORAGE_STATE });
 
 test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async (): void => {
-    const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
-  });
+  page.addLocatorHandler(
+    page.locator("#cc--main, .c--anim"),
+    async (): Promise<void> => {
+      const btn = page
+        .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
+        .first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
+        await btn.click({ force: true });
+    },
+  );
 });
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
@@ -50,8 +55,13 @@ test.beforeEach(async ({ page }) => {
  * For pages whose tables are populated via AJAX (DataTables), we give extra
  * wait-time for rows (tbody tr) to appear.
  */
-async function assertReportRenders(page, route, label): Promise<void> {
-  await test.step(`Navigate to ${label}`, async (): void => {
+async function assertReportRenders(
+  page: Page,
+  route: string,
+  label: string,
+  _opts: AssertPageOptions = {},
+): Promise<void> {
+  await test.step(`Navigate to ${label}`, async (): Promise<void> => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
       timeout: 45000,
@@ -65,12 +75,12 @@ async function assertReportRenders(page, route, label): Promise<void> {
       });
   });
 
-  await test.step("Layout container visible", async (): void => {
+  await test.step("Layout container visible", async (): Promise<void> => {
     const layout = page.locator(".dash-content, .dash-container, main").first();
     await expect(layout).toBeVisible({ timeout: 15000 });
   });
 
-  await test.step("Has table / card / canvas / form", async (): void => {
+  await test.step("Has table / card / canvas / form", async (): Promise<void> => {
     // Wait a little for CSR content to mount
     const content = page.locator(
       [
@@ -89,19 +99,16 @@ async function assertReportRenders(page, route, label): Promise<void> {
   // --- More specific checks ---
 
   // Check for cards (used for summary numbers / KPIs)
-  const cards = page.locator(".card");
-  const cardCount = await cards.count();
-
+  const cards = page.locator(".card"),
+    cardCount = await cards.count();
   // Check for tables (SSR or DataTables)
   const tables = page.locator(
-    "table.datatable, table.dataTable-table, table.table, .card-body table, .table-responsive table",
-  );
-  const tableCount = await tables.count();
-
+      "table.datatable, table.dataTable-table, table.table, .card-body table, .table-responsive table",
+    ),
+    tableCount = await tables.count();
   // Check for chart canvases
-  const canvases = page.locator("canvas");
-  const canvasCount = await canvases.count();
-
+  const canvases = page.locator("canvas"),
+    canvasCount = await canvases.count();
   // At least one rendering primitive must be present
   await test.step("Has at least one card, table, or chart", (): void => {
     expect(
@@ -112,11 +119,11 @@ async function assertReportRenders(page, route, label): Promise<void> {
 
   // If there IS a table, verify it has a header row
   if (tableCount > 0) {
-    await test.step("Table has headers", async (): void => {
+    await test.step("Table has headers", async (): Promise<void> => {
       const headerCells = tables
-        .first()
-        .locator("thead th, thead td, tr:first-child th");
-      const hdrCount = await headerCells.count();
+          .first()
+          .locator("thead th, thead td, tr:first-child th"),
+        hdrCount = await headerCells.count();
       expect(hdrCount, `${label}: table header cells`).toBeGreaterThan(0);
     });
   }

@@ -7,7 +7,7 @@
 (function (): void {
   try {
     // eslint-disable-next-line no-inner-declarations
-    function toast(msg: string): void{
+    function toast(msg: string): void {
       if (window.bootstrap.Toast) {
         const box =
           document.getElementById("toast-container") ??
@@ -36,20 +36,23 @@
     }
 
     // eslint-disable-next-line no-inner-declarations
-    function guardClick(a: Element): void{
+    function guardClick(a: Element): void {
       if (!a || a.getAttribute("data-guard-bound") === "1") return;
       a.setAttribute("data-guard-bound", "1");
       a.addEventListener("click", function (e: Event) {
         const href = (a.getAttribute("href") ?? "#").trim();
-        const url = (a.getAttribute("data-url") || href || "#").trim();
-        if (url !== "#" && href !== "#") return;
+        if (
+          (a.getAttribute("data-url") || href || "#").trim() !== "#" &&
+          href !== "#"
+        )
+          return;
         e.preventDefault();
         toast(a.getAttribute("data-guard-msg") ?? "");
       });
     }
 
     // eslint-disable-next-line no-inner-declarations
-    function init(): void{
+    function init(): void {
       const ids = ["#project-report-index-link"];
 
       ids.forEach(function (sel) {

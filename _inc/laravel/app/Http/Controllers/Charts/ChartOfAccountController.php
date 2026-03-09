@@ -34,7 +34,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
             if (($c = self::guard($req, PermissionsConstants::MNG_COA, self::REDIRECT_INDEX)) !== true) return $c;
@@ -85,7 +85,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
             if (($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) !== true) return $c;
@@ -114,7 +114,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
             if (($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) !== true) return $c;
@@ -155,7 +155,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
             if (($c = self::guard($req, PermissionsConstants::LDG_RPT, self::REDIRECT_INDEX)) !== true) return $c;
@@ -227,7 +227,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             if (($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) !== true) return $c;
 
@@ -253,7 +253,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             if (($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
@@ -282,7 +282,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $chartOfAccount, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             if (($c = self::guard($req, PermissionsConstants::DEL_COA, self::REDIRECT_INDEX)) !== true) return $c;
 
@@ -306,7 +306,7 @@ final class ChartOfAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($req, $action) {
             try {
                 $t = microtime(true);
                 $types = ChartOfAccountSubType::where(ChartsConstants::COL_TP, $req->type)

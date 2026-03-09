@@ -20,6 +20,13 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\Facades\Log;
+/**
+ * @property string|null $content
+ * @property mixed $created_by
+ * @property string|null $lang
+ * @property int|null $parent_id
+ * @property array|string|null $variables
+ */
 
 class NotificationTemplateLang extends Model
 {

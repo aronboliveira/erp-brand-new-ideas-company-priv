@@ -12,13 +12,12 @@
   ).toLowerCase();
   const dict =
     (window.translations &&
-      (window.translations[lang] || window.translations[lang.split("-")[0]])) ||
+      (window.translations![lang] || window.translations![lang.split("-")[0]])) ||
     window.translations?.en ||
     {};
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const tr = (k: string) => dict[k] || k;
-
-  const showToastOrAlert = (msg: string): void=> {
+  const showToastOrAlert = (msg: string): void => {
     try {
       const hasToast = !!window.bootstrap.Toast;
       if (hasToast) {
@@ -26,20 +25,22 @@
         if (!c) {
           c = document.createElement("div");
           c.id = "toast-container";
-          c.style.position = "fixed";
-          c.style.top = "1rem";
-          c.style.right = "1rem";
-          c.style.zIndex = "1080";
+          Object.assign(c.style, {
+            position: "fixed",
+            top: "1rem",
+            right: "1rem",
+            zIndex: "1080",
+          });
           document.body.appendChild(c);
         }
         const el = document.createElement("div");
         el.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         {
           el.replaceChildren();
           const _d = document.createElement("div");
@@ -69,39 +70,42 @@
     }
   };
 
-  const previewBinder = (inputId: string, imgId: string): void=> {
+  const previewBinder = (inputId: string, imgId: string): void => {
     try {
-      const input = document.getElementById(inputId);
-      const img = document.getElementById(imgId);
+      const input = document.getElementById(inputId),
+        img = document.getElementById(imgId);
       if (!input || !img)
         throw new Error(
           `${tr("element_unavailable")} (${!input ? inputId : imgId})`,
         );
-      input.addEventListener("change", (): void => {
-        try {
-          const file = (input as HTMLInputElement).files?.[0];
-          if (!file) return;
-          const URLAPI = window.URL || window.webkitURL;
-          if (!URLAPI.createObjectURL) throw new Error(tr("request_failed"));
-          const src = URLAPI.createObjectURL(file);
-          (img as HTMLImageElement).src = src;
-          (img as HTMLImageElement).onload = (): void => {
-            try {
-              URLAPI.revokeObjectURL(src);
-            } catch (__err) {
-    console.error(`[change] Error:`, __err);
-  }
-          };
-        } catch (e) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-          showToastOrAlert(e.message || tr("request_failed"));
-        }
-      });
+      if (!input.getAttribute("data-listener-bound-change")) {
+        input.setAttribute("data-listener-bound-change", "1");
+        input.addEventListener("change", (): void => {
+          try {
+            const file = (input as HTMLInputElement).files?.[0];
+            if (!file) return;
+            const URLAPI = window.URL || window.webkitURL;
+            if (!URLAPI.createObjectURL) throw new Error(tr("request_failed"));
+            const src = URLAPI.createObjectURL(file);
+            (img as HTMLImageElement).src = src;
+            (img as HTMLImageElement).onload = (): void => {
+              try {
+                URLAPI.revokeObjectURL(src);
+              } catch (__err) {
+                console.error(`[change] Error:`, __err);
+              }
+            };
+          } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+            showToastOrAlert((e as Error).message || tr("request_failed"));
+          }
+        });
+      }
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-      showToastOrAlert(e.message || tr("request_failed"));
+      showToastOrAlert((e as Error).message || tr("request_failed"));
     }
   };
 
@@ -110,11 +114,9 @@
     previewBinder("home_logo", "image1");
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", start, { once: true })
+    : start();
 })();
 
 export {};

@@ -52,7 +52,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'create branch')) !== true) return $g;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
@@ -71,7 +71,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'create branch')) !== true) return $g;
             $valStart = microtime(true);
@@ -112,7 +112,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $branch, $action, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'edit branch')) !== true) return $g;
             if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
@@ -131,7 +131,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $branch, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'edit branch')) !== true) return $g;
             if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
@@ -159,7 +159,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $branch, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete branch')) !== true) return $g;
             if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
@@ -184,7 +184,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if ((self::_checkLogin()) instanceof RedirectResponse) return response()->json([], 401);
             $branchId = (int) $request->input(CompaniesConstants::COL_BRC_ID, 0);
             $qStart = microtime(true);
@@ -203,7 +203,7 @@ class BranchController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if ((self::_checkLogin()) instanceof RedirectResponse) return response()->json([], 401);
             $deptIds = $request->input(CompaniesConstants::COL_DEP_ID, []);
             if (!is_array($deptIds)) $deptIds = [];

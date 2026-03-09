@@ -7,30 +7,27 @@
 ((): void => {
   try {
     const links = document.querySelectorAll(
-      'a[data-ajax-popup-over="true"][data-url][data-guard-msg]'
+      'a[data-ajax-popup-over="true"][data-url][data-guard-msg]',
     );
     if (!links || links.length === 0) return;
     links.forEach(l => {
       try {
         if (!l || l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
-        const url = l.getAttribute("data-url") ?? "#";
-        const href = l.getAttribute("href") ?? "#";
-        if (href === "#" && url !== "#") {
-          l.setAttribute("href", url);
-        }
+        const url = l.getAttribute("data-url") ?? "#",
+          href = l.getAttribute("href") ?? "#";
+        if (href === "#" && url !== "#") l.setAttribute("href", url);
         l.addEventListener("click", (e: Event) => {
           try {
             const u =
               l.getAttribute("data-url") ?? l.getAttribute("href") ?? "#";
             if (u !== "#") return;
             e.preventDefault();
-            const msgAttr = l.getAttribute("data-guard-msg") ?? "";
-            const msg =
-              msgAttr.trim().length
+            const msgAttr = l.getAttribute("data-guard-msg") ?? "",
+              msg = msgAttr.trim().length
                 ? msgAttr
-                : "Generate transfer content route is unavailable. Please contact technical support or your domain administrator.";
-            const bsLink = document.querySelector('link[href*="bootstrap"]');
+                : "Generate transfer content route is unavailable. Please contact technical support or your domain administrator.",
+              bsLink = document.querySelector('link[href*="bootstrap"]');
             let container = document.getElementById("toast-container");
             if (!container) {
               container = document.createElement("div");
@@ -44,11 +41,11 @@
               const toast = document.createElement("div");
               toast.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -60,12 +57,12 @@
             }
             l.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[generateEdit] Error:`, err);
-  }
+            console.error(`[generateEdit] Error:`, err);
+          }
         });
       } catch (innerErr) {
-    console.error(`[generateEdit] Error:`, innerErr);
-  }
+        console.error(`[generateEdit] Error:`, innerErr);
+      }
     });
   } catch (error) {
     console.error(`[generateEdit] Error:`, error);

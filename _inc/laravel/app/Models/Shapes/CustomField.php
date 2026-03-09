@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * @method static void saveData(Model $model, array $customFieldData)
  * @method static Collection getData(Model $model, string $module)
+ * @property mixed $created_by
  */
 class CustomField extends Model
 {

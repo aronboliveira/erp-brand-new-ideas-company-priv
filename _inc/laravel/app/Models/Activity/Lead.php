@@ -21,6 +21,13 @@ use Illuminate\Database\Eloquent\Relations\{
 };
 use Illuminate\Support\Collection;
 
+/**
+ * @property bool|null $is_converted
+ * @property bool|null $is_critical
+ * @property array|string|null $labels
+ * @property array|string|null $products
+ * @property array|string|null $sources
+ */
 class Lead extends Model
 {
     use HasAuditFields;

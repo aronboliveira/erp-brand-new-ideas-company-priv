@@ -365,7 +365,7 @@ final class DebitNoteController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'input_keys' => array_keys($req->all() ?? []), 'method' => $method, 'ip' => $req->ip()]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) {
                 Log::warning("[{$base}::{$action}] abort: not logged in");
@@ -396,7 +396,7 @@ final class DebitNoteController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             Log::info("[{$base}::{$action}] start", ['bill_id' => $req->input('bill_id') ?? null, UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'method' => $method, 'ip' => $req->ip()]);
             $billId = $req->input('bill_id') ?? null;
             if (empty($billId)) {

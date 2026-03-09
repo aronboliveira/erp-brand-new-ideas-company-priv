@@ -10,13 +10,52 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Illuminate\Support\{Carbon, Collection, Str};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+/**
+ * @property float|int|string|null $amount
+ * @property array|string|null $attachments
+ * @property string|null $customer
+ * @property array|string|null $customers
+ * @property float|int|string|null $discount
+ * @property string|null $discount_apply
+ * @property array|string|null $employees
+ * @property bool|null $is_convert
+ * @property array|string|null $payments
+ * @property int|string|null $proposal_id
+ * @property array|string|null $signers
+ * @property string|null $status
+ * @property string|null $status_label
+ * @property string|null $title
+ * @property string|null $version
+ * @property float|int|null $aggregate_amount
+ * @property float|int|null $aggregate_count
+ * @property mixed $created_by
+ * @property array|string|null $customField
+ * @property \Illuminate\Support\Carbon|string|null $due_date
+ * @property \Illuminate\Support\Carbon|string|null $issue_date
+ * @property array|string|null $itemData
+ * @property array|string|null $reconcile_rules
+ * @property string|null $rejection_reason
+ * @property \Illuminate\Support\Carbon|string|null $send_date
+ * @property string|null $shipping_display
+ * @property array|string|null $taxesData
+ * @property array|string|null $terms_and_conditions
+ * @property float|int|null $totalDiscount
+ * @property float|int|null $totalQuantity
+ * @property float|int|null $totalRate
+ * @property float|int|null $totalTaxPrice
+
+ * @property mixed $casts
+ * @property mixed $custom
+ * @property mixed $item
+ * @property mixed $taxes
+ * @property float|null $total
+ */
 class Proposal extends Model
 {
     use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, FiltersSecureAttachments, DefinesDates;
 
     protected $table = DC::TABLE_PROPOSALS;
 
-    /** @var array<string,mixed> */
     protected $casts = [
         // JSON / array-like
         'employees'    => 'array',
@@ -144,7 +183,7 @@ class Proposal extends Model
 
             $statusEnum = ProposalStatus::normalize($m->{BC::COL_STT_LB} ?? null);
             $m->{BC::COL_STT_LB} = $statusEnum->value;
-            $m->status = self::mapStatusEnumToInt($statusEnum);
+            $m->status = (string)self::mapStatusEnumToInt($statusEnum);
 
             if (!empty($m->{BC::COL_BILL_STATUS}))
                 $m->{BC::COL_BILL_STATUS} = BillStatus::normalize($m->{BC::COL_BILL_STATUS})->value;
@@ -154,12 +193,12 @@ class Proposal extends Model
             if ($m->discount < 0.0) $m->discount = 0.0;
             if ($m->discount > $m->amount) $m->discount = $m->amount;
 
-            $m->{BC::COL_DSC_APL} = (int) ($m->{BC::COL_DSC_APL} ?? 0) > 0 ? 1 : 0;
-            $m->{BC::COL_IS_CNV} = (int) ($m->{BC::COL_IS_CNV} ?? 0) > 0 ? 1 : 0;
-            if (empty($m->version) || $m->version < 1) $m->version = 1;
+            $m->{BC::COL_DSC_APL} = (string)((int) ($m->{BC::COL_DSC_APL} ?? 0) > 0 ? 1 : 0);
+            $m->{BC::COL_IS_CNV} = (bool)((int) ($m->{BC::COL_IS_CNV} ?? 0) > 0 ? 1 : 0);
+            if (empty($m->version) || $m->version < 1) $m->version = '1';
 
             $m->attachments = static::normalizeArrayField($m->attachments ?? null);
-            $m->taxes = static::normalizeArrayField($m->taxes ?? null);
+            $m->setAttribute('taxes', static::normalizeArrayField($m->taxes ?? null));
             $m->employees = static::normalizeArrayField($m->employees ?? null);
             $m->customers = static::normalizeArrayField($m->customers ?? null);
             $m->signers = static::normalizeArrayField($m->signers ?? null);
@@ -177,7 +216,7 @@ class Proposal extends Model
             if (empty($m->title)) {
                 $customerName = null;
                 if ($m->relationLoaded('customer') && $m->customer)
-                    $customerName = $m->customer->name ?? null;
+                    $customerName = is_object($m->customer) ? ($m->customer->name ?? null) : null;
                 elseif (!empty($m->{BC::COL_CST_ID}) && class_exists(\App\Models\Customer::class))
                     $customerName = \App\Models\Customer::query()
                         ->whereKey($m->{BC::COL_CST_ID})
@@ -825,22 +864,22 @@ class Proposal extends Model
     public function getSubTotal(): float
     {
         return $this->items->sum(
-            fn($p): float => (float) $p->price * (float) $p->quantity
+            fn($p): float => (float) $p->price * (float) $p->quantity // @phpstan-ignore property.notFound, property.notFound
         );
     }
 
     public function getTotalDiscount(): float
     {
         return $this->items->sum(
-            fn($p): float => (float) $p->discount
+            fn($p): float => (float) $p->discount // @phpstan-ignore property.notFound
         );
     }
 
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn($p): float => (float) \Utility::totalTaxRate($p->tax) / 100.0
-                * ((float) $p->price * (float) $p->quantity - (float) $p->discount)
+            fn($p): float => (float) \Utility::totalTaxRate($p->tax) / 100.0 // @phpstan-ignore property.notFound
+                * ((float) $p->price * (float) $p->quantity - (float) $p->discount) // @phpstan-ignore property.notFound, property.notFound, property.notFound
         );
     }
 

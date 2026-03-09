@@ -33,7 +33,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
@@ -66,7 +66,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -105,7 +105,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -165,7 +165,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $bankAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $bankAccount, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -190,7 +190,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $bankAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $bankAccount, $func, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -234,7 +234,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $bankAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $bankAccount, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -296,7 +296,7 @@ class BankAccountController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $bankAccount, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $bankAccount, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             try {
@@ -339,5 +339,21 @@ class BankAccountController extends Controller
                 return defaultUndefinedException($request, $e, $action);
             }
         }, ['bank_account_id' => $bankAccount->id ?? null]);
+    }
+
+    /**
+     * Authorize the current user for a given ability.
+     *
+     * @throws AuthorizationException
+     */
+    private function _authorize(Request $request, string $ability): void
+    {
+        if (!$request->user()?->can($ability)) {
+            Log::warning(__METHOD__ . ' permission denied', [
+                'user_id' => Auth::id(),
+                'ability' => $ability,
+            ]);
+            throw new AuthorizationException("Unauthorized: {$ability}");
+        }
     }
 }

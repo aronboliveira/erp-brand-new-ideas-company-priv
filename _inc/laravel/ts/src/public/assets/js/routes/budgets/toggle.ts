@@ -5,11 +5,10 @@
  */
 
 ((): void => {
-  const errFb = "# ERROR";
-  const clientFlag = "data-client-localized";
-  const guardMsgKey = "data-guard-msg";
-  const langKey = "erp-np-lang";
-
+  const errFb = "# ERROR",
+    clientFlag = "data-client-localized",
+    guardMsgKey = "data-guard-msg",
+    langKey = "erp-np-lang";
   function getLocalizedMessage(key: string, el: HTMLElement): string {
     let msg = errFb;
     if (el.getAttribute(clientFlag) === "true") {
@@ -36,7 +35,7 @@
     return msg;
   }
 
-  function showError(message: string): void{
+  function showError(message: string): void {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -52,11 +51,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -120,8 +119,8 @@
 
     const onIncomeKeyup = (event: Event): void => {
       try {
-        const target = event.currentTarget as HTMLInputElement;
-        const row = target.closest("tr");
+        const target = event.currentTarget as HTMLInputElement,
+          row = target.closest("tr");
         if (!row) return;
         const inputs = row.querySelectorAll<HTMLInputElement>(".income_data");
         let total = 0;
@@ -160,8 +159,8 @@
 
     const onExpenseKeyup = (event: Event): void => {
       try {
-        const target = event.currentTarget as HTMLInputElement;
-        const row = target.closest("tr");
+        const target = event.currentTarget as HTMLInputElement,
+          row = target.closest("tr");
         if (!row) return;
         const inputs = row.querySelectorAll<HTMLInputElement>(".expense_data");
         let total = 0;
@@ -200,8 +199,8 @@
 
     const onPeriodChange = (event: Event): void => {
       try {
-        const target = event.currentTarget as HTMLSelectElement;
-        const val = target.value;
+        const target = event.currentTarget as HTMLSelectElement,
+          val = target.value;
         document
           .querySelectorAll(".budget_plan")
           .forEach((el: Element): void => {

@@ -7,12 +7,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const _dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-pw-error";
-  const dataBindGuard = "data-pw-bound";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    _dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-pw-error",
+    dataBindGuard = "data-pw-bound";
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
@@ -21,8 +21,10 @@
   const hasBS = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
@@ -31,13 +33,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -46,11 +46,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -69,7 +69,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string): void=> {
+  const schedulePointerupError = (msg: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -81,26 +81,25 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localize = (el: HTMLElement, key: string) => {
-    const err = errFb;
-    const dataClient = dataClientLocalized;
-    const dataGuard = dataGuardMsg;
+    const err = errFb,
+      dataClient = dataClientLocalized,
+      dataGuard = dataGuardMsg;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
       el.getAttribute(dataClient) === "true"
-    ) {
+    )
       return el.getAttribute(dataGuard) || err;
-    }
     let lang = (
       window.sessionStorage.getItem("erp-np-lang") ??
       document.documentElement.lang ??
@@ -127,8 +126,8 @@
     const a = document.createElement("a");
     a.setAttribute("data-url", candidate ?? "");
     a.href = candidate ?? "";
-    const url = a.getAttribute("data-url");
-    const href = a.href;
+    const url = a.getAttribute("data-url"),
+      href = a.href;
     if ((!url || url === "#") && (!href || href === "#")) return false;
     return true;
   };
@@ -137,8 +136,8 @@
       const host = document.body;
       if (!host || host.getAttribute(dataBindGuard) === "true") return;
       host.setAttribute(dataBindGuard, "true");
-      const containerId = "payment-form-container";
-      const ctn = qs("#" + containerId);
+      const containerId = "payment-form-container",
+        ctn = qs("#" + containerId);
       if (!ctn) {
         schedulePointerupError(
           localize(document.body, "payment_init_unavailable"),
@@ -154,8 +153,8 @@
           )
             console.error("Brick library unavailable");
         } catch (_) {
-    console.error(`[paymentWall] Error:`, _);
-  }
+          console.error(`[paymentWall] Error:`, _);
+        }
         schedulePointerupError(localize(document.body, "plugin_unavailable"));
         return;
       }
@@ -166,25 +165,25 @@
         return;
       }
       const Brick = BrickCtor as unknown as new (
-          o: Record<string, unknown>,
-        ) => Record<string, (...a: unknown[]) => void>;
+        o: Record<string, unknown>,
+      ) => Record<string, (...a: unknown[]) => void>;
       const brick = new Brick({
-        public_key: "{{ $admin_payment_setting[paymentwall_public_key'] }}",
-        amount: "{{$plan->price }}",
-        currency: "{{AppModelsUtility::getValByName('site_currency')}}",
-        container: containerId,
-        action: action,
-        form: {
-          merchant: "Paymentwall",
-          product: "{{$plan->name}}",
-          pay_button: "Pay",
-          show_zip: true,
-          show_cardholder: true,
-        },
-      });
-      const toErr = '{{route("error.plan.show",1)}}';
-      const toOk = '{{route("error.plan.show",2)}}';
-      const go = (target: string): void=> {
+          public_key: "{{ $admin_payment_setting[paymentwall_public_key'] }}",
+          amount: "{{$plan->price }}",
+          currency: "{{AppModelsUtility::getValByName('site_currency')}}",
+          container: containerId,
+          action: action,
+          form: {
+            merchant: "Paymentwall",
+            product: "{{$plan->name}}",
+            pay_button: "Pay",
+            show_zip: true,
+            show_cardholder: true,
+          },
+        }),
+        toErr = '{{route("error.plan.show",1)}}',
+        toOk = '{{route("error.plan.show",2)}}';
+      const go = (target: string): void => {
         if (!verifyRoute(target)) {
           schedulePointerupError(
             localize(document.body, "payment_redirect_unavailable"),
@@ -216,9 +215,7 @@
         },
       );
       const mo = new MutationObserver(function (): void {
-        if (!document.body.contains(ctn)) {
-          host.removeAttribute(dataBindGuard);
-        }
+        if (!document.body.contains(ctn)) host.removeAttribute(dataBindGuard);
       });
       mo.observe(document.documentElement, { childList: true, subtree: true });
     } catch (_) {
@@ -227,9 +224,9 @@
       );
     }
   };
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  else init();
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

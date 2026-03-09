@@ -9,12 +9,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const clientLoc = "data-client-localized";
-  const guardMsg = "data-guard-msg";
-  const langKey = "erp-np-lang";
+  const errFb = "# ERROR",
+    clientLoc = "data-client-localized",
+    guardMsg = "data-guard-msg",
+    langKey = "erp-np-lang";
   let errorMessage = "";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
@@ -45,7 +45,7 @@
     return msg;
   };
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       const bs = document.querySelector('link[href*="bootstrap"]');
       let c = document.getElementById("toast-container");
@@ -58,11 +58,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = message;
@@ -104,10 +104,13 @@
         });
       }).observe(document.body, { childList: true, subtree: true });
     });
-    onTypeChange.call(document.querySelector('input[name="type"]:checked'));
+    const checkedInput = document.querySelector<HTMLInputElement>(
+      'input[name="type"]:checked',
+    );
+    if (checkedInput) onTypeChange.call(checkedInput);
   };
 
-  const onTypeChange = function (): void {
+  const onTypeChange = function (this: HTMLInputElement): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const type = this.value;
@@ -119,42 +122,45 @@
     });
   };
 
-  const setupAjax = (type: string): void=> {
+  const setupAjax = (type: string): void => {
     const sel = document.getElementById(type) as HTMLSelectElement | null;
     if (!sel || sel.getAttribute("data-listener-active") === "true") return;
     sel.setAttribute("data-listener-active", "true");
-    const detail = document.getElementById(`${type}_detail`);
-    const box = document.getElementById(`${type}-box`);
-    sel.addEventListener("change", (): void => {
-      if (detail) detail.classList.replace("d-none", "d-block");
-      if (box) box.classList.replace("d-block", "d-none");
-      const url = sel.getAttribute("data-url");
-      if (url == null || url === "") {
-        errorMessage = getMsg(`${type}_fetch_failed`, sel);
-        return;
-      }
-      const id = sel.value;
-      $.ajax({
-        url,
-        type: "POST",
-        headers: {
-          "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-        },
-        data: { id },
-      })
-        .done((data: unknown) => {
-          if (data && detail) {
-            // SECURITY: Use safe HTML insertion instead of innerHTML
-            safeSethtmlContent(detail, data as string);
-          } else if (box && detail) {
-            box.classList.replace("d-none", "d-block");
-            detail.classList.replace("d-block", "d-none");
-          }
-        })
-        .fail((): void => {
+    const detail = document.getElementById(`${type}_detail`),
+      box = document.getElementById(`${type}-box`);
+    if (!sel.getAttribute("data-listener-bound-change")) {
+      sel.setAttribute("data-listener-bound-change", "1");
+      sel.addEventListener("change", (): void => {
+        if (detail) detail.classList.replace("d-none", "d-block");
+        if (box) box.classList.replace("d-block", "d-none");
+        const url = sel.getAttribute("data-url");
+        if (url == null || url === "") {
           errorMessage = getMsg(`${type}_fetch_failed`, sel);
-        });
-    });
+          return;
+        }
+        const id = sel.value;
+        $.ajax({
+          url,
+          type: "POST",
+          headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+          },
+          data: { id },
+        })
+          .done((data: unknown) => {
+            if (data && detail) {
+              // SECURITY: Use safe HTML insertion instead of innerHTML
+              safeSethtmlContent(detail, data as string);
+            } else if (box && detail) {
+              box.classList.replace("d-none", "d-block");
+              detail.classList.replace("d-block", "d-none");
+            }
+          })
+          .fail((): void => {
+            errorMessage = getMsg(`${type}_fetch_failed`, sel);
+          });
+      });
+    }
     new MutationObserver((m, o) => {
       m.forEach(mut => {
         mut.removedNodes.forEach(n => {
@@ -181,10 +187,10 @@
   });
 
   // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el: HTMLElement, html: string): void{
+  function safeSethtmlContent(el: HTMLElement, html: string): void {
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
+      const parser = new DOMParser(),
+        doc = parser.parseFromString(html, "text/html");
       if (doc.body.innerHTML.includes("PARSER ERROR")) {
         el.textContent = html;
         return;

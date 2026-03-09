@@ -7,6 +7,9 @@ use App\Enums\{AppModuleType, EvaluationStatus, MimeType};
 use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+/**
+ * @property mixed $created_by
+ */
 
 class DocumentUpload extends Model
 {

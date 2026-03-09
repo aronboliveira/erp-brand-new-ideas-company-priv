@@ -68,7 +68,9 @@ class PayslipExport implements FromCollection, WithHeadings, WithEvents
             $result = collect($records)->map(function ($payslip) use ($user) {
                 $emp = $payslip->employees;
                 return [
-                    'empId'             => $emp?->employeeIdFormat($emp->employee_id) ?? '',
+                    'empId'             => ($emp?->employee_id !== null)
+                        ? \App\Models\User::employeeIdFormat($emp->employee_id)
+                        : '',
                     'name'              => $emp?->name                        ?? '',
                     'salary'            => $user?->priceFormat($payslip->gross_salary),
                     'netSalary'         => $user?->priceFormat($payslip->net_payable),

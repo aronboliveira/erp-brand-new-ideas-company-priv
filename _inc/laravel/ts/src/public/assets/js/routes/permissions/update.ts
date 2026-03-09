@@ -7,8 +7,7 @@
 ((): void => {
   const form = document.getElementById("permission-update-form");
   if (!form) return;
-
-  const showToast = (msg: string): void=> {
+  const showToast = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const container =
@@ -22,11 +21,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;

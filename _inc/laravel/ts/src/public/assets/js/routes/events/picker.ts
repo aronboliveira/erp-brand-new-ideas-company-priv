@@ -4,20 +4,17 @@
  * @module picker
  */
 
-declare global {
-  interface JQuery {
-    daterangepicker(options?: Record<string, unknown>): JQuery;
-  }
-}
+import "../../../../../declarations/routes/vendor-libs";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const _dataClient = "data-client-localized";
-  const _dataGuard = "data-guard-msg";
-  const langKey = "erp-np-lang";
-  const toastId = "toast-box";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const errFb = "# ERROR",
+    _dataClient = "data-client-localized",
+    _dataGuard = "data-guard-msg",
+    langKey = "erp-np-lang",
+    toastId = "toast-box";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string) => {
@@ -35,7 +32,7 @@ declare global {
     );
   };
 
-  const showToast = (msg: string): void=> {
+  const showToast = (msg: string): void => {
     const hasBs =
       Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l =>
         /bootstrap/i.test((l as HTMLLinkElement).href),

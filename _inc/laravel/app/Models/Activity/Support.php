@@ -406,4 +406,14 @@ class Support extends Model
 	{
 		app(SupportHelperService::class)->touchClosedByPolicy($this, $userId);
 	}
+
+	public function assign_to(): BelongsTo
+	{
+		return $this->assignedToRel();
+	}
+
+	public function created_by(): BelongsTo
+	{
+		return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
+	}
 }

@@ -29,6 +29,7 @@ trait ExtendsProductServiceTable
 	protected static function bootExtendsProductServiceTable(): void
 	{
 		try {
+			/** @phpstan-ignore new.static */
 			$instance = new static;
 
 			if (!static::$extendsProductServiceInitialized) {
@@ -53,7 +54,8 @@ trait ExtendsProductServiceTable
 			}
 
 			static::saved(function (Model $model) {
-				$model->handleExtendsProductServiceTableSaved();
+				if (method_exists($model, 'handleExtendsProductServiceTableSaved'))
+					$model->handleExtendsProductServiceTableSaved();
 			});
 
 			Log::debug('ExtendsProductServiceTable::bootExtendsProductServiceTable - Trait booted successfully', [

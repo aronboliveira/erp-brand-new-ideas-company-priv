@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+/**
+ * @property mixed $created_by
+ * @property string|null $title
+
+ * @property mixed $attachment
+ */
 
 class CompanyPolicy extends Model
 {
@@ -573,5 +579,11 @@ class CompanyPolicy extends Model
         }
 
         $this->setAttribute('urls', empty($out) ? null : $out);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Branch, $this> */
+    public function branches(): BelongsTo
+    {
+        return $this->branchModel();
     }
 }

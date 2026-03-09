@@ -132,7 +132,7 @@ class ResignationController extends Controller
                 DB::commit();
 
                 $msgSuffix = '';
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 if (!empty($settings['resignation_sent'])) {
                     $emp = $resignation->employee;
                     $data = [

@@ -18,23 +18,22 @@
       )
         console.error("jQuery not found for callsGuard.js");
     } catch (_) {
-    console.error(`[call] Error:`, _);
-  }
+      console.error(`[call] Error:`, _);
+    }
     return;
   }
 
-  const ERR_FB = "# ERROR";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const DLA = "data-listener-active";
-  const DPL = "data-pointer-listener";
-  const DMK = "data-msg-key";
-
+  const ERR_FB = "# ERROR",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    DLA = "data-listener-active",
+    DPL = "data-pointer-listener",
+    DMK = "data-msg-key";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, fallbackKey: string) => {
@@ -64,7 +63,7 @@
     return msg;
   };
 
-  const showError = (el: HTMLElement, key: string): void=> {
+  const showError = (el: HTMLElement, key: string): void => {
     const msg = getMsg(el, key);
     if (hasBootstrapCss() && window.bootstrap) {
       let wrap = document.getElementById("toast-wrap-ld-calls");
@@ -78,11 +77,11 @@
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body">' +
         msg +
@@ -94,54 +93,53 @@
     }
   };
 
-  const handlersClick = new WeakMap();
-  const handlersPointer = new WeakMap();
-
-  const bindAnchorGuard = (el: HTMLElement | null): void=> {
+  const handlersClick = new WeakMap(),
+    handlersPointer = new WeakMap();
+  const bindAnchorGuard = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute(DLA) === "true") return;
     el.setAttribute(DLA, "true");
-    const h = (e: Event): void=> {
+    const h = (e: Event): void => {
       try {
-        const url = el.getAttribute("data-url");
-        const href = el.getAttribute("href");
+        const url = el.getAttribute("data-url"),
+          href = el.getAttribute("href");
         if ((!url || url === "#") && (!href || href === "#")) {
           e.preventDefault();
           showError(el, "ld_call_route_unavailable");
         }
       } catch (_) {
-    console.error(`[call] Error:`, _);
-  }
+        console.error(`[call] Error:`, _);
+      }
     };
     handlersClick.set(el, h);
     $(el).on("click", h);
   };
 
-  const bindFormPointerGuard = (form: HTMLFormElement | null): void=> {
+  const bindFormPointerGuard = (form: HTMLFormElement | null): void => {
     if (!form || form.getAttribute(DPL) === "true") return;
     form.setAttribute(DPL, "true");
     const $btns = $(form).find('button[type="submit"], input[type="submit"]');
     if (!$btns.length) return;
-    const h = (e: Event): void=> {
+    const h = (e: Event): void => {
       try {
-        const url = form.getAttribute("data-url");
-        const action = form.getAttribute("action");
+        const url = form.getAttribute("data-url"),
+          action = form.getAttribute("action");
         if ((!url || url === "#") && (!action || action === "#")) {
           e.preventDefault();
           e.stopPropagation();
           showError(form, "ld_call_route_unavailable");
         }
       } catch (_) {
-    console.error(`[call] Error:`, _);
-  }
+        console.error(`[call] Error:`, _);
+      }
     };
     handlersPointer.set(form, h);
-    $btns.each(function (): void {
+    $btns.each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $(this).on("pointerup", h);
     });
   };
 
-  const unbindAnchorGuard = (el: HTMLElement | null): void=> {
+  const unbindAnchorGuard = (el: HTMLElement | null): void => {
     if (!el) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersClick.get(el);
@@ -153,7 +151,7 @@
     el.removeAttribute(DLA);
   };
 
-  const unbindFormPointerGuard = (form: HTMLFormElement | null): void=> {
+  const unbindFormPointerGuard = (form: HTMLFormElement | null): void => {
     if (!form) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const h = handlersPointer.get(form);
@@ -169,11 +167,11 @@
     form.removeAttribute(DPL);
   };
 
-  const scan = (root: Document | Element): void=> {
-    const scope = root || document;
-    scope
-      .querySelectorAll("a[" + DGM + "]:not([" + DLA + '="true"])')
-      .forEach(el => bindAnchorGuard(el as HTMLElement));
+  const scan = (root: Document | Element): void => {
+    root ||
+      document
+        .querySelectorAll("a[" + DGM + "]:not([" + DLA + '="true"])')
+        .forEach(el => bindAnchorGuard(el as HTMLElement));
     const form = document.getElementById("ld-call-form");
     if (form) bindFormPointerGuard(form as HTMLFormElement);
   };
@@ -182,8 +180,8 @@
     try {
       scan(document);
     } catch (_) {
-    console.error(`[call] Error:`, _);
-  }
+      console.error(`[call] Error:`, _);
+    }
   };
   if (document.readyState === "loading") {
     $(ready);

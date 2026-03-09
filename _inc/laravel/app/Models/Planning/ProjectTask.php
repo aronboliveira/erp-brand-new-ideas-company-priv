@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+/**
+ * @property \Illuminate\Support\Carbon|string|null $marked_at
+ * @property string|null $name
+ * @property float|int|null $progress
+ * @property int|null $stage_id
+ */
 
 class ProjectTask extends Model
 {
@@ -229,8 +235,8 @@ class ProjectTask extends Model
 
     public function taskProgress(Project $project): array
     {
-        $total     = $this->checklist->count();
-        $completed = $project->checklist->where(AC::COL_TSK_STT, '1')->count();
+        $total     = collect($this->checklist)->count();
+        $completed = collect($project->checklist)->where(AC::COL_TSK_STT, '1')->count();
         $pct       = $total > 0 ? intval($completed / $total * 100) : 0;
         $color     = Utility::getProgressColor($pct);
 

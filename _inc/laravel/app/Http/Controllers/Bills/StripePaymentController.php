@@ -74,8 +74,7 @@ class StripePaymentController extends Controller
         if ($plan) {
 
             try {
-                $price = $plan->price;
-
+                $price = $plan->price;                    $coupons = null;
                 if (!empty($request->coupon)) {
                     $coupons = Coupon::where('code', strtoupper($request->coupon))->where('is_active', '1')->first();
                     if (!empty($coupons)) {
@@ -134,21 +133,22 @@ class StripePaymentController extends Controller
                     ]);
 
                     if (!empty($request->coupon)) {
-
+                        /** @var Coupon $coupons */
                         $userCoupon        = new UserCoupon();
-                        $userCoupon->user  = $objUser->id;
-                        $userCoupon->coupon = $coupons->id;
-                        $userCoupon->order = $orderID;
+                        $userCoupon->user  = $objUser->id; // @phpstan-ignore-line
+                        $userCoupon->coupon = $coupons->id; // @phpstan-ignore-line
+                        $userCoupon->order = $orderID; // @phpstan-ignore-line
                         $userCoupon->save();
 
                         $usedCoupon = $coupons->used_coupon();
                         if ($coupons->limit <= $usedCoupon) {
-                            $coupons->is_active = 0;
+                            $coupons->is_active = false;
                             $coupons->save();
                         }
                     }
 
                     if ($data['status'] == 'succeeded') {
+                        $assignPlan = ['is_success' => false, 'error' => 'User type mismatch'];
                         if ($objUser instanceof User)
                             $assignPlan = $objUser->assignPlan($plan->id);
                         if ($assignPlan['is_success']) {
@@ -180,7 +180,7 @@ class StripePaymentController extends Controller
         $company_payment_setting = Utility::getCompanyPaymentSetting($invoice->created_by);
 
 
-        $settings               = DB::table('settings')->where('created_by', '=', $invoice->created_by)->get()->pluck('value', 'name');
+        $settings               = DB::table('settings')->where('created_by', '=', $invoice->created_by)->pluck('value', 'name');
 
 
 
@@ -234,11 +234,11 @@ class StripePaymentController extends Controller
                         $invoicePayment->user_type  = 'Customer';
                         $invoicePayment->type       = 'STRIPE';
                         $invoicePayment->created_by = $invoice->invoice_id;
-                        $invoicePayment->payment_id = $invoicePayment->id;
+                        $invoicePayment->payment_id = (int)$invoicePayment->id;
                         $invoicePayment->category   = 'Invoice';
                         $invoicePayment->amount     = $price;
-                        $invoicePayment->date       = date('Y-m-d');
-                        $invoicePayment->payment_id = $payments->id;
+                        $invoicePayment->date       = now();
+                        $invoicePayment->payment_id = (int)$payments->id;
                         $invoicePayment->description = 'Invoice ' . Utility::invoiceNumberFormat($settings, $invoice->invoice_id);
                         $invoicePayment->account    = 0;
                         Transaction::addTransaction($invoicePayment);

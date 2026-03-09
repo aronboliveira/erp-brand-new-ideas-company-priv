@@ -8,7 +8,7 @@
   const DEFAULT_MSG =
     "The requested route is unavailable. Please contact technical support or your domain administrator.";
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       const hasBootstrapToast = !!window.bootstrap.Toast;
       if (hasBootstrapToast) {
@@ -18,21 +18,22 @@
           container.id = "toast-container";
           container.className =
             "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          container.style.position = "fixed";
-          container.style.top = "1rem";
-          container.style.right = "1rem";
-          container.style.zIndex = "2000";
+          Object.assign(container.style, {
+            position: "fixed",
+            top: "1rem",
+            right: "1rem",
+            zIndex: "2000",
+          });
           document.body.appendChild(container);
         }
         const toastEl = document.createElement("div");
         toastEl.className = "toast show";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toastEl.setAttribute(k, v);
         toastEl.style.minWidth = "280px";
         {
           const _b = document.createElement("div");
@@ -52,17 +53,20 @@
     }
   };
 
-  const attachGuard = (form: HTMLFormElement | null): void=> {
+  const attachGuard = (form: HTMLFormElement | null): void => {
     if (!form) return;
     const guardMsg = form.getAttribute("data-guard-msg") || DEFAULT_MSG;
 
-    form.addEventListener("submit", (e: Event) => {
-      const action = (form.getAttribute("action") ?? "").trim();
-      if (!action || action === "#") {
-        e.preventDefault();
-        showError(guardMsg);
-      }
-    });
+    if (!form.getAttribute("data-listener-bound-submit")) {
+      form.setAttribute("data-listener-bound-submit", "1");
+      form.addEventListener("submit", (e: Event) => {
+        const action = (form.getAttribute("action") ?? "").trim();
+        if (!action || action === "#") {
+          e.preventDefault();
+          showError(guardMsg);
+        }
+      });
+    }
   };
 
   document.addEventListener("DOMContentLoaded", (): void => {

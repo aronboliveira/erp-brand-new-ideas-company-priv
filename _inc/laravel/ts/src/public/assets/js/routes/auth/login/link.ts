@@ -8,8 +8,8 @@
   const el = document.getElementById("loginLink");
   if (!el || el.getAttribute("data-event-alias") === "true") return;
   el.setAttribute("data-event-alias", "true");
-  const url = el.getAttribute("data-url");
-  const msg = el.getAttribute("data-guard-msg");
+  const url = el.getAttribute("data-url"),
+    msg = el.getAttribute("data-guard-msg");
   if (!url || url === "#") {
     const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
     let container = document.getElementById("toast-container");
@@ -24,11 +24,11 @@
       const toastEl = document.createElement("div");
       toastEl.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toastEl.setAttribute(k, v);
       const body = document.createElement("div");
       body.className = "toast-body";
       body.textContent = msg;
@@ -41,14 +41,17 @@
     el.setAttribute("data-failed-route", "true");
     return;
   }
-  el.addEventListener("click", event => {
-    event.preventDefault();
-    try {
-      window.location.href = url;
-    } catch (e) {
-    console.error(`[link] Error:`, e);
+  if (!el.getAttribute("data-listener-bound-click")) {
+    el.setAttribute("data-listener-bound-click", "1");
+    el.addEventListener("click", event => {
+      event.preventDefault();
+      try {
+        window.location.href = url;
+      } catch (e) {
+        console.error(`[link] Error:`, e);
+      }
+    });
   }
-  });
 })();
 
 export {};

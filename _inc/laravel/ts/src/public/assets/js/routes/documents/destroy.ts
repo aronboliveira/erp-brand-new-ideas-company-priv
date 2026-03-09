@@ -8,24 +8,18 @@
   try {
     const links = Array.from(
       document.querySelectorAll(
-        'a[id^="delete-document-btn-"][data-url][data-guard-msg]'
-      )
+        'a[id^="delete-document-btn-"][data-url][data-guard-msg]',
+      ),
     );
-    if (links.length === 0) {
-      return;
-    }
+    if (links.length === 0) return;
     links.forEach(l => {
       try {
-        if (l.getAttribute("data-click-guarded") === "true") {
-          return;
-        }
+        if (l.getAttribute("data-click-guarded") === "true") return;
         l.setAttribute("data-click-guarded", "true");
         l.addEventListener("click", (e: Event) => {
           try {
             const url = (l.getAttribute("data-url") ?? "#").trim();
-            if (url !== "#") {
-              return;
-            }
+            if (url !== "#") return;
             e.preventDefault();
             const msg =
               l.getAttribute("data-guard-msg") ??
@@ -47,11 +41,11 @@
               const toast = document.createElement("div");
               toast.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -63,12 +57,12 @@
             }
             l.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[destroy] Error:`, err);
-  }
+            console.error(`[destroy] Error:`, err);
+          }
         });
       } catch (err) {
-    console.error(`[destroy] Error:`, err);
-  }
+        console.error(`[destroy] Error:`, err);
+      }
     });
   } catch (err) {
     console.error(`[destroy] Error:`, err);

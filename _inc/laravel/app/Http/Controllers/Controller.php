@@ -33,6 +33,8 @@ abstract class Controller extends BaseController
      * @param  array  $attributes
      * @return ?array
      *
+     * @phpstan-return array|null|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     *
      * @throws ValidationException
      */
     public function validate(Request $request, array $rules, array $messages = [], array $attributes = [], ?bool $shouldRedirect = true)
@@ -151,6 +153,8 @@ abstract class Controller extends BaseController
      * @param  array  $messages
      * @param  array  $attributes
      * @return ?array
+     *
+     * @phpstan-return array|null|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      *
      * @throws ValidationException
      */
@@ -302,64 +306,28 @@ abstract class Controller extends BaseController
     }
 
     /**
-     * Measure and log the given callback as a controller action.
+     * Execute a controller action callback.
+     *
+     * Measurement logic has been removed for most controllers to reduce
+     * overhead.  The method signature is kept so every existing call-site
+     * continues to work without changes.
      *
      * @param  string   $action     The method name being executed
      * @param  \Closure $callback   The actual action invocation
-     * @param  array    $parameters The action parameters
+     * @param  array    $parameters (unused — kept for signature compat)
      * @return mixed
      */
     public function measureProfile(string $action, \Closure $callback, array $parameters = [])
     {
-        $class = static::class;
-        $start = microtime(true);
-        try {
-            $response = $callback();
-        } catch (\Throwable $e) {
-            $this->logExecutionTime($start, $action, 'exception');
-            Log::error("{$class}::{$action} threw exception to measureProfile. Bubbling up... ", [
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-                'params'    => $parameters
-            ]);
-            throw $e;
-        }
-        $this->logExecutionTime($start, $action, 'completed');
-        return $response;
+        return $callback();
     }
 
     /**
-     * Perform the threshold checks and emit notice/warning/critical.
+     * No-op — kept for call-site compatibility.
      */
     protected function logExecutionTime(float $startTime, string $action, string $result): void
     {
-        $class         = static::class;
-        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
-        $memoryNow     = memory_get_usage();
-        $memoryPeak    = memory_get_peak_usage();
-        $context = [
-            'action'                   => $action,
-            'execution_time_ms'        => $executionTime,
-            'memory_usage_bytes'       => $memoryNow,
-            'memory_peak_usage_bytes'  => $memoryPeak,
-            'result'                   => $result,
-            'thresholds_ms'            => [
-                'notice'   => self::NOTICE_THRESHOLD_MS,
-                'warning'  => self::WARNING_THRESHOLD_MS,
-                'critical' => self::CRITICAL_THRESHOLD_MS,
-            ],
-        ];
-        if ($executionTime > self::CRITICAL_THRESHOLD_MS) {
-            Log::warning("{$class}::{$action} extremely slow (> {$context['thresholds_ms']['critical']} ms)", $context);
-            return;
-        }
-        if ($executionTime > self::WARNING_THRESHOLD_MS) {
-            Log::info("{$class}::{$action} slow (> {$context['thresholds_ms']['warning']} ms)", $context);
-            return;
-        }
-        if ($executionTime > self::NOTICE_THRESHOLD_MS) {
-            Log::debug("{$class}::{$action} above expected (> {$context['thresholds_ms']['notice']} ms)", $context);
-        }
+        // intentionally empty — measurement disabled for controllers
     }
 
     /**

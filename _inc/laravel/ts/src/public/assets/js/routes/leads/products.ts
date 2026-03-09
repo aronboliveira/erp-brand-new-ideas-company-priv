@@ -9,10 +9,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const L = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
+  const L = "data-guard-listener",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ERR = "# ERROR";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -25,7 +25,7 @@
       return false;
     }
   }
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
@@ -47,7 +47,7 @@
       }
     } catch (_) {
       alert(msg);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -80,7 +80,7 @@
       return ERR;
     }
   }
-  function bindSubmitGuard(): void{
+  function bindSubmitGuard(): void {
     try {
       const $ = window.jQuery;
       if (!$) {
@@ -91,14 +91,14 @@
           )
             console.error("jQuery not found for leads/productsUpdate");
         } catch (_) {
-    console.error(`[products] Error:`, _);
-  }
+          console.error(`[products] Error:`, _);
+        }
         return;
       }
       const form = document.getElementById(
-        "lead-products-update-form",
-      ) as HTMLFormElement | null;
-      const btn = document.getElementById("lead-products-update-submit");
+          "lead-products-update-form",
+        ) as HTMLFormElement | null,
+        btn = document.getElementById("lead-products-update-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L) === "true") return;
       form.setAttribute(L, "true");
@@ -106,8 +106,8 @@
         .off("click.leadsProductsUpdate")
         .on("click.leadsProductsUpdate", function (e: Event) {
           try {
-            const url = form.getAttribute("data-url");
-            const href = form.action;
+            const url = form.getAttribute("data-url"),
+              href = form.action;
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
               toast(getMsg(form as HTMLElement, "action_unavailable"));
@@ -122,15 +122,15 @@
           try {
             $(btn).off("click.leadsProductsUpdate");
           } catch (_) {
-    console.error(`[products] Error:`, _);
-  }
+            console.error(`[products] Error:`, _);
+          }
           obs.disconnect();
         }
       });
       obs.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[products] Error:`, _);
-  }
+      console.error(`[products] Error:`, _);
+    }
   }
   try {
     const $ = window.jQuery;
@@ -142,8 +142,8 @@
         )
           console.error("Failed to initialize leads/productsUpdate");
       } catch (_) {
-    console.error(`[products] Error:`, _);
-  }
+        console.error(`[products] Error:`, _);
+      }
       return;
     }
     $(function (): void {
@@ -157,8 +157,8 @@
       )
         console.error("Failed to run leads/productsUpdate");
     } catch (__) {
-    console.error(`[products] Error:`, __);
-  }
+      console.error(`[products] Error:`, __);
+    }
   }
 })();
 

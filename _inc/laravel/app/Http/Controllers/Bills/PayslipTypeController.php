@@ -32,7 +32,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
             if (($r = self::guard($request, 'manage payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;
@@ -59,7 +59,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
             if (($r = self::guard($request, 'create payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;
@@ -75,7 +75,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only('name')]);
 
             if (($r = self::guard($request, 'create payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;
@@ -109,7 +109,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($payslipType, $request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($payslipType, $request, $func, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'type_id' => $payslipType->id ?? null]);
 
             if (($r = self::guard($request, 'edit payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;
@@ -130,7 +130,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $payslipType, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $payslipType, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'type_id' => $payslipType->id ?? null, 'input' => $request->only('name')]);
 
             if (($r = self::guard($request, 'edit payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;
@@ -165,7 +165,7 @@ final class PayslipTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($payslipType, $request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($payslipType, $request, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'type_id' => $payslipType->id ?? null]);
 
             if (($r = self::guard($request, 'delete payslip type', ViewsConstants::PY_SLP . '.index')) !== true) return $r;

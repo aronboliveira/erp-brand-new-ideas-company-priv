@@ -7,10 +7,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const clientFlag = "data-client-localized";
-  const guardMsgKey = "data-guard-msg";
-  const langKey = "erp-np-lang";
+  const errFb = "# ERROR",
+    clientFlag = "data-client-localized",
+    guardMsgKey = "data-guard-msg",
+    langKey = "erp-np-lang";
   let errorMessage = "";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
@@ -58,11 +58,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -131,10 +131,13 @@
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-          errorMessage = getLocalizedMessage(e.message, typeEl);
+          errorMessage = getLocalizedMessage((e as Error).message, typeEl);
         }
       };
-      typeEl.addEventListener("change", onTypeChange);
+      if (!typeEl.getAttribute("data-listener-bound-change")) {
+        typeEl.setAttribute("data-listener-bound-change", "1");
+        typeEl.addEventListener("change", onTypeChange);
+      }
       new MutationObserver((ms, obs) => {
         ms.forEach(m => {
           Array.from(m.removedNodes).forEach(n => {

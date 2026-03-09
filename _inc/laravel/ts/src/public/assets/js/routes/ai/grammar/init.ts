@@ -4,43 +4,37 @@
  * @module init
  */
 
+import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/ajax-responses.interfaces";
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-interface GrammarAjaxResponse {
-  message?: string;
-  [key: string]: unknown;
-}
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataBoundInit = "data-bound-grammar-init";
-  const dataBoundRegen = "data-bound-grammar-regen";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataBoundInit = "data-bound-grammar-init",
+    dataBoundRegen = "data-bound-grammar-regen";
   const qs = (
     s: string,
     r: Document | Element = document,
   ): HTMLElement | null => r.querySelector(s);
   const ensureToastContainer = (): HTMLElement => {
     const c = qs("#np-toast-container");
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     const div = document.createElement("div");
     div.id = "np-toast-container";
     div.setAttribute("aria-live", "polite");
     div.setAttribute("aria-atomic", "true");
-    div.style.position = "fixed";
-    div.style.top = "1rem";
-    div.style.right = "1rem";
+    Object.assign(div.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(div);
     return div;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
@@ -53,19 +47,17 @@ interface GrammarAjaxResponse {
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -75,11 +67,9 @@ interface GrammarAjaxResponse {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -89,14 +79,14 @@ interface GrammarAjaxResponse {
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -132,19 +122,18 @@ interface GrammarAjaxResponse {
     el: HTMLElement | undefined,
     explicit: string,
   ): string | null => {
-    const url = el?.getAttribute("data-url") || "";
-    const href = el
-      ? el.tagName === "FORM"
-        ? (el.getAttribute("action") ?? "")
-        : (el.getAttribute("href") ?? "")
-      : "";
+    const url = el?.getAttribute("data-url") || "",
+      href = el
+        ? el.tagName === "FORM"
+          ? (el.getAttribute("action") ?? "")
+          : (el.getAttribute("href") ?? "")
+        : "";
     if (
       (!explicit || explicit === "#") &&
       (!url || url === "#") &&
       (!href || href === "#")
-    ) {
+    )
       return null;
-    }
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
@@ -153,9 +142,7 @@ interface GrammarAjaxResponse {
   };
   const initGrammarSeed = (): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataBoundInit) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataBoundInit) === "true") return;
     host.setAttribute(dataBoundInit, "true");
     try {
       let summernoteValue = "";
@@ -170,8 +157,8 @@ interface GrammarAjaxResponse {
             )
               console.error("jQuery unavailable");
           } catch (_) {
-    console.error(`[init] Error:`, _);
-  }
+            console.error(`[init] Error:`, _);
+          }
           scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
           return;
         }
@@ -200,28 +187,22 @@ interface GrammarAjaxResponse {
         getMsg(document.body, "grammar_init_unavailable"),
       );
     }
-    const mo = new MutationObserver((m, o) => {
-      if (!document.body.contains(host)) {
-        o.disconnect();
-      }
+    const mo = new MutationObserver((_m, o) => {
+      if (!document.body.contains(host)) o.disconnect();
     });
     mo.observe(document.body, { childList: true, subtree: true });
   };
   const bindRegenerate = (): void => {
     const btn = qs("#regenerate");
-    if (!btn) {
-      return;
-    }
-    if (btn.getAttribute(dataBoundRegen) === "true") {
-      return;
-    }
+    if (!btn) return;
+    if (btn.getAttribute(dataBoundRegen) === "true") return;
     btn.setAttribute(dataBoundRegen, "true");
     $(document.body).on("click.grammarRegen", "#regenerate", function (): void {
       try {
-        const form = $("#myGrammarForm");
-        const formEl = form.get(0) as HTMLElement | undefined;
-        const explicit = "{{ route('grammar.response') }}";
-        const endpoint = resolveRoute(formEl, explicit);
+        const form = $("#myGrammarForm"),
+          formEl = form.get(0) as HTMLElement | undefined,
+          explicit = "{{ route('grammar.response') }}",
+          endpoint = resolveRoute(formEl, explicit);
         if (!endpoint) {
           scheduleInteractiveError(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -242,18 +223,21 @@ interface GrammarAjaxResponse {
                 '<span class="spinner-grow spinner-grow-sm" role="status"></span>',
               );
             } catch (_) {
-    console.error(`[init] Error:`, _);
-  }
+              console.error(`[init] Error:`, _);
+            }
           },
           success: function (data: GrammarAjaxResponse) {
             try {
               $(".response").removeClass("d-none");
               $("#regenerate").text("Re-Generate");
               if (data.message) {
-                if (window.show_toastr) {
+                if (window.show_toastr)
                   window.show_toastr("error", data.message, "error");
-                }
-                $("#commonModalOver").modal("hide");
+                (
+                  $("#commonModalOver") as JQuery<HTMLElement> & {
+                    modal: (cmd: string) => void;
+                  }
+                ).modal("hide");
               } else {
                 $("#ai-description").val(String(data ?? ""));
               }
@@ -271,7 +255,7 @@ interface GrammarAjaxResponse {
         scheduleInteractiveError(getMsg(document.body, "generate_unavailable"));
       }
     });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(btn)) {
         $(document.body).off(".grammarRegen");
         o.disconnect();
@@ -299,14 +283,17 @@ interface GrammarAjaxResponse {
               );
             }
           }
-          if (window.show_toastr) {
+          if (window.show_toastr)
             window.show_toastr(
               "success",
               "Result text has been copied successfully",
               "success",
             );
-          }
-          $("#commonModalOver").modal("hide");
+          (
+            $("#commonModalOver") as JQuery<HTMLElement> & {
+              modal: (cmd: string) => void;
+            }
+          ).modal("hide");
         } catch (_) {
           scheduleInteractiveError(
             getMsg(document.body, "grammar_init_unavailable"),
@@ -324,8 +311,8 @@ interface GrammarAjaxResponse {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[init] Error:`, _);
-  }
+        console.error(`[init] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -333,11 +320,9 @@ interface GrammarAjaxResponse {
     bindRegenerate();
     exposeCopy();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

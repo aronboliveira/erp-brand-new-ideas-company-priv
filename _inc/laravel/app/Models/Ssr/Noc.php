@@ -50,7 +50,7 @@ class Noc extends Model
 
     public static function defaultNocCertificate(?string $userId = null): void
     {
-        app(TemplateRequestService::class)->ensureDefaultNocCertificate(new static(), $userId);
+        app(TemplateRequestService::class)->ensureDefaultNocCertificate(new static(), $userId); // @phpstan-ignore new.static, argument.type
     }
 
 

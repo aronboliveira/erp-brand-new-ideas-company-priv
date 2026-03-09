@@ -5,13 +5,11 @@
  */
 
 /* global $, jQuery */
-// @ts-check
-const { test: setup, expect } = require("@playwright/test");
-const fs = require("fs");
-const path = require("path");
+import { test as setup, expect } from "@playwright/test";
+import fs from "fs";
+import path from "path";
 
 const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
-
 setup("authenticate", async ({ page, context }) => {
   console.log("Starting authentication setup...");
 
@@ -42,15 +40,13 @@ setup("authenticate", async ({ page, context }) => {
 
     // Ensure auth directory exists
     const authDir = path.dirname(STORAGE_STATE);
-    if (!fs.existsSync(authDir)) {
-      fs.mkdirSync(authDir, { recursive: true });
-    }
+    if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
 
     // Save storage state
     await context.storageState({ path: STORAGE_STATE });
     console.log("Authentication state saved to:", STORAGE_STATE);
-  } catch (error) {
-    console.error("Authentication setup failed:", error.message);
+  } catch (error: unknown) {
+    console.error("Authentication setup failed:", (error as Error).message);
     await page.screenshot({ path: "auth-error.png" });
     throw error;
   }

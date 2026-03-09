@@ -49,7 +49,7 @@ final class BugFile extends AbstractFile
             $normalized = $raw instanceof UserType
                 ? $raw
                 : UserType::normalize(is_string($raw) ? $raw : (string) $raw);
-            $m->setAttribute(UC::COL_U_TP, $normalized ?? UserType::Client);
+            $m->setAttribute(UC::COL_U_TP, $normalized);
         });
     }
 

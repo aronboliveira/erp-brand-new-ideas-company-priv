@@ -19,6 +19,9 @@ use App\Traits\{
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo};
 use Illuminate\Support\Facades\Log;
+/**
+ * @property mixed $created_by
+ */
 
 class TrainingType extends Model
 {

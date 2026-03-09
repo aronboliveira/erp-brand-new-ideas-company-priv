@@ -9,7 +9,7 @@ use App\Config\Constants\{
     ViewsConstants
 };
 use App\Models\{Department, Designation};
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
@@ -17,7 +17,7 @@ use Illuminate\View\View;
 
 class DesignationController extends Controller
 {
-    use ChecksLogin;
+    use ChecksLogin, ChecksPermissions;
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -269,5 +269,18 @@ class DesignationController extends Controller
             return redirect()->route(ViewsConstants::DSG . '.index')
                 ->with('success', __('Designation successfully deleted.'));
         }, ['uri' => $request->getRequestUri(), 'id' => $designation->id]);
+    }
+
+    /**
+     * Authorize the current user for a given ability.
+     *
+     * @throws AuthorizationException
+     */
+    private function _authorize(Request $request, string $ability): void
+    {
+        $result = self::guard($request, $ability);
+        if ($result !== true) {
+            throw new AuthorizationException("Unauthorized: {$ability}");
+        }
     }
 }

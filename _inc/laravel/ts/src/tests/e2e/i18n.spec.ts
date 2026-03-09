@@ -5,11 +5,9 @@
  */
 
 /* global $, jQuery */
-// @ts-check
-const { test, expect } = require("@playwright/test");
-const path = require("path");
-const fs = require("fs");
-
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import path from "path";
+import fs from "fs";
 /**
  * ERP Prestech – i18n / Translation E2E Tests
  *
@@ -33,65 +31,62 @@ const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
 /*  Helper: expected translations for specific keys per locale        */
 /* ------------------------------------------------------------------ */
 const TRANSLATIONS = {
-  en: {
-    login: "Login",
-    email: "Email",
-    password: "Password",
-    forgotPassword: "Forgot your password?",
-    dashboard: "Dashboard",
+    en: {
+      login: "Login",
+      email: "Email",
+      password: "Password",
+      forgotPassword: "Forgot your password?",
+      dashboard: "Dashboard",
+    },
+    "pt-br": {
+      login: "Login",
+      email: "E-mail",
+      password: "Senha",
+      forgotPassword: "Esqueceu Sua Senha?",
+      dashboard: "Painel",
+    },
+    es: {
+      login: "Iniciar sesión",
+      email: "Correo electrónico",
+      password: "Contraseña",
+      forgotPassword: "¿ha olvidado Su Contraseña?",
+      dashboard: "Dashboard",
+    },
+    fr: {
+      login: "Connexion",
+      email: "Courrier électronique",
+      password: "Mot de passe",
+      forgotPassword: "Mot de passe oublié?",
+      dashboard: "Tableau de bord",
+    },
   },
-  "pt-br": {
-    login: "Login",
-    email: "E-mail",
-    password: "Senha",
-    forgotPassword: "Esqueceu Sua Senha?",
-    dashboard: "Painel",
-  },
-  es: {
-    login: "Iniciar sesión",
-    email: "Correo electrónico",
-    password: "Contraseña",
-    forgotPassword: "¿ha olvidado Su Contraseña?",
-    dashboard: "Dashboard",
-  },
-  fr: {
-    login: "Connexion",
-    email: "Courrier électronique",
-    password: "Mot de passe",
-    forgotPassword: "Mot de passe oublié?",
-    dashboard: "Tableau de bord",
-  },
-};
-
-const SUPPORTED_LOCALES = [
-  "ar",
-  "da",
-  "de",
-  "en",
-  "es",
-  "fr",
-  "he",
-  "it",
-  "ja",
-  "nl",
-  "pl",
-  "pt",
-  "pt-br",
-  "ru",
-  "tr",
-  "zh",
-];
-
-const RTL_LOCALES = ["ar", "he"];
-
+  SUPPORTED_LOCALES = [
+    "ar",
+    "da",
+    "de",
+    "en",
+    "es",
+    "fr",
+    "he",
+    "it",
+    "ja",
+    "nl",
+    "pl",
+    "pt",
+    "pt-br",
+    "ru",
+    "tr",
+    "zh",
+  ],
+  RTL_LOCALES = ["ar", "he"];
 /* ------------------------------------------------------------------ */
 /*  Helper: dismiss cookie / consent popups                           */
 /* ------------------------------------------------------------------ */
-function setupDialogAndConsent(page: unknown) {
+function setupDialogAndConsent(page: Page) {
   page.on("dialog", d => d.accept());
   page.addLocatorHandler(
     page.locator("#cc--main, .c--anim"),
-    async (): void => {
+    async (): Promise<void> => {
       const btn = page
         .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
         .first();
@@ -111,7 +106,7 @@ test.describe("Guest locale – login page with {lang} route param", (): void =>
     setupDialogAndConsent(page);
   });
 
-  for (const locale of ["en", "pt-br", "es", "fr"]) {
+  for (const locale of ["en", "pt-br", "es", "fr"] as const) {
     const t = TRANSLATIONS[locale];
 
     test(`/login/${locale} renders page with correct <html lang> attribute`, async ({
@@ -248,7 +243,7 @@ test.describe("SetGuestLocale middleware – cookie behaviour", (): void => {
   });
 
   test("cookie-based locale renders translated content on reload", async ({
-    context,
+    context: _context,
     page,
   }) => {
     // First visit sets cookie to es
@@ -366,9 +361,8 @@ test.describe("Language dropdown – login page", (): void => {
       timeout: 30000,
     });
 
-    const langLinks = page.locator("[data-lang-code]");
-    const count = await langLinks.count();
-
+    const langLinks = page.locator("[data-lang-code]"),
+      count = await langLinks.count();
     // Should have at least the supported locales
     expect(count).toBeGreaterThanOrEqual(SUPPORTED_LOCALES.length);
 
@@ -395,12 +389,11 @@ test.describe("Language dropdown – login page", (): void => {
       timeout: 30000,
     });
 
-    const langLinks = page.locator("[data-lang-code]");
-    const count = await langLinks.count();
-
+    const langLinks = page.locator("[data-lang-code]"),
+      count = await langLinks.count();
     for (let i = 0; i < count; i++) {
-      const code = await langLinks.nth(i).getAttribute("data-lang-code");
-      const href = await langLinks.nth(i).getAttribute("href");
+      const code = await langLinks.nth(i).getAttribute("data-lang-code"),
+        href = await langLinks.nth(i).getAttribute("href");
       if (code && href && href !== "#") {
         // href should contain the locale code
         expect(
@@ -421,9 +414,8 @@ test.describe("Language dropdown – login page", (): void => {
 
     // Open the dropdown
     const dropdownToggle = page.locator(".drp-text").first();
-    if (await dropdownToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await dropdownToggle.isVisible({ timeout: 5000 }).catch(() => false))
       await dropdownToggle.click();
-    }
 
     // Click the pt-br link
     const ptLink = page.locator('[data-lang-code="pt-br"]');
@@ -567,9 +559,7 @@ test.describe("Authenticated – change-language endpoint", (): void => {
     });
     const cookies2 = await context.cookies();
     const erpCookie = cookies2.find(c => c.name === "erp_locale");
-    if (erpCookie) {
-      expect(erpCookie.value).toBe("fr");
-    }
+    if (erpCookie) expect(erpCookie.value).toBe("fr");
   });
 
   test("change-languages/ar activates RTL for authenticated user", async ({
@@ -651,8 +641,9 @@ test.describe("Translation JSON files – integrity", (): void => {
 
   test("en.json is valid JSON with > 1000 keys", (): void => {
     const raw = fs.readFileSync(path.join(langDir, "en.json"), "utf-8");
+    let data: Record<string, unknown> = {};
     try {
-      const data = JSON.parse(raw);
+      data = JSON.parse(raw);
     } catch (_jsonErr) {
       console.error("JSON parse failed", _jsonErr);
     }
@@ -662,27 +653,27 @@ test.describe("Translation JSON files – integrity", (): void => {
   for (const locale of ["pt-br", "es", "fr", "de"]) {
     test(`${locale}.json is valid JSON and covers at least 90% of en.json keys`, (): void => {
       const enRaw = fs.readFileSync(path.join(langDir, "en.json"), "utf-8");
+      let enData: Record<string, unknown> = {};
       try {
-        const enData = JSON.parse(enRaw);
+        enData = JSON.parse(enRaw);
       } catch (_jsonErr) {
         console.error("JSON parse failed", _jsonErr);
       }
-      const enKeys = Object.keys(enData);
-
-      const localeFile = path.join(langDir, `${locale}.json`);
+      const enKeys = Object.keys(enData),
+        localeFile = path.join(langDir, `${locale}.json`);
       if (!fs.existsSync(localeFile)) {
         test.skip();
         return;
       }
 
       const localeRaw = fs.readFileSync(localeFile, "utf-8");
+      let localeData: Record<string, unknown> = {};
       try {
-        const localeData = JSON.parse(localeRaw);
+        localeData = JSON.parse(localeRaw);
       } catch (_jsonErr) {
         console.error("JSON parse failed", _jsonErr);
       }
       const localeKeys = new Set(Object.keys(localeData));
-
       const covered = enKeys.filter(k => localeKeys.has(k)).length;
       const coverage = covered / enKeys.length;
 
@@ -700,8 +691,9 @@ test.describe("Translation JSON files – integrity", (): void => {
       }
 
       const localeRaw = fs.readFileSync(localeFile, "utf-8");
+      let localeData: Record<string, unknown> = {};
       try {
-        const localeData = JSON.parse(localeRaw);
+        localeData = JSON.parse(localeRaw);
       } catch (_jsonErr) {
         console.error("JSON parse failed", _jsonErr);
       }

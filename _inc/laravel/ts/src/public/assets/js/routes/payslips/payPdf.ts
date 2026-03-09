@@ -15,19 +15,12 @@
     ATTR_GUARD = "data-guard-msg",
     ATTR_LOCALIZED = "data-sv-localized",
     ONCE = "data-guard-once",
-    DEFAULT_ERR =
-      "Save as PDF is unavailable. Please contact technical support or your domain administrator.";
+    DEFAULT_ERR = "Save as PDF is unavailable. Please contact technical support or your domain administrator.";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const hasBs = () =>
-    !!(
-      document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]') &&
-      window.bootstrap
-    );
+  const hasBs = () => !!(document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]') && window.bootstrap);
 
   const getLang = (): string => {
-    const fromStorage = (
-        window.sessionStorage.getItem("erp-np-lang") ?? ""
-      ).trim(),
+    const fromStorage = (window.sessionStorage.getItem("erp-np-lang") ?? "").trim(),
       fromDoc = document.documentElement.lang.trim(),
       lang = (fromStorage || fromDoc).toLowerCase().replace(/_/g, "-");
     return lang === "pt-br" ? lang : lang.slice(0, 2);
@@ -37,15 +30,10 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const localizeGuard = (el: Element | null) => {
     if (!el) return DEFAULT_ERR;
-    if (el.getAttribute(ATTR_LOCALIZED) === "true")
-      return el.getAttribute(ATTR_GUARD) || DEFAULT_ERR;
+    if (el.getAttribute(ATTR_LOCALIZED) === "true") return el.getAttribute(ATTR_GUARD) || DEFAULT_ERR;
     const lang = getLang(),
       key = "savepdf_unavailable";
-    const msg =
-      window.translations?.[lang]?.[key] ||
-      el.getAttribute(ATTR_GUARD) ||
-      window.translations?.en?.[key] ||
-      DEFAULT_ERR;
+    const msg = window.translations?.[lang]?.[key] || el.getAttribute(ATTR_GUARD) || window.translations?.en?.[key] || DEFAULT_ERR;
     el.setAttribute(ATTR_GUARD, msg);
     el.setAttribute(ATTR_LOCALIZED, "true");
     return msg;
@@ -72,10 +60,7 @@
         "aria-atomic": "true",
       }))
         node.setAttribute(k, v);
-      node.innerHTML =
-        '<div class="d-flex"><div class="toast-body">' +
-        text +
-        '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+      node.innerHTML = '<div class="d-flex"><div class="toast-body">' + text + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
       Q("#" + wrapId)?.appendChild(node);
       new window.bootstrap.Toast(node, { autohide: true, delay: 4000 }).show();
     } else {
@@ -95,9 +80,7 @@
       const area = Q("#printableArea"),
         h2p = window.html2pdf as (() => Html2PdfChain) | undefined;
       if (!area || !h2p?.().set) throw new Error("missing");
-      const filename = (
-          Q(".invoice .invoice-title h4")?.textContent ?? "document"
-        ).trim(),
+      const filename = (Q(".invoice .invoice-title h4")?.textContent ?? "document").trim(),
         opt = {
           margin: 0.3,
           filename,
@@ -115,11 +98,7 @@
     } catch (e) {
       toast(localizeGuard(btn));
       try {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error("html2pdf unavailable or printable area missing");
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("html2pdf unavailable or printable area missing");
       } catch (_) {
         console.error(`[payPdf] Error:`, _);
       }
@@ -150,9 +129,7 @@
         r.addedNodes.forEach(n => {
           if (n.nodeType !== Node.ELEMENT_NODE) return;
           const el = n as Element;
-          el.matches(CLICK_SEL)
-            ? bind(el)
-            : el.querySelectorAll(CLICK_SEL).forEach(child => bind(child));
+          el.matches(CLICK_SEL) ? bind(el) : el.querySelectorAll(CLICK_SEL).forEach(child => bind(child));
         });
     });
   });

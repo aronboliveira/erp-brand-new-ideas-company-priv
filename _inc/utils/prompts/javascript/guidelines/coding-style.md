@@ -275,6 +275,7 @@ const _dataTable = new DataTable(".datatable");
 // AFTER — side effect only
 new DataTable(".datatable");
 ```
+
 ---
 
 ## 15. Vendor File Marking
@@ -295,6 +296,7 @@ These files are also excluded from ESLint and `tsc` via their respective config 
 - `public/Modules/landingpage/js/app.ts`
 
 When adding a **new** vendor file, always:
+
 1. Add the `// # ! VENDOR FILE` header.
 2. Add the path to `tsconfig.json` → `exclude`.
 3. Add the glob to `eslint.config.mjs` → `ignores`.
@@ -305,10 +307,10 @@ When adding a **new** vendor file, always:
 
 During the JS → TS migration the following rules are intentionally **disabled** in `eslint.config.mjs`:
 
-| Rule | Reason |
-|---|---|
-| `@typescript-eslint/strict-boolean-expressions` | ~1 100 false positives from defensive `if (el)` / `if (str)` null-guards that are idiomatic in DOM code. |
-| `@typescript-eslint/no-unnecessary-condition` | ~1 300 false positives from truthy checks on values TypeScript narrows to non-nullable after assignment but that may be `null` at runtime. |
+| Rule                                            | Reason                                                                                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@typescript-eslint/strict-boolean-expressions` | ~1 100 false positives from defensive `if (el)` / `if (str)` null-guards that are idiomatic in DOM code.                                   |
+| `@typescript-eslint/no-unnecessary-condition`   | ~1 300 false positives from truthy checks on values TypeScript narrows to non-nullable after assignment but that may be `null` at runtime. |
 
 Additional config notes:
 
@@ -339,6 +341,7 @@ function getMsg(key: string) { return messages[key] ?? key; }
 ```
 
 Key rules:
+
 - **`async` functions** must use `Promise<void>` (never bare `void`).
 - **Functions returning a value**: if the inferred type is complex or union-heavy, prefer `// eslint-disable-next-line @typescript-eslint/explicit-function-return-type` over an incorrect annotation.
 - **Non-async void functions** (IIFEs, event handlers): annotate `: void` explicitly.
@@ -360,6 +363,7 @@ let slider: Slider;
 ```
 
 Rules:
+
 1. **Never** place `// eslint-disable-next-line` inside template literals or multi-line strings — it becomes literal text, not a directive.
 2. When multiple rules need disabling on the same line, combine them in a single comment:
    ```ts
@@ -367,3 +371,68 @@ Rules:
    ```
 3. Always add a brief reason if the disable is non-obvious.
 4. Prefer fixing the root cause over disabling.
+
+---
+
+## 19. TypeScript Type Declaration Organization
+
+Type declarations (interfaces, types, declares) must be **separated from implementation code** and placed in dedicated `.d.ts` files under `ts/src/declarations/`.
+
+### Directory Structure
+
+```
+ts/src/declarations/
+├── tests/
+│   └── e2e.interfaces.d.ts          # E2E test interfaces
+├── pages/
+│   ├── datepicker.d.ts              # Datepicker/DateRangePicker types
+│   └── form-validation.d.ts         # Bouncer form validation types
+└── routes/
+    ├── fullcalendar.interfaces.d.ts # FullCalendar calendar types
+    ├── dragula.interfaces.d.ts      # Dragula drag-and-drop types
+    ├── jquery-ui.interfaces.d.ts    # jQuery UI/plugin extensions
+    ├── datatables.interfaces.d.ts   # DataTables extensions
+    ├── ajax-responses.interfaces.d.ts # AJAX response interfaces
+    ├── vendor-libs.d.ts             # Global augmentations (Window, JQuery)
+    └── vendor-libs-ambient.d.ts     # Ambient declares for vendor globals
+```
+
+### File Naming Conventions
+
+- `.interfaces.d.ts` — for `interface` definitions
+- `.types.d.ts` — for `type` aliases
+- `.d.ts` — for mixed or ambient declarations
+- Suffixes are optional but recommended for clarity
+
+### Import Patterns
+
+```ts
+// Type-only imports (no runtime effect)
+import type { FullCalendarInstance } from "../declarations/routes/fullcalendar.interfaces";
+
+// Ambient declarations are auto-included via tsconfig.json
+// No import needed for globals like Datepicker, Bouncer, dragula, html2pdf
+```
+
+### Rules
+
+1. **Never define interfaces/types inline** in route/page `.ts` files — extract to declarations.
+2. **Ambient declares** (for globals like `Datepicker`, `Bouncer`, `html2pdf`) go in `vendor-libs-ambient.d.ts`.
+3. **Global augmentations** (`declare global { interface Window { ... } }`) go in `vendor-libs.d.ts`.
+4. **Module-specific types** (e.g. AJAX response shapes) go in grouped files like `ajax-responses.interfaces.d.ts`.
+5. **Derived types** like `type RoleKey = keyof typeof RoleTemplates` that depend on runtime constants may remain inline.
+
+### tsconfig.json Configuration
+
+The `ts/src/declarations/` folder is included in `tsconfig.json`:
+
+```jsonc
+{
+  "include": [
+    // ...
+    "ts/src/declarations/**/*.d.ts",
+  ],
+}
+```
+
+This ensures all ambient declarations are available globally without explicit imports.

@@ -335,22 +335,23 @@ trait ExtendsBaseTable
 					DB::rollBack();
 					return false;
 				}
-				if (!empty(static::$baseTableName)) {
+				if (!empty($this->baseTableName)) {
 					try {
-						$modelClass = '\\App\\Models\\' . Str::studly(Str::singular(static::$baseTableName));
+						$modelClass = '\\App\\Models\\' . Str::studly(Str::singular($this->baseTableName));
 						if (!class_exists($modelClass)) {
-							$modelClass = '\\App\\' . Str::studly(Str::singular(static::$baseTableName));
+							$modelClass = '\\App\\' . Str::studly(Str::singular($this->baseTableName));
 							if (!class_exists($modelClass))
-								throw new \Exception("Model class not found for table: " . static::$baseTableName);
+								throw new \Exception("Model class not found for table: " . $this->baseTableName);
 						}
 						$model = app()->make($modelClass);
 						if ($model instanceof Model) {
+							/** @var Model|null $instance */
 							$instance = $model->newQuery()->find($foreignKeyValue);
-							if (!$instance)
+							if (!$instance || !($instance instanceof Model))
 								throw new \Exception("Record not found with ID: $foreignKeyValue");
 							$instance->fill($updateData);
-							$instance->updated_at = now();
-							$instance->updated_by = DC::DEFAULT_UUID;
+							$instance->setAttribute('updated_at', now());
+							$instance->setAttribute('updated_by', DC::DEFAULT_UUID);
 							foreach (['saving', 'updating'] as $event) {
 								try {
 									$instance->fireModelEvent($event, false);

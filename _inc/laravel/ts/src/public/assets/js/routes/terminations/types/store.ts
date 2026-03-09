@@ -6,20 +6,15 @@
 
 ((): void => {
   try {
-    const formId = "termination-type-create-form";
-    const f = document.getElementById(formId);
-    if (!f || f.getAttribute("data-listener-active") === "true") {
-      return;
-    }
+    const f = document.getElementById("termination-type-create-form");
+    if (!f || f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
 
     f.addEventListener("submit", (e: Event) => {
       try {
-        const action = (f.getAttribute("action") ?? "").trim();
-        const url = (f.getAttribute("data-url") ?? "").trim() || action;
-        if (action !== "#" || url !== "#") {
-          return;
-        }
+        const action = (f.getAttribute("action") ?? "").trim(),
+          url = (f.getAttribute("data-url") ?? "").trim() || action;
+        if (action !== "#" || url !== "#") return;
 
         e.preventDefault();
 
@@ -37,18 +32,18 @@
         }
 
         const hasBootstrapCss = !!document.querySelector(
-          'link[href*="bootstrap"]',
-        );
-        const hasBootstrapJs = typeof window.bootstrap !== "undefined";
+            'link[href*="bootstrap"]',
+          ),
+          hasBootstrapJs = typeof window.bootstrap !== "undefined";
         if (hasBootstrapCss && hasBootstrapJs) {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -68,8 +63,8 @@
 
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-    console.error(`[store] Error:`, err);
-  }
+        console.error(`[store] Error:`, err);
+      }
     });
   } catch (error) {
     console.error(`[store] Error:`, error);

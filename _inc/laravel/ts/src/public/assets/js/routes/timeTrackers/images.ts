@@ -10,13 +10,13 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataBoundView = "data-view-images-bound";
-  const dataBoundConfirm = "data-confirm-bound";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataBoundView = "data-view-images-bound",
+    dataBoundConfirm = "data-confirm-bound";
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
@@ -27,20 +27,16 @@
     (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -49,19 +45,17 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -71,11 +65,9 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (message: string): void=> {
+  const schedulePointerupError = (message: string): void => {
     const target = document.body;
-    if (!target || target.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!target || target.getAttribute(dataErrGuard) === "true") return;
     target.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -85,14 +77,13 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(target)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -125,19 +116,18 @@
     return msg;
   };
   const routeFrom = (el: HTMLElement, explicit: string): string | null => {
-    const url = el.getAttribute("data-url") || "";
-    const href = el
-      ? el.tagName === "FORM"
-        ? (el.getAttribute("action") ?? "")
-        : (el.getAttribute("href") ?? "")
-      : "";
+    const url = el.getAttribute("data-url") || "",
+      href = el
+        ? el.tagName === "FORM"
+          ? (el.getAttribute("action") ?? "")
+          : (el.getAttribute("href") ?? "")
+        : "";
     if (
       (!explicit || explicit === "#") &&
       (!url || url === "#") &&
       (!href || href === "#")
-    ) {
+    )
       return null;
-    }
     return explicit && explicit !== "#"
       ? explicit
       : url && url !== "#"
@@ -150,9 +140,7 @@
         schedulePointerupError(getMsg(document.body, "slider_unavailable"));
         return;
       }
-      if (!$(".product-left").length) {
-        return;
-      }
+      if (!$(".product-left").length) return;
       const productSlider = new (window.Swiper as new (
         selector: string,
         options: Record<string, unknown>,
@@ -192,7 +180,7 @@
     url: string,
     data: unknown,
     cb: (res?: unknown) => void,
-  ): void=> {
+  ): void => {
     try {
       if (typeof window.postAjax === "function") {
         window.postAjax(url, data as Record<string, unknown>, cb);
@@ -218,7 +206,7 @@
     url: string,
     data: unknown,
     cb: (res?: unknown) => void,
-  ): void=> {
+  ): void => {
     try {
       if (typeof window.deleteAjax === "function") {
         window.deleteAjax(url, data as Record<string, unknown>, cb);
@@ -242,46 +230,48 @@
   };
   const bindViewImages = (): void => {
     const root = document.body;
-    if (root.getAttribute(dataBoundView) === "true") {
-      return;
-    }
+    if (root.getAttribute(dataBoundView) === "true") return;
     root.setAttribute(dataBoundView, "true");
-    $(document).on("click.viewImages", ".view-images", function (): void {
-      try {
-        const explicit = "{{route('time_trackers.image.view')}}";
-        const endpoint = routeFrom(this as HTMLElement, explicit);
-        if (!endpoint) {
-          schedulePointerupError(
-            getMsg(this as HTMLElement, "img_preview_unavailable"),
-          );
-          return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const id = $(this).attr("data-id") ?? "";
-        safePost(endpoint, { id: id }, function (res: unknown) {
-          try {
-            $(".image_sider_div").html(String(res ?? ""));
-            $("#exampleModalCenter").modal("show");
-            setTimeout(function (): void {
-              const total =
-                $(".product-left").find(".product-slider").length | 0;
-              if (total > 0) {
-                initSlider();
-              }
-            }, 200);
-          } catch (_) {
-            schedulePointerupError(
-              getMsg(document.body, "img_preview_unavailable"),
-            );
+    $(document).on(
+      "click.viewImages",
+      ".view-images",
+      function (this: HTMLElement): void {
+        const el = this;
+        try {
+          const explicit = "{{route('time_trackers.image.view')}}",
+            endpoint = routeFrom(el, explicit);
+          if (!endpoint) {
+            schedulePointerupError(getMsg(el, "img_preview_unavailable"));
+            return;
           }
-        });
-      } catch (_) {
-        schedulePointerupError(
-          getMsg(document.body, "img_preview_unavailable"),
-        );
-      }
-    });
-    const mo = new MutationObserver((m, o) => {
+          const id = $(el).attr("data-id") ?? "";
+          safePost(endpoint, { id: id }, function (res: unknown) {
+            try {
+              $(".image_sider_div").html(String(res ?? ""));
+              (
+                $("#exampleModalCenter") as JQuery<HTMLElement> & {
+                  modal: (action: string) => void;
+                }
+              ).modal("show");
+              setTimeout(function (): void {
+                const total =
+                  $(".product-left").find(".product-slider").length | 0;
+                if (total > 0) initSlider();
+              }, 200);
+            } catch (_) {
+              schedulePointerupError(
+                getMsg(document.body, "img_preview_unavailable"),
+              );
+            }
+          });
+        } catch (_) {
+          schedulePointerupError(
+            getMsg(document.body, "img_preview_unavailable"),
+          );
+        }
+      },
+    );
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(root)) {
         $(document).off("click.viewImages");
         o.disconnect();
@@ -291,37 +281,36 @@
   };
   const bindConfirmRemove = (): void => {
     const root = document.body;
-    if (root.getAttribute(dataBoundConfirm) === "true") {
-      return;
-    }
+    if (root.getAttribute(dataBoundConfirm) === "true") return;
     root.setAttribute(dataBoundConfirm, "true");
     $(document).on(
       "click.trackRemoveStart",
       ".track-image-remove",
-      function (): void {
+      function (this: HTMLElement): void {
+        const el = this;
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const rid = $(this).attr("data-pid") ?? "";
+          const rid = $(el).attr("data-pid") ?? "";
           $(".confirm_yes").addClass("image_remove").attr("image_id", rid);
-          $("#cModal").modal("show");
+          (
+            $("#cModal") as JQuery<HTMLElement> & {
+              modal: (action: string) => void;
+            }
+          ).modal("show");
         } catch (_) {
-    console.error(`[images] Error:`, _);
-  }
+          console.error(`[images] Error:`, _);
+        }
       },
     );
     $(document).on(
       "click.trackRemoveConfirm",
       ".confirm_yes.image_remove",
-      function (): void {
+      function (this: HTMLElement): void {
+        const el = this;
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const id = $(this).attr("image_id") ?? "";
-          const explicit = "{{route('time_trackers.image.remove')}}";
-          const endpoint = routeFrom(this as HTMLElement, explicit);
+          const id = $(el).attr("image_id") ?? "",
+            endpoint = routeFrom(el, "{{route('time_trackers.image.remove')}}");
           if (!endpoint) {
-            schedulePointerupError(
-              getMsg(this as HTMLElement, "img_remove_unavailable"),
-            );
+            schedulePointerupError(getMsg(el, "img_remove_unavailable"));
             return;
           }
           safeDelete(endpoint, { id: id }, function (res: unknown) {
@@ -347,10 +336,13 @@
                   }
                 }, 200);
               }
-              $("#cModal").modal("hide");
-              if (window.show_toastr) {
+              (
+                $("#cModal") as JQuery<HTMLElement> & {
+                  modal: (action: string) => void;
+                }
+              ).modal("hide");
+              if (window.show_toastr)
                 window.show_toastr("error", response?.msg ?? "", "error");
-              }
             } catch (_) {
               schedulePointerupError(
                 getMsg(document.body, "img_remove_unavailable"),
@@ -364,7 +356,7 @@
         }
       },
     );
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(root)) {
         $(document).off("click.trackRemoveStart");
         $(document).off("click.trackRemoveConfirm");
@@ -381,11 +373,9 @@
     bindViewImages();
     bindConfirmRemove();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

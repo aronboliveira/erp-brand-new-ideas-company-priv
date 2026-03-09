@@ -5,7 +5,7 @@
  */
 
 ((): void => {
-  const toast = (msg: string): void=> {
+  const toast = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -19,11 +19,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -38,18 +38,22 @@
     }
   };
 
-  const bindGuard = (el: HTMLElement | null): void=> {
+  const bindGuard = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", (e: Event) => {
-      const url =
-        (el.getAttribute("href") || el.getAttribute("data-url")) ?? "#";
-      if (!url || url === "#") {
-        e.preventDefault();
-        const msg = el.getAttribute("data-guard-msg") ?? "Action unavailable.";
-        toast(msg);
-      }
-    });
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", (e: Event) => {
+        const url =
+          (el.getAttribute("href") || el.getAttribute("data-url")) ?? "#";
+        if (!url || url === "#") {
+          e.preventDefault();
+          const msg =
+            el.getAttribute("data-guard-msg") ?? "Action unavailable.";
+          toast(msg);
+        }
+      });
+    }
   };
 
   bindGuard(document.getElementById("pos-print"));
@@ -57,7 +61,7 @@
 })();
 
 (function (): void {
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -69,11 +73,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;

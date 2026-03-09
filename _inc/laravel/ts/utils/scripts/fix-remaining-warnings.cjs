@@ -17,7 +17,7 @@ for (const result of data) {
   const filePath = result.filePath;
   let lines = fs.readFileSync(filePath, "utf8").split("\n");
   const warnings = result.messages
-    .filter((m) => m.severity === 1)
+    .filter(m => m.severity === 1)
     .sort((a, b) => b.line - a.line || b.column - a.column);
 
   let modified = false;
@@ -38,10 +38,7 @@ for (const result of data) {
       if (prevLine.includes("eslint-disable-next-line")) {
         // Merge into existing
         if (!prevLine.includes(w.ruleId)) {
-          lines[lineIdx - 1] = prevLine.replace(
-            /$/,
-            `, ${w.ruleId}`
-          );
+          lines[lineIdx - 1] = prevLine.replace(/$/, `, ${w.ruleId}`);
           modified = true;
           totalFixed++;
         }
@@ -49,7 +46,7 @@ for (const result of data) {
         lines.splice(
           lineIdx,
           0,
-          `${indent}// eslint-disable-next-line ${w.ruleId}`
+          `${indent}// eslint-disable-next-line ${w.ruleId}`,
         );
         modified = true;
         totalFixed++;
@@ -71,7 +68,7 @@ for (const result of data) {
         lines.splice(
           lineIdx,
           0,
-          `${indent}// eslint-disable-next-line ${w.ruleId}`
+          `${indent}// eslint-disable-next-line ${w.ruleId}`,
         );
         modified = true;
         totalFixed++;
@@ -90,15 +87,12 @@ for (const result of data) {
           new RegExp(
             `((?:const|let|var)\\s+)\\b${varName.replace(
               /[.*+?^${}()|[\]\\]/g,
-              "\\$&"
-            )}\\b`
+              "\\$&",
+            )}\\b`,
           ),
           // Function parameter
           new RegExp(
-            `([,(]\\s*)\\b${varName.replace(
-              /[.*+?^${}()|[\]\\]/g,
-              "\\$&"
-            )}\\b`
+            `([,(]\\s*)\\b${varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
           ),
         ];
         let fixed = false;
@@ -117,7 +111,7 @@ for (const result of data) {
             lines.splice(
               lineIdx,
               0,
-              `${indent}// eslint-disable-next-line ${w.ruleId}`
+              `${indent}// eslint-disable-next-line ${w.ruleId}`,
             );
             modified = true;
             totalFixed++;
@@ -133,7 +127,7 @@ for (const result of data) {
         lines.splice(
           lineIdx,
           0,
-          `${indent}// eslint-disable-next-line ${w.ruleId}`
+          `${indent}// eslint-disable-next-line ${w.ruleId}`,
         );
         modified = true;
         totalFixed++;
@@ -146,7 +140,7 @@ for (const result of data) {
       lines.splice(
         lineIdx,
         0,
-        `${indent}// eslint-disable-next-line ${w.ruleId}`
+        `${indent}// eslint-disable-next-line ${w.ruleId}`,
       );
       modified = true;
       totalFixed++;

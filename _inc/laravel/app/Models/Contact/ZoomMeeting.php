@@ -9,6 +9,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Hash, Log};
 use Illuminate\Support\Str;
+/**
+ * @property int|null $meeting_id
+ */
 
 class ZoomMeeting extends Model
 {
@@ -298,7 +301,7 @@ class ZoomMeeting extends Model
 
     public function projectName(): ?string
     {
-        return $this->project()?->select(PJC::COL_NM);
+        return $this->project()?->value(PJC::COL_NM);
     }
 
     public function user(): BelongsTo
@@ -308,7 +311,7 @@ class ZoomMeeting extends Model
 
     public function userName(): ?string
     {
-        return $this->user()?->select(UC::COL_NM);
+        return $this->user()?->value(UC::COL_NM);
     }
 
     public function getClientNameAttribute(): string

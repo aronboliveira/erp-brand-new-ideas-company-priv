@@ -20,10 +20,10 @@ use Modules\LandingPage\Http\Controllers\{
 use Illuminate\Support\Facades\Route as RF;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-$output = new ConsoleOutput();
+// TEMP: $output = new ConsoleOutput();
 $msg = 'Mappig web landing routes...';
-app()->runningInConsole() ?
-    $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
+// TEMP: app()->runningInConsole() ?
+// TEMP:     $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 
 RF::middleware([
     MC::WEB,

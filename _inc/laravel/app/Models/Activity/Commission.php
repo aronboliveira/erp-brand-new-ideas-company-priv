@@ -7,6 +7,11 @@ use App\Models\Employee;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
 
+/**
+ * @property float|int|string|null $amount
+ * @property string|null $type
+ * @property mixed $created_by
+ */
 class Commission extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;

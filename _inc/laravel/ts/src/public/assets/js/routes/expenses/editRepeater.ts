@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langSessionKey = "erp-np-lang";
-  const errFb = "# ERROR";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    langSessionKey = "erp-np-lang",
+    errFb = "# ERROR";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getMsg(key: string, el: HTMLElement) {
@@ -41,7 +41,7 @@
       }
     }
     return msg;
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -66,11 +66,11 @@
             const t = document.createElement("div");
             t.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              t.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             t.appendChild(body);
@@ -103,7 +103,7 @@
         }
       };
       el.addEventListener("click", clickHandler);
-      const obs = new MutationObserver((mutations, o) => {
+      const obs = new MutationObserver((_mutations, o) => {
         if (!document.body.contains(el)) {
           el.removeEventListener("click", clickHandler);
           o.disconnect();

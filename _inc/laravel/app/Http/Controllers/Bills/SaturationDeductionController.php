@@ -29,7 +29,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($employeeId, $request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($employeeId, $request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($request, 'create saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
@@ -53,7 +53,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $saturationDeduction, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $saturationDeduction, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'view saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -83,7 +83,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($request, 'create saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
@@ -130,7 +130,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($id, $request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($id, $request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($request, 'edit saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
@@ -158,7 +158,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $id, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($request, 'edit saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
@@ -200,7 +200,7 @@ class SaturationDeductionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $id, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($request, 'delete saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 

@@ -9,10 +9,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataGuardListener = "data-guard-listener";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataGuardListener = "data-guard-listener";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const msgKey = "pos_unavailable";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -52,7 +52,7 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrapCss = () =>
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = (el: HTMLElement | null): void=> {
+  const showError = (el: HTMLElement | null): void => {
     try {
       const message = getMsg(el);
       if (hasBootstrapCss() && window.bootstrap.Toast) {
@@ -65,11 +65,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = message;
@@ -97,11 +97,11 @@
       return;
     }
     jq((): void => {
-      const bind = (el: HTMLElement | null): void=> {
+      const bind = (el: HTMLElement | null): void => {
         if (!el || el.getAttribute(dataGuardListener) === "true") return;
         el.setAttribute(dataGuardListener, "true");
         const $el = jq(el);
-        const handler = (e: Event): void=> {
+        const handler = (e: Event): void => {
           try {
             const url = el.getAttribute("data-url");
             const href =
@@ -124,8 +124,8 @@
             try {
               $el.off("click.posGuard", handler);
             } catch (__err) {
-    console.error(`[show] Error:`, __err);
-  }
+              console.error(`[show] Error:`, __err);
+            }
             obs.disconnect();
           }
         });
@@ -135,16 +135,15 @@
         const nodes = document.querySelectorAll(".payment-done-btn");
         nodes.forEach(n => bind(n as HTMLElement));
       } catch {
-        const nodes = jq(".payment-done-btn").toArray();
-        nodes.forEach(bind);
+        jq(".payment-done-btn").toArray().forEach(bind);
       }
     });
   } catch {
     try {
       alert(errFb);
     } catch (__err) {
-    console.error(`[show] Error:`, __err);
-  }
+      console.error(`[show] Error:`, __err);
+    }
   }
 })();
 

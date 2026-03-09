@@ -14,12 +14,11 @@
     if (
       (f.getAttribute("action") === "" || f.getAttribute("action") === "#") &&
       resolved !== "#"
-    ) {
+    )
       f.setAttribute("action", resolved);
-    }
 
     // eslint-disable-next-line no-inner-declarations
-    function notify(msg: string): void{
+    function notify(msg: string): void {
       try {
         if (window.bootstrap.Toast) {
           const c =
@@ -33,11 +32,11 @@
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -63,8 +62,8 @@
         notify(msg);
         f.setAttribute("data-failed-route", "true");
       } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+        console.error(`[update] Error:`, _);
+      }
     });
   } catch (_) {
     console.error(`[update] Error:`, _);

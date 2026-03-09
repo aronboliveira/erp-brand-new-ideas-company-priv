@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\{
   Auth,
   DB,
   Log,
-  ROute,
+  Route,
   Validator,
   View as ViewFacade
 };
@@ -52,7 +52,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -92,7 +92,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.create';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -123,7 +123,7 @@ final class AppraisalController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -165,7 +165,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.show';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -197,7 +197,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -229,7 +229,7 @@ final class AppraisalController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $class) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -271,7 +271,7 @@ final class AppraisalController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $appraisal, $action, $class) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -306,7 +306,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.star';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", ['employee_id' => $req->employee]);
         $employee = Employee::findOrFail($req->employee);
@@ -332,7 +332,7 @@ final class AppraisalController extends Controller
     $class = static::class;
     $viewPath = self::ENTITY . '.star_edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [strtolower(class_basename(Employee::class)) => $req->employee, 'appraisal' => $req->appraisal]);
         $employee = Employee::findOrFail($req->employee);
@@ -359,7 +359,7 @@ final class AppraisalController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         Log::info("[{$class}::{$action}] start", ['branch_id' => $req->branch_id]);
         $employees = Employee::where('branch_id', $req->branch_id)->get();

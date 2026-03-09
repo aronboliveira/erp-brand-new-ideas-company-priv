@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\{DB, Schema};
 use Illuminate\Support\{Collection, Str};
+/**
+ * @property mixed $created_by
+ * @property array|string|null $customQuestion
+ * @property array|string|null $custom_question
+ * @property mixed $applicant
+ * @property mixed $skill
+ * @property mixed $visibility
+
+ * @property mixed $custom
+ */
 
 class Job extends Model
 {
@@ -559,8 +569,10 @@ class Job extends Model
         $codeDirty  = $this->isDirty('code');
         $slugEmpty = trim((string) ($this->getAttribute('slug') ?? '')) === '';
         $codeEmpty = trim((string) ($this->getAttribute('code') ?? '')) === '';
-        if (!$isUpdate || $titleDirty || $slugDirty || $slugEmpty || $codeDirty || $codeEmpty)
-            parent::enforceSlugAndCodeUniqueness($isUpdate);
+        if (!$isUpdate || $titleDirty || $slugDirty || $slugEmpty || $codeDirty || $codeEmpty) {
+            if (method_exists(parent::class, 'enforceSlugAndCodeUniqueness'))
+                parent::enforceSlugAndCodeUniqueness($isUpdate); // @phpstan-ignore staticMethod.notFound
+        }
     }
 
     protected function enforceStatusFromHire(): void
@@ -728,7 +740,7 @@ class Job extends Model
         $cls = $this->stateEnumClassForCountry($cc);
         if (!$cls || !enum_exists($cls)) return null;
 
-        return [$cc => array_values(array_map(fn($e) => (string) $e->value, $cls::cases()))];
+        return [$cc => array_values(array_map(fn(\BackedEnum $e) => (string) $e->value, $cls::cases()))];
     }
 
     protected function resolveUserEmailByUserIdColumn(string $col): ?string
@@ -781,5 +793,11 @@ class Job extends Model
         if (array_key_exists($key, $this->cacheLocal))
             return $this->cacheLocal[$key];
         return $this->cacheLocal[$key] = $cb();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
+    public function created_by(): HasOne
+    {
+        return $this->createdBy();
     }
 }

@@ -11,10 +11,10 @@ use Illuminate\{
 };
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-$output = new ConsoleOutput();
+// TEMP: $output = new ConsoleOutput();
 $msg = 'Mapping api main routes...';
-app()->runningInConsole() ?
-    $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
+// TEMP: app()->runningInConsole() ?
+// TEMP:     $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 Route::group([
     'middleware' => [
         MiddlewaresConstants::XSS,

@@ -5,7 +5,7 @@
  */
 
 ((): void => {
-  const toast = (m: string): void=> {
+  const toast = (m: string): void => {
     try {
       const hasBs =
         !!document.querySelector('link[href*="bootstrap"]') &&
@@ -20,11 +20,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = m;
@@ -40,7 +40,7 @@
   };
 
   const selector = '[data-ajax-popup-over="true"][data-url]';
-  const bind = (a: Element): void=> {
+  const bind = (a: Element): void => {
     if (a.getAttribute("data-gen-guarded") === "true") return;
     a.setAttribute("data-gen-guarded", "true");
     a.addEventListener("click", (e: Event) => {

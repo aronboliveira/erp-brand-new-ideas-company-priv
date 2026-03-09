@@ -21,6 +21,12 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\Facades\Log;
+/**
+ * @property mixed $created_by
+ * @property \Illuminate\Support\Carbon|string|null $end_date
+ * @property \Illuminate\Support\Carbon|string|null $start_date
+ * @property string|null $title
+ */
 
 class Announcement extends Model
 {

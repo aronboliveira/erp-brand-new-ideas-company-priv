@@ -12,33 +12,28 @@
   const $ = window.jQuery;
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | HTMLElement = document) =>
-    r.querySelector(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataEvtBranch = "data-branch-guard";
-  const dataEvtDept = "data-dept-guard";
-
+      r.querySelector(s),
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataEvtBranch = "data-branch-guard",
+    dataEvtDept = "data-dept-guard";
   const ensureToastContainer = (): HTMLElement => {
-    const id = "np-toast-container";
-    const existing = qs("#" + id);
-    if (existing instanceof HTMLElement) {
-      return existing;
-    }
+    const id = "np-toast-container",
+      existing = qs("#" + id);
+    if (existing instanceof HTMLElement) return existing;
     const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
 
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
@@ -51,19 +46,17 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -74,11 +67,9 @@
     }
   };
 
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -88,7 +79,7 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
@@ -96,7 +87,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -138,14 +129,14 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const name = String($?.("#filename").val() ?? "").trim();
-    const opt = {
-      margin: 0.3,
-      filename: name,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-      jsPDF: { unit: "in", format: "A2" },
-    };
+    const name = String($?.("#filename").val() ?? "").trim(),
+      opt = {
+        margin: 0.3,
+        filename: name,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+        jsPDF: { unit: "in", format: "A2" },
+      };
     try {
       if (typeof window.html2pdf !== "function") {
         try {
@@ -155,8 +146,8 @@
           )
             console.error("html2pdf unavailable");
         } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+          console.error(`[pdf] Error:`, _);
+        }
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
@@ -170,16 +161,14 @@
 
   window.saveAsPDF = saveAsPDF;
 
-  const deptUrl = '{{route(VW::RPT . ".attendance.getdepartment")}}';
-  const empUrl = '{{route(VW::RPT . ".attendance.getemployee")}}';
+  const deptUrl = '{{route(VW::RPT . ".attendance.getdepartment")}}',
+    empUrl = '{{route(VW::RPT . ".attendance.getemployee")}}';
 
-  const renderDepartmentSelect = (data: Record<string, unknown>): void=> {
+  const renderDepartmentSelect = (data: Record<string, unknown>): void => {
     const wrap = document.getElementById("department_div");
-    if (!wrap) {
-      return;
-    }
-    const hasLabel = wrap.querySelector('label[for="department"]');
-    const hasSelect = document.getElementById("department_id");
+    if (!wrap) return;
+    const hasLabel = wrap.querySelector('label[for="department"]'),
+      hasSelect = document.getElementById("department_id");
     if (!hasLabel) {
       const lab = document.createElement("label");
       lab.setAttribute("for", "department");
@@ -189,15 +178,16 @@
     }
     if (!hasSelect) {
       const sel = document.createElement("select");
-      sel.className = "form-control";
-      sel.id = "department_id";
-      sel.name = "department_id[]";
+      for (const [k, v] of Object.entries({
+        className: "form-control",
+        id: "department_id",
+        name: "department_id[]",
+      }))
+        (sel as unknown as Record<string, unknown>)[k] = v;
       wrap.appendChild(sel);
     }
     const select = document.getElementById("department_id");
-    if (!select) {
-      return;
-    }
+    if (!select) return;
     select.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
@@ -217,13 +207,11 @@
     }
   };
 
-  const renderEmployeeSelect = (data: Record<string, unknown>): void=> {
+  const renderEmployeeSelect = (data: Record<string, unknown>): void => {
     const wrap = document.getElementById("employee_div");
-    if (!wrap) {
-      return;
-    }
-    const hasLabel = wrap.querySelector('label[for="employee"]');
-    const hasSelect = document.getElementById("employee_id");
+    if (!wrap) return;
+    const hasLabel = wrap.querySelector('label[for="employee"]'),
+      hasSelect = document.getElementById("employee_id");
     if (!hasLabel) {
       const lab = document.createElement("label");
       lab.setAttribute("for", "employee");
@@ -233,16 +221,17 @@
     }
     if (!hasSelect) {
       const sel = document.createElement("select");
-      sel.className = "form-control";
-      sel.id = "employee_id";
-      sel.name = "employee_id[]";
-      sel.multiple = true;
+      for (const [k, v] of Object.entries({
+        className: "form-control",
+        id: "employee_id",
+        name: "employee_id[]",
+        multiple: true,
+      }))
+        (sel as unknown as Record<string, unknown>)[k] = v;
       wrap.appendChild(sel);
     }
     const select = document.getElementById("employee_id");
-    if (!select) {
-      return;
-    }
+    if (!select) return;
     select.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
@@ -274,12 +263,12 @@
         )
           console.error("Choices unavailable");
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+        console.error(`[pdf] Error:`, _);
+      }
     }
   };
 
-  const getDepartment = (branchId: string): void=> {
+  const getDepartment = (branchId: string): void => {
     if (!validRoute(deptUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
@@ -305,7 +294,7 @@
     });
   };
 
-  const getEmployee = (deptId: string): void=> {
+  const getEmployee = (deptId: string): void => {
     if (!validRoute(empUrl)) {
       scheduleInteractiveError(getMsg(document.body, "endpoint_unavailable"));
       return;
@@ -334,13 +323,11 @@
     evt: string,
     handler: (this: HTMLElement, e: Event) => void,
     flag: string,
-  ): void=> {
-    if (!el || el.getAttribute(flag) === "true") {
-      return;
-    }
+  ): void => {
+    if (!el || el.getAttribute(flag) === "true") return;
     el.setAttribute(flag, "true");
     if ($) $(el).on(evt, handler as unknown as (e: Event) => void);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(el)) {
         if ($) $(el).off(evt, handler as unknown as (e: Event) => void);
         o.disconnect();
@@ -376,11 +363,9 @@
     }
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

@@ -4,7 +4,7 @@
  * @module edit
  */
 
-const showToast = (m: string): void=> {
+const showToast = (m: string): void => {
   try {
     if (window.bootstrap.Toast) {
       let c = document.getElementById("toast-container");
@@ -17,11 +17,11 @@ const showToast = (m: string): void=> {
       const t = document.createElement("div");
       t.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML =
         '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
       const toastBody = t.querySelector(".toast-body");

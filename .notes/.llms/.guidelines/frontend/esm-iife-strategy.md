@@ -8,11 +8,11 @@ During the TypeScript migration period, all route files use **ESM (`type="module
 
 ## Current State
 
-| Phase | Module Format | Script Tag | Status |
-|-------|--------------|------------|--------|
-| **TS Development** | ESM (`export {}`) | `<script type="module">` | ✅ Active |
-| **Test Harness** | ESM | `<script type="module">` | ✅ Active |
-| **Final Production** | IIFE (no imports/exports) | `<script defer>` | ❌ Not yet |
+| Phase                | Module Format             | Script Tag               | Status     |
+| -------------------- | ------------------------- | ------------------------ | ---------- |
+| **TS Development**   | ESM (`export {}`)         | `<script type="module">` | ✅ Active  |
+| **Test Harness**     | ESM                       | `<script type="module">` | ✅ Active  |
+| **Final Production** | IIFE (no imports/exports) | `<script defer>`         | ❌ Not yet |
 
 ## Why ESM Now?
 
@@ -47,6 +47,7 @@ node _inc/laravel/ts/scripts/esm-to-iife.cjs
 ```
 
 This script:
+
 - Reads all `.js` files from `ts/dist/public/assets/js/routes/`
 - Strips `export {};` and `import` statements
 - Wraps in IIFE if not already wrapped
@@ -56,6 +57,7 @@ This script:
 ## Reverting
 
 To go back to ESM (for development/testing):
+
 - Simply re-run `npx tsc` — the dist/ output is always ESM.
 - The `dist-iife/` folder is a separate output that doesn't affect `dist/`.
 

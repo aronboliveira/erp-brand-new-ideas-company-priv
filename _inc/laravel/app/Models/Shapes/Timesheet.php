@@ -9,6 +9,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
 use Illuminate\Support\Facades\{DB, Log};
 
+/**
+ * @property mixed $time
+ */
 class Timesheet extends Model
 {
     use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments, SoftDeletes, DefinesDates;

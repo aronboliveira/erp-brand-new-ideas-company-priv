@@ -4,21 +4,10 @@
  * @module confirm
  */
 
-interface JQueryStaticExtended extends JQueryStatic {
-  destroyModal?: (modal: JQuery<HTMLElement> | HTMLElement) => void;
-}
-
-interface JQueryExtended extends JQuery<HTMLElement> {
-  fireModal?: (options: {
-    title: string;
-    body: string;
-    buttons: {
-      text: string;
-      class: string;
-      handler: (modal: JQuery<HTMLElement>) => void;
-    }[];
-  }) => void;
-}
+import type {
+  JQueryStaticExtended,
+  JQueryExtendedModal as JQueryExtended,
+} from "../../../../../declarations/routes/jquery-ui.interfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -26,13 +15,13 @@ interface JQueryExtended extends JQuery<HTMLElement> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery as JQueryStaticExtended;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataBound = "data-confirm-bound";
-  const dataErrGuard = "data-error-guard";
-  const dataFallbackBound = "data-confirm-fallback";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataBound = "data-confirm-bound",
+    dataErrGuard = "data-error-guard",
+    dataFallbackBound = "data-confirm-fallback";
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
@@ -43,20 +32,16 @@ interface JQueryExtended extends JQuery<HTMLElement> {
     (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
     const c = qs("#np-toast-container");
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     const el = document.createElement("div");
     el.id = "np-toast-container";
     el.setAttribute("aria-live", "polite");
     el.setAttribute("aria-atomic", "true");
-    el.style.position = "fixed";
-    el.style.top = "1rem";
-    el.style.right = "1rem";
+    Object.assign(el.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(el);
     return el;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -65,20 +50,18 @@ interface JQueryExtended extends JQuery<HTMLElement> {
         toastEl.id = "np-toast";
         toastEl.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toastEl.setAttribute(k, v);
         toastEl.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(toastEl);
         t = toastEl;
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -88,10 +71,11 @@ interface JQueryExtended extends JQuery<HTMLElement> {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (target: HTMLElement, message: string): void=> {
-    if (!target || target.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+  const scheduleInteractiveError = (
+    target: HTMLElement,
+    message: string,
+  ): void => {
+    if (!target || target.getAttribute(dataErrGuard) === "true") return;
     target.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -100,15 +84,18 @@ interface JQueryExtended extends JQuery<HTMLElement> {
         target.removeAttribute(dataErrGuard);
       }
     };
-    target.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    if (!target.getAttribute("data-listener-bound-click")) {
+      target.setAttribute("data-listener-bound-click", "1");
+      target.addEventListener("click", once, { once: true });
+    }
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(target)) {
         target.removeEventListener("click", once);
         o.disconnect();
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -149,8 +136,8 @@ interface JQueryExtended extends JQuery<HTMLElement> {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[confirm] Error:`, _);
-  }
+        console.error(`[confirm] Error:`, _);
+      }
       document
         .querySelectorAll("[data-confirm-delete]")
         .forEach((el: Element): void => {
@@ -167,17 +154,15 @@ interface JQueryExtended extends JQuery<HTMLElement> {
     document
       .querySelectorAll("[data-confirm-delete]")
       .forEach((el: Element): void => {
-        const htmlEl = el as HTMLElement;
-        const me = $(htmlEl) as JQueryExtended;
-        if (htmlEl.getAttribute(dataBound) === "true") {
-          return;
-        }
+        const htmlEl = el as HTMLElement,
+          me = $(htmlEl) as JQueryExtended;
+        if (htmlEl.getAttribute(dataBound) === "true") return;
         htmlEl.setAttribute(dataBound, "true");
         let meData: unknown = me.data("confirm-delete");
         meData = meData == null ? "" : String(meData);
-        const parts = (meData as string).split("|");
-        const title = parts[0] ?? "";
-        const body = parts.slice(1).join("|") ?? "";
+        const parts = (meData as string).split("|"),
+          title = parts[0] ?? "",
+          body = parts.slice(1).join("|") ?? "";
         if (hasFireModal) {
           try {
             me.fireModal?.({
@@ -187,7 +172,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                 {
                   text: String(me.data("confirm-text-yes") ?? "Yes"),
                   class: "btn btn-sm btn-danger rounded-pill",
-                  handler: function (modal: JQuery<HTMLElement>): void{
+                  handler: function (modal: JQuery<HTMLElement>): void {
                     try {
                       const yesCode = String(me.data("confirm-yes") ?? "");
                       if (yesCode) {
@@ -202,8 +187,8 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         }
                       }
                     } catch (_) {
-    console.error(`[confirm] Error:`, _);
-  }
+                      console.error(`[confirm] Error:`, _);
+                    }
                     try {
                       const destroyFn = $.destroyModal;
                       if (destroyFn) {
@@ -212,14 +197,14 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         modal.remove();
                       }
                     } catch (_) {
-    console.error(`[confirm] Error:`, _);
-  }
+                      console.error(`[confirm] Error:`, _);
+                    }
                   },
                 },
                 {
                   text: String(me.data("confirm-text-cancel") ?? "Cancel"),
                   class: "btn btn-sm btn-secondary rounded-pill",
-                  handler: function (modal: JQuery<HTMLElement>): void{
+                  handler: function (modal: JQuery<HTMLElement>): void {
                     try {
                       const destroyFn = $.destroyModal;
                       if (destroyFn) {
@@ -228,8 +213,8 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         modal.remove();
                       }
                     } catch (_) {
-    console.error(`[confirm] Error:`, _);
-  }
+                      console.error(`[confirm] Error:`, _);
+                    }
                     try {
                       const noCode = String(me.data("confirm-no") ?? "");
                       if (noCode) {
@@ -244,8 +229,8 @@ interface JQueryExtended extends JQuery<HTMLElement> {
                         }
                       }
                     } catch (_) {
-    console.error(`[confirm] Error:`, _);
-  }
+                      console.error(`[confirm] Error:`, _);
+                    }
                   },
                 },
               ],
@@ -263,7 +248,7 @@ interface JQueryExtended extends JQuery<HTMLElement> {
               showErrorNow(getMsg(htmlEl, "confirm_unavailable"));
             };
             $(htmlEl).on("click.confirmFallback", handler);
-            const mo = new MutationObserver((m, o) => {
+            const mo = new MutationObserver((_m, o) => {
               if (!document.body.contains(htmlEl)) {
                 $(htmlEl).off("click.confirmFallback", handler);
                 o.disconnect();
@@ -276,14 +261,12 @@ interface JQueryExtended extends JQuery<HTMLElement> {
   };
 
   // SECURITY: Safe fallback for confirm handlers instead of eval()
-  const safeFormAction = (actionStr: string, _element: HTMLElement): void=> {
+  const safeFormAction = (actionStr: string, _element: HTMLElement): void => {
     if (!actionStr) return;
     // If it looks like a form selector, submit that form
     if (actionStr.startsWith("#") || actionStr.startsWith(".")) {
       const form = qs(actionStr);
-      if (form?.tagName === "FORM") {
-        (form as HTMLFormElement).submit();
-      }
+      if (form?.tagName === "FORM") (form as HTMLFormElement).submit();
       return;
     }
     // If it starts with a safe URL protocol, navigate to it
@@ -299,11 +282,9 @@ interface JQueryExtended extends JQuery<HTMLElement> {
   const init = (): void => {
     bindConfirmModals();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

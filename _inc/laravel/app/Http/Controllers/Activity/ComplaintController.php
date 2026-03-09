@@ -28,7 +28,7 @@ class ComplaintController extends AppController
     $class = static::class;
     $viewPath = ViewsConstants::CPL . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -53,7 +53,7 @@ class ComplaintController extends AppController
     $class = static::class;
     $viewPath = ViewsConstants::CPL . '.create';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         $user = $req->user();
         if (!$user?->can('create complaint')) return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
@@ -76,7 +76,7 @@ class ComplaintController extends AppController
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         $user = $req->user();
         if (!$user?->can('create complaint')) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
@@ -119,7 +119,7 @@ class ComplaintController extends AppController
     $class = static::class;
     $viewPath = ViewsConstants::CPL . '.show';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $complaint, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $complaint, $action, $class, $viewPath) {
       try {
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('complaint'));
@@ -137,7 +137,7 @@ class ComplaintController extends AppController
     $class = static::class;
     $viewPath = ViewsConstants::CPL . '.edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $complaint, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $complaint, $action, $class, $viewPath) {
       try {
         $user = $req->user();
         if (!$user?->can('edit complaint') || $complaint->created_by !== $user?->creatorId()) return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
@@ -158,7 +158,7 @@ class ComplaintController extends AppController
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $complaint, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $complaint, $action, $class) {
       try {
         $user = $req->user();
         if (!$user?->can('edit complaint') || $complaint->created_by !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
@@ -190,7 +190,7 @@ class ComplaintController extends AppController
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $complaint, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $complaint, $action, $class) {
       try {
         $user = $req->user();
         if (!$user?->can('delete complaint') || $complaint->created_by !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
@@ -212,7 +212,7 @@ class ComplaintController extends AppController
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         $employees = Employee::where('branch_id', $req->branch_id)->get();
         return response()->json([strtolower(class_basename(Employee::class)) => $employees]);

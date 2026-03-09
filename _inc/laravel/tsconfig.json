@@ -32,7 +32,9 @@
     ".next/types/**/*.ts",
     "src/lib/configs/obfuscate.ts",
     "next.config.js",
-    "public/assets/js/routes/invoices/delete.js"
+    "public/assets/js/routes/invoices/delete.js",
+    "ts/src/types/**/*.d.ts",
+    "ts/src/declarations/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
@@ -40,7 +42,6 @@
     "**/*.test.js",
     "_test.js",
     "**__dummy**",
-    "**/*.test.tsx",
-    "**/*.d.ts"
+    "**/*.test.tsx"
   ]
 }

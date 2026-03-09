@@ -15,7 +15,7 @@
     return c;
   })();
 
-  const showError = (key: string): void=> {
+  const showError = (key: string): void => {
     const errFb = "# ERROR";
     let lang = (
       window.sessionStorage.getItem("erp-np-lang") ??
@@ -40,11 +40,11 @@
       toast.className = "toast align-items-center text-bg-danger border-0";
       toast.dataset.errorKey = key;
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toast.setAttribute(k, v);
       toast.innerHTML = `
                     <div class="d-flex">
                     <div class="toast-body">${msg}</div>
@@ -87,7 +87,9 @@
             return;
           }
           (
-            $(el) as unknown as JQuery & { daterangepicker: (...args: unknown[]) => unknown }
+            $(el) as unknown as JQuery & {
+              daterangepicker: (...args: unknown[]) => unknown;
+            }
           ).daterangepicker({
             format: "yyyy-mm-dd",
             locale: { format: "YYYY-MM-DD" },

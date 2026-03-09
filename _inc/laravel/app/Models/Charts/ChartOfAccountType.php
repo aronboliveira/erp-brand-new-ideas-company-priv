@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model
 };
+/**
+ * @property string|null $name
+
+ * @property mixed $rules
+ * @property mixed $units
+ */
 
 class ChartOfAccountType extends Model
 {

@@ -11,11 +11,10 @@
     if (a.getAttribute("data-listener-active") === "true") return;
     a.setAttribute("data-listener-active", "true");
 
-    const url = a.getAttribute("data-url") ?? "#";
-    const href = a.getAttribute("href") ?? "#";
-    if ((href === "#" || !href) && url && url !== "#") {
+    const url = a.getAttribute("data-url") ?? "#",
+      href = a.getAttribute("href") ?? "#";
+    if ((href === "#" || !href) && url && url !== "#")
       a.setAttribute("href", url);
-    }
 
     a.addEventListener("click", (e: Event) => {
       try {
@@ -24,7 +23,8 @@
 
         e.preventDefault();
         const msg =
-          a.getAttribute("data-guard-msg") ?? "Create travel route is unavailable. Please contact technical support or your domain administrator.";
+          a.getAttribute("data-guard-msg") ??
+          "Create travel route is unavailable. Please contact technical support or your domain administrator.";
 
         let container = document.getElementById("toast-container");
         if (!container) {
@@ -40,11 +40,11 @@
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -59,8 +59,8 @@
 
         a.setAttribute("data-failed-route", "true");
       } catch (__err) {
-    console.error(`[create] Error:`, __err);
-  }
+        console.error(`[create] Error:`, __err);
+      }
     });
   } catch (__err) {
     console.error(`[create] Error:`, __err);

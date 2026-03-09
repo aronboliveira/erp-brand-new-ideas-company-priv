@@ -8,6 +8,12 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Support\{Collection, Str, Facades\Log};
 
+/**
+ * @property float|int|string|null $max_amount
+ * @property float|int|string|null $min_amount
+ * @property string|null $name
+ * @property mixed $created_by
+ */
 class PayslipType extends Model
 {
     use UsesUuids, HasAuditFields;

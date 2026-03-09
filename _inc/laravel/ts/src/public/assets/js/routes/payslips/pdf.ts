@@ -21,11 +21,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -42,21 +42,24 @@
 
   const mail = document.getElementById("payslip-mail-send");
   if (mail) {
-    mail.addEventListener("click", (e: Event) => {
-      const url =
-        mail.getAttribute("href") ?? mail.getAttribute("data-url") ?? "#";
-      if (!url || url === "#") {
-        e.preventDefault();
-        const msg =
-          mail.getAttribute("data-guard-msg") ??
-          "Send Payslip route is unavailable. Please contact technical support or your domain administrator.";
-        toast(msg);
-      }
-    });
+    if (!mail.getAttribute("data-listener-bound-click")) {
+      mail.setAttribute("data-listener-bound-click", "1");
+      mail.addEventListener("click", (e: Event) => {
+        const url =
+          mail.getAttribute("href") ?? mail.getAttribute("data-url") ?? "#";
+        if (!url || url === "#") {
+          e.preventDefault();
+          const msg =
+            mail.getAttribute("data-guard-msg") ??
+            "Send Payslip route is unavailable. Please contact technical support or your domain administrator.";
+          toast(msg);
+        }
+      });
+    }
   }
 
-  const printableId = "printableArea";
-  const printBtn = document.getElementById("payslip-download");
+  const printableId = "printableArea",
+    printBtn = document.getElementById("payslip-download");
   const printFn = (): void => {
     const el = document.getElementById(printableId);
     if (!el) return;
@@ -82,12 +85,14 @@
       w.print();
     }, 300);
   };
-  if (printBtn) {
-    printBtn.addEventListener("click", (e: Event) => {
-      e.preventDefault();
-      printFn();
-    });
-  }
+  if (printBtn)
+    if (!printBtn.getAttribute("data-listener-bound-click")) {
+      printBtn.setAttribute("data-listener-bound-click", "1");
+      printBtn.addEventListener("click", (e: Event) => {
+        e.preventDefault();
+        printFn();
+      });
+    }
   if (!window.saveAsPDF) window.saveAsPDF = printFn;
 })();
 

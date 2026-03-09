@@ -8,45 +8,50 @@
   const el = document.getElementById("customer-index-breadcrumb");
   if (!el || el.getAttribute("data-listener-active") === "true") return;
   el.setAttribute("data-listener-active", "true");
-  el.addEventListener("click", (e: Event) => {
-    try {
-      const url = el.getAttribute("data-url") ?? "#";
-      if (url !== "#") return;
-      e.preventDefault();
-      const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
-      const bs =
-        document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
+  if (!el.getAttribute("data-listener-bound-click")) {
+    el.setAttribute("data-listener-bound-click", "1");
+    el.addEventListener("click", (e: Event) => {
+      try {
+        const url = el.getAttribute("data-url") ?? "#";
+        if (url !== "#") return;
+        e.preventDefault();
+        const msg = el.getAttribute("data-guard-msg") ?? "# ERROR",
+          bs =
+            document.querySelector('link[href*="bootstrap"]') &&
+            window.bootstrap;
+        let container = document.getElementById("toast-container");
+        if (!container) {
+          container = document.createElement("div");
+          container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+          document.body.appendChild(container);
+        }
+        if (bs) {
+          const toast = document.createElement("div");
+          toast.className = "toast";
+          for (const [k, v] of Object.entries({
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
+          const body = document.createElement("div");
+          body.className = "toast-body";
+          body.textContent = msg;
+          toast.appendChild(body);
+          container.appendChild(toast);
+          bootstrap.Toast.getOrCreateInstance(toast).show();
+        } else {
+          alert(msg);
+        }
+        el.setAttribute("data-failed-route", "true");
+      } catch (__err) {
+        console.error(`[showIndex] Error:`, __err);
       }
-      if (bs) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = msg;
-        toast.appendChild(body);
-        container.appendChild(toast);
-        bootstrap.Toast.getOrCreateInstance(toast).show();
-      } else {
-        alert(msg);
-      }
-      el.setAttribute("data-failed-route", "true");
-    } catch (__err) {
-    console.error(`[showIndex] Error:`, __err);
+    });
   }
-  });
 })();
 
 export {};

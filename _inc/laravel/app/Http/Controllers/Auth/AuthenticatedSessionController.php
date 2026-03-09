@@ -603,7 +603,7 @@ class AuthenticatedSessionController extends Controller
           ? $output->writeln('<comment> ' . $langMsg . ' </comment>')
           : $output->writeln("## {$action}: {$langMsg}");
         Log::info("[$action] Processing language parameter", ['original_lang' => $lang]);
-        $lang = static::_setLocale($lang);
+        $lang = self::_setLocale($lang);
         $this->logExecutionTime($localeStart, $action . '::setLocale', 'completed');
         $viewStart = microtime(true);
         $viewMsg = 'Rendering vendor login view';
@@ -835,6 +835,7 @@ class AuthenticatedSessionController extends Controller
       $startMsg = 'Starting reset form';
       app()->runningInConsole() ? $output->writeln("<info> {$tag}: {$startMsg} </info>") : $output->writeln("## {$tag}: {$startMsg}");
       Log::info("[{$tag}] Starting showResetForm", ['token' => $token]);
+      $viewPath = 'unknown';
       try {
         $lang = DB::table(DatabaseConstants::TABLE_SETTINGS)->value('value') ?? DatabaseConstants::DEFAULT_LANG;
         App::setLocale($lang);
@@ -872,6 +873,8 @@ class AuthenticatedSessionController extends Controller
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
         : $output->writeln("## {$action}: {$startMsg}");
       Log::info("[$action] Starting " . $function, ['token' => $token]);
+      $viewStart = microtime(true);
+      $viewPath = 'unknown';
       try {
         $viewStart = microtime(true);
         $viewMsg = 'Rendering customer reset view';
@@ -1033,7 +1036,7 @@ class AuthenticatedSessionController extends Controller
   {
     $method = __METHOD__;
     Log::debug($method . ' - start', ['user_id' => $user?->id]);
-    $this->measureProfile($method, function () use ($req, $user, $method) {
+    $this->measureProfile($method, function () use ($req, $user) {
       $stepStart = microtime(true);
       $ip = $req->server('REMOTE_ADDR');
       $this->logExecutionTime($stepStart, 'getClientIp', 'completed');
@@ -1048,7 +1051,7 @@ class AuthenticatedSessionController extends Controller
       $stepStart = microtime(true);
       $ref = parse_url($req->server('HTTP_REFERER') ?? '');
       $details = json_encode([
-        ...($query ?? []),
+        ...$query,
         'browser_name' => $wb->browser->name ?? null,
         'os_name' => $wb->os->name ?? null,
         'browser_language' => mb_substr($req->server('HTTP_ACCEPT_LANGUAGE') ?? '', 0, 2),
@@ -1128,10 +1131,10 @@ class AuthenticatedSessionController extends Controller
       $creds,
       $req->boolean('remember')
     )) {
-      return $this->sendFailedLoginResponse($req);
+      return $this->sendFailedLoginResponse($req); /** @phpstan-ignore method.notFound */
     }
     $user = Auth::guard($guard)->user();
-    if (!$user?->is_active) {
+    if (!$user?->is_active) { /** @phpstan-ignore property.notFound */
       Auth::guard($guard)->logout();
       return defaultPermissionDenial(
         $req,

@@ -17,6 +17,15 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\{DB, Schema};
 
+/**
+ * @property float|int|string|null $amount
+ * @property string|null $deduction_type
+ * @property string|\Illuminate\Support\Carbon|null $end_date
+ * @property float|int|string|null $installments
+ * @property string|null $loan_option
+ * @property string|\Illuminate\Support\Carbon|null $start_date
+ * @property string|null $type
+ */
 class Loan extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields, DefinesDates;
@@ -83,11 +92,11 @@ class Loan extends Model
             }
             if ($loan->{BC::COL_DD_TYPE} !== null) {
                 $normalized = DeductionType::normalize($loan->{BC::COL_DD_TYPE});
-                $loan->{BC::COL_DD_TYPE} = $normalized;
+                $loan->{BC::COL_DD_TYPE} = $normalized?->value;
             }
             if ($loan->type !== null) {
                 $normalizedType = PaymentPatternType::normalize($loan->type);
-                $loan->type = $normalizedType;
+                $loan->type = $normalizedType?->value;
             }
             if ($loan->{PJC::COL_S_DT} && $loan->{PJC::COL_E_DT} && $loan->{PJC::COL_E_DT} < $loan->{PJC::COL_S_DT})
                 $loan->{PJC::COL_E_DT} = $loan->{PJC::COL_S_DT};

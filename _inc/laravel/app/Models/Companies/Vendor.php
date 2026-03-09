@@ -45,6 +45,25 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $billing_address
+ * @property string|null $billing_city
+ * @property string|null $billing_country
+ * @property string|null $billing_name
+ * @property string|null $billing_phone
+ * @property string|null $billing_state
+ * @property string|null $billing_zip
+ * @property array|string|null $customField
+ * @property string|null $shipping_address
+ * @property string|null $shipping_city
+ * @property string|null $shipping_country
+ * @property string|null $shipping_name
+ * @property string|null $shipping_phone
+ * @property string|null $shipping_state
+ * @property string|null $shipping_zip
+ * @property string|null $tax_number
+ * @property float|int|null $balance
+
+ * @property mixed $custom
  */
 class Vendor extends Authenticatable
 {
@@ -337,7 +356,7 @@ class Vendor extends Authenticatable
             if ($identifier === '')
                 return null;
 
-            if (self::looksLikeUuid($identifier))
+            if (Utility::looksLikeUuid($identifier))
                 return ProductService::find($identifier);
 
             $product = ProductService::query()

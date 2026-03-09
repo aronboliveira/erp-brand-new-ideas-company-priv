@@ -136,7 +136,7 @@ class ZoomMeetingController extends Controller
             $this->logExecutionTime($t, $action . '::validate', 'completed');
 
             $t = microtime(true);
-            $settings = Utility::settings($user?->creatorId());
+            $settings = Utility::settingsById($user?->creatorId());
             $this->logExecutionTime($t, $action . '::loadSettings', 'completed');
             if (empty($settings['zoom_account_id']) || empty($settings['zoom_client_id']) || empty($settings['zoom_client_secret'])) {
                 Log::warning("$action missing API keys");
@@ -517,7 +517,7 @@ class ZoomMeetingController extends Controller
             $this->logExecutionTime($t, $action . '::validate', 'completed');
 
             $t = microtime(true);
-            $settings = Utility::settings($user?->creatorId());
+            $settings = Utility::settingsById($user?->creatorId());
             $this->logExecutionTime($t, $action . '::loadSettings', 'completed');
             if (empty($settings['zoom_account_id']) || empty($settings['zoom_client_id']) || empty($settings['zoom_client_secret'])) {
                 Log::warning("$action missing API keys");

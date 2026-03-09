@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const DATA_LISTENER = "data-listener-added";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    DATA_LISTENER = "data-listener-added";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -43,11 +43,11 @@
     return msg;
   };
 
-  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
-    const text = getMsg(el ?? document.body, key);
-    const hasBs =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap.Toast;
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void => {
+    const text = getMsg(el ?? document.body, key),
+      hasBs =
+        document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
     if (hasBs) {
       let toast = document.querySelector<HTMLElement>("#np-error-toast");
       if (!toast) {
@@ -56,11 +56,11 @@
         toast.className =
           "toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         {
           toast.replaceChildren();
           const _d = document.createElement("div");
@@ -97,7 +97,7 @@
     }
   };
 
-  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void => {
     if (!el || el.getAttribute(DATA_LISTENER) === "true") return;
     const cb = (): void => {
       showFeedback(el, key, ev);
@@ -111,7 +111,7 @@
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -130,11 +130,10 @@
         console.error("jQuery failed to load");
       return;
     }
-    const BASE = "{{ url('zoom-meeting/projects/select') }}";
-    const userDiv = $("#user_div");
-    const SELECT_ID = "user_id";
-    const SELECT_HTML = `<select class="form-control" id="${SELECT_ID}" name="user_id[]" multiple></select>`;
-
+    const BASE = "{{ url('zoom-meeting/projects/select') }}",
+      userDiv = $("#user_div"),
+      SELECT_ID = "user_id",
+      SELECT_HTML = `<select class="form-control" id="${SELECT_ID}" name="user_id[]" multiple></select>`;
     const buildOrReuseSelect = (): JQuery<HTMLElement> => {
       let $sel = $("#" + SELECT_ID);
       if (!$sel.length) {
@@ -145,7 +144,7 @@
         $sel.empty();
       }
       return $sel;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
 
     const choicesKey = "_npChoicesInstance";
@@ -164,8 +163,8 @@
         try {
           (selEl[choicesKey] as { destroy(): void }).destroy();
         } catch (__err) {
-    console.error(`[users] Error:`, __err);
-  }
+          console.error(`[users] Error:`, __err);
+        }
         selEl[choicesKey] = null;
       }
       const inst = new Choices(selEl, { removeItemButton: true });
@@ -175,8 +174,8 @@
           try {
             inst.destroy();
           } catch (__err) {
-    console.error(`[users] Error:`, __err);
-  }
+            console.error(`[users] Error:`, __err);
+          }
           o.disconnect();
         }
       });
@@ -184,9 +183,9 @@
       return inst;
     };
 
-    const fetchUsers = (projectId: string): void=> {
-      const pid = projectId ?? "";
-      const url = `${BASE}/${encodeURIComponent(pid)}`;
+    const fetchUsers = (projectId: string): void => {
+      const pid = projectId ?? "",
+        url = `${BASE}/${encodeURIComponent(pid)}`;
       if (routeGuard(url, document.body)) return;
       $.ajax({
         url,
@@ -217,11 +216,15 @@
     };
 
     if (document.body.getAttribute("data-zoom-users-bound") !== "true") {
-      $(document).on("change", ".project_select", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const projectId = String($(this).val() ?? "");
-        fetchUsers(projectId);
-      });
+      $(document).on(
+        "change",
+        ".project_select",
+        function (this: HTMLSelectElement): void {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          const projectId = String($(this).val() ?? "");
+          fetchUsers(projectId);
+        },
+      );
       document.body.setAttribute("data-zoom-users-bound", "true");
     }
   } catch (e) {

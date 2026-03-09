@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\Facades\Log;
+/**
+ * @property mixed $created_by
+ */
 
 class LeaveType extends Model
 {

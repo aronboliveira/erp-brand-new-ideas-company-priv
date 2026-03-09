@@ -18,6 +18,14 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Arr;
 
+/**
+ * @property bool|null $is_host
+ * @property bool|null $has_camera_off_by_default
+ * @property bool|null $has_microphone_muted_by_default
+ * @property bool|null $has_screen_sharing_enabled_by_default
+
+ * @property mixed $metadata
+ */
 class MeetingEmployee extends Model
 {
     use HasAuditFields;

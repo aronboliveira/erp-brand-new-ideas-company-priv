@@ -28,7 +28,7 @@ final class TrimStrings extends Middleware
      *
      * @param  mixed    $request
      * @param  Closure  $next
-     * @return mixed
+     * @return Response
      */
     public function handle($request, Closure $next): Response
     {

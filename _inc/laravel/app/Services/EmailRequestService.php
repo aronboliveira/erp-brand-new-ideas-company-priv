@@ -63,6 +63,9 @@ class EmailRequestService
 		}
 	}
 
+	/**
+	 * @phpstan-return \App\Models\EmailTemplate|null
+	 */
 	public function getDefaultTemplate(?User $user = null): ?EmailTemplate
 	{
 		$user = $user ?? auth()->user();
@@ -73,6 +76,9 @@ class EmailRequestService
 			->first();
 	}
 
+	/**
+	 * @phpstan-return \App\Models\EmailTemplate|null
+	 */
 	public function getDefaultForType(EmailTemplateType|string|null $type, ?User $user = null): ?EmailTemplate
 	{
 		$user = $user ?? auth()->user();

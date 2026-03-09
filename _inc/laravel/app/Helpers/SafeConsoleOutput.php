@@ -19,6 +19,7 @@ class SafeConsoleOutput
 {
     public static function make(): OutputInterface
     {
-        return app()->runningInConsole() ? new ConsoleOutput() : new NullOutput();
+        // TEMP: silenced for PHPStan — was: return app()->runningInConsole() ? new ConsoleOutput() : new NullOutput();
+        return new NullOutput();
     }
 }

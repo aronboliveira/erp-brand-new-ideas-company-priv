@@ -7,6 +7,12 @@ use App\Enums\AllowanceType;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 
+/**
+ * @property float|int|string|null $amount
+ * @property string|null $type
+ * @property string|null $allowance_option
+ * @property int|null $employee_id
+ */
 class Allowance extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
@@ -35,6 +41,15 @@ class Allowance extends Model
         'percentage' => 'Percentage',
     ];
 
+    /**
+     * Alias for {@see $allowanceType} — used by controllers (legacy casing).
+     * @var array<string,string>
+     */
+    public static array $Allowancetype = [
+        'fixed'      => 'Fixed',
+        'percentage' => 'Percentage',
+    ];
+
     protected $casts = [
         'amount'                    => 'decimal:2',
         UC::COL_EMP_ID             => 'string',
@@ -57,17 +72,17 @@ class Allowance extends Model
     {
         static::saving(function (self $m) {
             $t = $m->type instanceof AllowanceType ? $m->type : AllowanceType::normalize((string)$m->type);
-            $m->type = $t ?? AllowanceType::Fixed;
+            $m->type = ($t ?? AllowanceType::Fixed)->value;
             $amt = (float) $m->amount;
-            if ($m->type === AllowanceType::Percentage) $m->amount = max(0.0, min(100.0, $amt));
+            if ($m->type === AllowanceType::Percentage->value) $m->amount = max(0.0, min(100.0, $amt));
             else $m->amount = max(0.0, $amt);
             $m->{BC::COL_ALW_OPT} = $m->{BC::COL_ALW_OPT} ?: null;
             if ($m->{BC::COL_ALW_OPT} !== null) {
                 $opt = AllowanceOption::find($m->{BC::COL_ALW_OPT});
                 if ($opt !== null) {
-                    if ($m->type === AllowanceType::Percentage && $opt->{BC::COL_MIN_PCT} !== null)
+                    if ($m->type === AllowanceType::Percentage->value && $opt->{BC::COL_MIN_PCT} !== null) // @phpstan-ignore property.notFound
                         $m->amount = max((float) $m->amount, (float) $opt->{BC::COL_MIN_PCT});
-                    if ($m->type === AllowanceType::Percentage && $opt->{BC::COL_MAX_PCT} !== null)
+                    if ($m->type === AllowanceType::Percentage->value && $opt->{BC::COL_MAX_PCT} !== null) // @phpstan-ignore property.notFound
                         $m->amount = min((float) $m->amount, (float) $opt->{BC::COL_MAX_PCT});
                 }
             }

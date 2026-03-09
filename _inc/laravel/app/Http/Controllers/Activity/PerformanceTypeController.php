@@ -28,7 +28,7 @@ class PerformanceTypeController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::PFM_TP . '.' . $action;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_MANAGE)) return redirect()->back();
       try {
@@ -53,7 +53,7 @@ class PerformanceTypeController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::PFM_TP . '.' . $action;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_CREATE)) return redirect()->back();
       try {
@@ -76,7 +76,7 @@ class PerformanceTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if (!self::authorizeCompany($req, self::PERM_CREATE)) return redirect()->back();
       $valStart = microtime(true);
@@ -104,7 +104,7 @@ class PerformanceTypeController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($performanceType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($performanceType, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey()]);
       try {
         $redirStart = microtime(true);
@@ -127,7 +127,7 @@ class PerformanceTypeController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::PFM_TP . '.' . $action;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_EDIT)) return redirect()->back();
       if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
@@ -151,7 +151,7 @@ class PerformanceTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if (!self::authorizeCompany($req, self::PERM_EDIT)) return redirect()->back();
       if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
@@ -179,7 +179,7 @@ class PerformanceTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $performanceType, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_DELETE)) return redirect()->back();
       if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);

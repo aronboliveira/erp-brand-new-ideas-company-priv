@@ -7,10 +7,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const guardMsgKey = "data-guard-msg";
-  const clientFlag = "data-client-localized";
-  const langKey = "erp-np-lang";
+  const errFb = "# ERROR",
+    guardMsgKey = "data-guard-msg",
+    clientFlag = "data-client-localized",
+    langKey = "erp-np-lang";
   let errorMessage = "";
   const translations = (window as unknown as Record<string, unknown>)
     .translations as Record<string, Record<string, string>> | undefined;
@@ -59,11 +59,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -104,7 +104,7 @@
         $(el)
           .sortable()
           .disableSelection()
-          .on("sortstop", function (): void {
+          .on("sortstop", function (this: HTMLElement): void {
             try {
               const order: (string | null)[] = [];
               // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -130,7 +130,7 @@
             } catch (e) {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-              errorMessage = getLocalizedMessage(e.message, el);
+              errorMessage = getLocalizedMessage((e as Error).message, el);
             }
           });
       } catch {

@@ -15,6 +15,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Illuminate\Support\Collection;
 
+/**
+ * @property float|int|string|null $discount
+ * @property string|null $discount_type
+ * @property array|string|null $excluded_roles
+ * @property bool|null $is_active
+ * @property bool|null $must_be_verified
+ * @property string|\Illuminate\Support\Carbon|null $valid_from
+ * @property string|\Illuminate\Support\Carbon|null $valid_to
+ * @property array|string|null $applicable_categories
+ * @property string|null $date_limit_to_user
+ * @property array|string|null $excluded_categories
+ * @property array|string|null $excluded_products
+ * @property int|null $limit
+ * @property string|null $code
+ * @property string|null $name
+
+ * @property mixed $used_coupon
+ */
 class Coupon extends Model
 {
     use HasAuditFields, UsesUuids;
@@ -235,6 +253,11 @@ class Coupon extends Model
     public function usedCoupon(): int
     {
         return $this->userCoupons()->count();
+    }
+
+    public function used_coupon(): int
+    {
+        return $this->usedCoupon();
     }
 
     public function discountType(): PaymentPatternType

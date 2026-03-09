@@ -42,7 +42,10 @@ final class PasswordReset extends Model
 	protected static function booted(): void
 	{
 		static::saving(function (self $m): void {
-			self::normalizeEmailAttribute($m, 'email');
+			$email = $m->getAttribute('email');
+			if (is_string($email) && trim($email) !== '') {
+				$m->setAttribute('email', static::normalizeEmail($email, 'password_reset.email', $m->getAttribute('token') ?? null));
+			}
 			$m->normalizeSource();
 			$m->normalizeAttempts();
 			$user = $m->loadUserByEmailOrFail();

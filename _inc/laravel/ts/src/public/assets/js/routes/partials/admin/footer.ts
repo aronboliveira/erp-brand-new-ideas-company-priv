@@ -5,11 +5,10 @@
  */
 
 ((): void => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langSessionKey = "erp-np-lang";
-
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    langSessionKey = "erp-np-lang";
   const getLocalizedMessage = (msgKey: string, el: HTMLElement): string => {
     let msg = errFb;
     if (
@@ -66,11 +65,11 @@
           toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           toast.appendChild(body);
@@ -185,10 +184,10 @@
   }
   function onCustThemeBg(): void {
     try {
-      const sidebar = document.querySelector<HTMLElement>(".dash-sidebar");
-      const header = document.querySelector<HTMLElement>(
-        ".dash-header:not(.dash-mob-header)",
-      );
+      const sidebar = document.querySelector<HTMLElement>(".dash-sidebar"),
+        header = document.querySelector<HTMLElement>(
+          ".dash-header:not(.dash-mob-header)",
+        );
       if (!sidebar || !header || !custthemebg) throw new Error();
       if (custthemebg.checked) {
         sidebar.classList.add("transprent-bg");
@@ -223,10 +222,10 @@
   }
   function onCustDark(): void {
     try {
-      const linkEl = document.querySelector<HTMLElement>("#main-style");
-      const logoEl = document.querySelector<HTMLElement>(
-        ".m-header > .b-brand > .logo-lg",
-      );
+      const linkEl = document.querySelector<HTMLElement>("#main-style"),
+        logoEl = document.querySelector<HTMLElement>(
+          ".m-header > .b-brand > .logo-lg",
+        );
       if (!linkEl || !logoEl || !custdarklayout) throw new Error();
       if (custdarklayout.checked) {
         linkEl.setAttribute("href", '{{ asset("assets/css/style-dark.css") }}');

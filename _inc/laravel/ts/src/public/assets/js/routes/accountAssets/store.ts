@@ -9,13 +9,13 @@
     const f = document.getElementById("store-account-asset-form");
     if (!f || f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
-    const resolved = f.getAttribute("data-resolved-action") ?? "#";
-    const guardMsg =
-      f.getAttribute("data-guard-msg") ?? "Store account asset route is unavailable. Please contact technical support or your domain administrator.";
+    const resolved = f.getAttribute("data-resolved-action") ?? "#",
+      guardMsg =
+        f.getAttribute("data-guard-msg") ??
+        "Store account asset route is unavailable. Please contact technical support or your domain administrator.";
     if (resolved !== "#") {
-      if (f.hasAttribute("action") && f.getAttribute("action") === "#") {
+      if (f.hasAttribute("action") && f.getAttribute("action") === "#")
         f.setAttribute("action", resolved);
-      }
     }
     f.addEventListener("submit", (e: Event) => {
       try {
@@ -38,11 +38,11 @@
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = guardMsg;
@@ -54,8 +54,8 @@
         }
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-    console.error(`[store] Error:`, err);
-  }
+        console.error(`[store] Error:`, err);
+      }
     });
   } catch (error) {
     console.error(`[store] Error:`, error);

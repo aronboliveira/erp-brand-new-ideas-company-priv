@@ -31,6 +31,27 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Support\Str;
 
+/**
+ * @property array|string|null $attachments
+ * @property int|string|null $currency_id
+ * @property bool|null $is_secured
+ * @property string|null $autoreconcile
+ * @property bool|null $can_be_charged_back
+ * @property mixed $created_by
+ * @property int|null $payment_id
+ * @property array|string|null $reconcile_rules
+ * @property \Illuminate\Support\Carbon|string|null $reconciled_at
+ * @property mixed $reconciled_by
+ * @property array|string|null $terms_and_conditions
+ * @property int|null $user_id
+ * @property mixed $user_type
+ * @property string|int|null $account
+ * @property string|null $type
+ * @property mixed $category
+ * @property float|null $amount
+ * @property \Illuminate\Support\Carbon|null $date
+ * @property string|null $description
+ */
 class Transaction extends Model
 {
     use UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures, DefinesDates;
@@ -628,7 +649,7 @@ class Transaction extends Model
             }
 
             if ($transaction->{$flag} === null) {
-                $transaction->{$flag} = false;
+                $transaction->{$flag} = false; // @phpstan-ignore assign.propertyType
             }
         }
 

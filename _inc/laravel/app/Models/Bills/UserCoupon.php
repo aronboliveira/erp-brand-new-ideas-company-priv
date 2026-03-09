@@ -20,9 +20,14 @@ use App\Traits\{
 };
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\Log;
 use Throwable;
+/**
+ * @property mixed $coupon
+ * @property mixed $order
+ * @property mixed $user
+ */
 
 class UserCoupon extends Model
 {
@@ -71,7 +76,7 @@ class UserCoupon extends Model
             } catch (Throwable $e) {
                 Log::warning(self::class . ' failed to validate order id for user coupon', [
                     'user_coupon_id' => $model->id ?? null,
-                    'order_raw'      => $orderId ?? null,
+                    'order_raw'      => $orderId,
                     'error'          => $e->getMessage(),
                 ]);
                 $model->setAttribute(self::COL_ORDER, null);
@@ -92,6 +97,11 @@ class UserCoupon extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, self::COL_ORDER, 'id');
+    }
+
+    public function couponDetail(): HasOne
+    {
+        return $this->hasOne(Coupon::class, 'id', self::COL_COUPON);
     }
 
     public function hasOrder(): bool
@@ -759,5 +769,11 @@ class UserCoupon extends Model
             ]);
             return false;
         }
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
+    public function userDetail(): HasOne
+    {
+        return $this->hasOne(User::class, 'id', self::COL_USER);
     }
 }

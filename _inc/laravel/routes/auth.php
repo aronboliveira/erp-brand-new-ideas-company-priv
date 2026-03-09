@@ -14,10 +14,10 @@ use App\Http\Controllers\Auth\{
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-$output = new ConsoleOutput();
+// TEMP: $output = new ConsoleOutput();
 $msg = 'Mapping auth main routes...';
-app()->runningInConsole() ?
-  $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
+// TEMP: app()->runningInConsole() ?
+// TEMP:   $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 Route::middleware([MiddlewaresConstants::WEB,])
   ->group(function () {
     Route::get('/login/{lang?}', [

@@ -5,19 +5,19 @@ namespace Modules\LandingPage\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Log;
 use Modules\LandingPage\Providers\RouteServiceProvider;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\NullOutput; // TEMP: was ConsoleOutput
 use Throwable;
 
 class LandingPageServiceProvider extends ServiceProvider
 {
     protected string $moduleName     = 'LandingPage';
     protected string $moduleNameLower = 'landingpage';
-    protected ConsoleOutput $output;
+    protected NullOutput $output; // TEMP: was ConsoleOutput
 
     public function __construct($app)
     {
         parent::__construct($app);
-        $this->output = new ConsoleOutput();
+        $this->output = new NullOutput(); // TEMP: was ConsoleOutput
     }
 
     public function boot(): void

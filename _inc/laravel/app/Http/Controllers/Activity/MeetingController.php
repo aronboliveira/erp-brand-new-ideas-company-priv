@@ -43,7 +43,7 @@ class MeetingController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::MT . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['user_type' => Auth::user()?->{UsersConstants::COL_TP}, 'creator_id' => $req->user()?->creatorId()]);
       if ($resp = self::_authorize($req, PermissionsConstants::MNG_MT)) return $resp;
       try {
@@ -71,7 +71,7 @@ class MeetingController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::MT . '.' . $action;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['user_type' => Auth::user()?->{UsersConstants::COL_TP}, 'creator_id' => $req->user()?->creatorId()]);
       if ($resp = self::_authorize($req, 'create meeting')) return $resp;
       try {
@@ -112,7 +112,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if ($resp = self::_authorize($req, 'create meeting')) return $resp;
       if ($resp = self::_validate($req->all(), [CompaniesConstants::COL_BRC_ID => 'required', UsersConstants::COL_EMP_ID => 'required', CompaniesConstants::COL_DEP_ID => 'required', 'title' => 'required', 'date' => 'required', 'time' => 'required'])) return $resp;
@@ -147,7 +147,7 @@ class MeetingController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::MT . '.show';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $meeting, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $meeting, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}]", [UsersConstants::COL_USER_ID => Auth::id(), 'meeting_id' => $meeting->id]);
       if ($resp = self::_authorize($req, 'view meeting')) return $resp;
       try {
@@ -171,7 +171,7 @@ class MeetingController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::MT . '.' . $action;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $meeting, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $meeting, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['creator_id' => $req->user()?->creatorId(), 'meeting_param' => $meeting]);
       if ($resp = self::_authorize($req, 'edit meeting')) return $resp;
       try {
@@ -202,7 +202,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $meeting, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $meeting, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['meeting_id' => $meeting->id, 'creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if ($resp = self::_authorize($req, 'edit meeting')) return $resp;
       if ($resp = self::_validate($req->all(), ['title' => 'required', 'date' => 'required', 'time' => 'required'])) return $resp;
@@ -226,7 +226,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $meeting, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $meeting, $action, $class) {
       Log::info("[{$class}::{$action}] start", ['meeting_id' => $meeting->id, 'creator_id' => $req->user()?->creatorId()]);
       if ($resp = self::_authorize($req, 'delete meeting')) return $resp;
       try {
@@ -250,7 +250,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       Log::info("[{$class}::{$action}] start", ['branch_id' => $req->branch_id, 'creator_id' => $user?->creatorId()]);
@@ -277,7 +277,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       Log::info("[{$class}::{$action}] start", ['department_ids' => $req->department_id, 'creator_id' => $user?->creatorId()]);
@@ -339,7 +339,7 @@ class MeetingController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       Log::info("[{$class}::{$action}] start", ['calendar_type' => $req->get('calendar_type'), 'creator_id' => $user?->creatorId()]);
@@ -390,7 +390,7 @@ class MeetingController extends Controller
 
   private function _notify(Request $request, Meeting $meeting): void
   {
-    $setting = Utility::settings($request->user()->creatorId());
+    $setting = Utility::settingsById($request->user()->creatorId());
     $branch = Branch::find($meeting->branch_id);
     $payload = [
       'meeting_title' => $meeting->title,

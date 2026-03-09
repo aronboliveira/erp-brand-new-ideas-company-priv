@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Support\Facades\Schema;
+/**
+ * @property mixed $created_by
+ */
 
 class Document extends AbstractDocument
 {

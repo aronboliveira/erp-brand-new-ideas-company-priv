@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{IsNumericBenefit, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
+/**
+ * @property mixed $created_by
+ */
 
 class AllowanceOption extends Model
 {

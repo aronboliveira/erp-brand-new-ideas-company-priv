@@ -121,7 +121,7 @@ class Task extends Model
 
     public function taskCheckList(): HasMany
     {
-        return $this->hasMany(TaskCheckList::class, AC::COL_TSK_ID, 'id')->orderBy('id', 'DESC');
+        return $this->hasMany(TaskChecklist::class, AC::COL_TSK_ID, 'id')->orderBy('id', 'DESC');
     }
 
     protected static function booted(): void

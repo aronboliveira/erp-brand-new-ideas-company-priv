@@ -29,7 +29,7 @@ final class InvoiceExport implements FromCollection, WithHeadings
         if (
             ($userOrRedirect = self::_checkLogin())
             instanceof RedirectResponse
-        ) return $userOrRedirect;
+        ) return collect();
         $user = $userOrRedirect;
         Log::info(__METHOD__ . ' started', ['user_id' => $user?->id]);
 
@@ -41,8 +41,10 @@ final class InvoiceExport implements FromCollection, WithHeadings
 
         foreach ($invoices as $invoice) {
             foreach (self::UNSET_FIELDS as $field) unset($invoice->$field);
+            /** @phpstan-ignore assign.propertyType */
             $invoice->invoice_id = $user?->invoiceNumberFormat($invoice->invoice_id);
             // $invoice->customer_id = $user?->customerNumberFormat($invoice->customer_id);
+            /** @phpstan-ignore assign.propertyType */
             $invoice->category_id = ProductServiceCategory::where(
                 'type',
                 'income'

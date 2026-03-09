@@ -13,8 +13,8 @@
 
     a.addEventListener("click", (e: Event) => {
       try {
-        const href = a.getAttribute("href") ?? "#";
-        const url = a.getAttribute("data-url") ?? "#";
+        const href = a.getAttribute("href") ?? "#",
+          url = a.getAttribute("data-url") ?? "#";
         if ((href && href !== "#") || (url && url !== "#")) return;
         e.preventDefault();
 
@@ -32,18 +32,15 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -64,7 +61,7 @@
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 err?.constructor?.name ?? "Error",
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                err?.message ?? "Unknown error"
+                (err as Error)?.message ?? "Unknown error",
               );
             alert(msg);
           }
@@ -83,7 +80,7 @@
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.message ?? "Unknown error"
+            (err as Error)?.message ?? "Unknown error",
           );
       }
     });
@@ -97,7 +94,7 @@
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error?.message ?? "Unknown error"
+        (error as Error)?.message ?? "Unknown error",
       );
   }
 })();

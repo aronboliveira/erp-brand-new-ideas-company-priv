@@ -24,7 +24,7 @@ final class InvoiceExport implements FromCollection, WithHeadings
         if (
             ($userOrRedirect = self::_checkLogin())
             instanceof RedirectResponse
-        ) return $userOrRedirect;
+        ) return collect();
         $user = $userOrRedirect;
         Log::info(__METHOD__ . ' started', ['user_id' => $user?->id]);
 

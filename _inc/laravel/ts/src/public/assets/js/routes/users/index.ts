@@ -6,7 +6,7 @@
 
 ((): void => {
   try {
-    const attach = (id: string, fallbackMsg: string): void=> {
+    const attach = (id: string, fallbackMsg: string): void => {
       const a = document.getElementById(id);
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
@@ -34,11 +34,11 @@
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;

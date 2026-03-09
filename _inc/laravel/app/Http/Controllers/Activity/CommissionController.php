@@ -33,7 +33,7 @@ class CommissionController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::COM . '.create';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $employeeId, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $employeeId, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id, UsersConstants::COL_EMP_ID => $employeeId]);
         if ($resp = $this->_authorize($req, 'create commission')) {
@@ -65,7 +65,7 @@ class CommissionController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::COM . '.index';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -95,7 +95,7 @@ class CommissionController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::COM . '.create';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $employeeId, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $employeeId, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id, UsersConstants::COL_EMP_ID => $employeeId]);
         if ($resp = $this->_authorize($req, 'create commission')) {
@@ -126,7 +126,7 @@ class CommissionController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
@@ -160,7 +160,7 @@ class CommissionController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($commission, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($commission, $action, $class) {
       Log::info("[{$class}::{$action}] redirecting", ['commission_id' => $commission->id]);
       return redirect()->route(ViewsConstants::COM . '.index');
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'commission_id' => $commission->id]);
@@ -173,7 +173,7 @@ class CommissionController extends Controller
     $class = static::class;
     $viewPath = ViewsConstants::COM . '.edit';
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $id, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", ['id' => $id]);
         if ($resp = $this->_authorize($req, 'edit commission')) {
@@ -202,7 +202,7 @@ class CommissionController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $commission, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $commission, $action, $class) {
       try {
         Log::info("[{$class}::{$action}] start", ['commission_id' => $commission->id, 'input' => $req->only(['title', 'type', 'amount'])]);
         if ($resp = $this->_authorize($req, 'edit commission')) {
@@ -237,7 +237,7 @@ class CommissionController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $commission, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $commission, $action, $class) {
       try {
         Log::info("[{$class}::{$action}] start", ['commission_id' => $commission->id]);
         if ($resp = $this->_authorize($req, 'delete commission')) {
@@ -287,5 +287,16 @@ class CommissionController extends Controller
     }
     Log::info(__CLASS__ . '::' . __FUNCTION__ . ' ownership verified');
     return null;
+  }
+
+  /**
+   * Authorize the current request for a given permission.
+   *
+   * Returns a redirect response when denied, or null when authorized.
+   */
+  private function _authorize(Request $request, string $ability): ?RedirectResponse
+  {
+    $result = self::guard($request, $ability);
+    return $result === true ? null : $result;
   }
 }

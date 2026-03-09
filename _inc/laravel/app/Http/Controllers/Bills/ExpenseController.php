@@ -674,7 +674,7 @@ final class ExpenseController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, PermissionsConstants::MNG_BIL)) !== true) return $g;
             Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $request->user()?->id, 'bill_id' => $request->bill_id, 'product_id' => $request->product_id, 'method' => $method]);
@@ -700,7 +700,7 @@ final class ExpenseController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $encId, $action, $base) {
             Log::info("[{$base}::expense] start", ['enc_id' => $encId, UC::COL_USER_ID => $request->user()?->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             try {
@@ -712,7 +712,7 @@ final class ExpenseController extends Controller
                 $this->logExecutionTime($fetchStart, $action, 'fetchExpense');
                 if ($expense[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action);
                 $setStart = microtime(true);
-                $settings = Utility::settings($expense[DC::COL_TABLE_CREATOR]);
+                $settings = Utility::settingsById($expense[DC::COL_TABLE_CREATOR]);
                 DB::table(DC::TABLE_SETTINGS)->where(DC::COL_TABLE_CREATOR, $expense[DC::COL_TABLE_CREATOR])->get()->each(fn($row) => $settings[$row->name] = $row->value);
                 $this->logExecutionTime($setStart, $action, 'loadSettings');
                 $prepStart = microtime(true);

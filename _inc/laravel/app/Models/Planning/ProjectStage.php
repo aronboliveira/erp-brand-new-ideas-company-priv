@@ -11,6 +11,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
+/**
+ * @property int|null $order
+ */
 class ProjectStage extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays;

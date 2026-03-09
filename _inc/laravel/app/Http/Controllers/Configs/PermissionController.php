@@ -71,7 +71,7 @@ class PermissionController extends Controller
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $permission, $action, $function) {
+        return $this->measureProfile(function () use ($request, $permission, $action, $function) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) !== true) return $c;
 

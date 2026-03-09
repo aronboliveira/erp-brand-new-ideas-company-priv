@@ -8,14 +8,16 @@
 
 ((): void => {
   try {
-    const selector = ".edit-custom-field-link[data-ajax-popup][data-url]";
-    const alias = "data-listening-customfieldseditclick";
+    const selector = ".edit-custom-field-link[data-ajax-popup][data-url]",
+      alias = "data-listening-customfieldseditclick";
     document.querySelectorAll(selector).forEach((el): void => {
       if (!el.hasAttribute(alias)) {
         el.addEventListener("click", event => {
           if (el.getAttribute(alias) !== "true") return;
-          const url = el.getAttribute("data-url");
-          if (url === "#" && (el as HTMLAnchorElement).href === "#") {
+          if (
+            el.getAttribute("data-url") === "#" &&
+            (el as HTMLAnchorElement).href === "#"
+          ) {
             event.preventDefault();
             const hasBS = Array.from(document.scripts).some(
               s =>
@@ -45,7 +47,9 @@
                                               </div>
                                           </div>`;
               document.body.appendChild(wrapper);
-              new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
+              new window.bootstrap.Modal(
+                wrapper.querySelector(".modal")!,
+              ).show();
             } else {
               alert(msg);
             }

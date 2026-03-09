@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\{Arr, Str};
+/**
+ * @property array|string|null $drawing_types
+ */
 
 class ChartOfAccountSubType extends Model
 {

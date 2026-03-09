@@ -19,7 +19,7 @@ class AwardTypeController extends Controller
     $class = static::class;
     $req = $request;
     $viewPath = Str::snake(Str::replaceLast('Controller', '', class_basename($class))) . '.index';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id]);
         self::_setAuth($req, 'manage award type');
@@ -43,7 +43,7 @@ class AwardTypeController extends Controller
     $class = static::class;
     $req = $request;
     $viewPath = Str::snake(Str::replaceLast('Controller', '', class_basename($class))) . '.create';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id]);
         self::_setAuth($req, 'create award type');
@@ -63,7 +63,7 @@ class AwardTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         self::_setAuth($req, 'create award type');
         $valStart = microtime(true);
@@ -92,7 +92,7 @@ class AwardTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $awardType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       try {
         $resource = Str::snake(Str::replaceLast('Controller', '', class_basename($class)));
         return redirect()->route($resource . '.index');
@@ -109,7 +109,7 @@ class AwardTypeController extends Controller
     $class = static::class;
     $req = $request;
     $viewPath = Str::snake(Str::replaceLast('Controller', '', class_basename($class))) . '.edit';
-    return $this->measureProfile($action, function () use ($req, $awardType, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $awardType, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", ['award_type_id' => $awardType->id, UsersConstants::COL_USER_ID => $req->user()->id]);
         self::_setAuth($req, 'edit award type');
@@ -130,7 +130,7 @@ class AwardTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $awardType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $awardType, $action, $class) {
       try {
         self::_setAuth($req, 'edit award type');
         if ($awardType->created_by !== $req->user()->creatorId()) throw new AuthorizationException;
@@ -158,7 +158,7 @@ class AwardTypeController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $awardType, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $awardType, $action, $class) {
       try {
         self::_setAuth($req, 'delete award type');
         if ($awardType->created_by !== $req->user()->creatorId()) throw new AuthorizationException;

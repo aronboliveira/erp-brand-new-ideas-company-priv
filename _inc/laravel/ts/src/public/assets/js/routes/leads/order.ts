@@ -10,14 +10,14 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-leads-error";
-  const dataBindDrag = "data-dragula-bound";
-  const dataBindPipe = "data-pipeline-bound";
-  const ns = "._npLeads";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-leads-error",
+    dataBindDrag = "data-dragula-bound",
+    dataBindPipe = "data-pipeline-bound",
+    ns = "._npLeads";
   const qs = (
     s: string,
     r: Document | HTMLElement = document,
@@ -26,8 +26,10 @@
   const hasBS = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
@@ -36,13 +38,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBS()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -51,11 +51,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -71,7 +71,7 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string): void=> {
+  const schedulePointerupError = (msg: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -83,14 +83,14 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -132,8 +132,8 @@
     const a = document.createElement("a");
     a.setAttribute("data-url", candidate ?? "");
     a.href = candidate ?? "";
-    const url = a.getAttribute("data-url");
-    const href = a.href;
+    const url = a.getAttribute("data-url"),
+      href = a.href;
     if ((!url || url === "#") && (!href || href === "#")) return false;
     return true;
   };
@@ -146,8 +146,8 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[order] Error:`, _);
-  }
+        console.error(`[order] Error:`, _);
+      }
       schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
       return false;
     }
@@ -162,8 +162,8 @@
       )
         console.error("Dragula unavailable");
     } catch (_) {
-    console.error(`[order] Error:`, _);
-  }
+      console.error(`[order] Error:`, _);
+    }
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     schedulePointerupError(getMsg(document.body, "dragula_unavailable"));
     return false;
@@ -173,7 +173,7 @@
     if (!ensureJq() || !ensureDragula()) return;
     if (document.body.getAttribute(dataBindDrag) === "true") return;
     document.body.setAttribute(dataBindDrag, "true");
-    $('[data-plugin="dragula"]').each(function () {
+    $('[data-plugin="dragula"]').each(function (this: HTMLElement) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const $root = $(this);
       const containers = $root.data("containers") as string[] | undefined;
@@ -188,84 +188,84 @@
         const rootEl = $root.get(0);
         if (rootEl) nodes = [rootEl];
       }
-      const handleCls = $root.data("handleclass") as string | undefined;
-      const dragulaFn = window.dragula;
+      const handleCls = $root.data("handleclass") as string | undefined,
+        dragulaFn = window.dragula;
       if (typeof dragulaFn !== "function") return;
       const drake = handleCls
         ? dragulaFn(nodes, {
             moves: function (
-              el: HTMLElement,
-              src: HTMLElement,
+              _el: HTMLElement,
+              _src: HTMLElement,
               handle: HTMLElement | undefined,
             ) {
               return handle?.classList.contains(handleCls) ?? false;
             },
           })
         : dragulaFn(nodes);
-      drake.on(
-        "drop",
-        function (el: HTMLElement, target: HTMLElement, source: HTMLElement) {
-          try {
-            const order: (string | undefined)[] = [];
-            $("#" + target.id + " > div").each(function (): void {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              order[$(this).index()] = $(this).attr("data-id");
-            });
-            const id = $(el).attr("data-id");
-            const old_status = $("#" + source.id).data("status") as
+      drake.on("drop", ((
+        el: HTMLElement,
+        target: HTMLElement,
+        source: HTMLElement,
+      ) => {
+        try {
+          const order: (string | undefined)[] = [];
+          $("#" + target.id + " > div").each(function (
+            this: HTMLElement,
+          ): void {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            order[$(this).index()] = $(this).attr("data-id");
+          });
+          const id = $(el).attr("data-id"),
+            old_status = $("#" + source.id).data("status") as
               | string
-              | undefined;
-            const new_status = $("#" + target.id).data("status") as
+              | undefined,
+            new_status = $("#" + target.id).data("status") as
               | string
-              | undefined;
-            const stage_id = $(target).attr("data-id");
-            const pipeline_id = "{{$pipeline->id}}";
-            $("#" + source.id)
-              .parent()
-              .find(".count")
-              .text(String($("#" + source.id + " > div").length));
-            $("#" + target.id)
-              .parent()
-              .find(".count")
-              .text(String($("#" + target.id + " > div").length));
-            const url = "{{route('leads.order')}}";
-            if (!verifyRoute(url)) {
-              schedulePointerupError(
-                getMsg(document.body, "route_unavailable"),
-              );
-              return;
-            }
-            $.ajax({
-              url: url,
-              type: "POST",
-              data: {
-                lead_id: id ?? "",
-                stage_id: stage_id ?? "",
-                order: order,
-                new_status: new_status ?? "",
-                old_status: old_status ?? "",
-                pipeline_id: pipeline_id,
-                _token: csrf(),
-              },
-              success: function (): void {},
-              error: function (_xhr: JQueryXHR): void {
-                schedulePointerupError(
-                  getMsg(document.body, "leads_order_unavailable"),
-                );
-              },
-            });
-          } catch (_) {
-            schedulePointerupError(
-              getMsg(document.body, "leads_order_unavailable"),
-            );
+              | undefined,
+            stage_id = $(target).attr("data-id"),
+            pipeline_id = "{{$pipeline->id}}";
+          $("#" + source.id)
+            .parent()
+            .find(".count")
+            .text(String($("#" + source.id + " > div").length));
+          $("#" + target.id)
+            .parent()
+            .find(".count")
+            .text(String($("#" + target.id + " > div").length));
+          const url = "{{route('leads.order')}}";
+          if (!verifyRoute(url)) {
+            schedulePointerupError(getMsg(document.body, "route_unavailable"));
+            return;
           }
-        },
-      );
+          $.ajax({
+            url: url,
+            type: "POST",
+            data: {
+              lead_id: id ?? "",
+              stage_id: stage_id ?? "",
+              order: order,
+              new_status: new_status ?? "",
+              old_status: old_status ?? "",
+              pipeline_id: pipeline_id,
+              _token: csrf(),
+            },
+            success: function (): void {},
+            error: function (_xhr: JQueryXHR): void {
+              schedulePointerupError(
+                getMsg(document.body, "leads_order_unavailable"),
+              );
+            },
+          });
+        } catch (_) {
+          schedulePointerupError(
+            getMsg(document.body, "leads_order_unavailable"),
+          );
+        }
+      }) as (...args: unknown[]) => void);
     });
     const mo = new MutationObserver(function (): void {
-      if (!$('[data-plugin="dragula"]').length) {
+      if (!$('[data-plugin="dragula"]').length)
         document.body.removeAttribute(dataBindDrag);
-      }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };

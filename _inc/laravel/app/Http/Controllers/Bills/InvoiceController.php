@@ -73,7 +73,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.index';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id ?? null, PermissionsConstants::CT => $req->customer ?? null, 'issue_date' => $req->issue_date ?? null, 'status' => $req->status ?? null, 'ip' => $req->ip(), 'method' => $method]);
             if (($r = self::guard($req, PermissionsConstants::MNG_INV)) !== true) return $r;
             try {
@@ -120,7 +120,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.create';
-        return $this->measureProfile($action, function () use ($req, $customer_id, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $customer_id, $action, $method, $base, $viewPath) {
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id ?? null, 'customer_id' => $customer_id ?? null, 'ip' => $req->ip(), 'method' => $method]);
             if (($r = self::guard($req, 'create invoice', VW::INV . '.index')) !== true) return $r;
             try {
@@ -212,7 +212,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.edit';
-        return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $base, $viewPath) {
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id ?? null, 'enc_id' => $encId ?? null, 'ip' => $req->ip(), 'method' => $method]);
             if (($r = self::guard($req, 'edit invoice', VW::INV . '.index')) !== true) return $r;
             try {
@@ -309,7 +309,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $invoice, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $invoice, $action, $class, $base) {
             Log::debug("[{$base}::{$action}] start", ['invoice_id' => $invoice->id ?? null]);
             if (($r = self::guard($req, 'delete invoice', VW::INV . '.index')) !== true) return $r;
             if (($invoice->created_by ?? null) !== ($req->user()->creatorId() ?? null))
@@ -343,7 +343,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.customer_detail';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $base, $viewPath) {
             Log::debug("[{$base}::{$action}] start", ['customer_id' => $req->id ?? null]);
             $customer = Customer::findOrFail($req->id);
             Log::info("[{$base}::{$action}] fetched", ['customer_id' => $customer->id ?? null]);
@@ -413,7 +413,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.view';
-        return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $encId, $action, $class, $base, $viewPath) {
             Log::debug("[{$base}::{$action}] start", ['enc_id' => $encId]);
             if (($r = self::guard($req, 'show invoice', VW::INV . '.index')) !== true) return $r;
             try {
@@ -464,7 +464,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.index';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $base, $viewPath) {
             Log::debug("[{$base}::{$action}] start", ['user' => $req->user()->id ?? null]);
             if (($r = self::guard($req, 'manage customer invoice', VW::INV . '.index')) !== true) return $r;
             $status = Invoice::$statuses;
@@ -485,7 +485,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $base) {
             Log::debug("[{$base}::{$action}] start", ['id' => $id]);
             $invoice = Invoice::with('payments.bankAccount')->findOrFail($id);
             if (($invoice->customer_id ?? null) !== ($req->user()->id ?? null)) {
@@ -543,7 +543,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.payment';
-        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $base, $viewPath) {
             Log::debug("[{$base}::{$action}] start", ['invoice_id' => $invoiceId ?? null]);
             if (($r = self::guard($req, 'create payment invoice', VW::INV . '.index')) !== true) return $r;
             $invoice = Invoice::findOrFail($invoiceId);
@@ -568,7 +568,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $class, $base) {
             Log::debug("[{$base}::{$action}] start", ['invoice_id' => $invoiceId ?? null]);
             if (($r = self::guard($req, 'create payment invoice', VW::INV . '.index')) !== true) return $r;
             $invoice = Invoice::findOrFail($invoiceId);
@@ -604,7 +604,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $invoiceId, $paymentId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $invoiceId, $paymentId, $action, $class, $base) {
             Log::debug("[{$base}::{$action}] start", ['payment_id' => $paymentId ?? null, 'invoice_id' => $invoiceId ?? null]);
             if (($r = self::guard($req, 'delete payment invoice', VW::INV . '.index')) !== true) return $r;
             try {
@@ -639,14 +639,14 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'invoice_id' => $invoiceId ?? null]);
             if (($r = self::guard($req, 'create payment invoice', VW::INV . '.index')) !== true) return $r;
             $invoice  = Invoice::findOrFail($invoiceId);
             $customer = Customer::find($invoice->customer_id);
-            $setting  = Utility::settings($req->user()?->creatorId() ?? null);
+            $setting  = Utility::settingsById($req->user()?->creatorId() ?? null);
             if (($setting['twilio_reminder_notification'] ?? 0) == 1) {
                 Utility::sendTwilioMsg($customer?->contact ?? '', 'invoice_payment_reminder', [
                     'invoice_number' => $user?->invoiceNumberFormat($invoice->invoice_id ?? 0),
@@ -679,7 +679,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $base) {
             Log::debug("[{$base}::{$action}] start", ['invoice_id' => $id ?? null]);
             if (($r = self::guard($req, 'edit invoice', VW::INV . '.index')) !== true) return $r;
             $invoice = Invoice::findOrFail($id);
@@ -696,7 +696,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $base) {
             Log::debug("[{$base}::{$action}] start", ['invoice_id' => $id ?? null, UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
             if (($r = self::guard($req, 'duplicate invoice', VW::INV . '.index')) !== true) return $r;
             $inv = Invoice::findOrFail($id);
@@ -723,7 +723,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $viewPath = VW::INV . '.customer_invoice';
-        return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $encId, $action, $base, $viewPath) {
             Log::debug("[{$base}::{$action}] start", ['enc_id' => $encId]);
             try {
                 $id = Crypt::decrypt($encId);
@@ -759,7 +759,7 @@ final class InvoiceController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id()]);
@@ -798,7 +798,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
 
-        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $base) {
             Log::debug("[{$base}::{$action}] start", ['enc_id' => $encId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
             if (($r = self::guard($request, PermissionsConstants::MNG_INV, VW::INV . '.index')) !== true) return $r;
@@ -906,7 +906,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
 
-        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $encId, $action, $base) {
             if (($r = self::guard($request, 'send invoice', VW::INV . '.index')) !== true) return $r;
             Log::debug("[{$base}::{$action}] start", ['enc_id' => $encId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
@@ -925,7 +925,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
 
-        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $encId, $action, $method, $base) {
             if (($r = self::guard($request, 'send invoice', VW::INV . '.index')) !== true) return $r;
             if ($v = self::_validate($request->all(), ['email' => 'required|email'])) return $v;
 
@@ -964,7 +964,7 @@ final class InvoiceController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
 
-        return $this->measureProfile($action, function () use ($request, $template, $colorHex, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $template, $colorHex, $action, $base) {
             if (($r = self::guard($request, PermissionsConstants::MNG_INV, VW::INV . '.index')) !== true) return $r;
             Log::debug("[{$base}::{$action}] start", ['template' => $template ?? null, 'color' => $colorHex ?? null]);
 
@@ -1077,7 +1077,7 @@ final class InvoiceController extends Controller
             'invoice_id' => $invoice->id,
             'action' => $action
         ]);
-        $set     = Utility::settings($invoice->created_by);
+        $set     = Utility::settingsById($invoice->created_by);
         $customer = $invoice->customer;
         $arr     = [
             'invoice_number'      => $user?->invoiceNumberFormat($invoice->invoice_id),

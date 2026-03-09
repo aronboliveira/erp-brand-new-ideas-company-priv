@@ -20,6 +20,13 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+/**
+ * @property int|null $branch_id
+ * @property mixed $created_by
+ * @property string|null $title
+ * @property \Illuminate\Support\Carbon|null $date
+ * @property mixed $time
+ */
 
 class Meeting extends Model
 {

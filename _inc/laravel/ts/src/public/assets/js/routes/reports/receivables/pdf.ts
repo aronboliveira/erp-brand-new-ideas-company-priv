@@ -18,8 +18,8 @@
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+      console.error(`[pdf] Error:`, _);
+    }
     return;
   }
   function qs<T extends HTMLElement = HTMLElement>(
@@ -28,14 +28,13 @@
   ): T | null {
     return r.querySelector<T>(s);
   }
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataFilterGuard = "data-filter-guard";
-  const dataNavGuard = "data-nav-guard";
-
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataFilterGuard = "data-filter-guard",
+    dataNavGuard = "data-nav-guard";
   const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
     let c = qs<HTMLDivElement>("#" + id);
@@ -44,14 +43,12 @@
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
 
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
@@ -64,11 +61,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -85,7 +82,7 @@
     }
   };
 
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -97,7 +94,7 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -105,7 +102,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -144,17 +141,17 @@
       scheduleInteractiveError(getMsg(document.body, "pdf_unavailable"));
       return;
     }
-    const rawName = $("#filename").val();
-    const name = (
-      typeof rawName === "string" ? rawName : String(rawName ?? "")
-    ).trim();
-    const opt = {
-      margin: 0.3,
-      filename: name,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-      jsPDF: { unit: "in", format: "A2" },
-    };
+    const rawName = $("#filename").val(),
+      name = (
+        typeof rawName === "string" ? rawName : String(rawName ?? "")
+      ).trim(),
+      opt = {
+        margin: 0.3,
+        filename: name,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+        jsPDF: { unit: "in", format: "A2" },
+      };
     try {
       if (typeof window.html2pdf !== "function") {
         try {
@@ -164,8 +161,8 @@
           )
             console.error("html2pdf unavailable");
         } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+          console.error(`[pdf] Error:`, _);
+        }
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
@@ -180,8 +177,8 @@
   window.saveAsPDF = saveAsPDF;
 
   const bindFilterToggle = (): void => {
-    const btn = document.getElementById("filter");
-    const panel = document.getElementById("show_filter");
+    const btn = document.getElementById("filter"),
+      panel = document.getElementById("show_filter");
     if (!btn || btn.getAttribute(dataFilterGuard) === "true") return;
     btn.setAttribute(dataFilterGuard, "true");
     const handler = function (): void {
@@ -196,7 +193,7 @@
       }
     };
     $(btn).on("click", handler);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(btn)) {
         $(btn).off("click", handler);
         o.disconnect();
@@ -207,23 +204,19 @@
 
   const syncDates = (): void => {
     try {
-      const startRaw = $(".startDate").val();
-      const endRaw = $(".endDate").val();
-      const startVal = typeof startRaw === "string" ? startRaw : "";
-      const endVal = typeof endRaw === "string" ? endRaw : "";
-      if ($(".start_date").length) {
-        $(".start_date").val(startVal);
-      }
-      if ($(".end_date").length) {
-        $(".end_date").val(endVal);
-      }
+      const startRaw = $(".startDate").val(),
+        endRaw = $(".endDate").val(),
+        startVal = typeof startRaw === "string" ? startRaw : "",
+        endVal = typeof endRaw === "string" ? endRaw : "";
+      if ($(".start_date").length) $(".start_date").val(startVal);
+      if ($(".end_date").length) $(".end_date").val(endVal);
     } catch (_) {
       scheduleInteractiveError(getMsg(document.body, "date_sync_unavailable"));
     }
   };
 
   const initReportTab = (): void => {
-    const setReport = (href: string | undefined): void=> {
+    const setReport = (href: string | undefined): void => {
       if (!href) {
         scheduleInteractiveError(getMsg(document.body, "report_unavailable"));
         return;
@@ -241,11 +234,10 @@
         if (el.getAttribute(dataNavGuard) === "true") return;
         el.setAttribute(dataNavGuard, "true");
         const h = function (this: HTMLElement): void {
-          const href = $(this).attr("href");
-          setReport(href);
+          setReport($(this).attr("href"));
         };
         $(el).on("click", h);
-        const mo = new MutationObserver((m, o) => {
+        const mo = new MutationObserver((_m, o) => {
           if (!document.body.contains(el)) {
             $(el).off("click", h);
             o.disconnect();
@@ -261,11 +253,9 @@
     initReportTab();
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

@@ -31,14 +31,13 @@
       window.show_toastr ? window.show_toastr(type, msg, type) : alert(msg);
     };
     document.addEventListener("click", (e: Event) => {
-      const tgt = e.target as Element | null;
-      const cb = tgt?.closest(
-        ".email-template-checkbox",
-      ) as HTMLInputElement | null;
+      const tgt = e.target as Element | null,
+        cb = tgt?.closest(
+          ".email-template-checkbox",
+        ) as HTMLInputElement | null;
       if (!cb) return;
-
-      const url = cb.dataset.url;
-      const val = cb.value ?? "";
+      const url = cb.dataset.url,
+        val = cb.value ?? "";
       if (!url) {
         pop(t("email_template_toggle_failed"));
         return;

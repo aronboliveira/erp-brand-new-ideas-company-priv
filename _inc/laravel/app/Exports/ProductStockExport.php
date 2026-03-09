@@ -43,6 +43,7 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
             )->get();
             $rows = [];
             foreach ($stocks as $stock) {
+                /** @phpstan-ignore-next-line Static call to instance method (needs refactor) */
                 $productName = StockReport::products($stock->product_id);
                 foreach (self::UNSET_FIELDS as $field) unset($stock->{$field});
                 $row = $stock->toArray();

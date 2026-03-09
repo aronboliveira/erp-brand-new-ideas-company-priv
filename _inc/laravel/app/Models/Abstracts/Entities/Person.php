@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property string|null $created_by
+ */
 abstract class Person extends Model
 {
   use HasFactory, HasUuids;

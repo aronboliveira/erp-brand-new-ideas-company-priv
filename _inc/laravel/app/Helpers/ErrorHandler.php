@@ -10,7 +10,7 @@ class ErrorHandler
 	/**
 	 * Evaluate if candidate error exists in data aggregator and log to appropriate channel
 	 * 
-	 * @param array $dataAggregator Reference to the error collection array
+	 * @param string $dataAggregatorKey Reference key to the error collection array
 	 * @param array $candidate The candidate error to check and potentially add
 	 * @param string $secondaryChannel Log level for duplicate messages (default: 'debug')
 	 * @param string $mainChannel Log level for new unique errors (default: 'warning')
@@ -53,7 +53,7 @@ class ErrorHandler
 		} catch (\Throwable $e) {
 			Log::error('ErrorHandler::evaluateExistenceToLogChannel - Failed to process error', [
 				'error' => $e->getMessage(),
-				'candidate' => $candidate ?? null,
+				'candidate' => $candidate,
 			]);
 		}
 	}

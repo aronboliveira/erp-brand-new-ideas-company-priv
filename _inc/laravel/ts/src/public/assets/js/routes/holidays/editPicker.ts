@@ -7,11 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const ERR_FB = "# ERROR";
-  const CLIENT_FLAG = "data-client-localized";
-  const GUARD_MSG = "data-guard-msg";
-  const LANG_KEY = "erp-np-lang";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const ERR_FB = "# ERROR",
+    CLIENT_FLAG = "data-client-localized",
+    GUARD_MSG = "data-guard-msg",
+    LANG_KEY = "erp-np-lang";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
@@ -21,7 +21,8 @@
     } else {
       let lang = (
         sessionStorage.getItem(LANG_KEY) ??
-        document.documentElement.lang ?? "en"
+        document.documentElement.lang ??
+        "en"
       )
         .toLowerCase()
         .replace(/_/g, "-");
@@ -39,7 +40,7 @@
     return msg;
   };
 
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -56,11 +57,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -80,9 +81,8 @@
       if (
         typeof jQuery === "undefined" ||
         typeof jQuery.fn.daterangepicker !== "function"
-      ) {
+      )
         throw new Error("datepicker_plugin_unavailable");
-      }
       const els = document.querySelectorAll(".datepicker");
       if (els.length === 0) return;
       els.forEach((el: Element): void => {
@@ -95,7 +95,7 @@
     } catch (e) {
       const key =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        e.message === "datepicker_plugin_unavailable"
+        (e as Error).message === "datepicker_plugin_unavailable"
           ? "datepicker_plugin_unavailable"
           : "datepicker_init_failed";
       const msg = getMsg(key, document.documentElement);

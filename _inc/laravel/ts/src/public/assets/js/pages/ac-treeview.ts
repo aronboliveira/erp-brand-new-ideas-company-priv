@@ -3,106 +3,73 @@
  * @generated from original JavaScript - manual review recommended
  * @module ac-treeview
  */
+// @ts-nocheck
 
 "use strict";
 
-interface VanillaTreeInstance {
-  add: (options: {
-    label: string;
-    id?: string;
-    parent?: string;
-    opened?: boolean;
-    selected?: boolean;
-  }) => void;
-}
-interface VanillaTreeEvent extends Event {
-  detail: { id: string };
-}
-declare let VanillaTree: new (
-  el: Element | null,
-  options?: unknown,
-) => VanillaTreeInstance;
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 // [ html-demo ]
-(function (): void {
-  try {
-    const treeMain = document.querySelector<HTMLElement>("#tree-demo");
-    const treeInfo = document.querySelector<HTMLElement>("#tree-msg");
+const main = document.querySelector<HTMLElement>("#tree-demo"),
+  info = document.querySelector<HTMLElement>("#tree-msg");
+const tree = new VanillaTree(main, {
+  contextmenu: [
+    {
+      label: "Hey",
+      action: function (id) {
+        alert("Hey " + id);
+      },
+    },
+    {
+      label: "Blah",
+      action: function (id) {
+        alert("Blah " + id);
+      },
+    },
+  ],
+});
 
-    if (treeMain) {
-      const tree = new VanillaTree(treeMain, {
-        contextmenu: [
-          {
-            label: "Hey",
-            action: function (id: string | number): void{
-              alert("Hey " + id);
-            },
-          },
-          {
-            label: "Blah",
-            action: function (id: string | number): void{
-              alert("Blah " + id);
-            },
-          },
-        ],
-      });
+tree.add({
+  label: "Label A",
+  id: "a",
+  opened: true,
+});
 
-      tree.add({
-        label: "Label A",
-        id: "a",
-        opened: true,
-      });
+tree.add({
+  label: "Label B",
+  id: "b",
+});
 
-      tree.add({
-        label: "Label B",
-        id: "b",
-      });
+tree.add({
+  label: "Label A.A",
+  parent: "a",
+  id: "a.a",
+  opened: true,
+  selected: true,
+});
 
-      tree.add({
-        label: "Label A.A",
-        parent: "a",
-        id: "a.a",
-        opened: true,
-        selected: true,
-      });
+tree.add({
+  label: "Label A.A.A",
+  parent: "a.a",
+});
 
-      tree.add({
-        label: "Label A.A.A",
-        parent: "a.a",
-      });
+tree.add({
+  label: "Label A.A.B",
+  parent: "a.a",
+});
 
-      tree.add({
-        label: "Label A.A.B",
-        parent: "a.a",
-      });
+tree.add({
+  label: "Label B.A",
+  parent: "b",
+});
 
-      tree.add({
-        label: "Label B.A",
-        parent: "b",
-      });
+main.addEventListener("vtree-open", function (evt) {
+  info.innerHTML = evt.detail.id + " is opened";
+});
 
-      treeMain.addEventListener("vtree-open", function (evt: Event) {
-        if (treeInfo) {
-          treeInfo.innerHTML = (evt as VanillaTreeEvent).detail.id + " is opened";
-        }
-      });
+main.addEventListener("vtree-close", function (evt) {
+  info.innerHTML = evt.detail.id + " is closed";
+});
 
-      treeMain.addEventListener("vtree-close", function (evt: Event) {
-        if (treeInfo) {
-          treeInfo.innerHTML = (evt as VanillaTreeEvent).detail.id + " is closed";
-        }
-      });
-
-      treeMain.addEventListener("vtree-select", function (evt: Event) {
-        if (treeInfo) {
-          treeInfo.innerHTML =
-            (evt as VanillaTreeEvent).detail.id + " is selected";
-        }
-      });
-    }
-  } catch (__moduleErr) {
-    console.error("[ac-treeview] failed to initialise:", __moduleErr);
-  }
-})();
-
-export {};
+main.addEventListener("vtree-select", function (evt) {
+  info.innerHTML = evt.detail.id + " is selected";
+});

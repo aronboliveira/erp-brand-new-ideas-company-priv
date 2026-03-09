@@ -13,12 +13,12 @@
   /* assets/js/routes/leads/update.js */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   (function () {
-    const L = "data-guard-listener";
-    const DCL = "data-client-localized";
-    const DGM = "data-guard-msg";
+    const L = "data-guard-listener",
+      DCL = "data-client-localized",
+      DGM = "data-guard-msg";
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const DSL = "data-sv-localized";
-    const ERR = "# ERROR";
+    const DSL = "data-sv-localized",
+      ERR = "# ERROR";
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function hasBootstrapCss() {
       try {
@@ -29,7 +29,7 @@
         return false;
       }
     }
-    function toast(msg: string): void{
+    function toast(msg: string): void {
       try {
         if (hasBootstrapCss() && window.bootstrap.Toast) {
           let c = document.getElementById("toast-container");
@@ -41,11 +41,11 @@
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -90,7 +90,7 @@
         return ERR;
       }
     }
-    function bindSubmitGuard(): void{
+    function bindSubmitGuard(): void {
       try {
         const $ = window.jQuery;
         if (!$) {
@@ -101,14 +101,14 @@
             )
               console.error("jQuery not found for leads/update");
           } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+            console.error(`[update] Error:`, _);
+          }
           return;
         }
         const form = document.getElementById(
-          "lead-update-form",
-        ) as HTMLFormElement | null;
-        const btn = document.getElementById("lead-update-submit");
+            "lead-update-form",
+          ) as HTMLFormElement | null,
+          btn = document.getElementById("lead-update-submit");
         if (!form || !btn) return;
         if (form.getAttribute(L) === "true") return;
         form.setAttribute(L, "true");
@@ -116,8 +116,8 @@
           .off("click.leadsUpdateGuard")
           .on("click.leadsUpdateGuard", function (e: Event) {
             try {
-              const url = form.getAttribute("data-url");
-              const href = form.action;
+              const url = form.getAttribute("data-url"),
+                href = form.action;
               if ((!url || url === "#") && (!href || href === "#")) {
                 e.preventDefault();
                 toast(getMsg(form as HTMLElement, "action_unavailable"));
@@ -132,15 +132,15 @@
             try {
               $(btn).off("click.leadsUpdateGuard");
             } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+              console.error(`[update] Error:`, _);
+            }
             obs.disconnect();
           }
         });
         obs.observe(document.body, { childList: true, subtree: true });
       } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+        console.error(`[update] Error:`, _);
+      }
     }
     try {
       const $ = window.jQuery;
@@ -152,8 +152,8 @@
           )
             console.error("Failed to initialize leads/update");
         } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+          console.error(`[update] Error:`, _);
+        }
         return;
       }
       $(function (): void {
@@ -171,16 +171,16 @@
           )
             console.error("Failed to run leads/update");
       } catch (__) {
-    console.error(`[update] Error:`, __);
-  }
+        console.error(`[update] Error:`, __);
+      }
     }
   })();
   const L = "data-guard-listener";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const ERR = "# ERROR";
+  const DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized",
+    ERR = "# ERROR";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function hasBootstrapCss() {
     try {
@@ -191,7 +191,7 @@
       return false;
     }
   }
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
@@ -203,11 +203,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -216,7 +216,7 @@
         window.bootstrap.Toast.getOrCreateInstance(t).show();
       } else {
         alert(msg);
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       }
     } catch (_) {
       alert(msg);
@@ -252,7 +252,7 @@
       return ERR;
     }
   }
-  function bindAiGuard(): void{
+  function bindAiGuard(): void {
     try {
       const $ = window.jQuery;
       if (!$) {
@@ -263,8 +263,8 @@
           )
             console.error("jQuery not found for aiGenerateGuard");
         } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+          console.error(`[update] Error:`, _);
+        }
         return;
       }
       const a = document.getElementById(
@@ -276,8 +276,8 @@
         .off("click.aiGuard")
         .on("click.aiGuard", function (e: Event) {
           try {
-            const url = a.getAttribute("data-url");
-            const href = a.href;
+            const url = a.getAttribute("data-url"),
+              href = a.href;
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
               toast(getMsg(a as HTMLElement, "ai_generate_unavailable"));
@@ -292,15 +292,15 @@
           try {
             $(a).off("click.aiGuard");
           } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+            console.error(`[update] Error:`, _);
+          }
           obs2.disconnect();
         }
       });
       obs2.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+      console.error(`[update] Error:`, _);
+    }
   }
   try {
     const $ = window.jQuery;
@@ -312,8 +312,8 @@
         )
           console.error("Failed to initialize aiGenerateGuard");
       } catch (_) {
-    console.error(`[update] Error:`, _);
-  }
+        console.error(`[update] Error:`, _);
+      }
       return;
     }
     $(function (): void {
@@ -327,8 +327,8 @@
       )
         console.error("Failed to run aiGenerateGuard");
     } catch (__) {
-    console.error(`[update] Error:`, __);
-  }
+      console.error(`[update] Error:`, __);
+    }
   }
 })();
 

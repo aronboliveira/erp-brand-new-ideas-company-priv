@@ -104,7 +104,7 @@ class JobCategoryController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if ($c = self::guard($request, 'create job category', ViewsConstants::JB_CAT . '.index')) return $c;
             $v = Validator::make($request->all(), ['title' => 'required']);
@@ -163,7 +163,7 @@ class JobCategoryController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $id, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if ($c = self::guard($request, 'edit job category', ViewsConstants::JB_CAT . '.index')) return $c;
             $v = Validator::make($request->all(), ['title' => 'required']);

@@ -6,8 +6,8 @@
 
 ((): void => {
   try {
-    const out = document.getElementById("ai-description");
-    const copy = document.getElementById("grammar-copy-btn");
+    const out = document.getElementById("ai-description"),
+      copy = document.getElementById("grammar-copy-btn");
     if (!out || !copy) return;
     if (copy.getAttribute("data-listener-active") === "true") return;
     copy.setAttribute("data-listener-active", "true");
@@ -29,11 +29,11 @@
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const b = document.createElement("div");
           b.className = "toast-body";
           b.textContent = msg;
@@ -60,8 +60,7 @@
         } else {
           const tmp = document.createElement("textarea");
           tmp.value = text;
-          tmp.style.position = "fixed";
-          tmp.style.opacity = "0";
+          Object.assign(tmp.style, { position: "fixed", opacity: "0" });
           document.body.appendChild(tmp);
           tmp.select();
           document.execCommand("copy");
@@ -78,35 +77,39 @@
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.message ?? "Unknown error",
+            (err as Error)?.message ?? "Unknown error",
           );
         toast(errMsg);
       }
     };
 
-    copy.addEventListener("click", (e: Event) => {
-      try {
-        e.preventDefault();
-        const ok =
-          out.getAttribute("data-copy-ok-msg") ?? "Text copied to clipboard.";
-        const err =
-          out.getAttribute("data-copy-err-msg") ??
-          "Copy failed. Please try again.";
-        void doCopy((out as HTMLTextAreaElement).value ?? "", ok, err);
-      } catch (err2) {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error(
-            "[assets/js/routes/aiGrammar/clipboard.js] Click handler error:",
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err2?.constructor?.name ?? "Error",
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err2?.message ?? "Unknown error",
-          );
-      }
-    });
+    if (!copy.getAttribute("data-listener-bound-click")) {
+      copy.setAttribute("data-listener-bound-click", "1");
+      copy.addEventListener("click", (e: Event) => {
+        try {
+          e.preventDefault();
+          const ok =
+              out.getAttribute("data-copy-ok-msg") ??
+              "Text copied to clipboard.",
+            err =
+              out.getAttribute("data-copy-err-msg") ??
+              "Copy failed. Please try again.";
+          void doCopy((out as HTMLTextAreaElement).value ?? "", ok, err);
+        } catch (err2) {
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error(
+              "[assets/js/routes/aiGrammar/clipboard.js] Click handler error:",
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              err2?.constructor?.name ?? "Error",
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              (err2 as Error)?.message ?? "Unknown error",
+            );
+        }
+      });
+    }
   } catch (error) {
     if (
       window.location.hostname === "localhost" ||
@@ -117,7 +120,7 @@
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error?.message ?? "Unknown error",
+        (error as Error)?.message ?? "Unknown error",
       );
   }
 })();

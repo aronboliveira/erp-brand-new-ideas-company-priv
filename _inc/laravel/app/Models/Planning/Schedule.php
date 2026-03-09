@@ -169,7 +169,7 @@ class Schedule extends Model
 		try {
 			$mod = $m->getAttribute(AC::COL_MT);
 			$modEnum = $mod instanceof AppModuleType ? $mod : AppModuleType::normalize($mod);
-			$m->setAttribute(AC::COL_MT, ($modEnum ?? AppModuleType::Other)->value);
+			$m->setAttribute(AC::COL_MT, ($modEnum ?: AppModuleType::Other)->value);
 		} catch (\Throwable $e) {
 			Log::notice(static::class . ' invalid module value', [
 				'file' => $e->getFile(),

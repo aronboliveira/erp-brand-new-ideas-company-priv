@@ -9,10 +9,10 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLoc = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const errFb = "# ERROR",
+    dataClientLoc = "data-client-localized",
+    dataGuardMsg = "data-guard-msg";
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(el: HTMLElement, key: string) {
@@ -39,7 +39,7 @@
       }
     }
     return msg;
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -57,11 +57,11 @@
       const toastEl = document.createElement("div");
       toastEl.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toastEl.setAttribute(k, v);
       const body = document.createElement("div");
       body.className = "toast-body";
       body.textContent = msg;
@@ -78,9 +78,8 @@
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        if (typeof ($(el) as any).bootstrapToggle !== "function") {
+        if (typeof ($(el) as any).bootstrapToggle !== "function")
           throw new Error("bootstrapToggle missing");
-        }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
@@ -101,7 +100,7 @@
     });
 
     const starSelector = "fieldset[id^='demo'] .stars";
-    const handleStarClick = (e: Event): void=> {
+    const handleStarClick = (e: Event): void => {
       const tgt = e.target as HTMLInputElement | null;
       if (!tgt?.matches(starSelector)) return;
       try {

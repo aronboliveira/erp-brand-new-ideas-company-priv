@@ -23,6 +23,14 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * @property string|null $name
+ * @property float|int|null $base_price
+ * @property mixed $created_by
+
+ * @property float|null $discount
+ * @property int|null $status
+ */
 class ProductServiceUnit extends Model
 {
     use HasAuditFields, HasFactory, NormalizesArrays, SoftDeletes, UsesUuids;

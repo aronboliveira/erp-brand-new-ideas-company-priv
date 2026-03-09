@@ -1,0 +1,383 @@
+# Complete List of Permissions
+
+# System Permissions
+
+<details>
+<summary><strong>📊 Dashboards</strong></summary>
+
+- Show POS Dashboard
+- Show CRM Dashboard
+- Show HRM Dashboard
+- Show Project Dashboard
+- Show Account Dashboard
+- Manage Client Dashboard
+- Manage Super Admin Dashboard
+</details>
+
+<details>
+<summary><strong>👥 User & Role Management</strong></summary>
+
+### 🔑 User Operations
+- Manage User
+- Create/Edit/Delete User
+
+### 🛡️ Role & Permissions
+- Manage Role
+- Create/Edit/Delete Role
+- Manage Permission
+- Create/Edit/Delete Permission
+</details>
+
+<details>
+<summary><strong>💼 Company Operations</strong></summary>
+
+### ⚙️ Settings
+- Manage Company Settings
+- Manage Business Settings
+- Manage Print Settings
+- Manage Stripe Settings
+- Manage Form Builder
+  - Create/Edit/Delete Form Builder
+  - Manage/Create/Edit/Delete Form Field
+  - View Form Response
+
+### 📈 Financial Management
+- Manage Product & Service
+  - Create/Edit/Delete Product & Service
+- Manage Constants:
+  - Tax (Create/Edit/Delete)
+  - Category (Create/Edit/Delete)
+  - Unit (Create/Edit/Delete)
+  - Custom Fields (Create/Edit/Delete)
+
+### 📦 Inventory & POS
+- Manage Warehouse (Create/Edit/Show/Delete)
+- Manage POS
+- Create Barcode
+</details>
+
+<details>
+<summary><strong>💰 Financial Operations</strong></summary>
+
+### 💵 Transactions
+- Manage Bank Accounts/Transfers
+- Manage Revenue (Create/Edit/Delete)
+- Manage Transactions
+
+### 📄 Documents
+- **Invoices**:
+  - Manage/Create/Edit/Delete/Show
+  - Convert/Duplicate/Send
+  - Delete Invoice Product
+- **Bills**:
+  - Manage/Create/Edit/Delete/Show
+  - Send/Duplicate
+  - Delete Bill Product
+- **Payments**:
+  - Manage/Create/Edit/Delete
+  - Create/Delete Payment Invoice/Bill
+
+### 📈 Reports
+- Income/Expense Reports
+- Invoice/Bill Reports
+- Tax/Stock Reports
+- Loss & Profit Report
+- Balance Sheet/Ledger/Trial Balance
+</details>
+
+<details>
+<summary><strong>📈 CRM & Sales</strong></summary>
+
+### 📞 Lead Management
+- Manage Leads (Create/View/Edit/Delete/Move)
+- Lead Calls (Create/Edit/Delete)
+- Create Lead Email
+
+### 🤝 Deal Management
+- Manage Deals (Create/Edit/View/Delete/Move)
+- Deal Calls (Create/Edit/Delete)
+- Create Deal Email
+
+### 🛠️ Pipeline Configuration
+- Manage Pipeline (Create/Edit/Delete)
+- Manage Lead Stages (Create/Edit/Delete)
+- Manage Sources (Create/Edit/Delete)
+- Manage Labels (Create/Edit/Delete)
+- Manage Stages (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>👔 HR Management</strong></summary>
+
+### 👩💼 Employee Management
+- Manage Employees (Create/View/Edit/Delete)
+- Manage Departments (Create/View/Edit/Delete)
+- Manage Designations (Create/View/Edit/Delete)
+- Manage Branches (Create/Edit/Delete)
+
+### 📑 Documents & Policies
+- Manage Document Types (Create/Edit/Delete)
+- Manage Documents (Create/Edit/Delete)
+- Manage Company Policy (Create/Edit)
+
+### 💰 Payroll & Benefits
+- Manage Payslip Types (Create/Edit/Delete)
+- Allowances (Create/Edit/Delete)
+- Commissions (Create/Edit/Delete)
+- Loans (Create/Edit/Delete)
+- Overtime (Create/Edit/Delete)
+- Manage Set Salary
+- Create Pay Slip
+</details>
+
+<details>
+<summary><strong>📆 Time & Attendance</strong></summary>
+
+- Manage Attendance (Create/Edit/Delete)
+- Manage Leave Types (Create/Edit/Delete)
+- Manage Leaves (Create/Edit/Delete)
+- Manage Holidays (Create/Edit/Delete)
+- Manage Travel (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>🚀 Project Management</strong></summary>
+
+### 🎯 Project Operations
+- Manage Projects (Create/View/Edit/Delete/Share)
+- Manage Milestones (Create/Edit/Delete/View)
+- View Grant Chart
+
+### 📋 Tasks & Timesheets
+- Manage Project Tasks (Create/Edit/View/Delete)
+- Manage Timesheets (Create/Edit/Delete)
+- View Activity/CRM Activity
+
+### 🐛 Bug Tracking
+- Manage Bug Reports (Create/Edit/Delete/Move)
+- Manage Bug Statuses (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>⚙️ System Administration</strong></summary>
+
+- Manage System Settings
+- Manage Plans (Create/Edit)
+- Manage Coupons (Create/Edit/Delete)
+- Manage Company Plan
+- Buy Plan
+- Manage Webhooks (Create/Edit/Delete)
+- Manage Contract Types (Create/Edit/Delete)
+- Manage Contracts (Create/Edit/Delete/Show)
+</details>
+
+<details>
+<summary><strong>📈 Performance & Goals</strong></summary>
+
+- Manage Goals (Create/Edit/Delete)
+- Manage Indicators (Create/Edit/Show/Delete)
+- Manage Competencies (Create/Edit/Delete)
+- Manage Appraisals (Create/Edit/Show/Delete)
+- Manage Budget Plans (Create/Edit/Delete/View)
+</details>
+
+<details>
+<summary><strong>📑 Legal & Compliance</strong></summary>
+
+- Manage Resignations (Create/Edit/Delete)
+- Manage Terminations (Create/Edit/Delete)
+- Manage Termination Types (Create/Edit/Delete)
+- Manage Warnings (Create/Edit/Delete)
+- Manage Complaints (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>🎓 Training & Development</strong></summary>
+
+- Manage Training (Create/Edit/Delete/Show)
+- Manage Trainers (Create/Edit/Delete)
+- Manage Training Types (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>📢 Announcements & Events</strong></summary>
+
+- Manage Announcements (Create/Edit/Delete)
+- Manage Events (Create/Edit/Delete)
+- Manage Meetings (Create/Edit/Delete)
+</details>
+
+<details>
+<summary><strong>📝 Recruitment</strong></summary>
+
+- Manage Job Applications (Create/Show/Delete/Move)
+- Add Application Skills/Notes
+- Manage Job Categories (Create/Edit/Delete)
+- Manage Jobs (Create/Edit/Show/Delete)
+- Manage Job Stages (Create/Edit/Delete)
+- Manage Interviews (Create/Edit/Delete/Show)
+</details>
+
+# Permission List By Role
+
+<details>
+<summary><strong>👥 Client Permissions</strong></summary>
+
+### 🐞 Bug Report Management
+- Manage Bug Report
+- Create Bug Report
+- Edit Bug Report
+- Delete Bug Report
+- Move Bug Report
+
+### 🤝 Deal & Project Management
+- View Deal
+- Manage Deal
+- Move Deal
+- Manage Project
+- View Project
+- View Grant Chart
+
+### ⏰ Timesheet & Task Management
+- View Timesheet
+- Manage Timesheet
+- Manage Project Task
+- Create Project Task
+- Edit Project Task
+- View Project Task
+- Delete Project Task
+- View Activity
+- View Task
+
+### 📊 Dashboard & Pipeline
+- Manage Client Dashboard
+- Manage Pipeline
+- Manage Lead Stage
+- Manage Label
+- Manage Source
+- Manage Stage
+
+### 📑 Contract Management
+- Manage Contract
+- Show Contract
+</details>
+
+<details>
+<summary><strong>🏪 Vendor Permissions</strong></summary>
+
+- Vendor Manage Bill
+- Manage Vendor Bill
+- Manage Vendor Payment
+- Manage Vendor Transaction
+- Show Vendor
+- Show Bill
+</details>
+
+<details>
+<summary><strong>👤 Customer Permissions</strong></summary>
+
+### 💰 Payment Management
+- Manage Customer Payment
+- Manage Customer Transaction
+
+### 📄 Document Management
+- Manage Customer Invoice
+- Show Invoice
+- Show Proposal
+- Manage Customer Proposal
+- Show Customer
+</details>
+
+<details>
+<summary><strong>🧮 Accountant Permissions</strong></summary>
+
+### 📊 Dashboard & Reports
+- Show Account Dashboard
+- Income Report
+- Expense Report
+- Income vs Expense Report
+- Invoice Report
+- Bill Report
+- Stock Report
+- Tax Report
+- Loss & Profit Report
+- Statement Report
+- Balance Sheet Report
+- Ledger Report
+- Trial Balance Report
+
+### 💸 Financial Management
+- Manage Expense
+- Create/Edit/Delete Expense
+- Manage Invoice (Create/Edit/Delete/Convert/Send)
+- Manage Product & Service
+- Manage Constant Tax/Category/Unit
+- Manage Customers/Vendors
+- Manage Bank Accounts/Transfers
+- Manage Revenue/Bills/Payments
+- Manage Credit/Debit Notes
+
+### 📈 Advanced Accounting
+- Manage Chart of Accounts
+- Manage Journal Entries
+- Manage Budget Plan
+- Manage Assets
+- Manage Webhooks (Create/Edit/Delete)
+- Manage Print Settings
+</details>
+
+<details>
+<summary><strong>🏢 Company Permissions</strong></summary>
+
+### 👥 User & Role Management
+- Manage Users (Create/Edit/Delete)
+- Manage Roles (Create/Edit/Delete)
+- Manage Permissions (Create/Edit/Delete)
+
+### 🌐 System Configuration
+- Manage Company/Business Settings
+- Manage Print Settings
+- Manage Form Builder
+- Manage Webhooks
+- Manage Company Plan
+
+### 📦 Inventory & POS
+- Manage Warehouse
+- Manage Purchase
+- Manage POS
+- Create Barcode
+
+### 📑 Contracts & Legal
+- Manage Contract Type
+- Manage Contracts (Create/Edit/Delete/Show)
+
+### 📈 HR & Employee Management
+- Manage Employees/Departments/Designations
+- Manage Payroll/Payslips/Loans
+- Manage Attendance/Leave/Travel
+- Manage Recruitment/Job Applications
+- Manage Training/Events/Meetings
+
+### 📊 Project Management
+- Manage Projects/Tasks/Milestones
+- View Grant Chart
+- Manage Bug Reports/Statuses
+- Manage Timesheets
+
+### 💰 Financial Operations
+- All Accountant Permissions +
+- Manage Order
+- Copy/Duplicate Invoice/Bill
+- Manage Plan/Budget
+</details>
+
+<details>
+<summary><strong>🦸 Super Admin Permissions</strong></summary>
+
+- Manage Super Admin Dashboard
+- Full User/Role/Permission Control
+- Language Creation
+- System/Stripe Settings Management
+- Plan/Coupon Management (Create/Edit/Delete)
+- Order Management
+</details>

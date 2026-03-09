@@ -18,6 +18,34 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Str;
 
+/**
+ * @property bool|null $accepts_pix
+ * @property int|string|null $currency_id
+ * @property array|string|null $debit_cards
+ * @property array|string|null $pix_keys
+ * @property string|null $profile
+ * @property string|null $risk_level
+ * @property array|string|null $sync_errors
+ * @property array|string|null $vaults
+ * @property bool|null $accepts_credit_cards
+ * @property bool|null $accepts_debit_cards
+ * @property string|null $autoreconcile
+ * @property int|null $chart_account_id
+ * @property mixed $created_by
+ * @property array|string|null $credit_cards
+ * @property float|int|null $current_balance
+ * @property array|string|null $customField
+ * @property bool|null $has_credit_card
+ * @property bool|null $has_debit_card
+ * @property float|int|null $opening_balance
+ * @property array|string|null $reconcile_rules
+ * @property int|null $responsible_id
+ * @property float|int|null $total_amount_locked
+ * @property float|int|null $total_amount_stored
+
+ * @property mixed $custom
+ * @property mixed $restrictions
+ */
 class BankAccount extends Model
 {
     use UsesUuids, HasFactory, HasAuditFields;
@@ -240,12 +268,12 @@ class BankAccount extends Model
             $value = $account->{$field} ?? null;
 
             if ($value === null) {
-                $account->{$field} = [];
+                $account->{$field} = []; // @phpstan-ignore assign.propertyType
                 continue;
             }
 
             if (!is_array($value))
-                $account->{$field} = (array) $value;
+                $account->{$field} = (array) $value; // @phpstan-ignore assign.propertyType
         }
     }
 
@@ -278,12 +306,12 @@ class BankAccount extends Model
 
         $rules = $account->{BLC::COL_RCC_RL} ?? [];
         if ($account->{BLC::COL_AUTORCC} && empty($rules))
-            $account->{BLC::COL_AUTORCC} = false;
+            $account->{BLC::COL_AUTORCC} = '0';
 
         $risk = (float) ($account->{BKC::COL_RSK} ?? 0);
         if ($risk < 0)   $risk = 0.0;
         if ($risk > 100) $risk = 100.0;
-        $account->{BKC::COL_RSK} = $risk;
+        $account->{BKC::COL_RSK} = (string)$risk;
     }
 
     /**

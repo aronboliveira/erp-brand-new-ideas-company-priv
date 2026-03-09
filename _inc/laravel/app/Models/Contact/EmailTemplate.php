@@ -20,6 +20,11 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * @property string|null $from
+
+ * @property mixed $template
+ */
 class EmailTemplate extends Model
 {
     use HasAuditFields, NormalizesAddresses, UsesUuids;
@@ -171,10 +176,12 @@ class EmailTemplate extends Model
     {
         if (self::$templateData instanceof self)
             return self::$templateData;
-        self::$templateData = app(EmailRequestService::class)
+        /** @var self|null $template */
+        $template = app(EmailRequestService::class)
             ->getAvailableTemplates()
             ->sortBy(DC::COL_C_AT)
             ->first();
+        self::$templateData = $template;
         return self::$templateData;
     }
 
@@ -183,6 +190,7 @@ class EmailTemplate extends Model
      */
     public static function defaultForType(EmailTemplateType|string|null $type): ?self
     {
+        /** @var self|null */
         return app(EmailRequestService::class)->getTemplatesByType($type)
             ->sortBy(DC::COL_C_AT)
             ->first();

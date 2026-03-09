@@ -11,6 +11,15 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 
+/**
+ * @property float|int|string|null $hours
+ * @property float|int|string|null $number_of_days
+ * @property float|int|string|null $rate
+ * @property string|null $type
+ * @property mixed $created_by
+ * @property int|null $employee_id
+ * @property string|null $title
+ */
 class Overtime extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;

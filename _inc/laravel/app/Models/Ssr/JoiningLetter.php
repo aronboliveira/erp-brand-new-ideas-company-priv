@@ -56,7 +56,7 @@ class JoiningLetter extends Model
 
     public static function defaultJoiningLetter(?string $userId = null): void
     {
-        app(TemplateRequestService::class)->ensureDefaultJoiningLetter(new static(), $userId);
+        app(TemplateRequestService::class)->ensureDefaultJoiningLetter(new static(), $userId); // @phpstan-ignore new.static, argument.type
     }
 
     public const DEF_JG_LT_REG = 'defaultJoiningLetterRegister';

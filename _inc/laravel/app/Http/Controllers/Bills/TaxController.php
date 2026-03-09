@@ -27,7 +27,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id]);
             if (($denial = self::guard($request, PermissionsConstants::MNG_CT_TX, self::INDEX_ROUTE)) !== true) return $denial;
@@ -48,7 +48,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id]);
             if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
@@ -67,7 +67,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $tax, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'view constant tax', self::INDEX_ROUTE)) !== true) return $denial;
@@ -87,7 +87,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'input' => $request->only('name', 'rate')]);
             if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
@@ -130,7 +130,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $tax, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
@@ -152,7 +152,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $tax, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id, 'input' => $request->only('name', 'rate')]);
             if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
@@ -187,7 +187,7 @@ class TaxController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $tax, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'delete constant tax', self::INDEX_ROUTE)) !== true) return $denial;

@@ -10,21 +10,23 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-warehouse-error";
-  const dataBindGuard = "data-warehouse-bound";
-  const ns = "._npWarehouse";
-  const qs = (s: string, r: ParentNode = document): HTMLElement | null =>
-    r.querySelector(s);
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-warehouse-error",
+    dataBindGuard = "data-warehouse-bound",
+    ns = "._npWarehouse",
+    qs = (s: string, r: ParentNode = document): HTMLElement | null =>
+      r.querySelector(s);
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
@@ -33,13 +35,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container as ParentNode);
@@ -48,11 +48,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -68,7 +68,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (message: string): void=> {
+  const scheduleClickError = (message: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -80,14 +80,14 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -137,8 +137,8 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[quantity] Error:`, _);
-  }
+        console.error(`[quantity] Error:`, _);
+      }
       scheduleClickError(getMsg(document.body, "plugin_unavailable"));
       return false;
     }
@@ -147,16 +147,14 @@
   const buildProductControls = (): void => {
     const wrap = $("#product_div");
     if (wrap.length === 0) return;
-    if (!wrap.find('label[for="product"]').length) {
+    if (!wrap.find('label[for="product"]').length)
       wrap.append(
         '<label for="product" class="form-label">{{ __("Product") }}</label>',
       );
-    }
-    if (!$("#product_id").length) {
+    if (!$("#product_id").length)
       wrap.append(
         '<select class="form-control" id="product_id" name="product_id"></select>',
       );
-    }
   };
   const populateSelect = (
     $sel: JQuery | null | undefined,
@@ -171,7 +169,7 @@
       $sel.append(`<option value="${key}">${value}</option>`);
     });
   };
-  const getProduct = (wid: string): void=> {
+  const getProduct = (wid: string): void => {
     if (!ensureJq()) return;
     if (isBadUrl(urls.products)) {
       scheduleClickError(
@@ -191,9 +189,7 @@
           buildProductControls();
           const $product = $("#product_id");
           populateSelect($product, {}, '{{ __("Select Product") }}');
-          if (data.ware_products) {
-            populateSelect($product, data.ware_products);
-          }
+          if (data.ware_products) populateSelect($product, data.ware_products);
           const $to = $('select[name="to_warehouse"]');
           if ($to.length && data.to_warehouses) {
             $to.empty();
@@ -210,7 +206,7 @@
       },
     });
   };
-  const getQuantity = (pid: string, wid: string): void=> {
+  const getQuantity = (pid: string, wid: string): void => {
     if (!ensureJq()) return;
     if (isBadUrl(urls.quantity)) {
       scheduleClickError(
@@ -241,18 +237,22 @@
     $(document).on(
       "change" + ns,
       'select[name="from_warehouse"]',
-      function (): void {
+      function (this: HTMLSelectElement): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const v = String($(this).val() ?? "");
         getProduct(v);
       },
     );
-    $(document).on("change" + ns, "#product_id", function (): void {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const pid = String($(this).val() ?? "");
-      const wid = String($("#warehouse_id").val() ?? "");
-      getQuantity(pid, wid);
-    });
+    $(document).on(
+      "change" + ns,
+      "#product_id",
+      function (this: HTMLSelectElement): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const pid = String($(this).val() ?? ""),
+          wid = String($("#warehouse_id").val() ?? "");
+        getQuantity(pid, wid);
+      },
+    );
     const startWid = $("#warehouse_id").val();
     if (startWid != null) getProduct(String(startWid));
     const mo = new MutationObserver(function (): void {
@@ -266,11 +266,9 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bind, { once: true });
-  } else {
-    bind();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", bind, { once: true })
+    : bind();
 })();
 
 export {};

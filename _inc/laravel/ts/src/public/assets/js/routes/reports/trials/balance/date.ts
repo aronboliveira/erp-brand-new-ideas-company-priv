@@ -10,14 +10,14 @@
   const $ = window.jQuery;
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
-    r.querySelector(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataInitGuard = "data-date-sync-init";
-  const dataListenerGuard = "data-date-sync-listener";
+      r.querySelector(s),
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataInitGuard = "data-date-sync-init",
+    dataListenerGuard = "data-date-sync-listener";
   if (!$) {
     try {
       if (
@@ -26,54 +26,48 @@
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[date] Error:`, _);
-  }
+      console.error(`[date] Error:`, _);
+    }
     scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
     return;
   }
   const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
     let c = qs("#" + id) as HTMLDivElement | null;
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
       window.bootstrap.Toast;
     if (hasBootstrap) {
-      const container = ensureToastContainer();
-      const tid = "np-toast";
+      const container = ensureToastContainer(),
+        tid = "np-toast";
       let t = qs("#" + tid, container);
       if (!t) {
         t = document.createElement("div");
         t.id = tid;
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -83,11 +77,9 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string): void{
+  function scheduleInteractiveError(message: string): void {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -97,7 +89,7 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -139,13 +131,11 @@
     evt: string,
     handler: (e: Event) => void,
     flag: string,
-  ): void=> {
-    if (!el || el.getAttribute(flag) === "true") {
-      return;
-    }
+  ): void => {
+    if (!el || el.getAttribute(flag) === "true") return;
     el.setAttribute(flag, "true");
     $(el).on(evt, handler);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(el)) {
         $(el).off(evt, handler);
         o.disconnect();
@@ -155,10 +145,9 @@
   };
   const syncDates = (): void => {
     try {
-      const startVal = $(".startDate").val() ?? "";
-      const endVal = $(".endDate").val() ?? "";
-      const hasTargets = $(".start_date").length + $(".end_date").length > 0;
-      if (!hasTargets) {
+      const startVal = $(".startDate").val() ?? "",
+        endVal = $(".endDate").val() ?? "";
+      if (!($(".start_date").length + $(".end_date").length > 0)) {
         scheduleInteractiveError(getMsg(document.body, "date_sync_failed"));
         return;
       }
@@ -170,22 +159,23 @@
   };
   const init = (): void => {
     const root = document.documentElement;
-    if (root.getAttribute(dataInitGuard) === "true") {
-      return;
-    }
+    if (root.getAttribute(dataInitGuard) === "true") return;
     root.setAttribute(dataInitGuard, "true");
     syncDates();
     document.querySelectorAll(".startDate, .endDate").forEach(function (
-      el: HTMLElement,
+      el: Element,
     ) {
-      bindWithObserver(el, "change", syncDates, dataListenerGuard);
+      bindWithObserver(
+        el as HTMLElement,
+        "change",
+        syncDates,
+        dataListenerGuard,
+      );
     });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

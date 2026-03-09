@@ -30,7 +30,7 @@ class TransactionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $func, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
             $user = $userOrRedirect;
@@ -124,7 +124,7 @@ class TransactionController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::MNG_TRT, self::ROUTE_INDEX)) !== true) return $c;
 

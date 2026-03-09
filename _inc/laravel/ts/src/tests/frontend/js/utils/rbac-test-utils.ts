@@ -13,6 +13,69 @@
  */
 
 // ============================================================================
+// Type Definitions
+// ============================================================================
+
+export interface RoleTemplate {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+
+export interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  role: RoleTemplate;
+  company_id: string;
+  is_active: boolean;
+  isAuthenticated: boolean;
+  session_token: string;
+  session_expires_at: Date;
+  [key: string]: unknown;
+}
+
+export interface TestResult {
+  name: string;
+  passed: boolean;
+  message: string;
+  duration: number;
+}
+
+export interface TestSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  duration: number;
+}
+
+export interface ApiResponse<T = unknown> {
+  status: number;
+  statusText: string;
+  data: T;
+  headers: Record<string, string>;
+  ok: boolean;
+}
+
+export interface MockFetchResponse {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  json: () => Promise<unknown>;
+  text: () => Promise<string>;
+}
+
+export interface MockFetchConfig {
+  delay?: number;
+  requireAuth?: boolean;
+  defaultResponse?: { status: number; data: unknown };
+  routes?: Record<string, unknown>;
+  user?: MockUser | null;
+}
+
+// Window properties are declared in types/globals.d.ts
+
+// ============================================================================
 // Permission Constants (matching PHP PermissionsConstants)
 // ============================================================================
 
@@ -305,14 +368,19 @@ export const RoleTemplates = {
 // Mock User Factory
 // ============================================================================
 
+type RoleKey = keyof typeof RoleTemplates;
+
 /**
  * Create a mock user with the specified role
  * @param {string} role - One of: 'superAdmin', 'admin', 'hr', 'accountant', 'client', 'guest'
  * @param {Object} overrides - Optional properties to override
  * @returns {Object} Mock user object
  */
-export function createMockUser(role, overrides = {}) {
-  const roleTemplate = RoleTemplates[role];
+export function createMockUser(
+  role: RoleKey | string,
+  overrides: Partial<MockUser> = {},
+): MockUser {
+  const roleTemplate = RoleTemplates[role as RoleKey];
   if (!roleTemplate) {
     console.warn(`Unknown role: ${role}, defaulting to guest`);
     return createMockUser("guest", overrides);
@@ -342,7 +410,7 @@ export function createMockUser(role, overrides = {}) {
  * @param {string} permission - Permission string to check
  * @returns {boolean}
  */
-export function userCan(user, permission) {
+export function userCan(user: MockUser | null, permission: string): boolean {
   if (!user?.is_active) return false;
   if (user.role.permissions.includes(Permissions.SA)) return true; // Super admin bypass
   return user.role.permissions.includes(permission);
@@ -354,8 +422,11 @@ export function userCan(user, permission) {
  * @param {string[]} permissions - Array of permission strings
  * @returns {boolean}
  */
-export function userCanAny(user, permissions) {
-  return permissions.some(p => userCan(user, p));
+export function userCanAny(
+  user: MockUser | null,
+  permissions: string[],
+): boolean {
+  return permissions.some((p: string) => userCan(user, p));
 }
 
 /**
@@ -364,8 +435,11 @@ export function userCanAny(user, permissions) {
  * @param {string[]} permissions - Array of permission strings
  * @returns {boolean}
  */
-export function userCanAll(user, permissions) {
-  return permissions.every(p => userCan(user, p));
+export function userCanAll(
+  user: MockUser | null,
+  permissions: string[],
+): boolean {
+  return permissions.every((p: string) => userCan(user, p));
 }
 
 /**
@@ -373,7 +447,7 @@ export function userCanAll(user, permissions) {
  * @param {Object|null} user - Mock user object
  * @returns {boolean}
  */
-export function isSessionValid(user: unknown) {
+export function isSessionValid(user: MockUser | null): boolean {
   if (!user?.session_expires_at) return false;
   return new Date() < user.session_expires_at;
 }
@@ -405,7 +479,11 @@ export function createSuccessResponse(data: unknown, status = 200) {
  * @param {Object} errors - Field-level errors
  * @returns {Object} API response object
  */
-export function createErrorResponse(status, message: string, errors = null) {
+export function createErrorResponse(
+  status: number,
+  message: string,
+  errors: Record<string, string[]> | null = null,
+): ApiResponse<{ message: string; errors: Record<string, string[]> | null }> {
   return {
     status,
     statusText: getStatusText(status),
@@ -419,7 +497,7 @@ export function create401Response() {
   return createErrorResponse(401, "Unauthenticated. Please log in.");
 }
 
-export function create403Response(permission: boolean) {
+export function create403Response(permission?: string) {
   return createErrorResponse(
     403,
     permission
@@ -432,16 +510,18 @@ export function create404Response(resource = "Resource") {
   return createErrorResponse(404, `${resource} not found.`);
 }
 
-export function create422Response(errors: unknown) {
+export function create422Response(errors: Record<string, string[]>) {
   return createErrorResponse(422, "The given data was invalid.", errors);
 }
 
-export function create500Response(message: string = "Internal server error: Error.") {
+export function create500Response(
+  message: string = "Internal server error: Error.",
+) {
   return createErrorResponse(500, message);
 }
 
-function getStatusText(status: unknown) {
-  const statusTexts = {
+function getStatusText(status: number): string {
+  const statusTexts: Record<number, string> = {
     200: "OK",
     201: "Created",
     204: "No Content",
@@ -470,7 +550,7 @@ function getStatusText(status: unknown) {
  * @param {Object} config.routes - Route-specific handlers
  * @returns {Function} Mock fetch function
  */
-export function createMockFetch(config: Record<string, unknown> = {}) {
+export function createMockFetch(config: MockFetchConfig = {}) {
   const {
     delay = 100,
     requireAuth = false,
@@ -479,12 +559,15 @@ export function createMockFetch(config: Record<string, unknown> = {}) {
     user = null,
   } = config;
 
-  return async function mockFetch(url: string, options: Record<string, unknown> = {}): Promise<void> {
+  return async function mockFetch(
+    url: string,
+    options: Record<string, unknown> = {},
+  ): Promise<MockFetchResponse> {
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise(resolve => setTimeout(resolve, delay as number));
 
     // Check authentication
-    if (requireAuth && (!user?.isAuthenticated)) {
+    if (requireAuth && !user?.isAuthenticated) {
       return {
         ok: false,
         status: 401,
@@ -496,12 +579,15 @@ export function createMockFetch(config: Record<string, unknown> = {}) {
     }
 
     // Check for route-specific handler
-    for (const [pattern, handler] of Object.entries(routes)) {
+    for (const [pattern, handler] of Object.entries(
+      routes as Record<string, unknown>,
+    )) {
       if (url.includes(pattern)) {
-        const response =
-          typeof handler === "function" ? handler(url, options) : handler;
+        const response = (
+          typeof handler === "function" ? handler(url, options) : handler
+        ) as { status?: number; data?: unknown };
         return {
-          ok: response.status >= 200 && response.status < 300,
+          ok: (response.status ?? 200) >= 200 && (response.status ?? 200) < 300,
           status: response.status || 200,
           statusText: getStatusText(response.status || 200),
           json: async () => response.data || response,
@@ -525,13 +611,13 @@ export function createMockFetch(config: Record<string, unknown> = {}) {
 // DOM Helpers for Testing
 // ============================================================================
 
-let __mockUser = null;
+let __mockUser: MockUser | null = null;
 
 /**
  * Set the current user context
  * @param {Object|null} user - Mock user object
  */
-export function setUserContext(user: unknown) {
+export function setUserContext(user: MockUser | null): void {
   __mockUser = user;
   if (typeof window !== "undefined") {
     window.__mockUser = user;
@@ -554,10 +640,9 @@ export function setUserContext(user: unknown) {
  * Get the current user context
  * @returns {Object|null}
  */
-export function getUserContext() {
-  if (window.__mockUser) {
-    return window.__mockUser;
-  }
+export function getUserContext(): MockUser | null {
+  if (typeof window !== "undefined" && window.__mockUser)
+    return window.__mockUser as MockUser;
   return __mockUser;
 }
 
@@ -565,49 +650,63 @@ export function getUserContext() {
  * Hide DOM elements that require permissions the user doesn't have
  * @param {Object|null} user - Mock user object
  */
-export function hideElementsWithoutPermission(user: unknown) {
+export function hideElementsWithoutPermission(user: MockUser | null): void {
   if (typeof document === "undefined") return;
 
   // Handle data-permission attribute
-  document.querySelectorAll("[data-permission]").forEach((el: Element): void => {
-    const required = el.dataset.permission;
-    if (required && !userCan(user, required)) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
-    }
-  });
+  document
+    .querySelectorAll("[data-permission]")
+    .forEach((el: Element): void => {
+      const htmlEl = el as HTMLElement;
+      const required = htmlEl.dataset.permission;
+      if (required && !userCan(user, required)) {
+        htmlEl.style.display = "none";
+        htmlEl.setAttribute("aria-hidden", "true");
+      }
+    });
 
   // Handle data-permissions-any attribute (comma-separated)
-  document.querySelectorAll("[data-permissions-any]").forEach((el: Element): void => {
-    const required =
-      el.dataset.permissionsAny?.split(",").map(s => s.trim()) || [];
-    if (!userCanAny(user, required)) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
-    }
-  });
+  document
+    .querySelectorAll("[data-permissions-any]")
+    .forEach((el: Element): void => {
+      const htmlEl = el as HTMLElement;
+      const required =
+        htmlEl.dataset.permissionsAny
+          ?.split(",")
+          .map((s: string) => s.trim()) || [];
+      if (!userCanAny(user, required)) {
+        htmlEl.style.display = "none";
+        htmlEl.setAttribute("aria-hidden", "true");
+      }
+    });
 
   // Handle data-permissions-all attribute (comma-separated)
-  document.querySelectorAll("[data-permissions-all]").forEach((el: Element): void => {
-    const required =
-      el.dataset.permissionsAll?.split(",").map(s => s.trim()) || [];
-    if (!userCanAll(user, required)) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
-    }
-  });
+  document
+    .querySelectorAll("[data-permissions-all]")
+    .forEach((el: Element): void => {
+      const htmlEl = el as HTMLElement;
+      const required =
+        htmlEl.dataset.permissionsAll
+          ?.split(",")
+          .map((s: string) => s.trim()) || [];
+      if (!userCanAll(user, required)) {
+        htmlEl.style.display = "none";
+        htmlEl.setAttribute("aria-hidden", "true");
+      }
+    });
 
   // Handle data-role attribute (exact match required)
   document.querySelectorAll("[data-role]").forEach((el: Element): void => {
-    const requiredRole = el.dataset.role;
+    const htmlEl = el as HTMLElement;
+    const requiredRole = htmlEl.dataset.role;
     // Skip body element which uses data-role differently
     if (el === document.body) return;
     if (
       requiredRole &&
       user?.role.name.toLowerCase() !== requiredRole.toLowerCase()
     ) {
-      el.style.display = "none";
-      el.setAttribute("aria-hidden", "true");
+      htmlEl.style.display = "none";
+      htmlEl.setAttribute("aria-hidden", "true");
     }
   });
 }
@@ -617,7 +716,10 @@ export function hideElementsWithoutPermission(user: unknown) {
  * @param {HTMLElement} container - Container element
  * @param {string} permission - Optional permission that was denied
  */
-export function showAccessDeniedMessage(container: HTMLElement, permission) {
+export function showAccessDeniedMessage(
+  container: HTMLElement,
+  permission?: string,
+): void {
   container.innerHTML = `
     <div class="access-denied" role="alert">
       <h2>Access Denied</h2>
@@ -636,8 +738,7 @@ export function showAccessDeniedMessage(container: HTMLElement, permission) {
  * @returns {Object} Test runner with assertion methods
  */
 export function createTestRunner() {
-  const results = [];
-
+  const results: TestResult[] = [];
   return {
     /**
      * Run a test
@@ -669,7 +770,7 @@ export function createTestRunner() {
      * @param {boolean} condition - Condition to check
      * @param {string} message - Error message if fails
      */
-    assert: (condition, message: string) => {
+    assert: (condition: boolean, message: string): void => {
       if (!condition) throw new Error(`Assertion failed: ${message}`);
     },
 
@@ -679,10 +780,15 @@ export function createTestRunner() {
      * @param {*} expected - Expected value
      * @param {string} message - Optional error message
      */
-    assertEqual: (actual, expected, message: string) => {
+    assertEqual: (
+      actual: unknown,
+      expected: unknown,
+      message?: string,
+    ): void => {
       if (actual !== expected) {
         throw new Error(
-          message ?? `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
+          message ??
+            `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
         );
       }
     },
@@ -693,16 +799,15 @@ export function createTestRunner() {
      * @param {string} message - Optional error message
      */
     assertNotNull: (value: unknown, message: string) => {
-      if (value === null || value === undefined) {
+      if (value === null || value === undefined)
         throw new Error(message ?? `Expected non-null value, got ${value}`);
-      }
     },
 
     /**
      * Assert an element is visible
      * @param {string} selector - CSS selector
      */
-    assertVisible: selector => {
+    assertVisible: (selector: string): void => {
       const el = document.querySelector(selector);
       if (!el) throw new Error(`Element not found: ${selector}`);
       const style = window.getComputedStyle(el);
@@ -719,7 +824,7 @@ export function createTestRunner() {
      * Assert an element is hidden
      * @param {string} selector - CSS selector
      */
-    assertHidden: selector => {
+    assertHidden: (selector: string): void => {
       const el = document.querySelector(selector);
       if (!el) return; // Not found = hidden
       const style = window.getComputedStyle(el);
@@ -736,13 +841,13 @@ export function createTestRunner() {
      * Get all test results
      * @returns {Array}
      */
-    getResults: () => results,
+    getResults: (): TestResult[] => results,
 
     /**
      * Get test summary
      * @returns {Object}
      */
-    getSummary: () => ({
+    getSummary: (): TestSummary => ({
       total: results.length,
       passed: results.filter(r => r.passed).length,
       failed: results.filter(r => !r.passed).length,
@@ -755,27 +860,29 @@ export function createTestRunner() {
 // Export for global access in browser
 // ============================================================================
 
+const RBACTestUtilsExport = {
+  Permissions,
+  RoleTemplates,
+  createMockUser,
+  userCan,
+  userCanAny,
+  userCanAll,
+  isSessionValid,
+  createSuccessResponse,
+  createErrorResponse,
+  create401Response,
+  create403Response,
+  create404Response,
+  create422Response,
+  create500Response,
+  createMockFetch,
+  setUserContext,
+  getUserContext,
+  hideElementsWithoutPermission,
+  showAccessDeniedMessage,
+  createTestRunner,
+};
+
 if (typeof window !== "undefined") {
-  window.RBACTestUtils = {
-    Permissions,
-    RoleTemplates,
-    createMockUser,
-    userCan,
-    userCanAny,
-    userCanAll,
-    isSessionValid,
-    createSuccessResponse,
-    createErrorResponse,
-    create401Response,
-    create403Response,
-    create404Response,
-    create422Response,
-    create500Response,
-    createMockFetch,
-    setUserContext,
-    getUserContext,
-    hideElementsWithoutPermission,
-    showAccessDeniedMessage,
-    createTestRunner,
-  };
+  window.RBACTestUtils = RBACTestUtilsExport;
 }

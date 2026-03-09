@@ -14,6 +14,7 @@ class CustomerImport implements ToModel
     private bool  $headerFound = false;
     private array $headerMap  = [];
 
+    /** @phpstan-return \App\Models\Customer|null */
     public function model(array $row): ?Customer
     {
         if (

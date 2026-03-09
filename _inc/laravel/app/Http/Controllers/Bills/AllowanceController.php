@@ -270,7 +270,7 @@ final class AllowanceController extends Controller
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
-    return $this->measureProfile($action, function () use ($req, $allowance, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($req, $allowance, $action, $method, $base) {
       Log::info("[{$base}::{$action}] called", ['allowance_id' => $allowance->id, 'method' => $method]);
       try {
         $redirStart = microtime(true);

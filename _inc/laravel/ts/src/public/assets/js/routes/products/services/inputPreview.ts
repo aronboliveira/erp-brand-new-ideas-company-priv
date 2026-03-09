@@ -15,16 +15,16 @@
       inp.setAttribute("data-preview-guarded", "true");
       inp.addEventListener("change", (): void => {
         try {
-          const targetId = inp.getAttribute("data-preview-target");
-          const img = targetId ? document.getElementById(targetId) : null;
-          const file = (inp as HTMLInputElement).files?.[0]
-            ? (inp as HTMLInputElement).files![0]
-            : null;
+          const targetId = inp.getAttribute("data-preview-target"),
+            img = targetId ? document.getElementById(targetId) : null,
+            file = (inp as HTMLInputElement).files?.[0]
+              ? (inp as HTMLInputElement).files![0]
+              : null;
           if (!img || !file) return;
           (img as HTMLImageElement).src = URL.createObjectURL(file);
         } catch (__err) {
-    console.error(`[inputPreview] Error:`, __err);
-  }
+          console.error(`[inputPreview] Error:`, __err);
+        }
       });
     });
   } catch (__err) {

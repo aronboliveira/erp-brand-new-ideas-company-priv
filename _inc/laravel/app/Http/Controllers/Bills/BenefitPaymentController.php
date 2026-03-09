@@ -54,7 +54,7 @@ final class BenefitPaymentController extends Controller
         $method = __METHOD__;
         $class  = static::class;
         $base   = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => Auth::id(), 'plan_id' => $req->input('plan_id'), 'coupon_raw' => $req->input('coupon'), 'method' => $method]);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             if ($r = self::authorizePerm($req, 'buy plan')) return $r;
@@ -144,7 +144,7 @@ final class BenefitPaymentController extends Controller
         $class = static::class;
         $base = class_basename($class);
         $request = $req;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             Log::info("[{$base}::{$action}] callback start", ['tap_id' => $request->input('tap_id'), 'plan' => $request->input('plan'), 'coupon' => $request->input('coupon'), 'method' => $method]);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             try {
@@ -229,7 +229,7 @@ final class BenefitPaymentController extends Controller
         $class = static::class;
         $base = class_basename($class);
         $request = $req;
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             Log::info("[{$base}::{$action}] start", ['invoice_id_enc' => $request->input('invoice_id'), 'amount' => $request->input('amount'), 'method' => $method]);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             try {
@@ -290,7 +290,7 @@ final class BenefitPaymentController extends Controller
         $class = static::class;
         $base = class_basename($class);
         $request = $req;
-        return $this->measureProfile($action, function () use ($request, $invoiceEncrypted, $amount, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $invoiceEncrypted, $amount, $action, $method, $base) {
             Log::info("[{$base}::{$action}] start", ['invoice_enc' => $invoiceEncrypted, 'tap_id' => $request->input('tap_id'), 'amount' => $amount, 'method' => $method]);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             try {
@@ -335,7 +335,7 @@ final class BenefitPaymentController extends Controller
                     ]);
                     $this->logExecutionTime($ipStart, $action, 'createInvoicePayment');
                     $stStart = microtime(true);
-                    $newDue = $invoice->getDue() - $amount;
+                    $newDue = $invoice->getDue() - (float) $amount;
                     Invoice::changeStatus($invoice->id, $newDue ? 2 : 3);
                     $this->logExecutionTime($stStart, $action, 'updateInvoiceStatus');
                     $balStart = microtime(true);

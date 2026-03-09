@@ -90,14 +90,16 @@ function main() {
   const langFiles = findFiles(routesDir, /[/\\]lang[/\\][^/\\]+\.ts$/);
   log(`Found ${langFiles.length} lang TS files`);
   if (!DRY_RUN) {
-    langFiles.forEach((f) => fs.unlinkSync(f));
+    langFiles.forEach(f => fs.unlinkSync(f));
     // Remove empty lang/ dirs
-    findFiles(routesDir, /[/\\]lang$/).forEach((d) => {
+    findFiles(routesDir, /[/\\]lang$/).forEach(d => {
       try {
         if (fs.statSync(d).isDirectory() && fs.readdirSync(d).length === 0) {
           fs.rmdirSync(d);
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     });
   }
   removed += langFiles.length;

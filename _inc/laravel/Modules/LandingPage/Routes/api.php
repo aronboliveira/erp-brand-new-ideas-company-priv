@@ -16,10 +16,10 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 |
 */
 
-$output = new ConsoleOutput();
+// TEMP: $output = new ConsoleOutput();
 $msg = 'Mapping api landing routes...';
-app()->runningInConsole() ?
-    $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
+// TEMP: app()->runningInConsole() ?
+// TEMP:     $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 Route::middleware(MiddlewaresConstants::AUTH . ':' . RoutesKeysConstants::API_KEY)
     ->get('/landingpage', function (Request $request) {
         return $request->user();

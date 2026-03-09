@@ -15,6 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class XSS
 {
     use ChecksLogin, MigrationsHelper, MeasuresPerformance;
+    protected const PERF_ENABLED = true;
 
     private const SCRIPT_CLASS       = 'xss-auth-fail-script';
     private const STATEFUL_METHODS   = ['POST', 'PUT', 'PATCH'];

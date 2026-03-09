@@ -10,11 +10,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-pdf-error";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-pdf-error";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
@@ -22,25 +22,23 @@
   const hasBootstrap = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs("#np-toast-container") as HTMLDivElement | null;
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
     const c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -49,19 +47,17 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, {
           autohide: true,
@@ -74,11 +70,9 @@
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (message: string): void=> {
+  const schedulePointerupError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -88,14 +82,14 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -136,9 +130,7 @@
     }
   };
   const ensureHtml2Pdf = (): boolean => {
-    if (typeof window.html2pdf === "function") {
-      return true;
-    }
+    if (typeof window.html2pdf === "function") return true;
     try {
       if (
         window.location.hostname === "localhost" ||
@@ -146,15 +138,13 @@
       )
         console.error("html2pdf unavailable");
     } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+      console.error(`[pdf] Error:`, _);
+    }
     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
     return false;
   };
-  const doSave = (el: HTMLElement | null): void=> {
-    if (!ensureHtml2Pdf()) {
-      return;
-    }
+  const doSave = (el: HTMLElement | null): void => {
+    if (!ensureHtml2Pdf()) return;
     const area = document.getElementById("printableArea");
     if (!area) {
       schedulePointerupError(getMsg(document.body, "pdf_unavailable"));
@@ -176,12 +166,11 @@
       schedulePointerupError(getMsg(el ?? document.body, "pdf_unavailable"));
     }
   };
-  if (!window.saveAsPDF) {
+  if (!window.saveAsPDF)
     window.saveAsPDF = function (): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      doSave(this || document.body);
+      doSave(document.body);
     };
-  }
 })();
 
 export {};

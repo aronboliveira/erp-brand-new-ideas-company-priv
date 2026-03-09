@@ -2,14 +2,145 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = lf
-insert_final_newline = true
 indent_style = space
 indent_size = 2
+tab_width = 2
+end_of_line = lf
 trim_trailing_whitespace = true
+insert_final_newline = false
+max_line_length = 120
+
+[*.php]
+indent_size = 4
+tab_width = 4
+insert_final_newline = true
+max_line_length = 120
+
+[*.blade.php]
+indent_size = 4
+tab_width = 4
+insert_final_newline = true
+max_line_length = 120
+
+[*.stub]
+indent_size = 4
+tab_width = 4
+insert_final_newline = true
+
+[*.{js,mjs,cjs}]
+indent_size = 2
+tab_width = 2
+insert_final_newline = true
+max_line_length = off
+
+[*.{ts,tsx}]
+indent_size = 2
+tab_width = 2
+insert_final_newline = true
+max_line_length = off
+
+[tsconfig*.json]
+indent_size = 2
+insert_final_newline = true
+
+[*.css]
+indent_size = 2
+insert_final_newline = true
+max_line_length = 120
+
+[*.{scss,sass}]
+indent_size = 2
+insert_final_newline = true
+max_line_length = 120
+
+[*.html]
+indent_size = 2
+insert_final_newline = true
+max_line_length = off
+
+[*.{json,jsonc}]
+indent_size = 2
+insert_final_newline = true
+max_line_length = off
+
+[*.webmanifest]
+indent_size = 2
+insert_final_newline = true
 
 [*.{yml,yaml}]
 indent_size = 4
+insert_final_newline = true
+
+[*.neon]
+indent_size = 4
+insert_final_newline = true
 
 [*.py]
-indent_size= 2
+indent_size = 4
+tab_width = 4
+insert_final_newline = true
+max_line_length = 160
+
+[*.sh]
+indent_size = 2
+tab_width = 2
+insert_final_newline = true
+max_line_length = 120
+
+[*.xml]
+indent_size = 4
+insert_final_newline = true
+max_line_length = off
+
+[*.svg]
+indent_size = 2
+insert_final_newline = true
+max_line_length = off
+
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = true
+max_line_length = off
+
+[*.ini]
+indent_size = 4
+insert_final_newline = true
+
+[*.{env,example}]
+insert_final_newline = true
+
+[*.tf]
+indent_size = 2
+insert_final_newline = true
+max_line_length = 120
+
+[*.sql]
+indent_size = 2
+insert_final_newline = true
+max_line_length = 120
+
+[*.toml]
+indent_size = 2
+insert_final_newline = true
+
+[*.csv]
+trim_trailing_whitespace = false
+insert_final_newline = false
+max_line_length = off
+
+[*.{ico,jpg,jpeg,png,gif,webp,webm,zip}]
+charset = unset
+end_of_line = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.{eot,otf,ttf,woff,woff2}]
+charset = unset
+end_of_line = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.map]
+trim_trailing_whitespace = false
+insert_final_newline = false
+max_line_length = off

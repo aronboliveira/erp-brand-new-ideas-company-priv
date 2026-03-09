@@ -30,6 +30,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+/**
+ * @property bool|null $is_signed
+ * @property string|\Illuminate\Support\Carbon|null $signed_at
+ * @property mixed $requests_signature
+ */
 class Estimation extends Model
 {
     use UsesUuids,
@@ -489,7 +494,10 @@ class Estimation extends Model
         }
     }
 
-    public function getProducts(): Collection
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function getProducts()
     {
         return $this->products();
     }
@@ -514,7 +522,7 @@ class Estimation extends Model
             return (float) ($this->amount ?? 0.0);
 
         return (float) $items->sum(
-            fn($product): float => (float) $product->pivot->price * (float) $product->pivot->quantity
+            fn($product): float => (float) $product->pivot->price * (float) $product->pivot->quantity // @phpstan-ignore property.notFound, property.notFound
         );
     }
 

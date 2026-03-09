@@ -14,30 +14,26 @@
     s: string,
     r: Document | Element = document,
   ): T | null => r.querySelector<T>(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const _dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-err-guard";
-  const dataFilterGuard = "data-filter-guard";
-  const dataPrintGuard = "data-print-guard";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    _dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-err-guard",
+    dataFilterGuard = "data-filter-guard",
+    dataPrintGuard = "data-print-guard";
   const ensureToastContainer = (): HTMLElement => {
-    const id = "np-toast-container";
-    const existing = qs<HTMLElement>("#" + id);
-    if (existing) {
-      return existing;
-    }
+    const id = "np-toast-container",
+      existing = qs<HTMLElement>("#" + id);
+    if (existing) return existing;
     const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
@@ -50,19 +46,17 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs<HTMLElement>(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -75,11 +69,9 @@
   const scheduleInteractiveError = (
     message: string,
     evt: keyof HTMLElementEventMap = "click",
-  ): void=> {
+  ): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -89,14 +81,14 @@
       }
     };
     document.addEventListener(evt, once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener(evt, once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -104,9 +96,8 @@
     if (
       el.getAttribute("data-sv-localized") === "true" ||
       el.getAttribute(dataClientLocalized) === "true"
-    ) {
+    )
       return el.getAttribute(dataGuardMsg) || err;
-    }
     let lang = (
       window.sessionStorage.getItem("erp-np-lang") ??
       document.documentElement.lang ??
@@ -151,8 +142,8 @@
           )
             console.error("html2pdf unavailable");
         } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+          console.error(`[pdf] Error:`, _);
+        }
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
       }
@@ -173,16 +164,14 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+        console.error(`[pdf] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "toggle_unavailable"));
       return;
     }
-    const btn = document.getElementById("filter");
-    const panel = document.getElementById("show_filter");
-    if (!btn || btn.getAttribute(dataFilterGuard) === "true") {
-      return;
-    }
+    const btn = document.getElementById("filter"),
+      panel = document.getElementById("show_filter");
+    if (!btn || btn.getAttribute(dataFilterGuard) === "true") return;
     btn.setAttribute(dataFilterGuard, "true");
     const handler = function (this: HTMLElement): void {
       try {
@@ -196,7 +185,7 @@
       }
     };
     $(btn).on("click", handler);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(btn)) {
         $(btn).off("click", handler);
         o.disconnect();
@@ -206,27 +195,25 @@
   };
   const ensurePrintHandlers = (): void => {
     const root = document.documentElement;
-    if (root.getAttribute(dataPrintGuard) === "true") {
-      return;
-    }
+    if (root.getAttribute(dataPrintGuard) === "true") return;
     root.setAttribute(dataPrintGuard, "true");
     const back = (): void => {
       try {
         window.close();
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+        console.error(`[pdf] Error:`, _);
+      }
       try {
         window.history.back();
       } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+        console.error(`[pdf] Error:`, _);
+      }
     };
     try {
       window.addEventListener("afterprint", back, { once: true });
     } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+      console.error(`[pdf] Error:`, _);
+    }
     const doPrint = (): void => {
       try {
         window.print();
@@ -244,11 +231,9 @@
     bindFilterToggle();
     ensurePrintHandlers();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

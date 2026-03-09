@@ -14,6 +14,9 @@ use App\Traits\{
 };
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
+/**
+ * @property string|null $role
+ */
 class EventEmployee extends Model
 {
     use HasAuditFields;

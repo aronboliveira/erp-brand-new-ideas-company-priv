@@ -679,7 +679,7 @@ class DealController extends Controller
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $clients = array_filter($request->clients ?? []);
         $txnStart = microtime(true);
-        DB::transaction(function () use ($deal, $clients, $action, $class) {
+        DB::transaction(function () use ($deal, $clients, $action) {
           $assignStart = microtime(true);
           foreach ($clients as $cid) ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $cid]);
           $this->logExecutionTime($assignStart, $action, 'assignClientsLoop');

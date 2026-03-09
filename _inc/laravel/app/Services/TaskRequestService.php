@@ -94,7 +94,7 @@ class TaskRequestService
 		$last = count($datasets) - 1;
 		if ($last >= 0) {
 			if (isset($datasets[$last]['fill'])) {
-				unset($datasets[$last]['fill']);
+				unset($datasets[$last]['fill']); // @phpstan-ignore-line
 			}
 			$datasets[$last]['backgroundColor'] = '#ccc';
 		}

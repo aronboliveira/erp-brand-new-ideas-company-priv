@@ -7,71 +7,68 @@
 ((): void => {
   try {
     const backLink = document.getElementById("pos-barcode-back-link");
-    if (!backLink) {
-      return;
-    }
-    if (backLink.getAttribute("data-listener-active") === "true") {
-      return;
-    }
+    if (!backLink) return;
+    if (backLink.getAttribute("data-listener-active") === "true") return;
     backLink.setAttribute("data-listener-active", "true");
 
-    backLink.addEventListener("click", (e: Event) => {
-      try {
-        const href = backLink.getAttribute("href") ?? "#";
-        const url = backLink.getAttribute("data-url") ?? "#";
-        if (url !== "#" && href !== "#") {
-          return;
+    if (!backLink.getAttribute("data-listener-bound-click")) {
+      backLink.setAttribute("data-listener-bound-click", "1");
+      backLink.addEventListener("click", (e: Event) => {
+        try {
+          const href = backLink.getAttribute("href") ?? "#",
+            url = backLink.getAttribute("data-url") ?? "#";
+          if (url !== "#" && href !== "#") return;
+          e.preventDefault();
+
+          const msg =
+              backLink.getAttribute("data-guard-msg") ??
+              "POS barcode route is unavailable. Please contact technical support or your domain administrator.",
+            hasBootstrap = !!(
+              document.querySelector('link[href*="bootstrap"]') &&
+              window.bootstrap
+            );
+          let container = document.getElementById("toast-container");
+          if (!container) {
+            container = document.createElement("div");
+            container.id = "toast-container";
+            container.className =
+              "toast-container position-fixed top-0 end-0 p-3";
+            container.style.zIndex = "1080";
+            document.body.appendChild(container);
+          }
+
+          if (hasBootstrap) {
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            for (const [k, v] of Object.entries({
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toast.setAttribute(k, v);
+            const body = document.createElement("div");
+            body.className = "toast-body";
+            body.textContent = msg;
+            toast.appendChild(body);
+            container.appendChild(toast);
+            bootstrap.Toast.getOrCreateInstance(toast).show();
+          } else {
+            alert(msg);
+          }
+
+          backLink.setAttribute("data-failed-route", "true");
+        } catch (err) {
+          console.error(`[barcode] Error:`, err);
         }
-        e.preventDefault();
-
-        const msg =
-          backLink.getAttribute("data-guard-msg") ??
-          "POS barcode route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-
-        if (hasBootstrap) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-
-        backLink.setAttribute("data-failed-route", "true");
-      } catch (err) {
-    console.error(`[barcode] Error:`, err);
-  }
-    });
+      });
+    }
   } catch (err) {
     console.error(`[barcode] Error:`, err);
   }
 })();
 /* assets/js/routes/posBarcodes/guard.js */
 ((): void => {
-  const toast = (msg: string): void=> {
+  const toast = (msg: string): void => {
     try {
       if (window.bootstrap.Toast) {
         const c =
@@ -85,11 +82,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -104,18 +101,22 @@
     }
   };
 
-  const bindGuard = (el: HTMLElement | null): void=> {
+  const bindGuard = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute("data-listener-active") === "true") return;
     el.setAttribute("data-listener-active", "true");
-    el.addEventListener("click", (e: Event) => {
-      const url =
-        (el.getAttribute("href") || el.getAttribute("data-url")) ?? "#";
-      if (!url || url === "#") {
-        e.preventDefault();
-        const msg = el.getAttribute("data-guard-msg") ?? "Action unavailable.";
-        toast(msg);
-      }
-    });
+    if (!el.getAttribute("data-listener-bound-click")) {
+      el.setAttribute("data-listener-bound-click", "1");
+      el.addEventListener("click", (e: Event) => {
+        const url =
+          (el.getAttribute("href") || el.getAttribute("data-url")) ?? "#";
+        if (!url || url === "#") {
+          e.preventDefault();
+          const msg =
+            el.getAttribute("data-guard-msg") ?? "Action unavailable.";
+          toast(msg);
+        }
+      });
+    }
   };
 
   bindGuard(document.getElementById("pos-print"));
@@ -123,7 +124,7 @@
 })();
 
 (function (): void {
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       let c = document.getElementById("toast-container");
       if (!c) {
@@ -135,11 +136,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;

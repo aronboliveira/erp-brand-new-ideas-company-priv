@@ -10,12 +10,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-pusher-error";
-  const dataInitGuard = "data-pusher-initialized";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-pusher-error",
+    dataInitGuard = "data-pusher-initialized";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | HTMLElement = document) =>
     r.querySelector(s);
@@ -35,9 +35,7 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
@@ -50,11 +48,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -82,7 +80,7 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
@@ -138,20 +136,19 @@
         try {
           console.error("Pusher library unavailable");
         } catch (_) {
-    console.error(`[pusher] Error:`, _);
-  }
+          console.error(`[pusher] Error:`, _);
+        }
         schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
         return;
       }
       try {
         (window.Pusher as Record<string, unknown>).logToConsole = true;
       } catch (_) {
-    console.error(`[pusher] Error:`, _);
-  }
-      const key = "{{ config('chatify.pusher.key') }}" as string;
-      const cluster =
-        "{{ config('chatify.pusher.options.cluster') }}" as string;
-      const authEndpoint = '{{route("pusher.auth")}}' as string;
+        console.error(`[pusher] Error:`, _);
+      }
+      const key = "{{ config('chatify.pusher.key') }}" as string,
+        cluster = "{{ config('chatify.pusher.options.cluster') }}" as string,
+        authEndpoint = '{{route("pusher.auth")}}' as string;
       if (!key || key === "#" || !cluster || cluster === "#") {
         schedulePointerupError(getMsg(document.body, "pusher_unavailable"));
         return;
@@ -185,11 +182,9 @@
       schedulePointerupError(getMsg(document.body, "pusher_unavailable"));
     }
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initPusher, { once: true });
-  } else {
-    initPusher();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initPusher, { once: true })
+    : initPusher();
 })();
 
 export {};

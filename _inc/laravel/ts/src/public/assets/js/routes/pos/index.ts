@@ -4,19 +4,10 @@
  * @module index
  */
 
-interface PosCartResponse {
-  ok?: boolean;
-  subtotal_formatted?: string;
-  total_formatted?: string;
-}
-
-interface ProductItem {
-  id: string | number;
-  name?: string;
-  price?: string | number;
-  price_formatted?: string;
-  add_label?: string;
-}
+import type {
+  PosCartResponse,
+  ProductItem,
+} from "../../../../../declarations/routes/ajax-responses.interfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -24,10 +15,9 @@ interface ProductItem {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
   const q = (s: string, r: Document | Element = document): HTMLElement | null =>
-    r.querySelector(s);
-  const qa = (s: string, r: Document | Element = document): Element[] =>
-    Array.from(r.querySelectorAll(s));
-
+      r.querySelector(s),
+    qa = (s: string, r: Document | Element = document): Element[] =>
+      Array.from(r.querySelectorAll(s));
   const getLangCode = (): string =>
     (
       sessionStorage.getItem("erp-np-lang") ??
@@ -37,8 +27,8 @@ interface ProductItem {
       .replace(/_/g, "-");
 
   const translate = (key: string, fallback: string): string => {
-    const lc = getLangCode();
-    const base = lc.slice(0, 2);
+    const lc = getLangCode(),
+      base = lc.slice(0, 2);
     return (
       window.translations?.[lc]?.[key] ||
       window.translations?.[base]?.[key] ||
@@ -61,15 +51,15 @@ interface ProductItem {
   };
 
   const toast = (msg: string, variant = "danger"): void => {
-    const wrap = ensureToastContainer();
-    const node = document.createElement("div");
+    const wrap = ensureToastContainer(),
+      node = document.createElement("div");
     node.className = `toast align-items-center text-bg-${variant} border-0`;
     for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  node.setAttribute(k, v);
+      role: "alert",
+      "aria-live": "assertive",
+      "aria-atomic": "true",
+    }))
+      node.setAttribute(k, v);
     node.innerHTML =
       `<div class="d-flex"><div class="toast-body">${msg}</div>` +
       `<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
@@ -95,8 +85,8 @@ interface ProductItem {
           toast(guardMsg(searchInput, "search_products_unavailable"));
           return;
         }
-        const qv = (e.target as HTMLInputElement | null)?.value.trim();
-        const list = q("#product-listing");
+        const qv = (e.target as HTMLInputElement | null)?.value.trim(),
+          list = q("#product-listing");
         if (!qv) {
           if (list) list.innerHTML = "";
           return;
@@ -192,15 +182,15 @@ interface ProductItem {
     input: HTMLInputElement,
     delta = 0,
   ): Promise<void> => {
-    const row = input.closest("tr[data-product-id]");
-    const url = input.getAttribute("data-url") ?? "#";
+    const row = input.closest("tr[data-product-id]"),
+      url = input.getAttribute("data-url") ?? "#";
     if (url === "#") {
       toast(guardMsg(input, "update_cart_unavailable"));
       return;
     }
-    const id = input.getAttribute("data-id");
-    const current = Number(input.value || 1);
-    const next = Math.max(1, current + delta);
+    const id = input.getAttribute("data-id"),
+      current = Number(input.value || 1),
+      next = Math.max(1, current + delta);
     if (next === current && delta === 0) {
       toast(translate("nothing_to_update", "Nothing to update."), "secondary");
       return;
@@ -219,17 +209,20 @@ interface ProductItem {
   };
 
   qa("#tbody").forEach(tbody => {
-    tbody.addEventListener("click", (e: Event) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const minus = target.closest(".minus");
-      const plus = target.closest(".plus");
-      if (!minus && !plus) return;
-      const input = target
-        .closest("tr")
-        ?.querySelector('input[name="quantity"]') as HTMLInputElement | null;
-      if (input) void changeQty(input, minus ? -1 : 1);
-    });
+    if (!tbody.getAttribute("data-listener-bound-click")) {
+      tbody.setAttribute("data-listener-bound-click", "1");
+      tbody.addEventListener("click", (e: Event) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        const minus = target.closest(".minus"),
+          plus = target.closest(".plus");
+        if (!minus && !plus) return;
+        const input = target
+          .closest("tr")
+          ?.querySelector('input[name="quantity"]') as HTMLInputElement | null;
+        if (input) void changeQty(input, minus ? -1 : 1);
+      });
+    }
     tbody.addEventListener("change", (e: Event) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -249,18 +242,17 @@ interface ProductItem {
     anchor.dataset.bound = "1";
     anchor.addEventListener("click", (ev: Event) => {
       ev.preventDefault();
-      const targetFormId = anchor.getAttribute("data-confirm-yes");
-      const form = targetFormId
-        ? (document.getElementById(targetFormId) as HTMLFormElement | null)
-        : null;
+      const targetFormId = anchor.getAttribute("data-confirm-yes"),
+        form = targetFormId
+          ? (document.getElementById(targetFormId) as HTMLFormElement | null)
+          : null;
       if (!form) {
         toast(guardMsg(anchor, "remove_from_cart_unavailable"));
         return;
       }
-      const parts = (anchor.getAttribute("data-confirm") ?? "").split("|");
-      const title = parts[0] || "Are you sure?";
-      const body = parts[1] || "";
-
+      const parts = (anchor.getAttribute("data-confirm") ?? "").split("|"),
+        title = parts[0] || "Are you sure?",
+        body = parts[1] || "";
       if (window.bootstrap.Modal) {
         let modal = q("#" + modalId);
         if (!modal) {
@@ -278,8 +270,8 @@ interface ProductItem {
           modal = q("#" + modalId);
         }
         if (modal) {
-          const modalTitle = modal.querySelector(".modal-title");
-          const modalBody = modal.querySelector(".modal-body");
+          const modalTitle = modal.querySelector(".modal-title"),
+            modalBody = modal.querySelector(".modal-body");
           if (modalTitle) modalTitle.textContent = title;
           if (modalBody) modalBody.textContent = body;
         }
@@ -289,7 +281,10 @@ interface ProductItem {
             yes.removeEventListener("click", handler);
             form.submit();
           };
-          yes.addEventListener("click", handler);
+          if (!yes.getAttribute("data-listener-bound-click")) {
+            yes.setAttribute("data-listener-bound-click", "1");
+            yes.addEventListener("click", handler);
+          }
         }
         if (modal) new window.bootstrap.Modal(modal).show();
       } else {
@@ -303,13 +298,16 @@ interface ProductItem {
   });
   const payBtn = q("#btn-pur button.btn-primary[data-url]");
   if (payBtn) {
-    payBtn.addEventListener("click", (e: Event) => {
-      const u = payBtn.getAttribute("data-url") ?? "#";
-      if (u === "#") {
-        e.preventDefault();
-        toast(guardMsg(payBtn, "pos_create_unavailable"));
-      }
-    });
+    if (!payBtn.getAttribute("data-listener-bound-click")) {
+      payBtn.setAttribute("data-listener-bound-click", "1");
+      payBtn.addEventListener("click", (e: Event) => {
+        const u = payBtn.getAttribute("data-url") ?? "#";
+        if (u === "#") {
+          e.preventDefault();
+          toast(guardMsg(payBtn, "pos_create_unavailable"));
+        }
+      });
+    }
   }
   const emptyBtn = q(".btn-empty .btn-danger[data-confirm-yes]");
   if (emptyBtn)

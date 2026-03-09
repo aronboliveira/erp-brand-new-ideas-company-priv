@@ -5,9 +5,9 @@
  */
 
 /* global $, jQuery */
-// @ts-check
-const { test, expect } = require("@playwright/test");
-const path = require("path");
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import path from "path";
+import type { AssertPageOptions } from "../../declarations/tests/e2e.interfaces";
 
 /**
  * ERP Prestech – Finance Module Rendering E2E Tests
@@ -30,11 +30,16 @@ test.use({ storageState: STORAGE_STATE });
 
 test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async (): void => {
-    const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
-  });
+  page.addLocatorHandler(
+    page.locator("#cc--main, .c--anim"),
+    async (): Promise<void> => {
+      const btn = page
+        .locator('#c-p-bn, .c-bn, [data-cc="accept-all"]')
+        .first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
+        await btn.click({ force: true });
+    },
+  );
 });
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
@@ -48,8 +53,13 @@ test.beforeEach(async ({ page }) => {
  *  3. At least one rendering primitive (table / card / canvas / form)
  *  4. Table headers present when a table exists
  */
-async function assertFinanceRenders(page, route, label): Promise<void> {
-  await test.step(`Navigate to ${label}`, async (): void => {
+async function assertFinanceRenders(
+  page: Page,
+  route: string,
+  label: string,
+  _opts: AssertPageOptions = {},
+): Promise<void> {
+  await test.step(`Navigate to ${label}`, async (): Promise<void> => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
       timeout: 45000,
@@ -60,7 +70,7 @@ async function assertFinanceRenders(page, route, label): Promise<void> {
       .catch((): void => {});
   });
 
-  await test.step("Layout container visible", async (): void => {
+  await test.step("Layout container visible", async (): Promise<void> => {
     const layout = page
       .locator(
         ".dash-content, .dash-container, main, #app, .wrapper, .content-wrapper, .main-content, .container-fluid, .pcoded-content, body",
@@ -69,7 +79,7 @@ async function assertFinanceRenders(page, route, label): Promise<void> {
     await expect(layout).toBeVisible({ timeout: 15000 });
   });
 
-  await test.step("Has table / card / canvas / form", async (): void => {
+  await test.step("Has table / card / canvas / form", async (): Promise<void> => {
     const content = page.locator(
       [
         "table",
@@ -85,12 +95,11 @@ async function assertFinanceRenders(page, route, label): Promise<void> {
   });
 
   const tables = page.locator(
-    "table.datatable, table.dataTable-table, table.table, .table-responsive table, .card-body table",
-  );
-  const tableCount = await tables.count();
-
+      "table.datatable, table.dataTable-table, table.table, .table-responsive table, .card-body table",
+    ),
+    tableCount = await tables.count();
   if (tableCount > 0) {
-    await test.step("Table has headers", async (): void => {
+    await test.step("Table has headers", async (): Promise<void> => {
       const hdr = tables
         .first()
         .locator("thead th, thead td, tr:first-child th");
@@ -140,10 +149,16 @@ test.describe("Accounts Receivable – Rendering", (): void => {
       waitUntil: "commit",
       timeout: 30000,
     });
-    expect(resp?.status(), "credit_notes/invoice HTTP status").toBeLessThan(400);
+    expect(resp?.status(), "credit_notes/invoice HTTP status").toBeLessThan(
+      400,
+    );
     const body = await resp?.text();
     // Endpoint returns JSON with a "due" key
-    try { expect(() => JSON.parse(body ?? "")).not.toThrow(); } catch (_jsonErr) { console.error("JSON parse failed", _jsonErr); }
+    try {
+      expect(() => JSON.parse(body ?? "")).not.toThrow();
+    } catch (_jsonErr) {
+      console.error("JSON parse failed", _jsonErr);
+    }
   });
 });
 

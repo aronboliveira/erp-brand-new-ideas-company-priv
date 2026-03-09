@@ -157,7 +157,7 @@ class PurchasePayment extends Model
             return (float) static::$totalPaidCache[$purchaseId];
 
         try {
-            $sum = (float) DB::table((new static)->getTable())
+            $sum = (float) DB::table((new static)->getTable()) // @phpstan-ignore new.static
                 ->where(BC::COL_PRC_ID, $purchaseId)
                 ->sum('amount');
 

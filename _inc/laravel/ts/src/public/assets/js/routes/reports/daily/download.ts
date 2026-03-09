@@ -15,8 +15,8 @@
             el.setAttribute(alias, "true");
             el.addEventListener("click", event => {
               try {
-                const url = el.getAttribute("href") ?? "";
-                const funcName = el.getAttribute("data-func-name") ?? "";
+                const url = el.getAttribute("href") ?? "",
+                  funcName = el.getAttribute("data-func-name") ?? "";
                 if (url !== "#" || !funcName) return;
                 event.preventDefault();
                 const fn = (window as unknown as Record<string, unknown>)[
@@ -47,16 +47,16 @@
                     toastEl.className =
                       "toast align-items-center text-bg-danger border-0";
                     for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+                      role: "alert",
+                      "aria-live": "assertive",
+                      "aria-atomic": "true",
+                    }))
+                      toastEl.setAttribute(k, v);
                     toastEl.innerHTML =
                       '<div class="d-flex"><div class="toast-body">' +
                       msg +
                       '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-                    (container).appendChild(toastEl);
+                    container.appendChild(toastEl);
                     new bootstrap.Toast(toastEl, { delay: 5000 }).show();
                   } else {
                     alert(msg);
@@ -65,13 +65,13 @@
                 }
                 (fn as () => void)();
               } catch (__err) {
-    console.error(`[download] Error:`, __err);
-  }
+                console.error(`[download] Error:`, __err);
+              }
             });
           }
         } catch (__err) {
-    console.error(`[download] Error:`, __err);
-  }
+          console.error(`[download] Error:`, __err);
+        }
       });
   } catch (__err) {
     console.error(`[download] Error:`, __err);

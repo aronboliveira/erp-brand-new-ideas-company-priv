@@ -31,16 +31,16 @@
             const el = document.createElement("div");
             el.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              el.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
             el.appendChild(body);
-            (c).appendChild(el);
+            c.appendChild(el);
             window.bootstrap.Toast.getOrCreateInstance(el).show();
           } else {
             alert(msg);

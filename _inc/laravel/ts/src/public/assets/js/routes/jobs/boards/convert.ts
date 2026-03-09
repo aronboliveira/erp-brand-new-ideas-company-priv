@@ -17,18 +17,18 @@
           try {
             bootstrap.Tooltip.getOrCreateInstance(el);
           } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+            console.error(`[convert] Error:`, _);
+          }
         });
       } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+        console.error(`[convert] Error:`, _);
+      }
     };
   const L = (): void => {
     QA('input[type="file"][data-filename]').forEach(el => {
-      const i = el as HTMLInputElement;
-      const c = i.getAttribute("data-filename");
-      const o = c ? Q(`.${c}`) : null;
+      const i = el as HTMLInputElement,
+        c = i.getAttribute("data-filename"),
+        o = c ? Q(`.${c}`) : null;
       const set = (): void => {
         if (o) o.textContent = i.files?.[0]?.name ?? "";
       };
@@ -53,7 +53,7 @@
     if (typeof d === "object")
       return Object.keys(d).map(k => ({
         id: k,
-        name: String((d as Record<string, unknown>)[k]),
+        name: String((d as unknown as Record<string, unknown>)[k]),
       }));
     return [];
   };
@@ -85,8 +85,8 @@
         jQ(sel).trigger("change.select2");
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+      console.error(`[convert] Error:`, _);
+    }
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const C = () => {
@@ -94,11 +94,13 @@
       s = Q("#designation_id") as HTMLSelectElement | null;
     if (!d || !s) return;
     const url =
-      (s.getAttribute("data-url") || d.getAttribute("data-designation-url")) ??
-      "#";
-    const _guard =
-      (s.getAttribute("data-guard-msg") || d.getAttribute("data-guard-msg")) ??
-      "";
+        (s.getAttribute("data-url") ||
+          d.getAttribute("data-designation-url")) ??
+        "#",
+      _guard =
+        (s.getAttribute("data-guard-msg") ||
+          d.getAttribute("data-guard-msg")) ??
+        "";
     const csrf =
       ((
         document.querySelector(
@@ -150,8 +152,8 @@
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         P(s, res?.data ?? res ?? []);
       } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+        console.error(`[convert] Error:`, _);
+      }
     };
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     d.addEventListener("change", () => load(d.value));

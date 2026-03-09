@@ -51,6 +51,15 @@ abstract class AbstractFile extends Model
 
 	protected $fillable = [...self::ABSTRACT_FILE_FILLABLE];
 
+	/**
+	 * Return the base set of fillable fields for child classes to extend.
+	 * @return array<int, string>
+	 */
+	protected static function fillableFields(): array
+	{
+		return self::ABSTRACT_FILE_FILLABLE;
+	}
+
 	protected const ABSTRACT_FILE_GUARDED = ['id', DC::COL_TABLE_CREATOR];
 
 	protected $guarded = [...self::ABSTRACT_FILE_GUARDED];
@@ -395,7 +404,7 @@ abstract class AbstractFile extends Model
 
 		try {
 			$dt = $exp instanceof \DateTimeInterface
-				? $exp
+				? \Illuminate\Support\Carbon::instance($exp)
 				: \Illuminate\Support\Carbon::parse((string) $exp);
 
 			return $dt->isPast();

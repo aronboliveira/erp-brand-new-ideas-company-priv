@@ -12,6 +12,14 @@ use App\Enums\UserType;
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Casts\Attribute, Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\{Carbon, Facades\Log, Str};
+/**
+ * @property mixed $created_by
+ * @property string|null $deleteUrl
+ * @property string|null $updateUrl
+
+ * @property mixed $delete
+ * @property mixed $update
+ */
 
 class TaskChecklist extends Model
 {

@@ -207,4 +207,10 @@ class SupportReply extends Model
         $this->setAttribute(MC::COL_RD_AT, $when ?: now());
         return $this;
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\User, $this> */
+    public function users(): BelongsTo
+    {
+        return $this->user();
+    }
 }

@@ -26,6 +26,7 @@ trait ExtendsPaymentTable
 	protected static function bootExtendsPaymentTable(): void
 	{
 		try {
+			/** @phpstan-ignore new.static */
 			$instance = new static;
 
 			if (!static::$extendsPaymentInitialized) {
@@ -54,7 +55,8 @@ trait ExtendsPaymentTable
 			}
 
 			static::saved(function (Model $model) {
-				$model->handleExtendsPaymentSaved();
+				if (method_exists($model, 'handleExtendsPaymentSaved'))
+					$model->handleExtendsPaymentSaved();
 			});
 
 			Log::debug('ExtendsPaymentTable::bootExtendsPayment - Trait booted successfully', [

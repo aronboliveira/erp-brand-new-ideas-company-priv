@@ -291,8 +291,8 @@ class Expense extends Model
             if (!$taxes) return self::$localCache[$k] = 0.0;
 
             if (class_exists(Tax::class)) {
-                $ids = array_values(array_filter($taxes, fn($v) => is_string($v) && self::looksLikeUuid($v)));
-                $names = array_values(array_filter($taxes, fn($v) => is_string($v) && !self::looksLikeUuid($v)));
+                $ids = array_values(array_filter($taxes, fn($v) => is_string($v) && Utility::looksLikeUuid($v)));
+                $names = array_values(array_filter($taxes, fn($v) => is_string($v) && !Utility::looksLikeUuid($v)));
 
                 $q = Tax::query();
                 if ($ids) $q->orWhereIn('id', $ids);

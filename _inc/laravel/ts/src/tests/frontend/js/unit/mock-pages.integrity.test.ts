@@ -29,9 +29,8 @@ describe("Frontend mock page integrity", (): void => {
       const html = readText(file);
       for (const ref of getHtmlLocalReferences(html)) {
         const resolved = resolveLocalReference(file, ref);
-        if (resolved && !fs.existsSync(resolved)) {
+        if (resolved && !fs.existsSync(resolved))
           missing.push(`${toRepoRelative(file)} -> ${ref}`);
-        }
       }
     }
 
@@ -42,13 +41,11 @@ describe("Frontend mock page integrity", (): void => {
     const unstyled = [];
 
     for (const file of mockPages) {
-      const html = readText(file);
-      const hasStylesheet = /<link[^>]+rel=["']stylesheet["']/i.test(html);
-      const hasInlineStyles = /<style[\s>]/i.test(html);
-
-      if (!hasStylesheet && !hasInlineStyles) {
+      const html = readText(file),
+        hasStylesheet = /<link[^>]+rel=["']stylesheet["']/i.test(html),
+        hasInlineStyles = /<style[\s>]/i.test(html);
+      if (!hasStylesheet && !hasInlineStyles)
         unstyled.push(toRepoRelative(file));
-      }
     }
 
     expect(unstyled).toEqual([]);
@@ -58,12 +55,10 @@ describe("Frontend mock page integrity", (): void => {
     const suspicious = [];
 
     for (const file of mockPages) {
-      const dom = new DOMParser().parseFromString(readText(file), "text/html");
-      const text = (dom.body.textContent).replace(/\s+/g, " ").trim();
-
-      if (!text || text.length < 30 || /^[\d\s.,:/-]+$/.test(text)) {
+      const dom = new DOMParser().parseFromString(readText(file), "text/html"),
+        text = dom.body.textContent.replace(/\s+/g, " ").trim();
+      if (!text || text.length < 30 || /^[\d\s.,:/-]+$/.test(text))
         suspicious.push(toRepoRelative(file));
-      }
     }
 
     expect(suspicious).toEqual([]);

@@ -20,17 +20,17 @@
           "submit",
           function (e: Event) {
             try {
-              const action = form.getAttribute("action") ?? "#";
-              const url = form.getAttribute("data-url") ?? "#";
+              const action = form.getAttribute("action") ?? "#",
+                url = form.getAttribute("data-url") ?? "#";
               if (action !== "#" && url !== "#") return;
               e.preventDefault();
               const msg =
-                form.getAttribute("data-guard-msg") ??
-                "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
-              const linkEl = document.querySelector('link[href*="bootstrap"]');
-              const hasBootstrapToast =
-                window.bootstrap &&
-                typeof window.bootstrap.Toast === "function";
+                  form.getAttribute("data-guard-msg") ??
+                  "Trial balance report route is unavailable. Please contact technical support or your domain administrator.",
+                linkEl = document.querySelector('link[href*="bootstrap"]'),
+                hasBootstrapToast =
+                  window.bootstrap &&
+                  typeof window.bootstrap.Toast === "function";
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
@@ -45,11 +45,11 @@
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                  role: "alert",
+                  "aria-live": "assertive",
+                  "aria-atomic": "true",
+                }))
+                  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -60,8 +60,8 @@
                   try {
                     toast.remove();
                   } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+                    console.error(`[index] Error:`, _);
+                  }
                 });
                 inst.show();
               } else {
@@ -69,8 +69,8 @@
               }
               form.setAttribute("data-failed-route", "true");
             } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+              console.error(`[index] Error:`, _);
+            }
           },
           { passive: false },
         );
@@ -91,22 +91,20 @@
           function (e: Event) {
             try {
               e.preventDefault();
-              const targetId = apply.getAttribute("data-target-form") ?? "";
-              const f = targetId ? document.getElementById(targetId) : null;
+              const targetId = apply.getAttribute("data-target-form") ?? "",
+                f = targetId ? document.getElementById(targetId) : null;
               if (!f) return;
-              const action = f.getAttribute("action") ?? "#";
-              const url = f.getAttribute("data-url") ?? "#";
+              const action = f.getAttribute("action") ?? "#",
+                url = f.getAttribute("data-url") ?? "#";
               if (action === "#" || url === "#") {
                 const msg =
-                  apply.getAttribute("data-guard-msg") ??
-                  f.getAttribute("data-guard-msg") ??
-                  "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
-                const linkEl = document.querySelector(
-                  'link[href*="bootstrap"]',
-                );
-                const hasBootstrapToast =
-                  window.bootstrap &&
-                  typeof window.bootstrap.Toast === "function";
+                    apply.getAttribute("data-guard-msg") ??
+                    f.getAttribute("data-guard-msg") ??
+                    "Trial balance report route is unavailable. Please contact technical support or your domain administrator.",
+                  linkEl = document.querySelector('link[href*="bootstrap"]'),
+                  hasBootstrapToast =
+                    window.bootstrap &&
+                    typeof window.bootstrap.Toast === "function";
                 let container = document.getElementById("toast-container");
                 if (!container) {
                   container = document.createElement("div");
@@ -121,11 +119,11 @@
                   const toast = document.createElement("div");
                   toast.className = "toast";
                   for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                  }))
+                    toast.setAttribute(k, v);
                   const body = document.createElement("div");
                   body.className = "toast-body";
                   body.textContent = msg;
@@ -137,8 +135,8 @@
                     try {
                       toast.remove();
                     } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+                      console.error(`[index] Error:`, _);
+                    }
                   });
                   inst.show();
                 } else {
@@ -150,8 +148,8 @@
               }
               (f as HTMLFormElement).submit();
             } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+              console.error(`[index] Error:`, _);
+            }
           },
           { passive: false },
         );
@@ -177,18 +175,18 @@
                   ? (e.target as Element).closest("a.trial-balance-reset")
                   : null);
               if (!a) return;
-              const href = a.getAttribute("href") ?? "#";
-              const url = (a.getAttribute("data-url") || href) ?? "#";
+              const href = a.getAttribute("href") ?? "#",
+                url = (a.getAttribute("data-url") || href) ?? "#";
               if (href !== "#" || url !== "#") return;
               e.preventDefault();
               const msg =
-                a.getAttribute("data-guard-msg") ||
-                (form ? form.getAttribute("data-guard-msg") : "") ||
-                "Trial balance report route is unavailable. Please contact technical support or your domain administrator.";
-              const linkEl = document.querySelector('link[href*="bootstrap"]');
-              const hasBootstrapToast =
-                window.bootstrap &&
-                typeof window.bootstrap.Toast === "function";
+                  a.getAttribute("data-guard-msg") ||
+                  (form ? form.getAttribute("data-guard-msg") : "") ||
+                  "Trial balance report route is unavailable. Please contact technical support or your domain administrator.",
+                linkEl = document.querySelector('link[href*="bootstrap"]'),
+                hasBootstrapToast =
+                  window.bootstrap &&
+                  typeof window.bootstrap.Toast === "function";
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
@@ -203,11 +201,11 @@
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                  role: "alert",
+                  "aria-live": "assertive",
+                  "aria-atomic": "true",
+                }))
+                  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -218,8 +216,8 @@
                   try {
                     toast.remove();
                   } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+                    console.error(`[index] Error:`, _);
+                  }
                 });
                 inst.show();
               } else {
@@ -227,8 +225,8 @@
               }
               a.setAttribute("data-failed-route", "true");
             } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+              console.error(`[index] Error:`, _);
+            }
           },
           { passive: false },
         );

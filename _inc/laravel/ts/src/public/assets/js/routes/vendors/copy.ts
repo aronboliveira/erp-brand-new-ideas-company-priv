@@ -10,11 +10,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataBindGuard = "data-copy-billing-bound";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataBindGuard = "data-copy-billing-bound";
   const qs = <T extends Element = HTMLElement>(
     s: string,
     r: Document | Element = document,
@@ -23,8 +23,10 @@
   const hasBootstrapUi = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs<HTMLDivElement>("#np-toast-container");
@@ -33,13 +35,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrapUi()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -48,11 +48,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -67,7 +67,7 @@
     } else {
       alert(message ?? errFb);
     }
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -120,8 +120,8 @@
         try {
           console.error("jQuery unavailable");
         } catch (_) {
-    console.error(`[copy] Error:`, _);
-  }
+          console.error(`[copy] Error:`, _);
+        }
         showErrorNow(getMsg(this, "plugin_unavailable"));
         return;
       }
@@ -160,19 +160,15 @@
     }
     const mo = new MutationObserver(function (): void {
       if (!document.querySelector<HTMLElement>("#billing_data")) {
-        if ($?.fn) {
-          $(document).off("click._npCopy", "#billing_data");
-        }
+        if ($?.fn) $(document).off("click._npCopy", "#billing_data");
         host.removeAttribute(dataBindGuard);
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bind, { once: true });
-  } else {
-    bind();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", bind, { once: true })
+    : bind();
 })();
 
 export {};

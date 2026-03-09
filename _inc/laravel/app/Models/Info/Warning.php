@@ -6,6 +6,14 @@ use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, Use
 use App\Models\Employee;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+/**
+ * @property mixed $created_by
+ * @property string|null $warning_by
+ * @property \Illuminate\Support\Carbon|string|null $warning_date
+ * @property \Illuminate\Support\Carbon|string|null $warning_to
+ * @property string|null $subject
+ * @property string|null $description
+ */
 
 class Warning extends Model
 {

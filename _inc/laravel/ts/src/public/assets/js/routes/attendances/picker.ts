@@ -7,36 +7,42 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 ((): void => {
-  const BS_LINK = 'link[href*="bootstrap"]';
-  const DATE_PICKER_CLASS = ".daterangepicker";
-  const DATE_PICKER_ATTR = "data-datepicker";
-  const _translations = {
-    ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },
-    da: { datepicker_unavailable: "Kunne ikke initialisere datovælger" },
-    de: {
-      datepicker_unavailable: "Datumauswahl konnte nicht initialisiert werden",
-    },
-    en: { datepicker_unavailable: "Failed to initialize date picker" },
-    es: { datepicker_unavailable: "Error al inicializar el selector de fecha" },
-    fr: {
-      datepicker_unavailable: "Échec de l'initialisation du sélecteur de date",
-    },
-    he: { datepicker_unavailable: "נכשל באתחול בורר התאריכים" },
-    it: {
-      datepicker_unavailable: "Impossibile inizializzare il selettore di data",
-    },
-    ja: { datepicker_unavailable: "日付ピッカーの初期化に失敗しました" },
-    nl: { datepicker_unavailable: "Initialiseren van datumkiezer mislukt" },
-    pl: { datepicker_unavailable: "Nie udało się zainicjować selektora daty" },
-    pt: { datepicker_unavailable: "Falha ao inicializar o seletor de data" },
-    "pt-br": {
-      datepicker_unavailable: "Falha ao inicializar o seletor de data",
-    },
-    ru: { datepicker_unavailable: "Не удалось инициализировать выбор даты" },
-    tr: { datepicker_unavailable: "Tarih seçici başlatılamadı" },
-    zh: { datepicker_unavailable: "无法初始化日期选择器" },
-  };
-
+  const BS_LINK = 'link[href*="bootstrap"]',
+    DATE_PICKER_CLASS = ".daterangepicker",
+    DATE_PICKER_ATTR = "data-datepicker",
+    _translations = {
+      ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },
+      da: { datepicker_unavailable: "Kunne ikke initialisere datovælger" },
+      de: {
+        datepicker_unavailable:
+          "Datumauswahl konnte nicht initialisiert werden",
+      },
+      en: { datepicker_unavailable: "Failed to initialize date picker" },
+      es: {
+        datepicker_unavailable: "Error al inicializar el selector de fecha",
+      },
+      fr: {
+        datepicker_unavailable:
+          "Échec de l'initialisation du sélecteur de date",
+      },
+      he: { datepicker_unavailable: "נכשל באתחול בורר התאריכים" },
+      it: {
+        datepicker_unavailable:
+          "Impossibile inizializzare il selettore di data",
+      },
+      ja: { datepicker_unavailable: "日付ピッカーの初期化に失敗しました" },
+      nl: { datepicker_unavailable: "Initialiseren van datumkiezer mislukt" },
+      pl: {
+        datepicker_unavailable: "Nie udało się zainicjować selektora daty",
+      },
+      pt: { datepicker_unavailable: "Falha ao inicializar o seletor de data" },
+      "pt-br": {
+        datepicker_unavailable: "Falha ao inicializar o seletor de data",
+      },
+      ru: { datepicker_unavailable: "Не удалось инициализировать выбор даты" },
+      tr: { datepicker_unavailable: "Tarih seçici başlatılamadı" },
+      zh: { datepicker_unavailable: "无法初始化日期选择器" },
+    };
   const toastContainer = ((): HTMLElement => {
     const existing = document.querySelector<HTMLElement>(".toast-container");
     if (existing) return existing;
@@ -46,10 +52,10 @@
     return container;
   })();
 
-  const showError = (key: string, el: HTMLElement | null = null): void=> {
-    const errFb = "# ERROR";
-    const dataClientLocalized = "data-client-localized";
-    const dataGuardMsg = "data-guard-msg";
+  const showError = (key: string, el: HTMLElement | null = null): void => {
+    const errFb = "# ERROR",
+      dataClientLocalized = "data-client-localized",
+      dataGuardMsg = "data-guard-msg";
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -81,11 +87,11 @@
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toast.setAttribute(k, v);
       {
         toast.replaceChildren();
         const _d = document.createElement("div");
@@ -108,11 +114,13 @@
     }
   };
 
-  const handleDatePickerClick = (el: HTMLElement | null): void=> {
+  const handleDatePickerClick = (el: HTMLElement | null): void => {
     if (!el) return;
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
-      const $el = $(el) as JQuery & { daterangepicker?: (...args: unknown[]) => unknown };
+      const $el = $(el) as JQuery & {
+        daterangepicker?: (...args: unknown[]) => unknown;
+      };
       if (typeof $el.daterangepicker !== "function")
         throw new Error("daterangepicker plugin not available");
       $el.daterangepicker({
@@ -127,15 +135,11 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (
-          node.nodeType === 1 &&
-          (node as Element).matches(DATE_PICKER_CLASS)
-        ) {
+        if (node.nodeType === 1 && (node as Element).matches(DATE_PICKER_CLASS))
           (node as Element).removeEventListener(
             "click",
             handleDatePickerClick as unknown as EventListener,
           );
-        }
       });
     });
   });
@@ -149,9 +153,12 @@
     pickers.forEach((el: Element): void => {
       if (el.getAttribute(DATE_PICKER_ATTR) === "true") return;
       el.setAttribute(DATE_PICKER_ATTR, "true");
-      el.addEventListener("click", (): void => {
-        handleDatePickerClick(el as HTMLElement);
-      });
+      if (!el.getAttribute("data-listener-bound-click")) {
+        el.setAttribute("data-listener-bound-click", "1");
+        el.addEventListener("click", (): void => {
+          handleDatePickerClick(el as HTMLElement);
+        });
+      }
     });
   } catch (err) {
     showError("datepicker_unavailable");

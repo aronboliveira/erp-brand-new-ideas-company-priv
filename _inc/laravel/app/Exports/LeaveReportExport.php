@@ -75,6 +75,7 @@ final class LeaveReportExport implements FromCollection, WithHeadings, WithEvent
 
             $rows = [];
             foreach ($allLeaves as $leave) {
+                /** @var \App\Models\Employee|null $emp */
                 $emp     = $leave->employees;
                 $empIdFmt = $emp
                     ? User::employeeIdFormat($emp->employee_id)

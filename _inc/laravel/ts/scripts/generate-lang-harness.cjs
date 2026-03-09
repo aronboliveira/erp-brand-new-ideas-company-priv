@@ -72,7 +72,7 @@ function routeToDistPath(routePath) {
 function slugToTitle(slug) {
   return slug
     .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
 
@@ -227,7 +227,10 @@ function main() {
     // Jest unit test
     const unitPath = path.join(UNIT_DIR, `${slug}.test.ts`);
     if (!fs.existsSync(unitPath)) {
-      const distRelPath = `../${path.relative(TS_ROOT, route).replace(/^src\//, "dist/").replace(/\.ts$/, ".js")}`;
+      const distRelPath = `../${path
+        .relative(TS_ROOT, route)
+        .replace(/^src\//, "dist/")
+        .replace(/\.ts$/, ".js")}`;
       if (!DRY_RUN) {
         fs.mkdirSync(path.dirname(unitPath), { recursive: true });
         fs.writeFileSync(unitPath, jestTemplate(slug, distRelPath));

@@ -12,18 +12,17 @@
 
     f.addEventListener("submit", (e: Event) => {
       try {
-        const _action = f.getAttribute("action") ?? "#";
-        const url = f.getAttribute("data-action-url") ?? "#";
-
+        const _action = f.getAttribute("action") ?? "#",
+          url = f.getAttribute("data-action-url") ?? "#";
         if (url !== "#") return;
 
         e.preventDefault();
 
-        const msgAttr = "data-form-guard-msg";
-        const msg = f.hasAttribute(msgAttr)
-          ? f.getAttribute(msgAttr) ?? "Store saturation deduction route is unavailable. Please contact technical support or your domain administrator."
-          : "Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.";
-
+        const msgAttr = "data-form-guard-msg",
+          msg = f.hasAttribute(msgAttr)
+            ? (f.getAttribute(msgAttr) ??
+              "Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.")
+            : "Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -35,22 +34,21 @@
         }
 
         const bootstrapLink =
-          document.querySelector('link[href*="bootstrap"]') ??
-          document.querySelector('link[href*="bootstrap.min"]');
-        const hasBootstrap =
-          typeof window !== "undefined" &&
-          typeof window.bootstrap !== "undefined" &&
-          !!bootstrapLink;
-
+            document.querySelector('link[href*="bootstrap"]') ??
+            document.querySelector('link[href*="bootstrap.min"]'),
+          hasBootstrap =
+            typeof window !== "undefined" &&
+            typeof window.bootstrap !== "undefined" &&
+            !!bootstrapLink;
         if (hasBootstrap) {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -65,8 +63,8 @@
 
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-    console.error(`[store] Error:`, err);
-  }
+        console.error(`[store] Error:`, err);
+      }
     });
   } catch (error) {
     console.error(`[store] Error:`, error);

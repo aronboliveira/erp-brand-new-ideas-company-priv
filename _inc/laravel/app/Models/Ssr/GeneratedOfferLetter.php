@@ -6,6 +6,9 @@ use App\Config\Constants\{DatabaseConstants, TemplatesConstants};
 use App\Traits\{HasAuditFields, UsesUuids, _StringTemplating};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use App\Models\{Utility, User};
+/**
+ * @property string|null $content
+ */
 
 class GeneratedOfferLetter extends Model
 {

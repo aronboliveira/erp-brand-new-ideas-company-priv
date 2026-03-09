@@ -35,7 +35,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
@@ -91,7 +91,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -124,7 +124,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             Log::debug($action . ' start', ['input' => $request->only('date', 'amount', 'account_id', 'category_id')]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -180,7 +180,7 @@ class RevenueController extends Controller
                 }
                 Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'credit');
 
-                $settings = Utility::settings($creatorId);
+                $settings = Utility::settingsById($creatorId);
                 $notify = [
                     'revenue_amount' => $user?->priceFormat($revenue->amount),
                     'customer_name'  => Customer::find($revenue->customer_id)?->name ?? '-',
@@ -219,7 +219,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $revenue, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $revenue, $action) {
             Log::debug($action . ' start', ['revenueId' => $revenue->id ?? null]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -244,7 +244,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $revenue, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $revenue, $action) {
             Log::debug($action . ' start', ['revenueId' => $revenue->id ?? null]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -282,7 +282,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $revenue, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $revenue, $action) {
             Log::debug($action . ' start', ['revenueId' => $revenue->id ?? null]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -330,7 +330,7 @@ class RevenueController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile($action, function () use ($request, $revenue, $cls, $meth, $func, $action) {
+        return $this->measureProfile($action, function () use ($request, $revenue, $action) {
             Log::debug($action . ' start', ['revenueId' => $revenue->id ?? null]);
 
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;

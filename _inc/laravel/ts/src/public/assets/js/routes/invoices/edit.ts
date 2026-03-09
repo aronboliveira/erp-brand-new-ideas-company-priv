@@ -9,18 +9,18 @@
 // assets/js/routes/invoices/edit.js
 ((): void => {
   try {
-    const selector = ".edit-invoice-link";
-    const alias = "data-listening-editinvoiceclick";
+    const selector = ".edit-invoice-link",
+      alias = "data-listening-editinvoiceclick";
 
     document.querySelectorAll(selector).forEach((el: Element): void => {
       if (!el.hasAttribute(alias)) {
         el.setAttribute(alias, "true");
 
         el.addEventListener("click", event => {
-          const url = el.getAttribute("data-url");
-          const href = (el as HTMLAnchorElement).href
-            .replace(window.location.origin, "")
-            .replace(window.location.pathname, "");
+          const url = el.getAttribute("data-url"),
+            href = (el as HTMLAnchorElement).href
+              .replace(window.location.origin, "")
+              .replace(window.location.pathname, "");
           if ((!url || url === "#") && (!href || href === "#")) {
             event.preventDefault();
 
@@ -54,7 +54,9 @@
                   </div>
                 </div>`;
               document.body.appendChild(wrapper);
-              new window.bootstrap.Modal(wrapper.querySelector(".modal")!).show();
+              new window.bootstrap.Modal(
+                wrapper.querySelector(".modal")!,
+              ).show();
             } else {
               alert(msg);
             }

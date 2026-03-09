@@ -11,6 +11,10 @@ use App\Services\PipelineRequestService;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\{Collection, Model};
+/**
+ * @property string|null $name
+ * @property array|string|null $stages
+ */
 
 class Pipeline extends Model
 {

@@ -28,7 +28,7 @@ final class SecureHeaders
 	 *
 	 * @param  Request  $request
 	 * @param  Closure  $next
-	 * @return mixed
+	 * @return Response
 	 */
 	public function handle(Request $request, Closure $next): Response
 	{

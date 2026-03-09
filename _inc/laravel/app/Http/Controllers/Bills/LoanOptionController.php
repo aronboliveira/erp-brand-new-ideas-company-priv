@@ -30,7 +30,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'manage loan option', VW::LN_OPT . '.index')) !== true) return $r;
@@ -61,7 +61,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'create loan option', VW::LN_OPT . '.index')) !== true) return $r;
@@ -83,7 +83,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only('name')]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'create loan option', VW::LN_OPT . '.index')) !== true) return $r;
@@ -113,7 +113,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($loanOption, $request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($loanOption, $request, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'loan_option_id' => $loanOption->id ?? null]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'edit loan option', VW::LN_OPT . '.index')) !== true) return $r;
@@ -139,7 +139,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $loanOption, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $loanOption, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'loan_option_id' => $loanOption->id ?? null, 'input' => $request->only('name')]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'edit loan option', VW::LN_OPT . '.index')) !== true) return $r;
@@ -173,7 +173,7 @@ final class LoanOptionController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($loanOption, $request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($loanOption, $request, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'loan_option_id' => $loanOption->id ?? null]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'delete loan option', VW::LN_OPT . '.index')) !== true) return $r;

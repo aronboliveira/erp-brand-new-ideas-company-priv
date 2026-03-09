@@ -14,29 +14,25 @@
     s: string,
     r: Document | Element = document,
   ): T | null => r.querySelector(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataSortGuard = "data-sort-guard";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataSortGuard = "data-sort-guard";
   const ensureToastContainer = (): HTMLDivElement => {
     const id = "np-toast-container";
     let c = qs<HTMLDivElement>("#" + id);
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrapLink =
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
@@ -49,19 +45,17 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         const ToastClass =
           window.bootstrap.Toast ??
@@ -82,11 +76,9 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -96,14 +88,14 @@
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -144,8 +136,8 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[reorder] Error:`, _);
-  }
+        console.error(`[reorder] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -157,29 +149,23 @@
         )
           console.error("jQuery UI sortable unavailable");
       } catch (_) {
-    console.error(`[reorder] Error:`, _);
-  }
+        console.error(`[reorder] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
     const $lists = $(".sortable");
-    if (!$lists.length) {
-      return;
-    }
+    if (!$lists.length) return;
     $lists.each(function (this: HTMLElement): void {
       const el = this;
-      if (el.getAttribute(dataSortGuard) === "true") {
-        return;
-      }
+      if (el.getAttribute(dataSortGuard) === "true") return;
       el.setAttribute(dataSortGuard, "true");
       try {
         const $el = $(el) as JQuery & {
           sortable: (opts?: object | string) => JQuery;
           disableSelection?: () => JQuery;
         };
-        if (typeof $el.disableSelection === "function") {
-          $el.disableSelection();
-        }
+        if (typeof $el.disableSelection === "function") $el.disableSelection();
         $el.sortable();
         $el.sortable({
           stop: function (this: HTMLElement): void {
@@ -192,12 +178,12 @@
                     $(this).attr("data-id") ?? $(this).data("id") ?? "",
                   );
                 });
-              const explicit = "{{route('project-task-stages.order')}}";
-              const url = el.getAttribute("data-url");
-              const href =
-                el.tagName === "FORM"
-                  ? (el.getAttribute("action") ?? "")
-                  : (el.getAttribute("href") ?? "");
+              const explicit = "{{route('project-task-stages.order')}}",
+                url = el.getAttribute("data-url"),
+                href =
+                  el.tagName === "FORM"
+                    ? (el.getAttribute("action") ?? "")
+                    : (el.getAttribute("href") ?? "");
               if (
                 (!url || url === "#") &&
                 (!href || href === "#") &&
@@ -229,15 +215,15 @@
             }
           },
         });
-        const mo = new MutationObserver((m, o) => {
+        const mo = new MutationObserver((_m, o) => {
           if (!document.body.contains(el)) {
             try {
               (
                 $(el) as JQuery & { sortable: (cmd: string) => JQuery }
               ).sortable("destroy");
             } catch (_) {
-    console.error(`[reorder] Error:`, _);
-  }
+              console.error(`[reorder] Error:`, _);
+            }
             o.disconnect();
           }
         });
@@ -250,11 +236,9 @@
   const init = (): void => {
     initSortable();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

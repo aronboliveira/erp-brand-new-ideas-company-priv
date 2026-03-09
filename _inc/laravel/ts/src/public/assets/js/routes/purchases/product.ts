@@ -6,8 +6,8 @@
 
 ((): void => {
   try {
-    const host = document.documentElement;
-    const flag = "data-purchase-product-listener";
+    const host = document.documentElement,
+      flag = "data-purchase-product-listener";
     if (host.hasAttribute(flag) && host.getAttribute(flag) === "true") return;
     host.setAttribute(flag, "true");
     document.addEventListener(
@@ -23,11 +23,11 @@
           const url = sel.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           const msg =
-            sel.getAttribute("data-guard-msg") ??
-            "Purchase product route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            window.bootstrap && typeof window.bootstrap.Toast === "function";
+              sel.getAttribute("data-guard-msg") ??
+              "Purchase product route is unavailable. Please contact technical support or your domain administrator.",
+            linkEl = document.querySelector('link[href*="bootstrap"]'),
+            hasBootstrapToast =
+              window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -42,11 +42,11 @@
             const toast = document.createElement("div");
             toast.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -57,8 +57,8 @@
               try {
                 toast.remove();
               } catch (_) {
-    console.error(`[product] Error:`, _);
-  }
+                console.error(`[product] Error:`, _);
+              }
             });
             inst.show();
           } else {
@@ -66,8 +66,8 @@
           }
           sel.setAttribute("data-failed-route", "true");
         } catch (_) {
-    console.error(`[product] Error:`, _);
-  }
+          console.error(`[product] Error:`, _);
+        }
       },
       { passive: true },
     );

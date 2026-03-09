@@ -274,4 +274,10 @@ class Trainer extends Model
     {
         return $this->belongsTo(User::class, DC::COL_TABLE_UPDATER, 'id');
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Branch, $this> */
+    public function branches(): BelongsTo
+    {
+        return $this->branch();
+    }
 }

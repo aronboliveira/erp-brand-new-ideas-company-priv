@@ -96,6 +96,9 @@ class Kernel extends HttpKernel
         MiddlewaresConstants::SGN               => ValidateSignature::class,
         'check.mount'                         => CheckMount::class,
     ];
+    /**
+     * @phpstan-return \Symfony\Component\HttpFoundation\Response
+     */
     public function handle($request)
     {
         $class  = class_basename(self::class);
@@ -106,6 +109,7 @@ class Kernel extends HttpKernel
             'method' => $request->getMethod(),
             'ip'     => $request->ip(),
         ]));
+        /** @phpstan-ignore-next-line */
         $this->requestStartedAt = Carbon::now();
         try {
             $request->enableHttpMethodParameterOverride();

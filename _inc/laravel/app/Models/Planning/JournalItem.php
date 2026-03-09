@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
 
+/**
+ * @property mixed $account
+ */
 class JournalItem extends Model
 {
     use UsesUuids;

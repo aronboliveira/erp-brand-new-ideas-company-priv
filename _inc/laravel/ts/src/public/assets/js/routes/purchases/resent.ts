@@ -7,8 +7,8 @@
 // assets/js/routes/purchases/resent.js
 ((): void => {
   try {
-    const host = document.documentElement;
-    const flag = "data-resent-purchase-listener";
+    const host = document.documentElement,
+      flag = "data-resent-purchase-listener";
     if (host.hasAttribute(flag) && host.getAttribute(flag) === "true") return;
     host.setAttribute(flag, "true");
     document.addEventListener(
@@ -21,16 +21,16 @@
               ? (e.target as Element).closest("a.resent-purchase")
               : null);
           if (!a) return;
-          const href = a.getAttribute("href") ?? "#";
-          const url = (a.getAttribute("data-url") || href) ?? "#";
+          const href = a.getAttribute("href") ?? "#",
+            url = (a.getAttribute("data-url") || href) ?? "#";
           if (href !== "#" || url !== "#") return;
           e.preventDefault();
           const msg =
-            a.getAttribute("data-guard-msg") ??
-            "Resend purchase route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            window.bootstrap && typeof window.bootstrap.Toast === "function";
+              a.getAttribute("data-guard-msg") ??
+              "Resend purchase route is unavailable. Please contact technical support or your domain administrator.",
+            linkEl = document.querySelector('link[href*="bootstrap"]'),
+            hasBootstrapToast =
+              window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -45,11 +45,11 @@
             const toast = document.createElement("div");
             toast.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -60,8 +60,8 @@
               try {
                 toast.remove();
               } catch (_) {
-    console.error(`[resent] Error:`, _);
-  }
+                console.error(`[resent] Error:`, _);
+              }
             });
             inst.show();
           } else {
@@ -69,8 +69,8 @@
           }
           a.setAttribute("data-failed-route", "true");
         } catch (_) {
-    console.error(`[resent] Error:`, _);
-  }
+          console.error(`[resent] Error:`, _);
+        }
       },
       { passive: false },
     );

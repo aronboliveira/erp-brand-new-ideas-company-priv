@@ -20,6 +20,13 @@ use App\Traits\{
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{DB, Log};
+/**
+ * @property string|null $deleteUrl
+ * @property string|null $updateUrl
+
+ * @property mixed $delete
+ * @property mixed $update
+ */
 
 class UserToDo extends Model
 {

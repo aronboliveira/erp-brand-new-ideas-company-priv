@@ -14,11 +14,10 @@
     )
       return;
     f.setAttribute("data-submit-listener", "true");
-    const toast = (msg: string): void=> {
+    const toast = (msg: string): void => {
       try {
-        const linkEl = document.querySelector('link[href*="bootstrap"]');
-        const hasBootstrap =
-          !!linkEl && window.bootstrap.Toast;
+        const linkEl = document.querySelector('link[href*="bootstrap"]'),
+          hasBootstrap = !!linkEl && window.bootstrap.Toast;
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -33,15 +32,16 @@
           const t = document.createElement("div");
           t.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            t.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent =
-            msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+            msg ??
+            "Requested route is unavailable. Please contact technical support or your domain administrator.";
           t.appendChild(body);
           container.appendChild(t);
           const inst = window.bootstrap.Toast.getOrCreateInstance(t);
@@ -49,18 +49,19 @@
             try {
               t.remove();
             } catch (e) {
-    console.error(`[update] Error:`, e);
-  }
+              console.error(`[update] Error:`, e);
+            }
           });
           inst.show();
         } else {
           alert(
-            msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
+            msg ??
+              "Requested route is unavailable. Please contact technical support or your domain administrator.",
           );
         }
       } catch (e) {
-    console.error(`[update] Error:`, e);
-  }
+        console.error(`[update] Error:`, e);
+      }
     };
     f.addEventListener(
       "submit",
@@ -70,14 +71,15 @@
           if (action !== "#") return;
           e.preventDefault();
           const msg =
-            f.getAttribute("data-guard-msg") ?? "Update leave route is unavailable. Please contact technical support or your domain administrator.";
+            f.getAttribute("data-guard-msg") ??
+            "Update leave route is unavailable. Please contact technical support or your domain administrator.";
           toast(msg);
           f.setAttribute("data-failed-route", "true");
         } catch (err) {
-    console.error(`[update] Error:`, err);
-  }
+          console.error(`[update] Error:`, err);
+        }
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (error) {
     console.error(`[update] Error:`, error);

@@ -6,6 +6,10 @@ use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC, Project
 use App\Traits\{HasAuditFields, NormalizesAddresses, PlansByHierarchy, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, Relations\HasMany};
 use Illuminate\Support\Facades\{DB, Log, Schema};
+/**
+ * @property int|null $form_id
+ * @property mixed $response
+ */
 
 class FormResponse extends Model
 {

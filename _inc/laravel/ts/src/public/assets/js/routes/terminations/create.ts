@@ -16,9 +16,8 @@
       a.hasAttribute("href") &&
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
-    ) {
+    )
       a.setAttribute("href", url);
-    }
 
     a.addEventListener("click", (e: Event) => {
       try {
@@ -40,18 +39,15 @@
         }
 
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
 
           const body = document.createElement("div");
           body.className = "toast-body";
@@ -71,8 +67,8 @@
 
         a.setAttribute("data-failed-route", "true");
       } catch (__err) {
-    console.error(`[create] Error:`, __err);
-  }
+        console.error(`[create] Error:`, __err);
+      }
     });
   } catch (__err) {
     console.error(`[create] Error:`, __err);

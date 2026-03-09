@@ -310,7 +310,7 @@ class ProjectReportController extends Controller
                 return $r;
             try {
                 $name = 'task_report_' . date('Y-m-d_H:i:s');
-                return Excel::download(new \App\Exports\task_reportExport($id), $name . '.xlsx');
+                return Excel::download(new \App\Exports\TaskReportExport($id), $name . '.xlsx');
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e]);
                 return defaultUndefinedException($request, $e, $method);

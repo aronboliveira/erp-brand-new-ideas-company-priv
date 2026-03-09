@@ -1,5 +1,12 @@
 /**
- * erp-bootstrap.ts — Application Bootstrap / Initialization Singleton
+ * erp-bootstrap.ts — Application Bootstrap / Initialization Singleton (AUXILIARY)
+ *
+ * ⚠ NOT THE RUNTIME VERSION. The authoritative runtime singleton is
+ * public/assets/js/core/erp-bootstrap.js (165 lines), loaded by Blade layouts.
+ * This file is a simplified TypeScript reimplementation — it does NOT replace
+ * the original.
+ *
+ * For global type declarations of the original, see ./globals.d.ts.
  *
  * Handles one-time page setup that currently lives inline in dash.js,
  * custom.js, and the Blade footer. Route files can assume this has
@@ -30,14 +37,11 @@ let _bootstrapped = false;
  * Created once; 824+ route files previously inlined this logic.
  */
 export function ensureToastContainer(): HTMLDivElement {
-  let container = document.getElementById(
-    TOAST_CONTAINER_ID
-  ) as HTMLDivElement | null;
+  let container = document.getElementById(TOAST_CONTAINER_ID) as HTMLDivElement | null;
   if (!container) {
     container = document.createElement("div");
     container.id = TOAST_CONTAINER_ID;
-    container.className =
-      "toast-container position-fixed bottom-0 end-0 p-3";
+    container.className = "toast-container position-fixed bottom-0 end-0 p-3";
     container.style.zIndex = "1100";
     container.setAttribute("aria-live", "polite");
     container.setAttribute("aria-atomic", "true");
@@ -53,9 +57,7 @@ let _csrfToken: string | null = null;
 /** Reads and caches `<meta name="csrf-token">`. */
 export function getCsrfToken(): string {
   if (_csrfToken) return _csrfToken;
-  const meta = document.querySelector<HTMLMetaElement>(
-    'meta[name="csrf-token"]'
-  );
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
   _csrfToken = meta?.content ?? "";
   return _csrfToken;
 }
@@ -98,9 +100,7 @@ export function getSiteCurrency(): SiteCurrency {
  * Safely calls `feather.replace()` if the library is loaded.
  */
 export function initFeatherIcons(): void {
-  const f = (window as unknown as Record<string, unknown>).feather as
-    | { replace: () => void }
-    | undefined;
+  const f = (window as unknown as Record<string, unknown>).feather as { replace: () => void } | undefined;
   if (f && typeof f.replace === "function") {
     f.replace();
   }
@@ -126,10 +126,7 @@ export function bootstrap(): void {
 /* ---------- Auto-init --------------------------------------------------- */
 
 if (typeof document !== "undefined") {
-  if (
-    document.readyState === "interactive" ||
-    document.readyState === "complete"
-  ) {
+  if (document.readyState === "interactive" || document.readyState === "complete") {
     bootstrap();
   } else {
     document.addEventListener("DOMContentLoaded", bootstrap, { once: true });

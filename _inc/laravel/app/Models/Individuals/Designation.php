@@ -10,6 +10,10 @@ use App\Config\Constants\{
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+/**
+ * @property mixed $created_by
+ * @property string|null $name
+ */
 
 class Designation extends Model
 {

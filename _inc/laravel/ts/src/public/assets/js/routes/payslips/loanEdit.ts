@@ -9,25 +9,19 @@
     const links =
       Array.from(
         document.querySelectorAll(
-          'a[id^="loan-edit-link-"][data-url][data-guard-msg]'
-        )
+          'a[id^="loan-edit-link-"][data-url][data-guard-msg]',
+        ),
       ) ?? [];
-    if (links.length === 0) {
-      return;
-    }
+    if (links.length === 0) return;
     links.forEach(l => {
       try {
-        if (l.getAttribute("data-listener-active") === "true") {
-          return;
-        }
+        if (l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
         l.addEventListener("click", (e: Event) => {
           try {
-            const href = (l.getAttribute("href") ?? "#").trim();
-            const url = (l.getAttribute("data-url") ?? "#").trim();
-            if (url !== "#" && href !== "#") {
-              return;
-            }
+            const href = (l.getAttribute("href") ?? "#").trim(),
+              url = (l.getAttribute("data-url") ?? "#").trim();
+            if (url !== "#" && href !== "#") return;
             e.preventDefault();
             const msg =
               l.getAttribute("data-guard-msg") ??
@@ -49,11 +43,11 @@
               const t = document.createElement("div");
               t.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                t.setAttribute(k, v);
               const b = document.createElement("div");
               b.className = "toast-body";
               b.textContent = msg;
@@ -65,12 +59,12 @@
             }
             l.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[loanEdit] Error:`, err);
-  }
+            console.error(`[loanEdit] Error:`, err);
+          }
         });
       } catch (err) {
-    console.error(`[loanEdit] Error:`, err);
-  }
+        console.error(`[loanEdit] Error:`, err);
+      }
     });
   } catch (err) {
     console.error(`[loanEdit] Error:`, err);

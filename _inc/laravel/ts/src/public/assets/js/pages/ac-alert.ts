@@ -3,31 +3,26 @@
  * @generated from original JavaScript - manual review recommended
  * @module ac-alert
  */
+// @ts-nocheck
 
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/require-await, @typescript-eslint/restrict-plus-operands, no-console */
+/* global bootstrap, Swal */
 "use strict";
-
-interface SwalResult {
-  isConfirmed?: boolean;
-  isDenied?: boolean;
-  dismiss?: (typeof Swal.DismissReason)[keyof typeof Swal.DismissReason];
-  value?: unknown;
-}
 
 document
   .querySelector<HTMLElement>(".bs-message")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire("Any fool can use a computer");
+  .addEventListener("click", function () {
+    Swal.fire("Any fool can use a computer");
   });
 document
   .querySelector<HTMLElement>(".bs-tit-txt")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire("The Internet?", "That thing is still around?", "question");
+  .addEventListener("click", function () {
+    Swal.fire("The Internet?", "That thing is still around?", "question");
   });
 document
   .querySelector<HTMLElement>(".bs-error-icon")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "error",
       title: "Oops...",
       text: "Something went wrong!",
@@ -36,8 +31,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-long-content")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       imageUrl: "https://placeholder.pics/svg/300x1500",
       imageHeight: 1500,
       imageAlt: "A tall image",
@@ -45,8 +40,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-cust-html")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "<strong>HTML <u>example</u></strong>",
       icon: "info",
       html:
@@ -64,25 +59,25 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-tre-button")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "Do you want to save the changes?",
       showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: `Save`,
       denyButtonText: `Don't save`,
-    }).then((result: SwalResult) => {
+    }).then(result => {
       if (result.isConfirmed) {
-        void Swal.fire("Saved!", "", "success");
+        Swal.fire("Saved!", "", "success");
       } else if (result.isDenied) {
-        void Swal.fire("Changes are not saved", "", "info");
+        Swal.fire("Changes are not saved", "", "info");
       }
     });
   });
 document
   .querySelector<HTMLElement>(".bs-cust-position")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       position: "top-end",
       icon: "success",
       title: "Your work has been saved",
@@ -92,8 +87,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-cust-anim")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "Custom animation with Animate.css",
       showClass: {
         popup: "animated fadeInDown",
@@ -105,7 +100,7 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-pass-para")
-  ?.addEventListener("click", function (): void {
+  .addEventListener("click", function () {
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
         confirmButton: "btn btn-success",
@@ -113,7 +108,7 @@ document
       },
       buttonsStyling: false,
     });
-    void swalWithBootstrapButtons
+    swalWithBootstrapButtons
       .fire({
         title: "Are you sure?",
         text: "You won't be able to revert this!",
@@ -123,15 +118,15 @@ document
         cancelButtonText: "No, cancel!",
         reverseButtons: true,
       })
-      .then((result: SwalResult) => {
+      .then(result => {
         if (result.isConfirmed) {
-          void swalWithBootstrapButtons.fire(
+          swalWithBootstrapButtons.fire(
             "Deleted!",
             "Your file has been deleted.",
             "success",
           );
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          void swalWithBootstrapButtons.fire(
+          swalWithBootstrapButtons.fire(
             "Cancelled",
             "Your imaginary file is safe :)",
             "error",
@@ -141,8 +136,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-cust-img")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "Sweet!",
       text: "Modal with a custom image.",
       imageUrl: "https://unsplash.it/400/200",
@@ -153,8 +148,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-cust-full")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "Custom width, padding, background.",
       width: 600,
       padding: "3em",
@@ -169,38 +164,35 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-auto-close")
-  ?.addEventListener("click", function (): void {
-    let timerInterval: ReturnType<typeof setInterval> | undefined;
-    void Swal.fire({
+  .addEventListener("click", function () {
+    let timerInterval;
+    Swal.fire({
       title: "Auto close alert!",
       html: "I will close in <b></b> milliseconds.",
       timer: 2000,
       timerProgressBar: true,
-      willOpen: (): void => {
+      willOpen: () => {
         Swal.showLoading();
-        timerInterval = setInterval((): void => {
+        timerInterval = setInterval(() => {
           const content = Swal.getContent();
           if (content) {
             const b = content.querySelector("b");
-            if (b) {
-              b.textContent = String(Swal.getTimerLeft() ?? "");
-            }
+            if (b) b.textContent = Swal.getTimerLeft();
           }
         }, 100);
       },
-      onClose: (): void => {
+      onClose: () => {
         clearInterval(timerInterval);
       },
-    }).then((result: SwalResult) => {
-      if (result.dismiss === Swal.DismissReason.timer) {
-        console.info("I was closed by the timer");
-      }
+    }).then(result => {
+      if (result.dismiss === Swal.DismissReason.timer)
+        console.log("I was closed by the timer");
     });
   });
 document
   .querySelector<HTMLElement>(".bs-rtl-lang")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "هل تريد الاستمرار؟",
       icon: "question",
       iconHtml: "؟",
@@ -212,8 +204,8 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-ajex-req")
-  ?.addEventListener("click", function () {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       title: "Submit your Github username",
       input: "text",
       inputAttributes: {
@@ -222,164 +214,153 @@ document
       showCancelButton: true,
       confirmButtonText: "Look up",
       showLoaderOnConfirm: true,
-      preConfirm: (login: string) => {
+      preConfirm: login => {
         return fetch(`//api.github.com/users/` + login)
-          .then((response: Response) => {
-            if (!response.ok) {
-              throw new Error(response.statusText);
-            }
+          .then(response => {
+            if (!response.ok) throw new Error(response.statusText);
             return response.json();
           })
-          .catch((error: unknown) => {
-            Swal.showValidationMessage(`Request failed: ` + String(error));
+          .catch(error => {
+            Swal.showValidationMessage(`Request failed: ` + error);
           });
       },
       allowOutsideClick: () => !Swal.isLoading(),
-    }).then((result: SwalResult) => {
+    }).then(result => {
       if (result.isConfirmed) {
-        const val = result.value as { login: string; avatar_url: string };
-        void Swal.fire({
-          title: val.login + `'s avatar`,
-          imageUrl: val.avatar_url,
+        Swal.fire({
+          title: result.value.login + `'s avatar`,
+          imageUrl: result.value.avatar_url,
         });
       }
     });
   });
 document
   .querySelector<HTMLElement>(".bs-mixin-exp")
-  ?.addEventListener("click", function (): void {
+  .addEventListener("click", function () {
     const Toast = Swal.mixin({
       toast: true,
       position: "top-end",
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-      didOpen: (toast: HTMLElement) => {
-        toast.addEventListener("mouseenter", Swal.stopTimer);
+      didOpen: toast => {
+        if (!toast.getAttribute("data-listener-bound-mouseenter")) {
+          toast.setAttribute("data-listener-bound-mouseenter", "1");
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+        }
         toast.addEventListener("mouseleave", Swal.resumeTimer);
       },
     });
-    void Toast.fire({
+    Toast.fire({
       icon: "success",
       title: "Signed in successfully",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-success-ico")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "success",
       title: "Success modal",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-error-ico")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "error",
       title: "Error modal",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-warning-ico")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "warning",
       title: "warning modal",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-info-ico")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "info",
       title: "info modal",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-question-ico")
-  ?.addEventListener("click", function (): void {
-    void Swal.fire({
+  .addEventListener("click", function () {
+    Swal.fire({
       icon: "question",
       title: "question modal",
     });
   });
 document
   .querySelector<HTMLElement>(".bs-text-input")
-  ?.addEventListener("click", function () {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const ipAPI = "//api.ipify.org?format=json";
       const inputValue = fetch(ipAPI)
-        .then((response: Response) => response.json().catch(console.error))
-        .then((data: { ip: string }) => data.ip);
+        .then(response => response.json())
+        .then(data => data.ip);
       const { value: ipAddress } = await Swal.fire({
         title: "Enter your IP address",
         input: "text",
         inputValue: inputValue,
         showCancelButton: true,
-        inputValidator: (value: string) => {
-          if (value === "") {
-            return "You need to write something!";
-          }
-          return null;
+        inputValidator: value => {
+          if (!value) return "You need to write something!";
         },
       });
-      if (ipAddress) {
-        void Swal.fire(`Your IP address is ` + String(ipAddress));
-      }
+      if (ipAddress) Swal.fire(`Your IP address is ` + ipAddress);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-email-input")
-  ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: email } = await Swal.fire({
         title: "Input email address",
         input: "email",
         inputPlaceholder: "Enter your email address",
       });
 
-      if (email) {
-        void Swal.fire(`Entered email: ` + String(email));
-      }
+      if (email) Swal.fire(`Entered email: ` + email);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-url-input")
-  ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: url } = await Swal.fire({
         input: "url",
         inputPlaceholder: "Enter the URL",
       });
-      if (url) {
-        void Swal.fire(`Entered URL: ` + String(url));
-      }
+      if (url) Swal.fire(`Entered URL: ` + url);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-password-input")
-  ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: password } = await Swal.fire({
         title: "Enter your password",
         input: "password",
         inputPlaceholder: "Enter your password",
         inputAttributes: {
-          maxlength: "10",
+          maxlength: 10,
           autocapitalize: "off",
           autocorrect: "off",
         },
       });
-      if (password) {
-        void Swal.fire(`Entered password: ` + String(password));
-      }
+      if (password) Swal.fire(`Entered password: ` + password);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-textarea-input")
-  ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: text } = await Swal.fire({
         input: "textarea",
         inputPlaceholder: "Type your message here...",
@@ -388,16 +369,14 @@ document
         },
         showCancelButton: true,
       });
-      if (text) {
-        void Swal.fire(String(text));
-      }
+      if (text) Swal.fire(text);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-select-input")
-  ?.addEventListener("click", function () {
-    void (async (): Promise<void> => {
-      const selectOptions: SweetAlertOptions = {
+  .addEventListener("click", function () {
+    (async () => {
+      const { value: fruit } = await Swal.fire({
         title: "Select field validation",
         input: "select",
         inputOptions: {
@@ -413,31 +392,28 @@ document
             carrot: "Carrot",
           },
           icecream: "Ice cream",
-        } as unknown as SweetAlertOptions["inputOptions"],
+        },
         inputPlaceholder: "Select a fruit",
         showCancelButton: true,
-        inputValidator: (value: string): Promise<string | null> => {
-          return new Promise((resolve: (value: string | null) => void) => {
+        inputValidator: value => {
+          return new Promise(resolve => {
             if (value === "oranges") {
-              resolve(null);
+              resolve();
             } else {
               resolve("You need to select oranges :)");
             }
           });
         },
-      };
-      const { value: fruit } = await Swal.fire(selectOptions);
-      if (fruit) {
-        void Swal.fire(`You selected: ` + String(fruit));
-      }
+      });
+      if (fruit) Swal.fire(`You selected: ` + fruit);
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-radio-input")
-  ?.addEventListener("click", function () {
-    void (async (): Promise<void> => {
-      const inputOptions = new Promise<Record<string, string>>(resolve => {
-        setTimeout((): void => {
+  .addEventListener("click", function () {
+    (async () => {
+      const inputOptions = new Promise(resolve => {
+        setTimeout(() => {
           resolve({
             "#ff0000": "Red",
             "#00ff00": "Green",
@@ -449,43 +425,38 @@ document
         title: "Select color",
         input: "radio",
         inputOptions: inputOptions,
-        inputValidator: (value: string) => {
-          if (value === "") {
-            return "You need to choose something!";
-          }
-          return null;
+        inputValidator: value => {
+          if (!value) return "You need to choose something!";
         },
       });
       if (color) {
-        void Swal.fire({
-          html: `You selected: ` + String(color),
+        Swal.fire({
+          html: `You selected: ` + color,
         });
       }
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-checkbox-input")
-  ?.addEventListener("click", function () {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: accept } = await Swal.fire({
         title: "Terms and conditions",
         input: "checkbox",
         inputValue: 1,
         inputPlaceholder: "I agree with the terms and conditions",
         confirmButtonText: 'Continue<i class="fa fa-arrow-right"></i>',
-        inputValidator: (result: string): string | null => {
-          return !result ? "You need to agree with T&C" : null;
+        inputValidator: result => {
+          return !result && "You need to agree with T&C";
         },
       });
-      if (accept) {
-        void Swal.fire("You agreed with T&C :)");
-      }
+      if (accept) Swal.fire("You agreed with T&C :)");
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-file-input")
-  ?.addEventListener("click", function (): void {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: file } = await Swal.fire({
         title: "Select image",
         input: "file",
@@ -496,29 +467,29 @@ document
       });
       if (file) {
         const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>): void => {
-          void Swal.fire({
+        reader.onload = (e: Event): void => {
+          Swal.fire({
             title: "Your uploaded picture",
-            imageUrl: e.target?.result as string | undefined,
+            imageUrl: e.target.result,
             imageAlt: "The uploaded picture",
           });
         };
-        reader.readAsDataURL(file as Blob);
+        reader.readAsDataURL(file);
       }
     })();
   });
 document
   .querySelector<HTMLElement>(".bs-range-input")
-  ?.addEventListener("click", function (): void {
-    void ((): void => {
-      void Swal.fire({
+  .addEventListener("click", function () {
+    (async () => {
+      Swal.fire({
         title: "How old are you?",
         icon: "question",
         input: "range",
         inputAttributes: {
-          min: "8",
-          max: "120",
-          step: "1",
+          min: 8,
+          max: 120,
+          step: 1,
         },
         inputValue: 25,
       });
@@ -526,25 +497,21 @@ document
   });
 document
   .querySelector<HTMLElement>(".bs-multiple-input")
-  ?.addEventListener("click", function () {
-    void (async (): Promise<void> => {
+  .addEventListener("click", function () {
+    (async () => {
       const { value: formValues } = await Swal.fire({
         title: "Multiple inputs",
         html:
           '<input id="swal-input1" class="swal2-input">' +
           '<input id="swal-input2" class="swal2-input">',
         focusConfirm: false,
-        preConfirm: (): string[] => {
+        preConfirm: () => {
           return [
-            (document.getElementById("swal-input1") as HTMLInputElement | null)
-              ?.value ?? "",
-            (document.getElementById("swal-input2") as HTMLInputElement | null)
-              ?.value ?? "",
+            document.getElementById("swal-input1").value,
+            document.getElementById("swal-input2").value,
           ];
         },
       });
-      if (formValues) {
-        void Swal.fire(JSON.stringify(formValues));
-      }
+      if (formValues) Swal.fire(JSON.stringify(formValues));
     })();
   });

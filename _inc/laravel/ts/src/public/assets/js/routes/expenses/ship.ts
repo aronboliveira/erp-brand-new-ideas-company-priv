@@ -7,12 +7,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 (function (): void {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataBound = "data-shipping-bound";
-  const dataArmed = "data-shipping-error-armed";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataBound = "data-shipping-bound",
+    dataArmed = "data-shipping-error-armed";
   const qs = <T extends Element = Element>(
     s: string,
     r: Document | Element = document,
@@ -21,8 +21,10 @@
   const hasBS = () =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     let c = qs<HTMLDivElement>("#np-toast-container");
@@ -31,13 +33,11 @@
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showToast = (message: string): void=> {
+  const showToast = (message: string): void => {
     const container = ensureToastContainer();
     let t = qs<HTMLDivElement>("#np-toast", container);
     if (!t) {
@@ -45,11 +45,11 @@
       t.id = "np-toast";
       t.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       t.innerHTML =
         '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
       container.appendChild(t);
@@ -58,7 +58,7 @@
     if (body) body.textContent = message ?? errFb;
     new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
   };
-  const notifyError = (host: HTMLElement, msg: string): void=> {
+  const notifyError = (host: HTMLElement, msg: string): void => {
     if (!host || host.getAttribute(dataArmed) === "true") return;
     host.setAttribute(dataArmed, "true");
     const handler = (): void => {
@@ -69,7 +69,7 @@
       }
     };
     document.addEventListener("pointerup", handler, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", handler);
         o.disconnect();
@@ -106,7 +106,7 @@
     }
     return msg;
   };
-  const bindOnce = (el: HTMLElement | null): void=> {
+  const bindOnce = (el: HTMLElement | null): void => {
     if (!el || el.getAttribute(dataBound) === "true") return;
     el.setAttribute(dataBound, "true");
     const handler = function (): void {
@@ -119,15 +119,14 @@
           )
             console.error("jQuery or $.ajax unavailable");
         } catch (_) {
-    console.error(`[ship] Error:`, _);
-  }
+          console.error(`[ship] Error:`, _);
+        }
         notifyError(document.body, localize(el, "shipping_unavailable"));
         return;
       }
       const url = el.getAttribute("data-url");
       let href: string | null = null;
-      const isAnchor = el.tagName.toLowerCase() === "a";
-      if (isAnchor) href = el.getAttribute("href");
+      if (el.tagName.toLowerCase() === "a") href = el.getAttribute("href");
       else if ("form" in el && el.form instanceof HTMLFormElement)
         href = el.form.getAttribute("action");
       if ((!url || url === "#") && (!href || href === "#")) {
@@ -159,8 +158,8 @@
         try {
           window.jQuery?.(el).off("pointerup", handler);
         } catch (_) {
-    console.error(`[ship] Error:`, _);
-  }
+          console.error(`[ship] Error:`, _);
+        }
         mo.disconnect();
       }
     });
@@ -175,11 +174,9 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

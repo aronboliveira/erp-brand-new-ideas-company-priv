@@ -8,27 +8,21 @@
   try {
     const links = Array.from(
       document.querySelectorAll(
-        'a[id^="ibt-download-receipt-"][data-url][data-guard-msg]'
-      )
+        'a[id^="ibt-download-receipt-"][data-url][data-guard-msg]',
+      ),
     );
-    if (links.length === 0) {
-      return;
-    }
+    if (links.length === 0) return;
 
     links.forEach(l => {
       try {
-        if (l.getAttribute("data-listener-active") === "true") {
-          return;
-        }
+        if (l.getAttribute("data-listener-active") === "true") return;
         l.setAttribute("data-listener-active", "true");
 
         l.addEventListener("click", (e: Event) => {
           try {
-            const href = (l.getAttribute("href") ?? "#").trim();
-            const url = (l.getAttribute("data-url") ?? "#").trim();
-            if (url !== "#" && href !== "#") {
-              return;
-            }
+            const href = (l.getAttribute("href") ?? "#").trim(),
+              url = (l.getAttribute("data-url") ?? "#").trim();
+            if (url !== "#" && href !== "#") return;
 
             e.preventDefault();
 
@@ -54,11 +48,11 @@
               const toast = document.createElement("div");
               toast.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                toast.setAttribute(k, v);
 
               const body = document.createElement("div");
               body.className = "toast-body";
@@ -73,12 +67,12 @@
 
             l.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[receipts] Error:`, err);
-  }
+            console.error(`[receipts] Error:`, err);
+          }
         });
       } catch (err) {
-    console.error(`[receipts] Error:`, err);
-  }
+        console.error(`[receipts] Error:`, err);
+      }
     });
   } catch (err) {
     console.error(`[receipts] Error:`, err);

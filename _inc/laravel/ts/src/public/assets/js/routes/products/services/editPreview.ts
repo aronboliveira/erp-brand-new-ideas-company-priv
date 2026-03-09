@@ -5,12 +5,11 @@
  */
 
 ((): void => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const DATA_LISTENER_ADDED = "data-listener-added";
-
-  const getMsg = (el: HTMLElement, msgKey: string): string=> {
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    DATA_LISTENER_ADDED = "data-listener-added";
+  const getMsg = (el: HTMLElement, msgKey: string): string => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -39,11 +38,11 @@
     return msg;
   };
 
-  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void=> {
-    const text = getMsg(el ?? document.body, key);
-    const hasBs =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap.Toast;
+  const showFeedback = (el: HTMLElement, key: string, ev = "click"): void => {
+    const text = getMsg(el ?? document.body, key),
+      hasBs =
+        document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
     if (hasBs) {
       let toast = document.querySelector<HTMLElement>("#np-error-toast");
       if (!toast) {
@@ -51,11 +50,11 @@
         toast.id = "np-error-toast";
         toast.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         toast.innerHTML = `
             <div class="d-flex">
               <div class="toast-body">${text}</div>
@@ -82,7 +81,7 @@
     }
   };
 
-  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void=> {
+  const guardOnce = (el: HTMLElement, key: string, ev = "click"): void => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
     const handler = (): void => {
       showFeedback(el, key, ev);
@@ -111,7 +110,7 @@
     const $imgInput = $("#pro_image");
     const $img = $("#image");
     if ($imgInput.length) {
-      const onImgChange = function (): void {
+      const onImgChange = function (this: HTMLInputElement): void {
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -128,14 +127,13 @@
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const url = URL.createObjectURL(file);
           $img.attr("src", url);
-          if (prev) {
+          if (prev)
             try {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               URL.revokeObjectURL(prev);
             } catch (__err) {
-    console.error(`[editPreview] Error:`, __err);
-  }
-          }
+              console.error(`[editPreview] Error:`, __err);
+            }
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           this.setAttribute("data-prev-url", url);
@@ -159,7 +157,7 @@
     }
 
     if (document.body.getAttribute("data-np-qty-bound") !== "true") {
-      $(document).on("click", ".type", function (): void {
+      $(document).on("click", ".type", function (this: HTMLElement): void {
         try {
           const isProduct =
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

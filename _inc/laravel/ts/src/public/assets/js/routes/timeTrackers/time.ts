@@ -4,11 +4,7 @@
  * @module time
  */
 
-declare global {
-  interface JQuery {
-    timeEntry?(options?: { show24Hours?: boolean }): JQuery;
-  }
-}
+import "../../../../../declarations/routes/vendor-libs";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -16,12 +12,12 @@ declare global {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-timeentry-error";
-  const dataInitGuard = "data-timeentry-initialized";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-timeentry-error",
+    dataInitGuard = "data-timeentry-initialized";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
     r.querySelector(s);
@@ -31,20 +27,16 @@ declare global {
     (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLDivElement => {
     let c = qs("#np-toast-container") as HTMLDivElement | null;
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     if (hasBootstrap()) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -53,19 +45,17 @@ declare global {
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -75,11 +65,9 @@ declare global {
       alert(message ?? errFb);
     }
   };
-  const scheduleClickError = (message: string): void=> {
+  const scheduleClickError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -89,14 +77,14 @@ declare global {
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, msgKey: string) => {
@@ -136,8 +124,8 @@ declare global {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[time] Error:`, _);
-  }
+        console.error(`[time] Error:`, _);
+      }
       scheduleClickError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -149,22 +137,18 @@ declare global {
         )
           console.error("timeEntry unavailable");
       } catch (_) {
-    console.error(`[time] Error:`, _);
-  }
+        console.error(`[time] Error:`, _);
+      }
       scheduleClickError(getMsg(document.body, "time_unavailable"));
       return;
     }
     const $targets = $('[data-type="times"]');
-    if (!$targets.length) {
-      return;
-    }
-    $targets.each(function (): void {
+    if (!$targets.length) return;
+    $targets.each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const el = this;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      if ($(el).data("timeEntry")) {
-        return;
-      }
+      if ($(el).data("timeEntry")) return;
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         $(el).timeEntry!({ show24Hours: true });

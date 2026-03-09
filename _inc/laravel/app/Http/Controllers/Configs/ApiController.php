@@ -63,7 +63,7 @@ class ApiController extends Controller
         }
         Log::info("{$action} authentication succeeded", ['user_id' => $user->id]);
         $output->writeln("{$action} Authenticated user ID {$user->id}");
-        $settings = Utility::settings($user->id);
+        $settings = Utility::settingsById($user->id);
         $token    = $user->createToken('API Token')->plainTextToken;
         if (empty($token)) {
           Log::critical("{$action} token creation failed", ['user_id' => $user->id]);
@@ -252,7 +252,7 @@ class ApiController extends Controller
         $tracker->fill([
           ActivitiesConstants::COL_E_TIME   => $end,
           ActivitiesConstants::COL_IA       => 0,
-          ActivitiesConstants::COL_TTL_TIME => Utility::diffanceToTime(
+          ActivitiesConstants::COL_TTL_TIME => Utility::differenceToTime(
             $tracker->{ActivitiesConstants::COL_ST_TIME},
             $end
           ),

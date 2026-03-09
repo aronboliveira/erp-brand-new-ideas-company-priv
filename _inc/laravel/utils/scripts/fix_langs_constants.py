@@ -10,7 +10,7 @@ Issues fixed:
 """
 
 import re
-import sys
+
 import os
 
 filepath = os.path.join(os.path.dirname(__file__), 'app/Config/Constants/LangsConstants.php')
@@ -65,16 +65,16 @@ for dup_key in dup_keys:
     for i, line in enumerate(lines):
         if f"'{dup_key}'" in line:
             occurrences.append(i)
-    
+
     if len(occurrences) < 2:
         continue
-    
+
     # Group into pairs: (first_occurrence, second_occurrence) within same language block
     # Consecutive pairs belong to the same language sub-array
     if len(occurrences) % 2 != 0:
         print(f"  Warning: Odd number of '{dup_key}' occurrences ({len(occurrences)}), skipping")
         continue
-    
+
     for j in range(0, len(occurrences), 2):
         first = occurrences[j]
         second = occurrences[j + 1]
@@ -125,10 +125,10 @@ def extract_block1_entries(lines, start, end):
     """
     result = {}
     current_lang = None
-    
+
     for i in range(start + 1, end + 1):
         stripped = lines[i].strip()
-        
+
         # Match language array opening: 'ar' => [
         lang_match = re.match(r"'([a-z][\w-]*)'\s*=>\s*\[(.*)$", stripped)
         if lang_match:
@@ -143,7 +143,7 @@ def extract_block1_entries(lines, start, end):
                 for key, val in inner_matches:
                     result[current_lang].append((key, val.rstrip(',')))
             continue
-        
+
         # Match key => value entries
         if current_lang and "=>" in stripped:
             entry_match = re.match(r"'(\w+)'\s*=>\s*(.+?)(?:,\s*)?$", stripped)
@@ -151,35 +151,36 @@ def extract_block1_entries(lines, start, end):
                 key = entry_match.group(1)
                 val = entry_match.group(2).rstrip(',').rstrip()
                 result[current_lang].append((key, val))
-        
+
         # End of language sub-array
         if stripped in ('],', ']'):
             current_lang = None
-    
+
     return result
+
 
 for const_name in ['BDG', 'CPL']:
     starts = find_block_starts(lines, const_name)
     if len(starts) != 2:
         print(f"  Warning: Expected 2 {const_name} blocks, found {len(starts)}")
         continue
-    
+
     b1_start = starts[0]
     b1_end = find_block_end(lines, b1_start)
     b2_start = starts[1]
     b2_end = find_block_end(lines, b2_start)
-    
+
     if b1_end is None or b2_end is None:
         print(f"  Warning: Could not find end of {const_name} block")
         continue
-    
+
     print(f"  {const_name} block 1: lines {b1_start+1}-{b1_end+1} ({b1_end-b1_start+1} lines)")
     print(f"  {const_name} block 2: lines {b2_start+1}-{b2_end+1} ({b2_end-b2_start+1} lines)")
-    
+
     # Extract entries from block 1
     b1_entries = extract_block1_entries(lines, b1_start, b1_end)
     print(f"  Block 1 has entries for {len(b1_entries)} languages: {list(b1_entries.keys())}")
-    
+
     # Add block 1 entries to block 2 (insert after each language's opening line)
     # First, find language array openings in block 2
     insert_targets = []  # (line_idx, lang_code)
@@ -190,7 +191,7 @@ for const_name in ['BDG', 'CPL']:
             lang_code = lang_match.group(1)
             if lang_code in b1_entries:
                 insert_targets.append((i, lang_code))
-    
+
     # Insert from bottom to top
     inserted_count = 0
     for line_idx, lang_code in reversed(insert_targets):
@@ -202,21 +203,21 @@ for const_name in ['BDG', 'CPL']:
             indent = indent_match.group(1) if indent_match else '\t\t\t\t'
         else:
             indent = '\t\t\t\t'
-        
+
         # Insert entries after the language opening line
         for j, (key, val) in enumerate(entries):
             new_line = f"{indent}'{key}' => {val},\n"
             lines.insert(line_idx + 1 + j, new_line)
             inserted_count += 1
-    
+
     print(f"  Inserted {inserted_count} entries from block 1 into block 2")
-    
+
     # Delete block 1 (it's before block 2, so indices haven't shifted)
     block1_size = b1_end - b1_start + 1
     del lines[b1_start:b1_end + 1]
     print(f"  Deleted block 1 ({block1_size} lines)")
 
-print(f"Step 3: Merged duplicate BDG and CPL blocks")
+print("Step 3: Merged duplicate BDG and CPL blocks")
 
 # ============================================================
 # STEP 4: Verify and write

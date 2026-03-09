@@ -143,7 +143,7 @@ final class PosController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       Log::info("[{$class}::{$action}] requested", [UsersConstants::COL_USER_ID => $req->user()?->id]);
       if (($u = self::_checkLogin()) instanceof RedirectResponse) {
         Log::warning("[{$class}::{$action}] unauthenticated");
@@ -152,7 +152,7 @@ final class PosController extends Controller
       if (($r = self::_authorize($req, PermissionsConstants::MNG_POS)) !== null) return $r;
       try {
         $txnStart = microtime(true);
-        $result = DB::transaction(function () use ($req, $u, $action, $method, $class) {
+        $result = DB::transaction(function () use ($req, $u, $action, $class) {
           $creatorId = $u->creatorId();
           $cart = session('pos', []);
           if (empty($cart)) {
@@ -227,7 +227,7 @@ final class PosController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = ViewsConstants::POS . '.view';
-    return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $encId, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] requested", ['encrypted_id' => $encId]);
       if (($r = self::_authorize($req, PermissionsConstants::MNG_POS)) !== null) return $r;
       try {
@@ -518,7 +518,7 @@ final class PosController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewBase = ViewsConstants::PRC_TMP;
-    return $this->measureProfile($action, function () use ($req, $tpl, $col, $action, $method, $class, $viewBase) {
+    return $this->measureProfile($action, function () use ($req, $tpl, $col, $action, $class, $viewBase) {
       Log::info("[{$class}::{$action}] requested", ['tpl' => $tpl, 'col' => $col]);
       try {
         $dataStart = microtime(true);
@@ -652,7 +652,7 @@ final class PosController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
+    return $this->measureProfile($action, function () use ($req, $action, $class) {
       if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
       $user = $r;
       if ($deny = self::_authorize($req, PermissionsConstants::MNG_POS)) return $deny;
@@ -680,7 +680,7 @@ final class PosController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $viewPath = ViewsConstants::POS . '.receipt';
-    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
+    return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
       $user = $r;
       if ($deny = self::_authorize($req, PermissionsConstants::MNG_POS)) return $deny;
@@ -716,7 +716,7 @@ final class PosController extends Controller
     $class = static::class;
     $viewBase = ViewsConstants::POS_TMP;
     $req = $request;
-    return $this->measureProfile($action, function () use ($req, $encId, $action, $method, $class, $viewBase) {
+    return $this->measureProfile($action, function () use ($req, $encId, $action, $class, $viewBase) {
       if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
       $user = $r;
       if ($deny = self::_authorize($req, PermissionsConstants::MNG_POS)) return $deny;

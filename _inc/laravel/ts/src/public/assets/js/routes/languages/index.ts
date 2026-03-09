@@ -7,9 +7,9 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const defaultLangSessionKey = "erp-np-lang";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -55,14 +55,17 @@
   });
   observer.observe(document.body, { childList: true, subtree: true });
   el.setAttribute("data-listener-attached", "true");
-  el.addEventListener("pointerup", handler);
-  function handler(): void{
+  if (!el.getAttribute("data-listener-bound-pointerup")) {
+    el.setAttribute("data-listener-bound-pointerup", "1");
+    el.addEventListener("pointerup", handler);
+  }
+  function handler(): void {
     if (!el) return;
     try {
-      const isChecked = el.checked ?? false;
-      const mode = isChecked ? "on" : "off";
-      const url = el.getAttribute("data-url");
-      const href = el.form?.action ?? el.getAttribute("href");
+      const isChecked = el.checked ?? false,
+        mode = isChecked ? "on" : "off",
+        url = el.getAttribute("data-url"),
+        href = el.form?.action ?? el.getAttribute("href");
       if ((!url || url === "#") && (!href || href === "#")) {
         showError(getLocalizedMessage("disable_lang_unavailable", el));
         return;
@@ -95,7 +98,7 @@
       showError(getLocalizedMessage("disable_lang_failed", el));
     }
   }
-  function showError(message: string): void{
+  function showError(message: string): void {
     try {
       let container = document.querySelector<HTMLElement>(
         "#bootstrap-toast-container",
@@ -121,11 +124,11 @@
           toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           toast.appendChild(body);

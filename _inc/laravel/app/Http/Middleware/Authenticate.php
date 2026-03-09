@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class Authenticate extends Middleware
 {
     use MeasuresPerformance;
+    protected const PERF_ENABLED = true;
     private const REDIRECT_ROUTE = 'login';
 
     /**

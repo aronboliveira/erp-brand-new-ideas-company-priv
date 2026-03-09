@@ -7,6 +7,10 @@ use App\Enums\Frequency;
 use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\Log;
+/**
+ * @property int|null $plan_id
+ * @property int|null $user_id
+ */
 
 class PlanRequest extends Model
 {
@@ -95,7 +99,8 @@ class PlanRequest extends Model
     {
         try {
             $enum = $this->durationEnum();
-            return is_callable([$enum, 'label']) ? $enum->label() : $enum->value;
+            $labels = Frequency::labels();
+            return is_array($labels) && array_key_exists($enum->value, $labels) ? (string) $labels[$enum->value] : $enum->value;
         } catch (\Throwable $e) {
             Log::debug(self::class . ' duration label fallback', [
                 'file' => $e->getFile(),

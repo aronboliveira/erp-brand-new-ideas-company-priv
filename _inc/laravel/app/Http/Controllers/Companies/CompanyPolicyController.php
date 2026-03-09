@@ -63,7 +63,7 @@ final class CompanyPolicyController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($r, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
@@ -83,7 +83,7 @@ final class CompanyPolicyController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($r, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($c = self::v($r, ['branch' => 'required', 'title' => 'required'])) return $c;
@@ -101,7 +101,7 @@ final class CompanyPolicyController extends Controller
                 ]);
                 $this->logExecutionTime($crtStart, $action, 'createPolicy');
                 try {
-                    $settings = Utility::settings($u->creatorId());
+                    $settings = Utility::settingsById($u->creatorId());
                     $branch = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->find($r->branch);
                     $payload = [
                         'company_policy_name' => $policy->title,
@@ -138,7 +138,7 @@ final class CompanyPolicyController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             $branch = self::branches($u->creatorId());
@@ -157,7 +157,7 @@ final class CompanyPolicyController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($c = self::v($r, ['branch' => 'required', 'title' => 'required'])) return $c;
@@ -193,7 +193,7 @@ final class CompanyPolicyController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'delete document', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($companyPolicy->created_by !== $u->creatorId()) return back()->with('error', __('Permission denied.'));

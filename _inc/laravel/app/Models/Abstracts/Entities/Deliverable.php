@@ -4,19 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Support\Str;
+/**
+ * @property mixed $casts
+ * @property mixed $fillable
+ * @property mixed $incrementing
+ * @property mixed $key
+ */
 
 abstract class Deliverable extends Model
 {
   use HasFactory;
-  protected string $keyType = 'string';
-  public bool $incrementing = false;
-  protected array $casts = [
+  protected $keyType = 'string';
+  public $incrementing = false;
+  protected $casts = [
     'billing_phone_verified_at' => 'datetime',
     'email_verified_at' => 'datetime',
     'is_active' => 'boolean',
     'shipping_phone_verified_at' => 'datetime',
   ];
-  protected array $fillable = [
+  protected $fillable = [
     'avatar',
     'avatar_url',
     'billing_address',

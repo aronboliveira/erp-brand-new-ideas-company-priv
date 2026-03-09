@@ -7,78 +7,77 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 ((): void => {
-  const BS_LINK = 'link[href*="bootstrap"]';
-  const TYPE_RADIO = 'input[name="type"][type="radio"]';
-  const MONTH_CLASS = "month";
-  const DATE_CLASS = "date";
-  const TOGGLER_ATTR = "data-toggler-initialized";
-  const _translations = {
-    ar: {
-      toggler_unavailable: "فشل في تهيئة المبدل",
-      toggle_failed: "فشل في تبديل العرض",
-    },
-    da: {
-      toggler_unavailable: "Kunne ikke initialisere skifter",
-      toggle_failed: "Kunne ikke skifte visning",
-    },
-    de: {
-      toggler_unavailable: "Umschalter konnte nicht initialisiert werden",
-      toggle_failed: "Anzeige konnte nicht umgeschaltet werden",
-    },
-    en: {
-      toggler_unavailable: "Failed to initialize toggler",
-      toggle_failed: "Failed to toggle display",
-    },
-    es: {
-      toggler_unavailable: "Error al inicializar el conmutador",
-      toggle_failed: "Error al cambiar la visualización",
-    },
-    fr: {
-      toggler_unavailable: "Échec de l'initialisation du commutateur",
-      toggle_failed: "Échec de la commutation de l'affichage",
-    },
-    he: {
-      toggler_unavailable: "נכשל באתחול המתג",
-      toggle_failed: "נכשל בשינוי התצוגה",
-    },
-    it: {
-      toggler_unavailable: "Impossibile inizializzare l'interruttore",
-      toggle_failed: "Impossibile cambiare la visualizzazione",
-    },
-    ja: {
-      toggler_unavailable: "トグラーの初期化に失敗しました",
-      toggle_failed: "表示の切り替えに失敗しました",
-    },
-    nl: {
-      toggler_unavailable: "Initialiseren van schakelaar mislukt",
-      toggle_failed: "Omschakelen van weergave mislukt",
-    },
-    pl: {
-      toggler_unavailable: "Nie udało się zainicjować przełącznika",
-      toggle_failed: "Nie udało się przełączyć wyświetlania",
-    },
-    pt: {
-      toggler_unavailable: "Falha ao inicializar o comutador",
-      toggle_failed: "Falha ao alternar a exibição",
-    },
-    "pt-br": {
-      toggler_unavailable: "Falha ao inicializar o comutador",
-      toggle_failed: "Falha ao alternar a exibição",
-    },
-    ru: {
-      toggler_unavailable: "Не удалось инициализировать переключатель",
-      toggle_failed: "Не удалось переключить отображение",
-    },
-    tr: {
-      toggler_unavailable: "Değiştirici başlatılamadı",
-      toggle_failed: "Görüntü değiştirilemedi",
-    },
-    zh: {
-      toggler_unavailable: "无法初始化切换器",
-      toggle_failed: "无法切换显示",
-    },
-  };
-
+  const BS_LINK = 'link[href*="bootstrap"]',
+    TYPE_RADIO = 'input[name="type"][type="radio"]',
+    MONTH_CLASS = "month",
+    DATE_CLASS = "date",
+    TOGGLER_ATTR = "data-toggler-initialized",
+    _translations = {
+      ar: {
+        toggler_unavailable: "فشل في تهيئة المبدل",
+        toggle_failed: "فشل في تبديل العرض",
+      },
+      da: {
+        toggler_unavailable: "Kunne ikke initialisere skifter",
+        toggle_failed: "Kunne ikke skifte visning",
+      },
+      de: {
+        toggler_unavailable: "Umschalter konnte nicht initialisiert werden",
+        toggle_failed: "Anzeige konnte nicht umgeschaltet werden",
+      },
+      en: {
+        toggler_unavailable: "Failed to initialize toggler",
+        toggle_failed: "Failed to toggle display",
+      },
+      es: {
+        toggler_unavailable: "Error al inicializar el conmutador",
+        toggle_failed: "Error al cambiar la visualización",
+      },
+      fr: {
+        toggler_unavailable: "Échec de l'initialisation du commutateur",
+        toggle_failed: "Échec de la commutation de l'affichage",
+      },
+      he: {
+        toggler_unavailable: "נכשל באתחול המתג",
+        toggle_failed: "נכשל בשינוי התצוגה",
+      },
+      it: {
+        toggler_unavailable: "Impossibile inizializzare l'interruttore",
+        toggle_failed: "Impossibile cambiare la visualizzazione",
+      },
+      ja: {
+        toggler_unavailable: "トグラーの初期化に失敗しました",
+        toggle_failed: "表示の切り替えに失敗しました",
+      },
+      nl: {
+        toggler_unavailable: "Initialiseren van schakelaar mislukt",
+        toggle_failed: "Omschakelen van weergave mislukt",
+      },
+      pl: {
+        toggler_unavailable: "Nie udało się zainicjować przełącznika",
+        toggle_failed: "Nie udało się przełączyć wyświetlania",
+      },
+      pt: {
+        toggler_unavailable: "Falha ao inicializar o comutador",
+        toggle_failed: "Falha ao alternar a exibição",
+      },
+      "pt-br": {
+        toggler_unavailable: "Falha ao inicializar o comutador",
+        toggle_failed: "Falha ao alternar a exibição",
+      },
+      ru: {
+        toggler_unavailable: "Не удалось инициализировать переключатель",
+        toggle_failed: "Не удалось переключить отображение",
+      },
+      tr: {
+        toggler_unavailable: "Değiştirici başlatılamadı",
+        toggle_failed: "Görüntü değiştirilemedi",
+      },
+      zh: {
+        toggler_unavailable: "无法初始化切换器",
+        toggle_failed: "无法切换显示",
+      },
+    };
   const toastContainer = ((): HTMLElement => {
     let container = document.querySelector<HTMLElement>(".toast-container");
     if (!container) {
@@ -89,10 +88,10 @@
     return container;
   })();
 
-  const showError = (key: string, el: HTMLElement | null = null): void=> {
-    const errFb = "# ERROR";
-    const dataClientLocalized = "data-client-localized";
-    const dataGuardMsg = "data-guard-msg";
+  const showError = (key: string, el: HTMLElement | null = null): void => {
+    const errFb = "# ERROR",
+      dataClientLocalized = "data-client-localized",
+      dataGuardMsg = "data-guard-msg";
     let msg = errFb;
     if (
       el?.getAttribute("data-sv-localized") === "true" ||
@@ -125,16 +124,15 @@
         '.toast[data-error-key="' + key + '"]',
       );
       if (existingToast) return;
-
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
       toast.dataset.errorKey = key;
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        toast.setAttribute(k, v);
       {
         toast.replaceChildren();
         const _d = document.createElement("div");
@@ -157,13 +155,13 @@
     }
   };
 
-  const handleToggle = (e: Event): void=> {
+  const handleToggle = (e: Event): void => {
     try {
       if (typeof $ !== "function") throw new Error("jQuery not loaded");
       const target = e.target as HTMLInputElement | null;
       if (!target) return;
-      const type = target.value ?? "";
-      const showMonth = type === "monthly";
+      const type = target.value ?? "",
+        showMonth = type === "monthly";
       document
         .querySelectorAll(`.${MONTH_CLASS}`)
         .forEach((el: Element): void => {
@@ -184,9 +182,8 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (node.nodeType === 1 && (node as HTMLElement).matches(TYPE_RADIO)) {
+        if (node.nodeType === 1 && (node as HTMLElement).matches(TYPE_RADIO))
           (node as HTMLElement).removeEventListener("change", handleToggle);
-        }
       });
     });
   });
@@ -200,7 +197,10 @@
     radios.forEach(radio => {
       if (radio.getAttribute(TOGGLER_ATTR)) return;
       radio.setAttribute(TOGGLER_ATTR, "true");
-      radio.addEventListener("change", handleToggle);
+      if (!radio.getAttribute("data-listener-bound-change")) {
+        radio.setAttribute("data-listener-bound-change", "1");
+        radio.addEventListener("change", handleToggle);
+      }
     });
 
     const checked = document.querySelector(`${TYPE_RADIO}:checked`);

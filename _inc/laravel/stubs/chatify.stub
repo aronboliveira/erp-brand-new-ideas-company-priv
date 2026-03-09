@@ -1,0 +1,32 @@
+<?php
+
+namespace Chatify\Facades;
+
+/**
+ * @method static mixed pusherAuth(string $channelName, string $socket_id, mixed $data = null)
+ * @method static mixed fetchMessage(int|string $id)
+ * @method static string messageCard(mixed $data, string|null $viewType = null)
+ * @method static \Illuminate\Database\Eloquent\Builder fetchMessagesQuery(int|string $user_id)
+ * @method static \Illuminate\Database\Eloquent\Model newMessage(array $data)
+ * @method static int makeSeen(int|string $user_id)
+ * @method static \Illuminate\Database\Eloquent\Builder getLastMessageQuery(int|string $user_id)
+ * @method static int countUnseenMessages(int|string $user_id)
+ * @method static string getContactItem(int|string $messenger_id, mixed $user)
+ * @method static bool inFavorite(int|string $user_id)
+ * @method static void makeInFavorite(int|string $user_id, int $action)
+ * @method static \Illuminate\Database\Eloquent\Collection getSharedPhotos(int|string $user_id)
+ * @method static void deleteConversation(int|string $user_id)
+ * @method static array getAllowedImages()
+ * @method static array getAllowedFiles()
+ * @method static array getMessengerColors()
+ * @method static void push(string $channel, string $event, array $data)
+ *
+ * @see \Chatify\ChatifyMessenger
+ */
+class ChatifyMessenger extends \Illuminate\Support\Facades\Facade
+{
+    protected static function getFacadeAccessor(): string
+    {
+        return 'ChatifyMessenger';
+    }
+}

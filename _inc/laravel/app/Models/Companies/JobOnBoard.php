@@ -7,6 +7,10 @@ use App\Enums\{Confirmation, Frequency, Weekday, WorkShift};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+/**
+ * @property \Illuminate\Support\Carbon|string|null $joining_date
+ * @property string|null $salary_type
+ */
 
 class JobOnBoard extends Model
 {

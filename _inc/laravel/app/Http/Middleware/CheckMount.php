@@ -10,6 +10,7 @@ class CheckMount
 {
 	public function handle(Request $request, Closure $next)
 	{
+		/** @var \Symfony\Component\HttpFoundation\Response $response */
 		$response = $next($request);
 
 		try {

@@ -10,8 +10,8 @@
     if (!f || f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
 
-    const resolved = f.getAttribute("data-resolved-action") ?? "#";
-    const current = f.getAttribute("action");
+    const resolved = f.getAttribute("data-resolved-action") ?? "#",
+      current = f.getAttribute("action");
     if ((current === "#" || !current) && resolved !== "#")
       f.setAttribute("action", resolved);
 
@@ -21,7 +21,8 @@
       e.preventDefault();
 
       const msg =
-        f.getAttribute("data-guard-msg") ?? "Store vendor route is unavailable. Please contact technical support or your domain administrator.";
+        f.getAttribute("data-guard-msg") ??
+        "Store vendor route is unavailable. Please contact technical support or your domain administrator.";
       let container = document.getElementById("toast-container");
       if (!container) {
         container = document.createElement("div");
@@ -35,11 +36,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;

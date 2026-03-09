@@ -6,33 +6,34 @@
 
 ((): void => {
   try {
-    const homeTab = document.getElementById("pills-home-tab");
-    const listenerAttr = "data-daily-purchase-nav-listener-added";
+    const homeTab = document.getElementById("pills-home-tab"),
+      listenerAttr = "data-daily-purchase-nav-listener-added";
     if (homeTab && homeTab.getAttribute(listenerAttr) !== "true") {
       homeTab.setAttribute(listenerAttr, "true");
-      homeTab.addEventListener("click", (e: Event) => {
-        e.preventDefault();
-        const url = homeTab.getAttribute("data-url");
-        const href = homeTab.getAttribute("href");
-        if ((!url || url === "#") && (!href || href === "#")) return;
-        const msg = "{{ $dailyPurchaseNavMsg }}";
-        const toastEl = document.querySelector<HTMLElement>(".toast");
-        if (
-          toastEl &&
-          window.bootstrap &&
-          typeof bootstrap.Toast === "function"
-        ) {
-          const toast = new bootstrap.Toast(toastEl);
-          const body = toastEl.querySelector(".toast-body");
-          if (body) {
-            body.textContent = msg;
+      if (!homeTab.getAttribute("data-listener-bound-click")) {
+        homeTab.setAttribute("data-listener-bound-click", "1");
+        homeTab.addEventListener("click", (e: Event) => {
+          e.preventDefault();
+          const url = homeTab.getAttribute("data-url"),
+            href = homeTab.getAttribute("href");
+          if ((!url || url === "#") && (!href || href === "#")) return;
+          const msg = "{{ $dailyPurchaseNavMsg }}",
+            toastEl = document.querySelector<HTMLElement>(".toast");
+          if (
+            toastEl &&
+            window.bootstrap &&
+            typeof bootstrap.Toast === "function"
+          ) {
+            const toast = new bootstrap.Toast(toastEl),
+              body = toastEl.querySelector(".toast-body");
+            if (body) body.textContent = msg;
+            toast.show();
+          } else {
+            alert(msg);
           }
-          toast.show();
-        } else {
-          alert(msg);
-        }
-        window.location.href = url ?? "#";
-      });
+          window.location.href = url ?? "#";
+        });
+      }
     }
   } catch (error) {
     console.error(`[dailyNav] Error:`, error);

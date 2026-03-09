@@ -4,7 +4,7 @@ namespace Modules\LandingPage\Providers;
 
 use Illuminate\Support\Facades\{Log, Route, View};
 use Illuminate\Support\ServiceProvider;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\NullOutput; // TEMP: was ConsoleOutput
 use Throwable;
 
 final class AddMenuProvider extends ServiceProvider
@@ -22,7 +22,7 @@ final class AddMenuProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $output = new ConsoleOutput();
+        $output = new NullOutput(); // TEMP: was ConsoleOutput
         $output->writeln('Booting ' . class_basename(self::class));
         Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' called');
         try {

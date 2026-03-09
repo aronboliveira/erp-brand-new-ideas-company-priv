@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\{DB, Log, Schema, Validator};
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @property string|\Illuminate\Support\Carbon|null $end_date
+ * @property string|\Illuminate\Support\Carbon|null $start_date
+ * @property string|null $status
+ * @property \Illuminate\Support\Carbon|string|null $client_signed_at
+ * @property \Illuminate\Support\Carbon|string|null $company_signed_at
+ */
 class Contract extends Model
 {
     use UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule;
@@ -705,7 +712,7 @@ class Contract extends Model
             $contract->setAttribute('description', $typeTerms);
     }
 
-    /** @var \Carbon\CarbonImmutable|null */
+    /** @return \Carbon\CarbonImmutable|null */
     private static function toImmutable($date)
     {
         if ($date instanceof \Carbon\CarbonImmutable) return $date;

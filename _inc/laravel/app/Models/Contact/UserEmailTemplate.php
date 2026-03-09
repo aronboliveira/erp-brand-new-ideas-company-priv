@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\Facades\Log;
+/**
+ * @property bool|null $is_active
+ */
 
 class UserEmailTemplate extends Model
 {

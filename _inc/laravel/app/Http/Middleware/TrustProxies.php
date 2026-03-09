@@ -37,7 +37,7 @@ final class TrustProxies extends Middleware
     /**
      * Handle an incoming request.
      *
-     * @param  mixed    $request
+     * @param  Request  $request
      * @param  Closure  $next
      * @return mixed
      */
@@ -62,6 +62,7 @@ final class TrustProxies extends Middleware
             ];
             Log::debug("{$class}::{$method} start", $ctx);
             $output->writeln("[{$class}] {$method}: Processing {$request->getMethod()} {$request->getRequestUri()}");
+            $response = null;
             try {
                 try {
                     $response = $next($request);
@@ -90,7 +91,7 @@ final class TrustProxies extends Middleware
                     'exception' => get_class($e),
                     'message' => $e->getMessage(),
                     'uri' => $request->getRequestUri(),
-                    'status' => $response?->getStatusCode() ?? 'n/a',
+                    'status' => $response?->getStatusCode() ?? 'n/a', // @phpstan-ignore-line
                     'host'  => $request->getHost()
                 ] + $ctx);
                 $output->writeln("[{$class}] {$method}: Suspicious host detected {$request->getHost()}, aborting");
@@ -100,7 +101,7 @@ final class TrustProxies extends Middleware
                     'exception' => get_class($e),
                     'message' => $e->getMessage(),
                     'uri' => $request->getRequestUri(),
-                    'status' => $response?->getStatusCode() ?? 'n/a',
+                    'status' => $response?->getStatusCode() ?? 'n/a', // @phpstan-ignore-line
                     'host'  => $request->getHost()
                 ] + $ctx);
                 $msg = "[{$class}] {$method}: Error trusting proxies: {$e->getMessage()}";

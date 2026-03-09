@@ -5,12 +5,11 @@
  */
 
 ((): void => {
-  const dataListenerAdded = "data-listener-added";
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-
-  const getLocalizedMessage = (el: HTMLElement, msgKey: string): string=> {
+  const dataListenerAdded = "data-listener-added",
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg";
+  const getLocalizedMessage = (el: HTMLElement, msgKey: string): string => {
     let msg = errFb;
     if (
       el.getAttribute("data-sv-localized") === "true" ||
@@ -48,8 +47,8 @@
         console.error("jQuery is not available");
       return;
     }
-    const candidate = jQuery("select#candidate");
-    const el = candidate.get(0);
+    const candidate = jQuery("select#candidate"),
+      el = candidate.get(0);
     if (!el) {
       if (
         window.location.hostname === "localhost" ||
@@ -58,38 +57,33 @@
         console.error("Select#candidate element not found");
       return;
     }
-    const url = el.getAttribute("data-url");
-    const href =
-      (el as HTMLAnchorElement).href
-        .replace(window.location.origin, "")
-        .replace(window.location.pathname, "") ?? "";
-    if ((!url || url === "#") && (!href || href === "#")) {
-      return;
-    }
+    const url = el.getAttribute("data-url"),
+      href =
+        (el as HTMLAnchorElement).href
+          .replace(window.location.origin, "")
+          .replace(window.location.pathname, "") ?? "";
+    if ((!url || url === "#") && (!href || href === "#")) return;
     const candidateVal = String(candidate.val() ?? "");
-    if (candidateVal == null) {
-      return;
-    }
+    if (candidateVal == null) return;
     candidate.val(candidateVal).trigger("change");
   } catch {
     const handleErrorDisplay = (): void => {
-      const el = document.querySelector<HTMLSelectElement>("select#candidate");
-      const msgKey = "candidate_unavailable";
-      const message = el ? getLocalizedMessage(el, msgKey) : errFb;
-      const hasBootstrap =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap.Toast;
+      const el = document.querySelector<HTMLSelectElement>("select#candidate"),
+        message = el ? getLocalizedMessage(el, "candidate_unavailable") : errFb,
+        hasBootstrap =
+          document.querySelector('link[href*="bootstrap"]') &&
+          window.bootstrap.Toast;
       if (hasBootstrap) {
         if (!document.querySelector<HTMLElement>("#error-toast")) {
           const toast = document.createElement("div");
           toast.id = "error-toast";
           toast.className = "toast align-items-center text-bg-danger border-0";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           toast.innerHTML = `
                     <div class="d-flex">
                     <div class="toast-body">${message}</div>
@@ -116,7 +110,10 @@
         }
       });
       observer.observe(document.body, { childList: true, subtree: true });
-      el.addEventListener("click", handleErrorDisplay);
+      if (!el.getAttribute("data-listener-bound-click")) {
+        el.setAttribute("data-listener-bound-click", "1");
+        el.addEventListener("click", handleErrorDisplay);
+      }
       el.setAttribute(dataListenerAdded, "true");
     }
   }

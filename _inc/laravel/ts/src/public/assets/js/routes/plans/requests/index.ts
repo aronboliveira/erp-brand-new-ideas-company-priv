@@ -6,12 +6,12 @@
 
 (function (): void {
   const listened = "data-listener-active";
-  function toast(message: string): void{
-    const text = message ?? "Requested route is unavailable.";
-    const hasBs = !!(
-      document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
-      window.bootstrap
-    );
+  function toast(message: string): void {
+    const text = message ?? "Requested route is unavailable.",
+      hasBs = !!(
+        document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+        window.bootstrap
+      );
     if (hasBs) {
       let box = document.getElementById("toast-container");
       if (!box) {
@@ -22,11 +22,11 @@
       const t = document.createElement("div");
       t.className = "toast";
       for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+        role: "alert",
+        "aria-live": "assertive",
+        "aria-atomic": "true",
+      }))
+        t.setAttribute(k, v);
       const b = document.createElement("div");
       b.className = "toast-body";
       b.textContent = text;
@@ -37,29 +37,29 @@
       alert(text);
     }
   }
-  function guardLink(a: Element): void{
+  function guardLink(a: Element): void {
     if (!a || a.getAttribute(listened) === "true") return;
     a.setAttribute(listened, "true");
     a.addEventListener("click", function (e: Event) {
-      const href = (a.getAttribute("href") ?? "#").trim();
-      const url = ((a.getAttribute("data-url") || href) ?? "#").trim();
+      const href = (a.getAttribute("href") ?? "#").trim(),
+        url = ((a.getAttribute("data-url") || href) ?? "#").trim();
       if (url !== "#" && href !== "#") return;
       e.preventDefault();
       toast(a.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function guardForm(f: Element): void{
+  function guardForm(f: Element): void {
     if (!f || f.getAttribute(listened) === "true") return;
     f.setAttribute(listened, "true");
     f.addEventListener("submit", function (e: Event) {
-      const action = (f.getAttribute("action") ?? "#").trim();
-      const url = ((f.getAttribute("data-url") || action) ?? "#").trim();
+      const action = (f.getAttribute("action") ?? "#").trim(),
+        url = ((f.getAttribute("data-url") || action) ?? "#").trim();
       if (url !== "#" && action !== "#") return;
       e.preventDefault();
       toast(f.getAttribute("data-guard-msg") ?? "");
     });
   }
-  function init(): void{
+  function init(): void {
     document
       .querySelectorAll("a[data-guard-msg],a[data-url]")
       .forEach(guardLink);
@@ -68,17 +68,17 @@
       .forEach(guardForm);
     try {
       document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (
-        el: HTMLElement,
+        el: Element,
       ) {
         try {
-          bootstrap.Tooltip.getOrCreateInstance(el);
+          bootstrap.Tooltip.getOrCreateInstance(el as HTMLElement);
         } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+          console.error(`[index] Error:`, _);
+        }
       });
     } catch (_) {
-    console.error(`[index] Error:`, _);
-  }
+      console.error(`[index] Error:`, _);
+    }
   }
   document.addEventListener("DOMContentLoaded", function (): void {
     init();

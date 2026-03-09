@@ -20,12 +20,11 @@
           if (url !== "#") return;
           e.preventDefault();
           const msg =
-            b.getAttribute("data-guard-msg") ??
-            "Store file for task comment route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+              b.getAttribute("data-guard-msg") ??
+              "Store file for task comment route is unavailable. Please contact technical support or your domain administrator.",
+            linkEl = document.querySelector('link[href*="bootstrap"]'),
+            hasBootstrapToast =
+              window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -40,11 +39,11 @@
             const toast = document.createElement("div");
             toast.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -55,8 +54,8 @@
               try {
                 toast.remove();
               } catch (_) {
-    console.error(`[storeFIle] Error:`, _);
-  }
+                console.error(`[storeFIle] Error:`, _);
+              }
             });
             inst.show();
           } else {
@@ -64,10 +63,10 @@
           }
           b.setAttribute("data-failed-route", "true");
         } catch (_) {
-    console.error(`[storeFIle] Error:`, _);
-  }
+          console.error(`[storeFIle] Error:`, _);
+        }
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {
     console.error(`[storeFIle] Error:`, _);

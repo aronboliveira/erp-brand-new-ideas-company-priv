@@ -7,12 +7,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const DATA_LISTENER_ADDED = "data-listener-added";
-
-  const getMsg = (el: HTMLElement, key: string): string=> {
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    DATA_LISTENER_ADDED = "data-listener-added";
+  const getMsg = (el: HTMLElement, key: string): string => {
     let msg = errFb;
 
     if (
@@ -49,12 +48,11 @@
     el: HTMLElement,
     key: string,
     ev = "pointerup",
-  ): void=> {
-    const text = getMsg(el ?? document.body, key);
-    const hasBs =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap.Toast;
-
+  ): void => {
+    const text = getMsg(el ?? document.body, key),
+      hasBs =
+        document.querySelector('link[href*="bootstrap"]') &&
+        window.bootstrap.Toast;
     if (hasBs) {
       let toast = document.querySelector<HTMLElement>("#np-error-toast");
 
@@ -63,11 +61,11 @@
         toast.id = "np-error-toast";
         toast.className = "toast align-items-center text-bg-danger border-0";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         toast.innerHTML = `
             <div class="d-flex">
               <div class="toast-body">${text}</div>
@@ -97,13 +95,8 @@
     }
   };
 
-  const guardOnce = (
-    el: HTMLElement,
-    key: string,
-    ev = "pointerup",
-  ): void=> {
+  const guardOnce = (el: HTMLElement, key: string, ev = "pointerup"): void => {
     if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-
     const handler = (): void => {
       showFeedback(el, key, ev);
     };
@@ -123,7 +116,7 @@
     element: HTMLElement | null,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     alt: string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
     const url = element?.getAttribute("data-url");
     const href =
@@ -176,10 +169,9 @@
       });
     };
 
-    const getParent = (bid: string, sourceEl: HTMLElement): void=> {
-      const base = `{{ url('contracts/clients/select') }}`;
-      const url = `${base}/${encodeURIComponent(bid ?? "")}`;
-
+    const getParent = (bid: string, sourceEl: HTMLElement): void => {
+      const base = `{{ url('contracts/clients/select') }}`,
+        url = `${base}/${encodeURIComponent(bid ?? "")}`;
       if (!bid || routeGuard(null, url)) {
         guardOnce(sourceEl, "project_list_unavailable");
         return;
@@ -213,18 +205,15 @@
             if (
               typeof window.Choices === "function" &&
               !$sel[0].getAttribute("data-choices-init")
-            ) {
+            )
               try {
                 new Choices("#project_id", { removeItemButton: true });
                 $sel[0].setAttribute("data-choices-init", "true");
               } catch {
                 showFeedback($sel[0], "choices_unavailable");
               }
-            }
 
-            if (!Array.isArray(data) || data.length === 0) {
-              $sel.empty();
-            }
+            if (!Array.isArray(data) || data.length === 0) $sel.empty();
           } catch {
             showFeedback(sourceEl, "project_list_unavailable");
           }
@@ -237,11 +226,15 @@
 
     initChoices();
 
-    $(document).on("change", ".client_select", function (): void {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const client_id = String($(this).val() ?? "");
-      getParent(client_id, this as unknown as HTMLElement);
-    });
+    $(document).on(
+      "change",
+      ".client_select",
+      function (this: HTMLElement): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const client_id = String($(this).val() ?? "");
+        getParent(client_id, this);
+      },
+    );
   } catch (e) {
     if (
       window.location.hostname === "localhost" ||

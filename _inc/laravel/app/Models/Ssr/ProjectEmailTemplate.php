@@ -179,7 +179,7 @@ class ProjectEmailTemplate extends Model
             }
         } while ($exists && $attempts < $attemptCap);
 
-        if (isset($exists) && $exists) {
+        if ($exists) {
             Log::warning(self::class . ' code generation attempts exhausted; leaving code null', [
                 'id' => (string) ($m->getAttribute('id') ?? ''),
             ]);

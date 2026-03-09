@@ -23,6 +23,11 @@ use Illuminate\Validation\ValidationException;
  * @property int|string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property float|int|string|null $max_clients
+ * @property float|int|string|null $max_customers
+ * @property float|int|string|null $max_users
+ * @property float|int|string|null $max_vendors
+ * @property string|null $image
  */
 class Plan extends Model
 {

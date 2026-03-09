@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property string|null $title
+ */
 class Milestone extends Model
 {
     use HasFactory;
@@ -194,8 +197,8 @@ class Milestone extends Model
         } catch (\Throwable $ex) {
             Log::warning(static::class . ' failed to validate dates', [
                 'id' => (string) ($this->getAttribute('id') ?? ''),
-                'start' => (string) ($s ?? ''),
-                'due' => (string) ($d ?? ''),
+                'start' => (string) $s,
+                'due' => (string) $d,
                 'error' => $ex->getMessage(),
             ]);
         }

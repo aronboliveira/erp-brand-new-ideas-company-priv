@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property string|null $from
+ */
 class EmailTemplateLang extends Model
 {
     use UsesUuids;

@@ -16,13 +16,13 @@
   }
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qsa = (s: string, r: Document | Element = document) =>
-    Array.from(r.querySelectorAll(s));
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataListenerGuard = "data-listener-guard";
+      Array.from(r.querySelectorAll(s)),
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataListenerGuard = "data-listener-guard";
   const getMsg = (el: HTMLElement | null, key: string): string => {
     let msg = errFb;
     if (
@@ -60,54 +60,48 @@
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[pdf] Error:`, _);
-  }
+      console.error(`[pdf] Error:`, _);
+    }
     scheduleInteractiveError(getMsg(document.body, "print_unavailable"));
     return;
   }
   const ensureToastContainer = (): HTMLElement => {
-    const id = "np-toast-container";
-    const c = qs<HTMLElement>("#" + id);
-    if (c) {
-      return c;
-    }
+    const id = "np-toast-container",
+      c = qs<HTMLElement>("#" + id);
+    if (c) return c;
     const div = document.createElement("div");
     div.id = id;
     div.setAttribute("aria-live", "polite");
     div.setAttribute("aria-atomic", "true");
-    div.style.position = "fixed";
-    div.style.top = "1rem";
-    div.style.right = "1rem";
+    Object.assign(div.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(div);
     return div;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
       window.bootstrap.Toast;
     if (hasBootstrap) {
-      const container = ensureToastContainer();
-      const tid = "np-toast";
+      const container = ensureToastContainer(),
+        tid = "np-toast";
       let t = qs("#" + tid, container);
       if (!t) {
         t = document.createElement("div");
         t.id = tid;
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -117,11 +111,9 @@
       alert(message ?? errFb);
     }
   };
-  function scheduleInteractiveError(message: string): void{
+  function scheduleInteractiveError(message: string): void {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -131,7 +123,7 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -145,12 +137,10 @@
     handler: (e: Event) => void,
     flag: string,
   ): void => {
-    if (!el || el.getAttribute(flag) === "true") {
-      return;
-    }
+    if (!el || el.getAttribute(flag) === "true") return;
     el.setAttribute(flag, "true");
     $(el).on(evt, handler);
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(el)) {
         $(el).off(evt, handler);
         o.disconnect();
@@ -168,12 +158,14 @@
     if (!iframe) {
       const newIframe = document.createElement("iframe");
       newIframe.id = "np-print-iframe";
-      newIframe.style.position = "fixed";
-      newIframe.style.right = "0";
-      newIframe.style.bottom = "0";
-      newIframe.style.width = "0";
-      newIframe.style.height = "0";
-      newIframe.style.border = "0";
+      Object.assign(newIframe.style, {
+        position: "fixed",
+        right: "0",
+        bottom: "0",
+        width: "0",
+        height: "0",
+        border: "0",
+      });
       document.body.appendChild(newIframe);
       iframe = newIframe;
     }
@@ -226,11 +218,9 @@
       dataListenerGuard + "-filter",
     );
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

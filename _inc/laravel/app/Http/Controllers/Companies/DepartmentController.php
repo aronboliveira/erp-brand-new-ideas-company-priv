@@ -87,7 +87,7 @@ final class DepartmentController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $base = class_basename($class);
-    return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($r, $action, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'create department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($c = self::v($r, [CompaniesConstants::COL_BRC_ID => 'required', CompaniesConstants::COL_DEP_NM => 'required|max:20'])) return $c;
@@ -115,7 +115,7 @@ final class DepartmentController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $base = class_basename($class);
-    return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($r, $department, $action, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
@@ -141,7 +141,7 @@ final class DepartmentController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $base = class_basename($class);
-    return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($r, $department, $action, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
@@ -168,7 +168,7 @@ final class DepartmentController extends Controller
     $method = __METHOD__;
     $class = static::class;
     $base = class_basename($class);
-    return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
+    return $this->measureProfile($action, function () use ($r, $department, $action, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'delete department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));

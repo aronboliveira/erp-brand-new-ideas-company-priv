@@ -17,6 +17,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property int|string|null $project_id
+ * @property int|string|null $task_id
+ * @property string|null $action
+ */
 class TimeTracker extends Model
 {
     use UsesUuids, HasAuditFields, HasFactory, NormalizesArrays, FiltersSecureAttachments;

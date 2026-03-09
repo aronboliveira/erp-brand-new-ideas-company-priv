@@ -6,7 +6,7 @@
 
 ((): void => {
   try {
-    const guardToast = (msg: string): void=> {
+    const guardToast = (msg: string): void => {
       try {
         const hasBootstrap =
           document.querySelector('link[href*="bootstrap"]') &&
@@ -25,15 +25,16 @@
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent =
-            msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
+            msg ??
+            "Requested route is unavailable. Please contact technical support or your domain administrator.";
           toast.appendChild(body);
           container.appendChild(toast);
           const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
@@ -41,18 +42,19 @@
             try {
               toast.remove();
             } catch (_) {
-    console.error(`[store] Error:`, _);
-  }
+              console.error(`[store] Error:`, _);
+            }
           });
           inst.show();
         } else {
           alert(
-            msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator."
+            msg ??
+              "Requested route is unavailable. Please contact technical support or your domain administrator.",
           );
         }
       } catch (_) {
-    console.error(`[store] Error:`, _);
-  }
+        console.error(`[store] Error:`, _);
+      }
     };
 
     const f = document.getElementById("store_task");
@@ -72,14 +74,15 @@
             if (action !== "#") return;
             e.preventDefault();
             const msg =
-              f.getAttribute("data-guard-msg") ?? "Create project task route is unavailable. Please contact technical support or your domain administrator.";
+              f.getAttribute("data-guard-msg") ??
+              "Create project task route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             f.setAttribute("data-failed-route", "true");
           } catch (_) {
-    console.error(`[store] Error:`, _);
-  }
+            console.error(`[store] Error:`, _);
+          }
         },
-        { passive: false }
+        { passive: false },
       );
     }
 
@@ -96,19 +99,20 @@
         "click",
         function (e: Event) {
           try {
-            const href = ai.getAttribute("href") ?? "#";
-            const url = ai.getAttribute("data-url") ?? "#";
+            const href = ai.getAttribute("href") ?? "#",
+              url = ai.getAttribute("data-url") ?? "#";
             if (href !== "#" || url !== "#") return;
             e.preventDefault();
             const msg =
-              ai.getAttribute("data-guard-msg") ?? "Generate project task content route is unavailable. Please contact technical support or your domain administrator.";
+              ai.getAttribute("data-guard-msg") ??
+              "Generate project task content route is unavailable. Please contact technical support or your domain administrator.";
             guardToast(msg);
             ai.setAttribute("data-failed-route", "true");
           } catch (_) {
-    console.error(`[store] Error:`, _);
-  }
+            console.error(`[store] Error:`, _);
+          }
         },
-        { passive: false }
+        { passive: false },
       );
     }
   } catch (_) {

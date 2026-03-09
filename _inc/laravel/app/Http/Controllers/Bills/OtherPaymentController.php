@@ -35,7 +35,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $employeeId, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $employeeId, $action, $method) {
             Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, UsersConstants::COL_EMP_ID => $employeeId]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'create other payment', VW::OT_PAY . '.index')) !== true) return $r;
@@ -69,7 +69,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $id, $action, $class) {
             Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'id' => $id]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($request, 'show other payment', VW::OT_PAY . '.index')) !== true) return $r;
@@ -107,7 +107,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method) {
             Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'input' => $req->all()]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'create other payment', VW::OT_PAY . '.index')) !== true) return $r;
@@ -138,7 +138,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method) {
             Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'edit other payment', VW::OT_PAY . '.index')) !== true) return $r;
@@ -176,7 +176,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method) {
             Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id, 'input' => $req->all()]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'edit other payment', VW::OT_PAY . '.index')) !== true) return $r;
@@ -215,7 +215,7 @@ final class OtherPaymentController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method) {
             Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id]);
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'delete other payment', VW::OT_PAY . '.index')) !== true) return $r;

@@ -21,6 +21,7 @@ use App\Helpers\ErrorHandler;
 use App\Mail\CommonEmailTemplate;
 use App\Models\{
     Branch,
+    Client,
     Department,
     Designation,
     Employee,
@@ -58,7 +59,7 @@ use Spatie\GoogleCalendar\Event as GoogleEvent;
 use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
-use Twilio\Rest\Client;
+use Twilio\Rest\Client as TwilioClient;
 use Illuminate\Filesystem\FilesystemAdapter;
 
 // Same-namespace explicit imports (silences PHP Namespace Resolver)
@@ -66,6 +67,7 @@ use App\Models\BankAccount;
 use App\Models\BillAccount;
 use App\Models\BillPayment;
 use App\Models\BillProduct;
+use App\Models\Budget;
 use App\Models\BugStatus;
 use App\Models\ChartOfAccount;
 use App\Models\ChartOfAccountSubType;
@@ -201,7 +203,7 @@ class Utility extends Model
             if (!$clientId)
                 return $model->belongsTo(Client::class, $clientColumn, 'id');
 
-            $clientsTable = (new Client)->getTable();
+            $clientsTable = (new \App\Models\Client)->getTable();
             $clientExists = Schema::hasTable($clientsTable) && DB::table($clientsTable)->where('id', $clientId)->exists();
 
             if ($clientExists)
@@ -879,7 +881,7 @@ class Utility extends Model
     /**
      * Prepare common view data including settings, files, SEO meta, and layout options.
      *
-     * @param  int|null    $creatorId  Company/creator ID, or null for global.
+     * @param  int|string  $creatorId  Company/creator ID, or default UUID for global.
      * @param  string|null $logoPath   Custom logo path, defaults to 'uploads/logo/'.
      * @return array<string, mixed>    Array of all shared view variables.
      */
@@ -919,14 +921,10 @@ class Utility extends Model
         $meta_desc = $seo[SC::MT_DESC_LONG]
             ?? config('app.desc', 'A brand new ERP!');
         $meta_image = $seo[SC::MT_IMG_K]
-            ?? $company_logo_lt
-            ?? $company_logo_dk
-            ?? '';
+            ?? $company_logo_lt;
         $meta_logo = $seo[SC::MT_LOGO]
             ?? $seo[SC::MT_IMG_K]
-            ?? $company_logo_lt
-            ?? $company_logo_dk
-            ?? '';
+            ?? $company_logo_lt;
         $cookie_setting = $settings[SC::CK_STG]
             ?? 'off';
         $modeLayout = method_exists(self::class, SC::MD_LO)
@@ -1149,7 +1147,7 @@ class Utility extends Model
     public static function fallbackSettings(mixed $data): mixed
     {
         try {
-            $setting ??= Utility::settings() ?: [];
+            $setting = Utility::settings() ?: [];
             foreach ($setting as $key => $value) {
                 if (empty($data[$key]) && !empty($setting[$key]))
                     $data[$key] = $value;
@@ -1190,6 +1188,9 @@ class Utility extends Model
 
     public static function getCompanyLogo(): string
     {
+        $settings = self::settings();
+        $company_favicon = $settings[SC::FAV_ICN] ?? '';
+        $logo = $settings[SC::LOGO] ?? '';
         $candidates = [];
         if (!empty($company_favicon)) {
             if (preg_match('/\.(ico|svg|png)$/i', $company_favicon))
@@ -1212,7 +1213,7 @@ class Utility extends Model
                 break;
             }
         }
-        return $faviconUrl ?? '';
+        return $faviconUrl;
     }
 
     public static function languages(): Collection
@@ -1724,6 +1725,7 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
+        /** @var User $user */
         $user = $userOrRedirect;
         $mailTo = array_values($mailTo);
         if ($user->type != PMC::SA) {
@@ -1774,6 +1776,7 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
+        /** @var User $user */
         $user = $userOrRedirect;
         $mailTo = array_values($mailTo);
         $template = EmailTemplate::where('name', 'LIKE', $emailTemplate)->first();
@@ -2077,7 +2080,7 @@ class Utility extends Model
             'budget_year' => '-',
             'budget_name' => '-',
             'revenue_amount' => '-',
-            'vendor_name' => '-',
+            'vendor_bill_payment_name' => '-',
             'payment_type' => '-',
             'bill_due_date' => '-',
             'bill_date' => '-',
@@ -2868,7 +2871,7 @@ class Utility extends Model
         $fromNumber = $settings['twilio_from'] ?? '';
         if (!$sid || !$token || !$fromNumber) return;
         try {
-            $client = new Client($sid, $token);
+            $client = new TwilioClient($sid, $token);
             $client->messages->create($to, [
                 'from' => $fromNumber,
                 'body' => $msg,
@@ -3044,7 +3047,8 @@ class Utility extends Model
             ->where(UC::COL_USER_ID, Auth::user()->id)
             ->pluck('value', 'name')
             ->toArray();
-        $mode = $settings[SC::CLR_STG][SC::CST_DRK] ?? 'off';
+        $colorSetting = $settings[SC::CLR_STG] ?? null;
+        $mode = is_array($colorSetting) ? ($colorSetting[SC::CST_DRK] ?? 'off') : 'off';
         if ($mode === 'on')
             return SC::CPN_LG_LT_DEF;
         return SC::CPN_LG_DK_DEF;
@@ -3052,7 +3056,8 @@ class Utility extends Model
 
     public static function getLogo(): string
     {
-        $isDark = self::getValByName(SC::CLR_STG)[SC::CST_DRK] === 'on';
+        $colorVal = self::getValByName(SC::CLR_STG);
+        $isDark = is_array($colorVal) && ($colorVal[SC::CST_DRK] ?? 'off') === 'on';
         if (Auth::user() && Auth::user()[UC::COL_TP] !== PMC::SA) {
             return $isDark
                 ? self::getValByName(SC::CPN_LG_LT)
@@ -3400,10 +3405,10 @@ class Utility extends Model
         try {
             DB::transaction(function () use ($request, $type) {
                 $event = new GoogleEvent();
-                $event->name         = $request->title;
-                $event->startDateTime = Carbon::parse($request->start_date);
-                $event->endDateTime  = Carbon::parse($request->end_date);
-                $event->colorId      = self::colorCodeData($type);
+                $event->name         = $request->title; // @phpstan-ignore property.notFound
+                $event->startDateTime = Carbon::parse($request->start_date); // @phpstan-ignore property.notFound
+                $event->endDateTime  = Carbon::parse($request->end_date); // @phpstan-ignore property.notFound
+                $event->colorId      = self::colorCodeData($type); // @phpstan-ignore property.notFound
                 $event->save();
             });
         } catch (\Throwable $e) {
@@ -3797,7 +3802,7 @@ class Utility extends Model
         return $lang;
     }
 
-    public static function fetchLinkMessage(string $lang = DC::DEFAULT_LANG, ?string $set = 'generics', string $key, bool $isFailure = true, bool $shouldFallback = true): ?string
+    public static function fetchLinkMessage(string $lang = DC::DEFAULT_LANG, ?string $set = 'generics', string $key = '', bool $isFailure = true, bool $shouldFallback = true): ?string
     {
         $startMsg = 'Undefined server message. This could mean either a failure or a success. Check with your support team about your request.';
         $resultMsg = $startMsg;
@@ -3831,7 +3836,7 @@ class Utility extends Model
             return $resultMsg;
         } catch (\Throwable) {
             if ($shouldFallback) return null;
-            return !$isFailure && !(is_string($resultMsg) && !empty($resultMsg)) ? $startMsg : 'Something went wrong! Try again later.';
+            return !$isFailure && !isset($resultMsg) ? $startMsg : 'Something went wrong! Try again later.';
         }
     }
 
@@ -4247,6 +4252,136 @@ class Utility extends Model
         $settings = self::settings();
         $prefix  = $settings[$prefixKey] ?? '';
         return $prefix . sprintf('%05d', (int) $number);
+    }
+
+    /**
+     * Delete a file from the configured storage driver.
+     *
+     * @param  string $path  Relative storage path (e.g. 'uploads/documentUpload/file.pdf')
+     * @return array{flag: int, msg: string}
+     */
+    public static function deleteFile(string $path): array
+    {
+        try {
+            $settings   = self::getStorageSetting();
+            $driverType = $settings[SC::STR_STT] ?? SC::LC;
+
+            if ($driverType === 'local') {
+                $fullPath = storage_path($path);
+                if (!file_exists($fullPath)) {
+                    return ['flag' => 1, 'msg' => 'File does not exist, nothing to delete.'];
+                }
+                if (!unlink($fullPath)) {
+                    return ['flag' => 0, 'msg' => 'Failed to delete local file.'];
+                }
+            } else {
+                /** @var FilesystemAdapter $disk */
+                $disk = Storage::disk($driverType);
+                if (!$disk->exists($path)) {
+                    return ['flag' => 1, 'msg' => 'File does not exist, nothing to delete.'];
+                }
+                if (!$disk->delete($path)) {
+                    return ['flag' => 0, 'msg' => "Failed to delete file from {$driverType}."];
+                }
+            }
+
+            return ['flag' => 1, 'msg' => 'success'];
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' failed', ['path' => $path, 'error' => $e->getMessage()]);
+            return ['flag' => 0, 'msg' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Store an UploadedFile using the configured storage driver,
+     * returning the final stored filename (with extension).
+     *
+     * @param  \Illuminate\Http\UploadedFile  $file
+     * @param  string  $directory   e.g. 'uploads/document'
+     * @param  string  $baseName    Desired name without extension
+     * @return string  The stored filename
+     */
+    public static function uploadFileGeneric(
+        \Illuminate\Http\UploadedFile $file,
+        string $directory,
+        string $baseName
+    ): string {
+        $extension = $file->getClientOriginalExtension();
+        $fileName  = $baseName . ($extension ? ".{$extension}" : '');
+
+        $settings   = self::getStorageSetting();
+        $driverType = $settings[SC::STR_STT] ?? SC::LC;
+
+        if ($driverType === 'local') {
+            $file->move(storage_path($directory), $fileName);
+        } else {
+            /** @var FilesystemAdapter $disk */
+            $disk = Storage::disk($driverType);
+            $disk->putFileAs($directory, $file, $fileName);
+        }
+
+        return $fileName;
+    }
+
+    /**
+     * Send notifications for a newly created Budget.
+     *
+     * @param  Budget  $budget
+     * @return void
+     */
+    public static function notifyNewBudget(Budget $budget): void
+    {
+        try {
+            $creator = User::find($budget->{DC::COL_TABLE_CREATOR}); // @phpstan-ignore property.notFound
+            if (!$creator) return;
+
+            $emailObj = [
+                'budget_name'   => $budget->name ?? '',
+                'budget_period' => $budget->period ?? '',
+                'budget_year'   => $budget->from ?? '',
+            ];
+
+            $adminUsers = User::where('type', PMC::CPN)
+                ->where(DC::COL_TABLE_CREATOR, $creator->creatorId())
+                ->get();
+
+            foreach ($adminUsers as $admin) {
+                if (!empty($admin->email)) {
+                    self::sendEmailTemplate('new_budget', [$admin->email], $emailObj);
+                }
+            }
+
+            $webhook = self::webhookSetting('new_budget', $creator->id);
+            if (is_array($webhook) && !empty($webhook['url'])) {
+                self::webhookCall($webhook['url'], $budget->toArray(), $webhook['method'] ?? 'POST');
+            }
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' failed', ['budget_id' => $budget->id ?? null, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Convert a collection of ProjectTask models into a calendar-compatible array.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectTask>  $tasks
+     * @return array<int, array{id: mixed, title: string, start: string, end: string, className: string, allDay: bool}>
+     */
+    public static function getTaskCalendarArray($tasks): array
+    {
+        $result = [];
+
+        foreach ($tasks as $task) {
+            $result[] = [
+                'id'        => $task->id,
+                'title'     => $task->title ?? $task->name ?? '',
+                'start'     => $task->start_date ?? '',
+                'end'       => $task->end_date ?? $task->due_date ?? '',
+                'className' => self::$colorCode[$task->status ?? 0] ?? '',
+                'allDay'    => true,
+            ];
+        }
+
+        return $result;
     }
 }
 

@@ -13,15 +13,15 @@
     if (
       (a.getAttribute("href") === "#" || !a.getAttribute("href")) &&
       url !== "#"
-    ) {
+    )
       a.setAttribute("href", url);
-    }
     a.addEventListener("click", (e: Event) => {
       const href = a.getAttribute("href") ?? "#";
       if (href && href !== "#") return;
       e.preventDefault();
       const msg =
-        a.getAttribute("data-guard-msg") ?? "User logs route is unavailable. Please contact technical support or your domain administrator.";
+        a.getAttribute("data-guard-msg") ??
+        "User logs route is unavailable. Please contact technical support or your domain administrator.";
       let c = document.getElementById("toast-container");
       if (!c) {
         c = document.createElement("div");
@@ -35,11 +35,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;

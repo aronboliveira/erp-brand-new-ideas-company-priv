@@ -139,7 +139,7 @@ class PurchaseController extends Controller
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", [UsersConstants::COL_USER_ID => $user?->id]);
                 $txnStart = microtime(true);
-                $purchase = DB::transaction(function () use ($request, $user, $action, $method, $class) {
+                $purchase = DB::transaction(function () use ($request, $user, $action, $class) {
                     $validator = Validator::make($request->all(), ['vendor_id' => 'required', 'warehouse_id' => 'required', 'purchase_date' => 'required', 'category_id' => 'required', 'items' => 'required']);
                     if ($validator->fails()) {
                         Log::warning("[{$class}::{$action}] validation failed", ['errors' => $validator->errors()->all()]);
@@ -772,7 +772,7 @@ class PurchaseController extends Controller
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchaseId]);
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $purchaseId, $user, $action, $method, $class) {
+                DB::transaction(function () use ($request, $purchaseId, $user, $action, $class) {
                     $valStart = microtime(true);
                     $validator = Validator::make($request->all(), ['date' => 'required', 'amount' => 'required', 'account_id' => 'required']);
                     if ($validator->fails()) {

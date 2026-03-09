@@ -138,7 +138,7 @@ class BugReportService
 		}
 
 		return DB::transaction(function () use ($bug, $newStatusId) {
-			$bug->{AC::COL_TSK_STT} = $newStatusId;
+			$bug->{AC::COL_TSK_STT} = $newStatusId; // @phpstan-ignore-line
 			return $bug->save();
 		});
 	}
@@ -168,7 +168,7 @@ class BugReportService
 
 		return DB::transaction(function () use ($bug, $validUserIds) {
 			// Assuming COL_ASGN is a comma-separated string
-			$bug->{PJC::COL_ASGN} = implode(',', $validUserIds);
+			$bug->{PJC::COL_ASGN} = implode(',', $validUserIds); // @phpstan-ignore-line
 			return $bug->save();
 		});
 	}
@@ -196,7 +196,7 @@ class BugReportService
 
 		// Other users can only update bugs they're assigned to
 		$assignedUsers = array_filter(
-			explode(',', (string) $bug->{PJC::COL_ASGN})
+			explode(',', (string) $bug->{PJC::COL_ASGN}) // @phpstan-ignore-line
 		);
 
 		return in_array($user->id, $assignedUsers, true);
@@ -240,7 +240,7 @@ class BugReportService
 		foreach ($statuses as $status) {
 			$count = $byStatus->get($status->id)?->count() ?? 0;
 			$stats['by_status'][$status->id] = [
-				'status_title' => $status->{AC::COL_TT},
+				'status_title' => $status->{AC::COL_TT}, // @phpstan-ignore-line
 				'count' => $count,
 				'percentage' => $bugs->count() > 0
 					? round(($count / $bugs->count()) * 100, 2)

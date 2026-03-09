@@ -9,6 +9,11 @@ use Carbon\{Carbon, CarbonImmutable};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+/**
+ * @property string|null $job
+ * @property bool|null $is_archive
+ * @property string|null $name
+ */
 class JobApplication extends Model
 {
     // todo ParsesDocument will be implemented later

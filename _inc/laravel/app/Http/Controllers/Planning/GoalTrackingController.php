@@ -47,11 +47,11 @@ final class GoalTrackingController extends Controller
                 if (($resp = self::guard($request, PermissionsConstants::MNG_GTR, self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
                 $goalTrackings = strtolower($user[UsersConstants::COL_TP]) === 'employee'
-                    ? GoalTracking::with(['goal_type', 'branches'])
+                    ? GoalTracking::with(['goalType', 'branch'])
                     ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where('branch', Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value(CompaniesConstants::COL_BRC_ID))
                     ->get()
-                    : GoalTracking::with(['goalType', 'branches'])
+                    : GoalTracking::with(['goalType', 'branch'])
                     ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);

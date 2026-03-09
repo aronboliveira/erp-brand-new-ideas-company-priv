@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string|null $url
+ */
 class WebhookSettings extends Model
 {
     use UsesUuids;

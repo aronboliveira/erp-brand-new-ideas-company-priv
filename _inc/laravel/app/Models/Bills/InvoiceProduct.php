@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 
+/**
+ * @property float|int|string|null $discount
+ * @property float|int|string|null $price
+ * @property float|int|string|null $quantity
+ * @property bool|null $can_be_charged_back
+ * @property bool|null $is_secured
+ */
 class InvoiceProduct extends Model
 {
     use UsesUuids;

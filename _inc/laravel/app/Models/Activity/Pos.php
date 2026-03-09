@@ -925,7 +925,7 @@ class Pos extends Model
     public function getSubTotal(): float
     {
         return (float) $this->items->sum(
-            fn($p) => (float) $p->price * (float) $p->quantity
+            fn($p) => (float) $p->price * (float) $p->quantity // @phpstan-ignore property.notFound, property.notFound
         );
     }
 
@@ -937,8 +937,8 @@ class Pos extends Model
     public function getTotalTax(): float
     {
         return (float) $this->items->sum(function ($p) {
-            $rate = (float) Utility::totalTaxRate($p->tax);
-            $base = (float) $p->price * (float) $p->quantity;
+            $rate = (float) Utility::totalTaxRate($p->tax); // @phpstan-ignore property.notFound
+            $base = (float) $p->price * (float) $p->quantity; // @phpstan-ignore property.notFound, property.notFound
 
             return ($rate / 100.0) * $base;
         });

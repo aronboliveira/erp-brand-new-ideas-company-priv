@@ -67,7 +67,7 @@ class TaskStageController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = ViewsConstants::TSK_STG . '.create';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, 'create project task stage', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -357,7 +357,7 @@ class TaskStageController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK_STG, self::REDIRECT_INDEX)) !== true) return $redirect;

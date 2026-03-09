@@ -38,11 +38,11 @@
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                  role: "alert",
+                  "aria-live": "assertive",
+                  "aria-atomic": "true",
+                }))
+                  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -60,10 +60,8 @@
               return;
             }
 
-            const modal = document.getElementById("exampleModalCenter");
-            const content = modal
-              ? modal.querySelector(".image_sider_div")
-              : null;
+            const modal = document.getElementById("exampleModalCenter"),
+              content = modal ? modal.querySelector(".image_sider_div") : null;
             if (!modal || !content) {
               alert("Could not find images modal container");
               return;
@@ -85,8 +83,8 @@
               }
             } catch (xhrErr) {
               const msg =
-                "Failed to load tracker images. Please try again later.";
-              const bsLink = document.querySelector('link[href*="bootstrap"]');
+                  "Failed to load tracker images. Please try again later.",
+                bsLink = document.querySelector('link[href*="bootstrap"]');
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
@@ -100,11 +98,11 @@
                 const toast = document.createElement("div");
                 toast.className = "toast";
                 for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                  role: "alert",
+                  "aria-live": "assertive",
+                  "aria-atomic": "true",
+                }))
+                  toast.setAttribute(k, v);
                 const body = document.createElement("div");
                 body.className = "toast-body";
                 body.textContent = msg;
@@ -120,21 +118,21 @@
               }
             }
           } catch (__err) {
-    console.error(`[viewImages] Error:`, __err);
-  }
+            console.error(`[viewImages] Error:`, __err);
+          }
         });
       } catch (__err) {
-    console.error(`[viewImages] Error:`, __err);
-  }
+        console.error(`[viewImages] Error:`, __err);
+      }
     });
 
     // SECURITY: Safe HTML insertion helper
     // eslint-disable-next-line no-inner-declarations
-    function safeSethtmlContent(el: HTMLElement, html: string): void{
+    function safeSethtmlContent(el: HTMLElement, html: string): void {
       try {
         // Use DOMParser to safely parse HTML, then clone nodes to prevent scripts
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
+        const parser = new DOMParser(),
+          doc = parser.parseFromString(html, "text/html");
         // Check for parser errors
         if (doc.body.innerHTML.includes("PARSER ERROR")) {
           el.textContent = html;

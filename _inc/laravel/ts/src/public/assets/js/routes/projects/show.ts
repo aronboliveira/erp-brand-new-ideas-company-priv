@@ -7,22 +7,16 @@
 ((): void => {
   try {
     const links = document.querySelectorAll("a.project-show-link");
-    if (links.length === 0) {
-      return;
-    }
+    if (links.length === 0) return;
     links.forEach((el: Element): void => {
       try {
-        if (el.getAttribute("data-listener-active") === "true") {
-          return;
-        }
+        if (el.getAttribute("data-listener-active") === "true") return;
         el.setAttribute("data-listener-active", "true");
         el.addEventListener("click", (e: Event) => {
           try {
-            const href = el.getAttribute("href") ?? "#";
-            const url = el.getAttribute("data-url") ?? "#";
-            if (url !== "#" && href !== "#") {
-              return;
-            }
+            const href = el.getAttribute("href") ?? "#",
+              url = el.getAttribute("data-url") ?? "#";
+            if (url !== "#" && href !== "#") return;
             e.preventDefault();
             const msg =
               el.getAttribute("data-guard-msg") ??
@@ -44,11 +38,11 @@
               const toast = document.createElement("div");
               toast.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                toast.setAttribute(k, v);
               const body = document.createElement("div");
               body.className = "toast-body";
               body.textContent = msg;
@@ -60,12 +54,12 @@
             }
             el.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[show] Error:`, err);
-  }
+            console.error(`[show] Error:`, err);
+          }
         });
       } catch (err) {
-    console.error(`[show] Error:`, err);
-  }
+        console.error(`[show] Error:`, err);
+      }
     });
   } catch (err) {
     console.error(`[show] Error:`, err);

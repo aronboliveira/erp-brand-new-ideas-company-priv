@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\{Collection, Str};
+/**
+ * @property int|null $product_id
+ */
 
 class StockReport extends Model
 {
@@ -1466,6 +1469,28 @@ class StockReport extends Model
         }
 
         return $out;
+    }
+
+    /**
+     * Collect product-related rows for this report's type ID from inventory tables.
+     */
+    public function products(?string $typeId = null): Collection
+    {
+        $id = trim((string) ($typeId ?? $this->normalizedTypeId() ?? ''));
+        if ($id === '' || !Utility::looksLikeUuid($id)) return collect();
+
+        $out = collect();
+        $productFkCandidates = [BC::COL_PRD_ID, BC::COL_PRD_SV_ID, 'product', 'product_service_id'];
+
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_PROD_SERVS, ['id'], $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_WRH_PRD, $productFkCandidates, $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_POS_PRD, $productFkCandidates, $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_BL_PRD, $productFkCandidates, $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_INV_PRD, $productFkCandidates, $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_PRC_PRD, $productFkCandidates, $id));
+        $out = $out->merge($this->collectRowsByFk(DC::TABLE_PPS_PRD, $productFkCandidates, $id));
+
+        return $out->values();
     }
 
     public function inventoryQuantitySubtotals(?string $typeId = null): array

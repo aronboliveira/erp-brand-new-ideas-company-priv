@@ -7,6 +7,12 @@ use App\Config\Constants\ProjectsConstants as PJC;
 use App\Traits\{HasAuditFields, UsesCountryRegions, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+/**
+ * @property mixed $created_by
+ * @property \Illuminate\Support\Carbon|string|null $end_date
+ * @property \Illuminate\Support\Carbon|null $date
+ * @property mixed $occasion
+ */
 
 class Holiday extends Model
 {

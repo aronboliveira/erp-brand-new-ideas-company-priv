@@ -20,6 +20,14 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 
+/**
+ * @property string|null $label
+ * @property string|null $module
+ * @property string|null $remark
+ * @property string|null $log_type
+
+ * @property string|null $description
+ */
 final class LeadActivityLog extends Model
 {
     use HasFactory;

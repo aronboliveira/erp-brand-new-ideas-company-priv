@@ -12,13 +12,8 @@
     a.setAttribute("data-listener-active", "true");
 
     const url = a.getAttribute("data-url") ?? "#";
-    if (
-      a.hasAttribute("href") &&
-      a.getAttribute("href") === "#" &&
-      url !== "#"
-    ) {
+    if (a.hasAttribute("href") && a.getAttribute("href") === "#" && url !== "#")
       a.setAttribute("href", url);
-    }
 
     a.addEventListener("click", (e: Event) => {
       try {
@@ -27,7 +22,8 @@
         e.preventDefault();
 
         const msg =
-          a.getAttribute("data-guard-msg") ?? "Generate content route is unavailable. Please contact technical support or your domain administrator.";
+          a.getAttribute("data-guard-msg") ??
+          "Generate content route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -38,18 +34,15 @@
           document.body.appendChild(container);
         }
         const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          window.bootstrap.Toast
-        ) {
+        if (bsLink && window.bootstrap.Toast) {
           const toast = document.createElement("div");
           toast.className = "toast";
           for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+            role: "alert",
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+          }))
+            toast.setAttribute(k, v);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
@@ -71,7 +64,7 @@
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err?.constructor?.name ?? "Error",
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err?.message ?? "Unknown error"
+            (err as Error)?.message ?? "Unknown error",
           );
       }
     });
@@ -85,7 +78,7 @@
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error?.constructor?.name ?? "Error",
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error?.message ?? "Unknown error"
+        (error as Error)?.message ?? "Unknown error",
       );
   }
 })();

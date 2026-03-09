@@ -50,16 +50,16 @@ In **actual Blade views**, keep the original PHP syntax unchanged:
 
 ## Mapping Table
 
-| Blade Expression | Test Equivalent | Notes |
-|-----------------|----------------|-------|
-| `{{ $variable }}` | `window.__TEST_VAR__` or literal | Escaped output |
-| `{!! $variable !!}` | Same as above | Unescaped (HTML safe in tests) |
-| `{{ route('name', $id) }}` | `` `/path/${mockId}` `` | Mock route URL |
-| `{{ csrf_token() }}` | `"test-csrf-token-mock"` | Fixed test token |
-| `{{ config('app.url') }}` | `"http://localhost:8000"` | Test server URL |
-| `{{ auth()->id() }}` | `1` | Mock user ID |
-| `{{ $settings['key'] }}` | `window.__TEST_SETTINGS__?.key` | Mock settings |
-| `@json($data)` | JSON inline or `JSON.parse(...)` | Serialised data |
+| Blade Expression           | Test Equivalent                  | Notes                          |
+| -------------------------- | -------------------------------- | ------------------------------ |
+| `{{ $variable }}`          | `window.__TEST_VAR__` or literal | Escaped output                 |
+| `{!! $variable !!}`        | Same as above                    | Unescaped (HTML safe in tests) |
+| `{{ route('name', $id) }}` | `` `/path/${mockId}` ``          | Mock route URL                 |
+| `{{ csrf_token() }}`       | `"test-csrf-token-mock"`         | Fixed test token               |
+| `{{ config('app.url') }}`  | `"http://localhost:8000"`        | Test server URL                |
+| `{{ auth()->id() }}`       | `1`                              | Mock user ID                   |
+| `{{ $settings['key'] }}`   | `window.__TEST_SETTINGS__?.key`  | Mock settings                  |
+| `@json($data)`             | JSON inline or `JSON.parse(...)` | Serialised data                |
 
 ## Rules
 
@@ -88,6 +88,7 @@ These are set in the harness entry-point before route scripts load:
 ## Validation
 
 The CI pipeline does **not** run PHP — it only runs Node-based tests. Therefore:
+
 - Blade syntax is validated by `php artisan view:cache` (server-side CI).
 - Template literal syntax is validated by Playwright + Jest (frontend CI).
 - No single test mixes both syntaxes.

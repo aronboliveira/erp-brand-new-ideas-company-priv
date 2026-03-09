@@ -2,6 +2,9 @@
 
 namespace App\Traits;
 
+/**
+ * @property string|null $log_type
+ */
 trait LogsIcons
 {
 	private const ICON_GROUPS = [

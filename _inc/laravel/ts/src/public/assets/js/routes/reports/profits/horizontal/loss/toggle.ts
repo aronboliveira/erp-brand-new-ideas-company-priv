@@ -12,10 +12,10 @@
   const $ = window.jQuery;
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r: Document | Element = document) =>
-    r.querySelector(s);
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
+      r.querySelector(s),
+    errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const dataFilterGuard = "data-filter-guard";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -49,20 +49,18 @@
     return msg;
   };
   const ensureToastContainer = (): HTMLDivElement => {
-    const id = "np-toast-container";
-    const existing = qs("#" + id);
+    const id = "np-toast-container",
+      existing = qs("#" + id);
     if (existing) return existing as HTMLDivElement;
     const c = document.createElement("div");
     c.id = id;
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]')) &&
@@ -75,11 +73,11 @@
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
@@ -95,7 +93,7 @@
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
     if (!host || host.getAttribute("data-error-guard") === "true") return;
     host.setAttribute("data-error-guard", "true");
@@ -107,7 +105,7 @@
       }
     };
     document.addEventListener("click", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("click", once);
         o.disconnect();
@@ -123,13 +121,13 @@
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[toggle] Error:`, _);
-  }
+      console.error(`[toggle] Error:`, _);
+    }
     scheduleInteractiveError(getMsg(document.body, "toggle_unavailable"));
     return;
   }
-  const btn = document.getElementById("filter");
-  const panel = document.getElementById("show_filter");
+  const btn = document.getElementById("filter"),
+    panel = document.getElementById("show_filter");
   if (!btn || btn.getAttribute(dataFilterGuard) === "true") return;
   btn.setAttribute(dataFilterGuard, "true");
   const handler = function (): void {
@@ -144,7 +142,7 @@
     }
   };
   $(btn).on("click", handler);
-  const mo = new MutationObserver((m, o) => {
+  const mo = new MutationObserver((_m, o) => {
     if (!document.body.contains(btn)) {
       $(btn).off("click", handler);
       o.disconnect();

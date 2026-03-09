@@ -8,8 +8,8 @@
   try {
     const forms = Array.from(
       document.querySelectorAll(
-        'form[id^="department-update-form-"][data-url][data-guard-msg]'
-      )
+        'form[id^="department-update-form-"][data-url][data-guard-msg]',
+      ),
     );
     if (forms.length === 0) return;
     forms.forEach(fm => {
@@ -18,8 +18,8 @@
         fm.setAttribute("data-submit-guarded", "true");
         fm.addEventListener("submit", (e: Event) => {
           try {
-            const action = (fm.getAttribute("action") ?? "#").trim();
-            const url = (fm.getAttribute("data-url") ?? "#").trim();
+            const action = (fm.getAttribute("action") ?? "#").trim(),
+              url = (fm.getAttribute("data-url") ?? "#").trim();
             if (url !== "#" || action !== "#") return;
             e.preventDefault();
             const msg =
@@ -42,11 +42,11 @@
               const t = document.createElement("div");
               t.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                t.setAttribute(k, v);
               const b = document.createElement("div");
               b.className = "toast-body";
               b.textContent = msg;
@@ -58,12 +58,12 @@
             }
             fm.setAttribute("data-failed-route", "true");
           } catch (__err) {
-    console.error(`[update] Error:`, __err);
-  }
+            console.error(`[update] Error:`, __err);
+          }
         });
       } catch (__err) {
-    console.error(`[update] Error:`, __err);
-  }
+        console.error(`[update] Error:`, __err);
+      }
     });
   } catch (__err) {
     console.error(`[update] Error:`, __err);

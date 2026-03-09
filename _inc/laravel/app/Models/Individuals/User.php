@@ -44,8 +44,23 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $type
  * @property string|null $vendor_id
  * @property string|null $created_by
- * @property \\Illuminate\\Support\\Carbon|null $created_at
- * @property \\Illuminate\\Support\\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $current_location
+ * @property string|\Illuminate\Support\Carbon|null $email_verified_at
+ * @property string|null $lang
+ * @property int|string|null $location_id
+ * @property string|null $password
+ * @property string|null $plan
+ * @property string|null $avatar
+ * @property array|string|null $customField
+ * @property string|null $dark_mode
+ * @property mixed $delete_status
+ * @property bool|null $is_active
+ * @property string|null $messenger_color
+ * @property string|null $mode
+
+ * @property mixed $custom
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -1289,5 +1304,11 @@ class User extends Authenticatable implements MustVerifyEmail
     private static function createBankAccount(int|string $userId): void
     {
         BankAccount::create(self::DEFAULT_BANK_ACCOUNT + [DC::COL_TABLE_CREATOR => $userId]);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\Plan> */
+    public function current_plan(): HasOne
+    {
+        return $this->currentPlan();
     }
 }

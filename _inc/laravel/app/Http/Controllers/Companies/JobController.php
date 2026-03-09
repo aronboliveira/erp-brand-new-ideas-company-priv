@@ -69,7 +69,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
@@ -100,7 +100,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
@@ -123,7 +123,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             $v = Validator::make($req->all(), self::$jobRules);
@@ -147,7 +147,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'job_id' => $job->id, 'method' => $method]);
@@ -171,7 +171,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $job, $action, $class) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
@@ -198,7 +198,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $job, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
@@ -223,7 +223,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $job, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
@@ -248,7 +248,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($companyId, $lang, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($companyId, $lang, $action, $method, $base) {
             Log::debug("[$base::$action] start", ['companyId' => $companyId, 'lang' => $lang, 'method' => $method]);
             $qStart = microtime(true);
             $jobs = Job::where(DC::COL_TABLE_CREATOR, $companyId)->with([DC::TABLE_BRANCHES, DC::COL_TABLE_CREATOR])->get();
@@ -280,7 +280,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $base) {
             Log::debug("[$base::$action] start", ['code' => $code, 'lang' => $lang, 'method' => $method]);
             $qStart = microtime(true);
             $job = Job::where('code', $code)->firstOrFail();
@@ -313,7 +313,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $base) {
             Log::debug("[$base::$action] start", ['code' => $code, 'lang' => $lang, 'method' => $method]);
             $qStart = microtime(true);
             $job = Job::where('code', $code)->firstOrFail();
@@ -348,7 +348,7 @@ final class JobController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($req, $code, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($req, $code, $action, $class, $base) {
             $user = Auth::user(); // Public form — auth optional
             $v = Validator::make($req->all(), [
                 'name'  => 'required|string|max:255',

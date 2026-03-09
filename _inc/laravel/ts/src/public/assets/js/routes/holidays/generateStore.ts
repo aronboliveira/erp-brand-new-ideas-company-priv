@@ -8,8 +8,8 @@
   try {
     const links = Array.from(
       document.querySelectorAll(
-        "a.ai-btn[data-ajax-popup-over][data-url][data-guard-msg]"
-      )
+        "a.ai-btn[data-ajax-popup-over][data-url][data-guard-msg]",
+      ),
     );
     if (links.length === 0) return;
     links.forEach(a => {
@@ -17,8 +17,8 @@
       a.setAttribute("data-click-guarded", "true");
       a.addEventListener("click", (e: Event) => {
         try {
-          const href = (a.getAttribute("href") ?? "#").trim();
-          const url = (a.getAttribute("data-url") ?? "#").trim();
+          const href = (a.getAttribute("href") ?? "#").trim(),
+            url = (a.getAttribute("data-url") ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
           const msg =
@@ -41,11 +41,11 @@
             const t = document.createElement("div");
             t.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              t.setAttribute(k, v);
             const b = document.createElement("div");
             b.className = "toast-body";
             b.textContent = msg;
@@ -57,8 +57,8 @@
           }
           a.setAttribute("data-failed-route", "true");
         } catch (__err) {
-    console.error(`[generateStore] Error:`, __err);
-  }
+          console.error(`[generateStore] Error:`, __err);
+        }
       });
     });
   } catch (__err) {

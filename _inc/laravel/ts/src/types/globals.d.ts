@@ -1741,7 +1741,7 @@ declare class Choices {
    ========================================================================== */
 
 interface Window {
-  bootstrap?: typeof bootstrap;
+  bootstrap: typeof bootstrap;
   $?: JQueryStatic;
   jQuery?: JQueryStatic;
   feather?: FeatherIcons;

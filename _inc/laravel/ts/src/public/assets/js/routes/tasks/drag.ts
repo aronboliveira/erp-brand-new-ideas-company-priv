@@ -4,26 +4,14 @@
  * @module drag
  */
 
+import type {
+  DragulaInstance,
+  DragulaStatic,
+  TranslationsDict,
+} from "../../../../../declarations/routes/dragula.interfaces";
+import "../../../../../declarations/routes/vendor-libs";
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-
-interface DragulaInstance {
-  on(event: string, callback: (...args: unknown[]) => void): DragulaInstance;
-  destroy(): void;
-}
-
-type DragulaStatic = (
-  containers: Element[],
-  options?: Record<string, unknown>,
-) => DragulaInstance;
-
-type TranslationsDict = Record<string, Record<string, string>>;
-
-declare global {
-  interface Window {
-    translations?: TranslationsDict;
-    dragula?: DragulaStatic;
-  }
-}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -33,29 +21,25 @@ declare global {
     console.error("jQuery not available");
     return;
   }
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
-  const dataBound = "data-bound-";
-  const now = "{{__('Now')}}";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-error-guard",
+    dataBound = "data-bound-",
+    now = "{{__('Now')}}";
   const ensureToastContainer = (): HTMLElement => {
     let c = document.getElementById("np-toast-container");
-    if (c) {
-      return c;
-    }
+    if (c) return c;
     c = document.createElement("div");
     c.id = "np-toast-container";
     c.setAttribute("aria-live", "polite");
     c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
+    Object.assign(c.style, { position: "fixed", top: "1rem", right: "1rem" });
     document.body.appendChild(c);
     return c;
   };
-  const showErrorNow = (message: string): void=> {
+  const showErrorNow = (message: string): void => {
     const hasBootstrap =
       (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ??
         document.querySelector('link[href*="bootstrap"]')) &&
@@ -68,19 +52,17 @@ declare global {
         t.id = "np-toast";
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         t.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = t.querySelector(".toast-body");
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
+      if (body) body.textContent = message ?? errFb;
       try {
         new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
       } catch (_) {
@@ -90,11 +72,9 @@ declare global {
       alert(message ?? errFb);
     }
   };
-  const scheduleInteractiveError = (message: string): void=> {
+  const scheduleInteractiveError = (message: string): void => {
     const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
+    if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
     const once = (): void => {
       try {
@@ -104,14 +84,13 @@ declare global {
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -146,12 +125,12 @@ declare global {
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const resolveUrl = (el: HTMLElement, explicit: string | null) => {
-    const url = el.getAttribute("data-url") ?? "";
-    const href = el
-      ? el.tagName === "FORM"
-        ? (el.getAttribute("action") ?? "")
-        : (el.getAttribute("href") ?? "")
-      : "";
+    const url = el.getAttribute("data-url") ?? "",
+      href = el
+        ? el.tagName === "FORM"
+          ? (el.getAttribute("action") ?? "")
+          : (el.getAttribute("href") ?? "")
+        : "";
     if (
       (!explicit || explicit === "#") &&
       (!url || url === "#") &&
@@ -172,7 +151,7 @@ declare global {
     onSuccess: ((d: unknown) => void) | null,
     elForMsg: HTMLElement | null,
     msgKey: string | null,
-  ): void=> {
+  ): void => {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
@@ -186,9 +165,7 @@ declare global {
       data: data || {},
       cache: false,
       success: function (d: unknown) {
-        if (typeof onSuccess === "function") {
-          onSuccess(d);
-        }
+        if (typeof onSuccess === "function") onSuccess(d);
       },
       error: function (): void {
         scheduleInteractiveError(
@@ -202,7 +179,7 @@ declare global {
     onSuccess: ((d: unknown) => void) | null,
     elForMsg: HTMLElement | null,
     msgKey: string | null,
-  ): void=> {
+  ): void => {
     const url = endpoint ?? "";
     if (!url) {
       scheduleInteractiveError(
@@ -216,15 +193,13 @@ declare global {
       dataType: "JSON",
       cache: false,
       success: function (d: unknown) {
-        if (typeof onSuccess === "function") {
-          onSuccess(d);
-        }
+        if (typeof onSuccess === "function") onSuccess(d);
       },
       error: function (): void {
         scheduleInteractiveError(
           getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"),
         );
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       },
     });
   };
@@ -238,184 +213,182 @@ declare global {
         )
           console.error("dragula unavailable");
       } catch (_) {
-    console.error(`[drag] Error:`, _);
-  }
+        console.error(`[drag] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
-    $('[data-plugin="dragula"]').each(function () {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const $host = $(this);
+    $('[data-plugin="dragula"]').each(function (this: HTMLElement) {
+      const hostEl = this;
+      const $host = $(hostEl);
       const containers = $host.data("containers") as string[] | undefined;
       const nodes: Element[] = [];
       if (containers?.length) {
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < containers.length; i++) {
           const n = document.getElementById(containers[i]);
-          if (n) {
-            nodes.push(n);
-          }
+          if (n) nodes.push(n);
         }
       } else {
-        nodes.push(this as Element);
+        nodes.push(hostEl);
       }
       const handleClass = $host.data("handleclass") as string | undefined;
       const drake = handleClass
         ? window.dragula!(nodes, {
-            moves: function (el: HTMLElement, _c: Element, handle: Element) {
+            moves: function (_el: HTMLElement, _c: Element, handle: Element) {
               return handle.classList.contains(handleClass);
             },
           })
         : window.dragula!(nodes);
-      drake.on(
-        "drop",
-        function (el: HTMLElement, target: HTMLElement, source: HTMLElement) {
-          try {
-            if (!target || !source || !el) {
-              scheduleInteractiveError(
-                getMsg(document.body, "drag_unavailable"),
-              );
-              return;
-            }
-            const sort: (string | undefined)[] = [];
-            $("#" + target.id + " > div").each(function (): void {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              sort[$(this).index()] = $(this).attr("id");
-            });
-            const id = el.id;
-            const old_stage = $("#" + source.id).data("status");
-            const new_stage = $("#" + target.id).data("status");
-            const project_id = "{{$project->id}}";
-            $("#" + source.id)
-              .parent()
-              .find(".count")
-              .text(String($("#" + source.id + " > div").length));
-            $("#" + target.id)
-              .parent()
-              .find(".count")
-              .text(String($("#" + target.id + " > div").length));
-            const explicit =
-              "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}";
-            const endpoint = resolveUrl(target, explicit);
-            if (!endpoint) {
-              scheduleInteractiveError(
-                getMsg(target, "update_order_unavailable"),
-              );
-              return;
-            }
-            $.ajax({
-              url: endpoint,
-              type: "PATCH",
-              data: {
-                id: id,
-                sort: sort,
-                new_stage: new_stage,
-                old_stage: old_stage,
-                project_id: project_id,
-              },
-              cache: false,
-              success: function (): void {},
-              error: function (): void {
-                scheduleInteractiveError(
-                  getMsg(target, "update_order_unavailable"),
-                );
-              },
-            });
-          } catch (_) {
-            scheduleInteractiveError(
-              getMsg(document.body, "update_order_unavailable"),
-            );
+      drake.on("drop", function (el, target, source) {
+        try {
+          const elHtml = el as HTMLElement,
+            targetHtml = target as HTMLElement,
+            sourceHtml = source as HTMLElement;
+          if (!targetHtml || !sourceHtml || !elHtml) {
+            scheduleInteractiveError(getMsg(document.body, "drag_unavailable"));
+            return;
           }
-        },
-      );
-      const mo = new MutationObserver((m, o) => {
+          const sort: (string | undefined)[] = [];
+          $("#" + targetHtml.id + " > div").each(function (
+            this: HTMLElement,
+          ): void {
+            const itemEl = this;
+            sort[$(itemEl).index()] = $(itemEl).attr("id");
+          });
+          const id = elHtml.id,
+            old_stage = $("#" + sourceHtml.id).data("status"),
+            new_stage = $("#" + targetHtml.id).data("status"),
+            project_id = "{{$project->id}}";
+          $("#" + sourceHtml.id)
+            .parent()
+            .find(".count")
+            .text(String($("#" + sourceHtml.id + " > div").length));
+          $("#" + targetHtml.id)
+            .parent()
+            .find(".count")
+            .text(String($("#" + targetHtml.id + " > div").length));
+          const explicit =
+              "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}",
+            endpoint = resolveUrl(targetHtml, explicit);
+          if (!endpoint) {
+            scheduleInteractiveError(
+              getMsg(targetHtml, "update_order_unavailable"),
+            );
+            return;
+          }
+          $.ajax({
+            url: endpoint,
+            type: "PATCH",
+            data: {
+              id: id,
+              sort: sort,
+              new_stage: new_stage,
+              old_stage: old_stage,
+              project_id: project_id,
+            },
+            cache: false,
+            success: function (): void {},
+            error: function (): void {
+              scheduleInteractiveError(
+                getMsg(targetHtml, "update_order_unavailable"),
+              );
+            },
+          });
+        } catch (_) {
+          scheduleInteractiveError(
+            getMsg(document.body, "update_order_unavailable"),
+          );
+        }
+      });
+      const mo = new MutationObserver((_m, o) => {
         if (!document.body.contains($host.get(0))) {
           try {
             drake.destroy();
           } catch (_) {
-    console.error(`[drag] Error:`, _);
-  }
+            console.error(`[drag] Error:`, _);
+          }
           o.disconnect();
         }
       });
       mo.observe(document.body, { childList: true, subtree: true });
     });
   };
-  const bindOnce = (key: string, binder: () => void): void=> {
-    const root = document.documentElement;
-    const attr = dataBound + key;
-    if (root.getAttribute(attr) === "true") {
-      return;
-    }
+  const bindOnce = (key: string, binder: () => void): void => {
+    const root = document.documentElement,
+      attr = dataBound + key;
+    if (root.getAttribute(attr) === "true") return;
     root.setAttribute(attr, "true");
     binder();
-    const mo = new MutationObserver((m, o) => {
-      if (!document.body.contains(root)) {
-        o.disconnect();
-      }
+    const mo = new MutationObserver((_m, o) => {
+      if (!document.body.contains(root)) o.disconnect();
     });
     mo.observe(document.body, { childList: true, subtree: true });
   };
   const toggleSelectionUser = (): void => {
     bindOnce("add-usr", function (): void {
-      $(document).on("click.addUsr", ".add_usr", function (): void {
-        try {
-          const ids: (string | undefined)[] = [];
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const $btn = $(this);
-          $btn.toggleClass("selected");
-          const crr_id = $btn.attr("data-id");
-          const t = $("#usr_txt_" + crr_id);
-          t.html(t.html() === "Add" ? "{{__('Added')}}" : "{{__('Add')}}");
-          const ic = $("#usr_icon_" + crr_id);
-          if (ic.hasClass("fa-plus")) {
-            ic.removeClass("fa-plus").addClass("fa-check");
-          } else {
-            ic.removeClass("fa-check").addClass("fa-plus");
+      $(document).on(
+        "click.addUsr",
+        ".add_usr",
+        function (this: HTMLElement): void {
+          const btnEl = this;
+          try {
+            const ids: (string | undefined)[] = [];
+            const $btn = $(btnEl);
+            $btn.toggleClass("selected");
+            const crr_id = $btn.attr("data-id"),
+              t = $("#usr_txt_" + crr_id);
+            t.html(t.html() === "Add" ? "{{__('Added')}}" : "{{__('Add')}}");
+            const ic = $("#usr_icon_" + crr_id);
+            if (ic.hasClass("fa-plus")) {
+              ic.removeClass("fa-plus").addClass("fa-check");
+            } else {
+              ic.removeClass("fa-check").addClass("fa-plus");
+            }
+            $(".selected").each(function (this: HTMLElement): void {
+              const selEl = this;
+              ids.push($(selEl).attr("data-id"));
+            });
+            $('input[name="assign_to"]').val(
+              ids.filter((id): id is string => id !== undefined),
+            );
+          } catch (_) {
+            console.error(`[drag] Error:`, _);
           }
-          $(".selected").each(function (): void {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            ids.push($(this).attr("data-id"));
-          });
-          $('input[name="assign_to"]').val(
-            ids.filter((id): id is string => id !== undefined),
-          );
-        } catch (_) {
-    console.error(`[drag] Error:`, _);
-  }
-      });
+        },
+      );
     });
   };
   const deleteTask = (): void => {
     bindOnce("del-task", function (): void {
-      $(document).on("click.delTask", ".del_task", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const $btn = $(this);
-        const el = this as HTMLElement;
-        const url = resolveUrl(el, $btn.attr("data-url") ?? null);
-        if (!url) {
-          scheduleInteractiveError(getMsg(el, "delete_task_unavailable"));
-          return;
-        }
-        ajaxDelete(
-          url,
-          function (data: unknown) {
-            const d = data as Record<string, unknown>;
-            if (d.task_id) {
-              $("#" + String(d.task_id)).remove();
-            }
-            if (window.show_toastr) {
-              window.show_toastr(
-                "{{__('Success')}}",
-                "{{ __('Task Deleted Successfully!')}}",
-                "success",
-              );
-            }
-          },
-          el,
-          "delete_task_unavailable",
-        );
-      });
+      $(document).on(
+        "click.delTask",
+        ".del_task",
+        function (this: HTMLElement): void {
+          const el = this;
+          const $btn = $(el),
+            url = resolveUrl(el, $btn.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(getMsg(el, "delete_task_unavailable"));
+            return;
+          }
+          ajaxDelete(
+            url,
+            function (data: unknown) {
+              const d = data as Record<string, unknown>;
+              if (d.task_id) $("#" + String(d.task_id)).remove();
+              if (window.show_toastr)
+                window.show_toastr(
+                  "{{__('Success')}}",
+                  "{{ __('Task Deleted Successfully!')}}",
+                  "success",
+                );
+            },
+            el,
+            "delete_task_unavailable",
+          );
+        },
+      );
     });
   };
   const addComment = (): void => {
@@ -423,20 +396,19 @@ declare global {
       $(document).on(
         "click.commentSubmit",
         "#comment_submit",
-        function (): void {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const curr = $(this);
-          const v = String(
-            $("#form-comment textarea[name='comment']").val() ?? "",
-          ).trim();
+        function (this: HTMLElement): void {
+          const el = this;
+          const curr = $(el),
+            v = String(
+              $("#form-comment textarea[name='comment']").val() ?? "",
+            ).trim();
           if (!v) {
-            if (window.show_toastr) {
+            if (window.show_toastr)
               window.show_toastr(
                 "{{__('Error')}}",
                 "{{ __('Please write comment!')}}",
                 "error",
               );
-            }
             return;
           }
           const form = document.getElementById("form-comment");
@@ -455,9 +427,9 @@ declare global {
             function (data: unknown) {
               try {
                 const d = (
-                  typeof data === "string" ? JSON.parse(data) : data
-                ) as Record<string, unknown>;
-                const user = d.user as Record<string, string> | undefined;
+                    typeof data === "string" ? JSON.parse(data) : data
+                  ) as Record<string, unknown>,
+                  user = d.user as Record<string, string> | undefined;
                 const html =
                   "<div class='list-group-item px-0'><div class='row align-items-center'><div class='col-auto'><a href='#' class='avatar avatar-sm rounded-circle'><img " +
                   (user?.img_avatar ? user.img_avatar : "") +
@@ -477,16 +449,13 @@ declare global {
                 $("#comments").prepend(html);
                 $("#form-comment textarea[name='comment']").val("");
                 const sid = curr.closest(".side-modal").attr("id");
-                if (sid != null && sid !== "") {
-                  load_task(sid);
-                }
-                if (window.show_toastr) {
+                if (sid != null && sid !== "") load_task(sid);
+                if (window.show_toastr)
                   window.show_toastr(
                     "{{__('Success')}}",
                     "{{ __('Comment Added Successfully!')}}",
                     "success",
                   );
-                }
               } catch (_) {
                 scheduleInteractiveError(
                   getMsg(form, "comment_add_unavailable"),
@@ -502,35 +471,35 @@ declare global {
   };
   const deleteComment = (): void => {
     bindOnce("comment-delete", function (): void {
-      $(document).on("click.commentDel", ".delete-comment", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const btn = $(this);
-        const el = this as HTMLElement;
-        const url = resolveUrl(el, btn.attr("data-url") ?? null);
-        if (!url) {
-          scheduleInteractiveError(getMsg(el, "comment_delete_unavailable"));
-          return;
-        }
-        ajaxDelete(
-          url,
-          function (): void {
-            const sid = btn.closest(".side-modal").attr("id");
-            if (sid != null && sid !== "") {
-              load_task(sid);
-            }
-            if (window.show_toastr) {
-              window.show_toastr(
-                "{{__('Success')}}",
-                "{{ __('Comment Deleted Successfully!')}}",
-                "success",
-              );
-            }
-            btn.closest(".list-group-item").remove();
-          },
-          el,
-          "comment_delete_unavailable",
-        );
-      });
+      $(document).on(
+        "click.commentDel",
+        ".delete-comment",
+        function (this: HTMLElement): void {
+          const el = this;
+          const btn = $(el),
+            url = resolveUrl(el, btn.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(getMsg(el, "comment_delete_unavailable"));
+            return;
+          }
+          ajaxDelete(
+            url,
+            function (): void {
+              const sid = btn.closest(".side-modal").attr("id");
+              if (sid != null && sid !== "") load_task(sid);
+              if (window.show_toastr)
+                window.show_toastr(
+                  "{{__('Success')}}",
+                  "{{ __('Comment Deleted Successfully!')}}",
+                  "success",
+                );
+              btn.closest(".list-group-item").remove();
+            },
+            el,
+            "comment_delete_unavailable",
+          );
+        },
+      );
     });
   };
   const addChecklist = (): void => {
@@ -541,13 +510,12 @@ declare global {
         function (): void {
           const name = $("#form-checklist input[name=name]").val() ?? "";
           if (!name) {
-            if (window.show_toastr) {
+            if (window.show_toastr)
               window.show_toastr(
                 "{{__('Error')}}",
                 "{{ __('Please write checklist name!')}}",
                 "error",
               );
-            }
             return;
           }
           const form = document.getElementById("form-checklist");
@@ -602,16 +570,13 @@ declare global {
                   }
                 ).collapse("toggle");
                 const sid = $(".side-modal").attr("id");
-                if (sid != null && sid !== "") {
-                  load_task(sid);
-                }
-                if (window.show_toastr) {
+                if (sid != null && sid !== "") load_task(sid);
+                if (window.show_toastr)
                   window.show_toastr(
                     "{{__('Success')}}",
                     "{{ __('Checklist Added Successfully!')}}",
                     "success",
                   );
-                }
               } catch (_) {
                 scheduleInteractiveError(
                   getMsg(form, "checklist_add_unavailable"),
@@ -630,10 +595,9 @@ declare global {
       $(document).on(
         "change.checklistToggle",
         "#checklist input[type=checkbox]",
-        function (): void {
-          const el = this as HTMLElement;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const url = resolveUrl(el, $(this).attr("data-url") ?? null);
+        function (this: HTMLElement): void {
+          const el = this;
+          const url = resolveUrl(el, $(el).attr("data-url") ?? null);
           if (!url) {
             scheduleInteractiveError(
               getMsg(el, "checklist_update_unavailable"),
@@ -645,16 +609,13 @@ declare global {
             {},
             function (): void {
               const sid = $(".side-modal").attr("id");
-              if (sid != null && sid !== "") {
-                load_task(sid);
-              }
-              if (window.show_toastr) {
+              if (sid != null && sid !== "") load_task(sid);
+              if (window.show_toastr)
                 window.show_toastr(
                   "{{__('Success')}}",
                   "{{ __('Checklist Updated Successfully!')}}",
                   "success",
                 );
-              }
             },
             el,
             "checklist_update_unavailable",
@@ -668,11 +629,10 @@ declare global {
       $(document).on(
         "click.checklistDel",
         ".delete-checklist",
-        function (): void {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const btn = $(this);
-          const el = this as HTMLElement;
-          const url = resolveUrl(el, btn.attr("data-url") ?? null);
+        function (this: HTMLElement): void {
+          const el = this;
+          const btn = $(el),
+            url = resolveUrl(el, btn.attr("data-url") ?? null);
           if (!url) {
             scheduleInteractiveError(
               getMsg(el, "checklist_delete_unavailable"),
@@ -683,16 +643,13 @@ declare global {
             url,
             function (): void {
               const sid = $(".side-modal").attr("id");
-              if (sid != null && sid !== "") {
-                load_task(sid);
-              }
-              if (window.show_toastr) {
+              if (sid != null && sid !== "") load_task(sid);
+              if (window.show_toastr)
                 window.show_toastr(
                   "{{__('Success')}}",
                   "{{ __('Checklist Deleted Successfully!')}}",
                   "success",
                 );
-              }
               btn.closest(".checklist-member").remove();
             },
             el,
@@ -704,96 +661,100 @@ declare global {
   };
   const favToggle = (): void => {
     bindOnce("favorite", function (): void {
-      $(document).on("click.favorite", "#add_favourite", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const btn = $(this);
-        const el = this as HTMLElement;
-        const url = resolveUrl(el, btn.attr("data-url") ?? null);
-        if (!url) {
-          scheduleInteractiveError(getMsg(el, "favorite_unavailable"));
-          return;
-        }
-        ajaxPost(
-          url,
-          {},
-          function (data: unknown) {
-            const d = data as Record<string, unknown>;
-            if (d.fav === 1) {
-              $("#add_favourite").addClass("action-favorite");
-            } else if (d.fav === 0) {
-              $("#add_favourite").removeClass("action-favorite");
-            }
-          },
-          el,
-          "favorite_unavailable",
-        );
-      });
+      $(document).on(
+        "click.favorite",
+        "#add_favourite",
+        function (this: HTMLElement): void {
+          const el = this;
+          const btn = $(el),
+            url = resolveUrl(el, btn.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(getMsg(el, "favorite_unavailable"));
+            return;
+          }
+          ajaxPost(
+            url,
+            {},
+            function (data: unknown) {
+              const d = data as Record<string, unknown>;
+              if (d.fav === 1) {
+                $("#add_favourite").addClass("action-favorite");
+              } else if (d.fav === 0) {
+                $("#add_favourite").removeClass("action-favorite");
+              }
+            },
+            el,
+            "favorite_unavailable",
+          );
+        },
+      );
     });
   };
   const completeToggle = (): void => {
     bindOnce("complete", function (): void {
-      $(document).on("change.complete", "#complete_task", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const cb = $(this);
-        const el = this as HTMLElement;
-        const url = resolveUrl(el, cb.attr("data-url") ?? null);
-        if (!url) {
-          scheduleInteractiveError(getMsg(el, "complete_unavailable"));
-          return;
-        }
-        ajaxPost(
-          url,
-          {},
-          function (data: unknown) {
-            const d = data as Record<string, unknown>;
-            if (d && typeof d.com !== "undefined") {
-              $("#complete_task").prop("checked", !!d.com);
-            }
-            if (d.task && d.stage) {
-              $("#" + String(d.task)).insertBefore(
-                $("#task-list-" + String(d.stage) + " .empty-container"),
-              );
-              load_task(String(d.task));
-            }
-          },
-          el,
-          "complete_unavailable",
-        );
-      });
+      $(document).on(
+        "change.complete",
+        "#complete_task",
+        function (this: HTMLElement): void {
+          const el = this;
+          const cb = $(el),
+            url = resolveUrl(el, cb.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(getMsg(el, "complete_unavailable"));
+            return;
+          }
+          ajaxPost(
+            url,
+            {},
+            function (data: unknown) {
+              const d = data as Record<string, unknown>;
+              if (d && typeof d.com !== "undefined")
+                $("#complete_task").prop("checked", !!d.com);
+              if (d.task && d.stage) {
+                $("#" + String(d.task)).insertBefore(
+                  $("#task-list-" + String(d.stage) + " .empty-container"),
+                );
+                load_task(String(d.task));
+              }
+            },
+            el,
+            "complete_unavailable",
+          );
+        },
+      );
     });
   };
   const progressMove = (): void => {
     bindOnce("progress", function (): void {
-      $(document).on("change.progress", "#task_progress", function (): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const sel = $(this);
-        const el = this as HTMLElement;
-        const url = resolveUrl(el, sel.attr("data-url") ?? null);
-        if (!url) {
-          scheduleInteractiveError(getMsg(el, "progress_unavailable"));
-          return;
-        }
-        const progress = String(sel.val() ?? "");
-        $("#t_percentage").html(progress);
-        ajaxPost(
-          url,
-          { progress: progress },
-          function (data: unknown) {
-            const d = data as Record<string, unknown>;
-            if (d.task_id) {
-              load_task(String(d.task_id));
-            }
-          },
-          el,
-          "progress_unavailable",
-        );
-      });
+      $(document).on(
+        "change.progress",
+        "#task_progress",
+        function (this: HTMLElement): void {
+          const el = this;
+          const sel = $(el),
+            url = resolveUrl(el, sel.attr("data-url") ?? null);
+          if (!url) {
+            scheduleInteractiveError(getMsg(el, "progress_unavailable"));
+            return;
+          }
+          const progress = String(sel.val() ?? "");
+          $("#t_percentage").html(progress);
+          ajaxPost(
+            url,
+            { progress: progress },
+            function (data: unknown) {
+              const d = data as Record<string, unknown>;
+              if (d.task_id) load_task(String(d.task_id));
+            },
+            el,
+            "progress_unavailable",
+          );
+        },
+      );
     });
   };
   const ajaxCsrfHeader = (): void => {
-    if (!($ as unknown as { ajaxSetup?: unknown }).ajaxSetup) {
-      return;
-    }
+    if (!($ as unknown as { ajaxSetup?: unknown }).ajaxSetup) return;
     (
       $ as unknown as { ajaxSetup: (options: Record<string, unknown>) => void }
     ).ajaxSetup({
@@ -802,12 +763,12 @@ declare global {
       },
     });
   };
-  const load_task = (id: string): void=> {
+  const load_task = (id: string): void => {
     const base = "{{route(VW::PRJ_TSK_C.'.get','_task_id')}}".replace(
-      "_task_id",
-      id ?? "",
-    );
-    const url = resolveUrl(document.body, base);
+        "_task_id",
+        id ?? "",
+      ),
+      url = resolveUrl(document.body, base);
     if (!url) {
       scheduleInteractiveError(getMsg(document.body, "load_task_unavailable"));
       return;
@@ -841,8 +802,8 @@ declare global {
         )
           console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[drag] Error:`, _);
-  }
+        console.error(`[drag] Error:`, _);
+      }
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
@@ -859,11 +820,9 @@ declare global {
     completeToggle();
     progressMove();
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", init, { once: true })
+    : init();
 })();
 
 export {};

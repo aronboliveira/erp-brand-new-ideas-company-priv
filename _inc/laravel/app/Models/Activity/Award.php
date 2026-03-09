@@ -6,6 +6,12 @@ use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+/**
+ * @property string|null $award_type
+ * @property mixed $created_by
+ * @property int|null $employee_id
+ * @property \Illuminate\Support\Carbon|null $date
+ */
 
 class Award extends Model
 {

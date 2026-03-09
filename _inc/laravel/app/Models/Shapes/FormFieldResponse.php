@@ -8,6 +8,13 @@ use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\{Log, Schema};
+/**
+ * @property int|null $email_id
+ * @property int|null $name_id
+ * @property int|null $pipeline_id
+ * @property int|null $subject_id
+ * @property int|null $user_id
+ */
 
 class FormFieldResponse extends Model
 {

@@ -18,11 +18,11 @@
           const url = s.getAttribute("data-url") ?? "#";
           if (url !== "#") return;
           const msg =
-            s.getAttribute("data-guard-msg") ?? "Bill vendor route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
+              s.getAttribute("data-guard-msg") ??
+              "Bill vendor route is unavailable. Please contact technical support or your domain administrator.",
+            linkEl = document.querySelector('link[href*="bootstrap"]'),
+            hasBootstrapToast =
+              window.bootstrap && typeof window.bootstrap.Toast === "function";
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
@@ -34,11 +34,11 @@
             const toast = document.createElement("div");
             toast.className = "toast";
             for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+              role: "alert",
+              "aria-live": "assertive",
+              "aria-atomic": "true",
+            }))
+              toast.setAttribute(k, v);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
@@ -49,8 +49,8 @@
               try {
                 toast.remove();
               } catch (_) {
-    console.error(`[vendor] Error:`, _);
-  }
+                console.error(`[vendor] Error:`, _);
+              }
             });
             inst.show();
           } else {
@@ -58,10 +58,10 @@
           }
           s.setAttribute("data-failed-route", "true");
         } catch (_) {
-    console.error(`[vendor] Error:`, _);
-  }
+          console.error(`[vendor] Error:`, _);
+        }
       },
-      { passive: true }
+      { passive: true },
     );
   } catch (_) {
     console.error(`[vendor] Error:`, _);

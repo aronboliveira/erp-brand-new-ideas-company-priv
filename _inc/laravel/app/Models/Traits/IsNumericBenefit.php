@@ -6,6 +6,9 @@ use App\Config\Constants\BillsConstants as BC;
 use Illuminate\Database\{Eloquent\Model, Schema\Blueprint};
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @phpstan-require-extends Model
+ */
 trait IsNumericBenefit
 {
 	protected function addNumericBenefitColumns(Blueprint $table, ?float $minBudget = 0.00, ?float $maxBudget = 9999999999.00, ?bool $nullableBudget = true): void
@@ -17,15 +20,17 @@ trait IsNumericBenefit
 	}
 	protected static function verifyMaxBudget(Model $model): void
 	{
-		$model->{BC::COL_EXP_BDG} ??= 0.00;
-		$model->{BC::COL_MAX_BDG} ??= 9999999999.00;
-		if ($model->{BC::COL_EXP_BDG} > $model->{BC::COL_MAX_BDG}) {
+		$expBdg = $model->getAttribute(BC::COL_EXP_BDG) ?? 0.00;
+		$maxBdg = $model->getAttribute(BC::COL_MAX_BDG) ?? 9999999999.00;
+		$model->setAttribute(BC::COL_EXP_BDG, $expBdg);
+		$model->setAttribute(BC::COL_MAX_BDG, $maxBdg);
+		if ($expBdg > $maxBdg) {
 			Log::error('Expected budget cannot be greater than maximum budget.', [
-				'expected' => $model->{BC::COL_EXP_BDG},
-				'maximum' => $model->{BC::COL_MAX_BDG},
-				'model_id' => $model->id ?? 'new',
+				'expected' => $expBdg,
+				'maximum' => $maxBdg,
+				'model_id' => $model->getAttribute('id') ?? 'new',
 			]);
-			$model->{BC::COL_EXP_BDG} = $model->{BC::COL_MAX_BDG};
+			$model->setAttribute(BC::COL_EXP_BDG, $maxBdg);
 		}
 	}
 }

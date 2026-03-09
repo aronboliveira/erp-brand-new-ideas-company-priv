@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+/**
+ * @property string|null $productId
+
+ * @property mixed $product
+ * @property int|null $quantity
+ */
 
 class WarehouseTransfer extends Model
 {

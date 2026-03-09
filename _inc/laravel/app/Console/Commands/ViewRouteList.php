@@ -17,6 +17,7 @@ class ViewRouteList extends Command
         $allRoutes = Route::getRoutes();
         $fileCache = [];
         $matches  = [];
+        /** @phpstan-ignore-next-line */
         foreach ($allRoutes as $route) {
             $action = $route->getActionName();
             if (!Str::contains($action, '@')) continue;

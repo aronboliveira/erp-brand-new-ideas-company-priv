@@ -1,0 +1,22 @@
+bash: line 1: ./vendor/bin/phpunit: No such file or directory
+Kernel::handle start {"uri":"\/test-middleware","method":"GET","ip":"127.0.0.1"}
+Kernel::handle response generated status=503
+Kernel::handle finished duration_ms=10
+Kernel::handle start {"uri":"\/test-middleware","method":"GET","ip":"127.0.0.1"}
+Kernel::handle response generated status=503
+Kernel::handle finished duration_ms=1
+Kernel::handle start {"uri":"\/test-redirect-if-auth","method":"GET","ip":"127.0.0.1"}
+Kernel::handle response generated status=503
+Kernel::handle finished duration_ms=1
+Kernel::handle start {"uri":"\/test-redirect-if-auth","method":"GET","ip":"127.0.0.1"}
+Kernel::handle exception {"exception":"Mockery\\Exception\\BadMethodCallException","message":"Received Mockery_3_Illuminate_Auth_AuthManager::userResolver(), but no expectations were specified"}
+Kernel::handle start {"uri":"\/test-cors","method":"GET","ip":"127.0.0.1"}
+Kernel::handle response generated status=503
+Kernel::handle finished duration_ms=1
+Kernel::handle start {"uri":"\/test-cors-error","method":"GET","ip":"127.0.0.1"}
+Kernel::handle exception {"exception":"Mockery\\Exception\\BadMethodCallException","message":"Received Mockery_2_Illuminate_Log_LogManager::critical(), but no expectations were specified"}
+Kernel::handle start {"uri":"\/test-trust","method":"GET","ip":"127.0.0.1"}
+Kernel::handle response generated status=503
+Kernel::handle finished duration_ms=1
+Kernel::handle start {"uri":"\/test-trust-error","method":"GET","ip":"127.0.0.1"}
+Kernel::handle exception {"exception":"Mockery\\Exception\\BadMethodCallException","message":"Received Mockery_2_Illuminate_Log_LogManager::critical(), but no expectations were specified"}

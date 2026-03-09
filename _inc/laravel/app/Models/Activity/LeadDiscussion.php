@@ -21,6 +21,12 @@ use Illuminate\Database\Eloquent\Relations\{
     BelongsTo
 };
 
+/**
+ * @property bool|null $is_reply
+ * @property bool|null $can_non_admin_delete
+ * @property bool|null $is_flagged
+ * @property bool|null $is_replied
+ */
 class LeadDiscussion extends Model
 {
     use UsesUuids;

@@ -6,6 +6,10 @@ use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC};
 use App\Traits\{DescribesClientField, DescribesHtmlLinkedEntity, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\Schema;
+/**
+ * @property bool|null $is_required
+ * @property string|null $question
+ */
 
 class CustomQuestion extends Model
 {
@@ -62,6 +66,15 @@ class CustomQuestion extends Model
         'no'  => 'No',
     ];
 
+    /**
+     * Alias for {@see $isRequired} — used by controllers/views (snake_case).
+     * @var array<string,string>
+     */
+    public static array $is_required = [
+        'yes' => 'Yes',
+        'no'  => 'No',
+    ];
+
     public function customField(): ?BelongsTo
     {
         return $this->belongsTo(CustomField::class, FC::COL_CT_FD_ID, 'id');
@@ -114,8 +127,12 @@ class CustomQuestion extends Model
      */
     protected function getCachedCustomField(): ?CustomField
     {
-        if ($this->relationLoaded('customField')) return $this->getRelation('customField');
+        if ($this->relationLoaded('customField')) {
+            $rel = $this->getRelation('customField');
+            return $rel instanceof CustomField ? $rel : null;
+        }
         try {
+            /** @var CustomField|null */
             return $this->customField()->first();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning(static::class . ' failed to fetch linked customField', [

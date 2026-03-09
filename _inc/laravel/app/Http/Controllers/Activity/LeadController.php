@@ -196,10 +196,10 @@ class LeadController extends Controller
                 foreach ($userIds as $uid) UserLead::create([UC::COL_USER_ID => $uid, 'lead_id' => $lead->id]);
                 $this->logExecutionTime($uidsStart, $action, 'linkUsersToLead');
                 $mailCheckStart = microtime(true);
-                if (Utility::settings($creatorId)['lead_assigned'] ?? 0) Utility::sendEmailTemplate('lead_assigned', [$lead->user_id => User::find($lead->user_id)->email], ['lead_name' => $lead->name, 'lead_email' => $lead->email, 'lead_subject' => $lead->subject, 'lead_pipeline' => $pipeline->name, 'lead_stage' => $stage->name]);
+                if (Utility::settingsById($creatorId)['lead_assigned'] ?? 0) Utility::sendEmailTemplate('lead_assigned', [$lead->user_id => User::find($lead->user_id)->email], ['lead_name' => $lead->name, 'lead_email' => $lead->email, 'lead_subject' => $lead->subject, 'lead_pipeline' => $pipeline->name, 'lead_stage' => $stage->name]);
                 $this->logExecutionTime($mailCheckStart, $action, 'maybeSendAssignedEmail');
                 $notifStart = microtime(true);
-                $notif = Utility::settings($creatorId);
+                $notif = Utility::settingsById($creatorId);
                 $arr = ['user_name' => $user?->name, 'lead_name' => $lead->name, 'lead_email' => $lead->email];
                 ($notif['lead_notification'] ?? 0) && Utility::sendSlackMsg('new_lead', $arr);
                 ($notif['telegram_lead_notification'] ?? 0) && Utility::sendTelegramMsg('new_lead', $arr);
@@ -1184,7 +1184,7 @@ class LeadController extends Controller
                 $lead->isConverted = $deal->id;
                 $lead->save();
                 $this->logExecutionTime($tMarkConverted, $action, 'markLeadConverted');
-                $notif = Utility::settings($creatorId);
+                $notif = Utility::settingsById($creatorId);
                 $arr = ['lead_user_name' => $lead->name, 'lead_name' => $lead->name, 'lead_email' => $lead->email];
                 if ($notif['leadtodeal_notification'] ?? 0) {
                     $tSlack = microtime(true);
@@ -1431,7 +1431,7 @@ class LeadController extends Controller
         $method = __METHOD__;
         $class = static::class;
         $req = $request;
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($req, $id, $action, $class) {
             Log::info("[{$class}::{$action}] start", ['lead_id' => $id]);
             try {
                 $findStart = microtime(true);
@@ -1476,7 +1476,7 @@ class LeadController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        return $this->measureProfile($action, function () use ($leadId, $action, $method, $class) {
+        return $this->measureProfile($action, function () use ($leadId, $action, $class) {
             Log::info("[{$class}::{$action}] start", ['lead_id_param' => $leadId, 'cached_id' => self::$leadData['id'] ?? null]);
             try {
                 if (self::$leadData['lead'] === null || self::$leadData['id'] !== (int)$leadId) {

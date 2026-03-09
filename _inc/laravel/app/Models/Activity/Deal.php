@@ -25,6 +25,8 @@ use Illuminate\Http\RedirectResponse;
  * @property int|string|null $created_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $email
+ * @property array|string|null $labels
  */
 class Deal extends Model
 {
@@ -128,7 +130,7 @@ class Deal extends Model
     {
         return $this->labels
             ? Label::whereIn('id', explode(',', $this->labels))->get()
-            : collect();
+            : new Collection();
     }
 
     public function pipeline(): HasOne
@@ -143,7 +145,7 @@ class Deal extends Model
 
     public function group(): HasOne
     {
-        return $this->users()->hasOne(User::class, 'id', PJC::COL_GRP_ID); // * KEPT FOR COMPATIBILITY
+        return $this->hasOne(User::class, 'id', PJC::COL_GRP_ID);
     }
 
     public function clients(): BelongsToMany

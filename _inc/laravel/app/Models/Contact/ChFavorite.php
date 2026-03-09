@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
+/**
+ * @property int|null $favorite_id
+ */
 
 class ChFavorite extends Model
 {

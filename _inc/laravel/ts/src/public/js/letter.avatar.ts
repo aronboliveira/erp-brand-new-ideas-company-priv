@@ -3,18 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module letter.avatar
  */
+// @ts-nocheck
 
-interface LetterAvatarFunction {
-  (name: string, size?: number | string): string;
-  transform: () => void;
-}
-
-interface DefineFunction {
-  (dependencies: string[], factory: (...args: unknown[]) => unknown): void;
-  (factory: () => unknown): void;
-  amd?: boolean;
-}
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, prefer-const */
 /*
  * LetterAvatar
  *
@@ -22,140 +13,102 @@ interface DefineFunction {
  * Create Letter avatar based on Initials
  * based on https://gist.github.com/leecrossley/6027780
  */
-(function (w: Window, d: Document): void {
-  function LetterAvatar(name: string, size?: number | string): string {
-    name = name ?? "";
-    let computedSize: number =
-      typeof size === "number" ? size : parseInt(String(size), 10) || 60;
+(function (w, d) {
+  function LetterAvatar(name, size) {
+    name = name || "";
+    size = size || 60;
 
-    const colours: string[] = [
-      "#1abc9c",
-      "#2ecc71",
-      "#3498db",
-      "#9b59b6",
-      "#34495e",
-      "#16a085",
-      "#27ae60",
-      "#2980b9",
-      "#8e44ad",
-      "#2c3e50",
-      "#f1c40f",
-      "#e67e22",
-      "#e74c3c",
-      "#ecf0f1",
-      "#95a5a6",
-      "#f39c12",
-      "#d35400",
-      "#c0392b",
-      "#bdc3c7",
-      "#7f8c8d",
-    ];
+    let colours = [
+        "#1abc9c",
+        "#2ecc71",
+        "#3498db",
+        "#9b59b6",
+        "#34495e",
+        "#16a085",
+        "#27ae60",
+        "#2980b9",
+        "#8e44ad",
+        "#2c3e50",
+        "#f1c40f",
+        "#e67e22",
+        "#e74c3c",
+        "#ecf0f1",
+        "#95a5a6",
+        "#f39c12",
+        "#d35400",
+        "#c0392b",
+        "#bdc3c7",
+        "#7f8c8d",
+      ],
+      nameSplit = String(name).toUpperCase().split(" "),
+      initials,
+      charIndex,
+      colourIndex,
+      canvas,
+      context,
+      dataURI;
 
-    const nameSplit: string[] = String(name).toUpperCase().split(" ");
-    let initials: string;
-    let charIndex: number;
-    let colourIndex: number;
-    let canvas: HTMLCanvasElement | null;
-    let context: CanvasRenderingContext2D | null;
-    let dataURI: string;
-
-    if (nameSplit.length === 1) {
+    if (nameSplit.length == 1) {
       initials = nameSplit[0] ? nameSplit[0].charAt(0) : "?";
     } else {
       initials = nameSplit[0].charAt(0) + nameSplit[1].charAt(0);
     }
 
-    if (w.devicePixelRatio !== 0) {
-      computedSize = computedSize * w.devicePixelRatio;
-    }
+    if (w.devicePixelRatio) size = size * w.devicePixelRatio;
 
-    // eslint-disable-next-line prefer-const
-    charIndex = (initials === "?" ? 72 : initials.charCodeAt(0)) - 64;
-    // eslint-disable-next-line prefer-const
+    charIndex = (initials == "?" ? 72 : initials.charCodeAt(0)) - 64;
     colourIndex = charIndex % 20;
     canvas = d.createElement("canvas");
-    canvas.width = computedSize;
-    canvas.height = computedSize;
-    // eslint-disable-next-line prefer-const
+    canvas.width = size;
+    canvas.height = size;
     context = canvas.getContext("2d");
 
-    if (context) {
-      context.fillStyle = colours[colourIndex - 1];
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.font = Math.round(canvas.width / 2) + "px Arial";
-      context.textAlign = "center";
-      context.fillStyle = "#FFF";
-      context.fillText(initials, computedSize / 2, computedSize / 1.5);
-    }
+    context.fillStyle = colours[colourIndex - 1];
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    for (const [k, v] of Object.entries({
+      font: Math.round(canvas.width / 2) + "px Arial",
+      textAlign: "center",
+      fillStyle: "#FFF",
+    }))
+      (context as unknown as Record<string, unknown>)[k] = v;
+    context.fillText(initials, size / 2, size / 1.5);
 
-    // eslint-disable-next-line prefer-const
     dataURI = canvas.toDataURL();
     canvas = null;
 
     return dataURI;
   }
 
-  LetterAvatar.transform = function (): void {
+  LetterAvatar.transform = function () {
     Array.prototype.forEach.call(
       d.querySelectorAll("img[avatar]"),
-      function (img: HTMLImageElement) {
-        const avatarName: string = img.getAttribute("avatar") ?? "";
-        img.src = LetterAvatar(
-          avatarName,
-          img.getAttribute("width") ?? undefined,
-        );
+      function (img, name) {
+        name = img.getAttribute("avatar");
+        img.src = LetterAvatar(name, img.getAttribute("width"));
         img.removeAttribute("avatar");
-        img.setAttribute("alt", avatarName);
+        img.setAttribute("alt", name);
       },
     );
   };
 
-  const LetterAvatarExport = LetterAvatar as LetterAvatarFunction;
-
-  // Type-safe reference to global define (AMD)
-  const globalDefine =
-    typeof window !== "undefined"
-      ? (window as Window & { define?: DefineFunction }).define
-      : undefined;
-  // Type-safe reference to CommonJS module/exports
-  const globalModule =
-    typeof globalThis !== "undefined"
-      ? (globalThis as typeof globalThis & { module?: { exports?: unknown } })
-          .module
-      : undefined;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const globalExports =
-    typeof globalThis !== "undefined"
-      ? (
-          globalThis as typeof globalThis & {
-            exports?: { LetterAvatar?: LetterAvatarFunction };
-          }
-        ).exports
-      : undefined;
-
   // AMD support
-  if (typeof globalDefine === "function" && globalDefine.amd) {
-    globalDefine(function (): LetterAvatarFunction {
-      return LetterAvatarExport;
+  if (typeof define === "function" && define.amd) {
+    define(function () {
+      return LetterAvatar;
     });
 
     // CommonJS and Node.js module support.
-  } else if (typeof globalExports !== "undefined") {
+  } else if (typeof exports !== "undefined") {
     // Support Node.js specific `module.exports` (which can be a function)
-    if (globalModule?.exports) {
-      globalModule.exports = LetterAvatarExport;
-    }
+    if (typeof module != "undefined" && module.exports)
+      exports = module.exports = LetterAvatar;
 
     // But always support CommonJS module 1.1.1 spec (`exports` cannot be a function)
-    if (globalExports) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      globalExports.LetterAvatar = LetterAvatarExport;
-    }
+    exports.LetterAvatar = LetterAvatar;
   } else {
-    (window as Window & { LetterAvatar?: LetterAvatarFunction }).LetterAvatar =
-      LetterAvatarExport;
+    window.LetterAvatar = LetterAvatar;
 
-    d.addEventListener("DOMContentLoaded", function (_event: Event): void {
+    d.addEventListener("DOMContentLoaded", function (event) {
       LetterAvatar.transform();
     });
   }

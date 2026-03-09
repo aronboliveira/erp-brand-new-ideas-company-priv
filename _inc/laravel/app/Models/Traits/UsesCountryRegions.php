@@ -2,9 +2,7 @@
 
 namespace App\Traits;
 
-use UnitEnum;
 use App\Config\Constants\{ActivitiesConstants as AC, BillsConstants as BC, DatabaseConstants as DC};
-use App\Models\Utility;
 use App\Enums\{
 	BrazilState,
 	ChinaState,
@@ -3859,7 +3857,7 @@ trait UsesCountryRegions
 						try {
 							$stateEnum = $stateEnumClass::normalize($stateStr);
 							if ($stateEnum instanceof $stateEnumClass)
-								$this->setAttribute($stateCol, $stateEnum instanceof UnitEnum ? $stateEnum->value : $stateEnum);
+								$this->setAttribute($stateCol, $stateEnum instanceof \BackedEnum ? $stateEnum->value : $stateEnum);
 							else
 								$this->setAttribute($stateCol, null);
 						} catch (\Throwable) {
@@ -4197,7 +4195,7 @@ trait UsesCountryRegions
 
 		if (is_array($value)) {
 			$arr = $value;
-		} elseif (is_string($value) && trim($value) !== '' && Utility::looksLikeJson($value)) {
+		} elseif (is_string($value) && trim($value) !== '' && ($value[0] === '{' || $value[0] === '[')) {
 			$decoded = json_decode($value, true);
 			$arr = is_array($decoded) ? $decoded : null;
 		} elseif (is_string($value)) {
@@ -5014,6 +5012,7 @@ trait UsesCountryRegions
 			if (!$enumCls || !enum_exists($enumCls) || !method_exists($enumCls, 'cases')) continue;
 
 			try {
+				/** @var \BackedEnum $e */
 				foreach ($enumCls::cases() as $e) {
 					$v = (string) $e->value;
 					if (mb_strtolower(trim($v)) === $needle) return (string) $countryCode;
@@ -5133,7 +5132,7 @@ trait UsesCountryRegions
 				$cc = (string) $finalCountry;
 				$enumCls = $this->stateEnumClassForCountry($cc);
 				if ($enumCls && enum_exists($enumCls) && method_exists($enumCls, 'cases')) {
-					$allowed = array_map(fn($e) => (string) $e->value, $enumCls::cases());
+					$allowed = array_map(fn(\BackedEnum $e) => (string) $e->value, $enumCls::cases());
 					$detState = $this->detectStateFromAddress($addr, $cc, $allowed);
 					if (is_string($detState) && trim($detState) !== '' && $curState === null) {
 						$out['state'] = trim($detState);

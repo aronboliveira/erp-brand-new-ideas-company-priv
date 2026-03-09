@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{Cache, DB, Log};
 use Illuminate\Support\Str;
+/**
+ * @property mixed $created_by
+ */
 
 class JobStage extends Model
 {

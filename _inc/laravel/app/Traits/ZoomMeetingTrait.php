@@ -206,7 +206,7 @@ trait ZoomMeetingTrait
     {
         Log::info(__CLASS__ . '::getToken called');
         try {
-            $settings = Utility::settings(Auth::id());
+            $settings = Utility::settingsById(Auth::id());
             $id      = $settings['zoom_client_id']     ?? null;
             $secret  = $settings['zoom_client_secret'] ?? null;
             $account = $settings['zoom_account_id']    ?? null;

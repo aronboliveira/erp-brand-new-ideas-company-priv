@@ -182,7 +182,7 @@ class ContractController extends Controller
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createContract', 'completed');
 
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 $client  = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $payload = [
                     'contract_subject'    => $c->subject,
@@ -855,7 +855,7 @@ class ContractController extends Controller
                 $this->logExecutionTime($stepStart, 'createContract', 'completed');
                 // --- prepare notification payload once ---
                 $stepStart = microtime(true);
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 $client = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $payload = [
                     'contract_subject' => $c->subject,
@@ -924,7 +924,7 @@ class ContractController extends Controller
                 $client = User::findOrFail($c->{PJC::COL_CLIENT_NAME});
                 $this->logExecutionTime($startFetch, $function . '::fetchContractAndClient', 'completed');
 
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 if (!empty($settings['new_contract'])) {
                     $payload = [
                         'contract_subject'    => $c->subject,

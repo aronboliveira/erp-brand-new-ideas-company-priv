@@ -6,6 +6,9 @@ use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{ExtendsProductServiceTable, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
+/**
+ * @property mixed $created_by
+ */
 
 final class ProposalProduct extends Model
 {

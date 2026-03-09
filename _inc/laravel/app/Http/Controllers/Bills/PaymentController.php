@@ -189,7 +189,7 @@ final class PaymentController extends Controller
                     }
                     Utility::bankAccountBalance($p->account_id, $p->amount, 'debit');
 
-                    $settings = Utility::settings($req->user()?->creatorId() ?? null);
+                    $settings = Utility::settingsById($req->user()?->creatorId() ?? null);
                     if (!empty($settings['twilio_payment_notification'] ?? null) && $p->vendor_id) {
                         Utility::sendTwilioMsg(
                             Vendor::find($p->vendor_id)?->contact ?? '',

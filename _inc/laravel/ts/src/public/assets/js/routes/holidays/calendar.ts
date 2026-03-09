@@ -4,35 +4,25 @@
  * @module calendar
  */
 
+import type {
+  FullCalendarInstance,
+  FullCalendarStatic,
+  CalendarHTMLElement,
+} from "../../../../../declarations/routes/fullcalendar.interfaces";
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-
-interface CalendarHTMLElement extends HTMLElement {
-  _fcInstance?: FullCalendarInstance | null;
-}
-
-interface FullCalendarInstance {
-  render(): void;
-  destroy(): void;
-}
-
-interface FullCalendarStatic {
-  Calendar: new (
-    el: HTMLElement,
-    options: Record<string, unknown>,
-  ) => FullCalendarInstance;
-}
 
 // assets/js/routes/holidays/calendar.js — Calendar-type switching for Holiday calendar
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   const $ = window.jQuery!;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-holcal-error";
-  const dataCalGuard = "data-holcal-bound";
+  const errFb = "# ERROR",
+    dataClientLocalized = "data-client-localized",
+    dataGuardMsg = "data-guard-msg",
+    dataSvLocalized = "data-sv-localized",
+    dataErrGuard = "data-holcal-error",
+    dataCalGuard = "data-holcal-bound";
   const qs = <T extends Element = Element>(
     s: string,
     r: Document | Element = document,
@@ -40,8 +30,10 @@ interface FullCalendarStatic {
   const hasBootstrapUi = (): boolean =>
     !!(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-      qs('link[href*="bootstrap"]')
+      (
+        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+        qs('link[href*="bootstrap"]')
+      )
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     const c = qs<HTMLElement>("#np-toast-container");
@@ -50,9 +42,11 @@ interface FullCalendarStatic {
     newC.id = "np-toast-container";
     newC.setAttribute("aria-live", "polite");
     newC.setAttribute("aria-atomic", "true");
-    newC.style.position = "fixed";
-    newC.style.top = "1rem";
-    newC.style.right = "1rem";
+    Object.assign(newC.style, {
+      position: "fixed",
+      top: "1rem",
+      right: "1rem",
+    });
     document.body.appendChild(newC);
     return newC;
   };
@@ -65,11 +59,11 @@ interface FullCalendarStatic {
         newT.id = "np-toast";
         newT.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  newT.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          newT.setAttribute(k, v);
         newT.innerHTML =
           '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(newT);
@@ -86,7 +80,7 @@ interface FullCalendarStatic {
       alert(message ?? errFb);
     }
   };
-  const schedulePointerupError = (msg: string): void=> {
+  const schedulePointerupError = (msg: string): void => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") return;
     host.setAttribute(dataErrGuard, "true");
@@ -98,14 +92,14 @@ interface FullCalendarStatic {
       }
     };
     document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
+    const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) {
         document.removeEventListener("pointerup", once);
         o.disconnect();
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   };
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
@@ -142,8 +136,7 @@ interface FullCalendarStatic {
   };
   const getBase = (): string => {
     try {
-      const v = $("#holiday_calendar").val();
-      return String(v ?? "").trim();
+      return String($("#holiday_calendar").val() ?? "").trim();
     } catch (_) {
       const el = qs<HTMLInputElement>("#holiday_calendar");
       return (el?.value ?? "").toString().trim();
@@ -164,8 +157,8 @@ interface FullCalendarStatic {
       )
         console.error("jQuery unavailable");
     } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+      console.error(`[calendar] Error:`, _);
+    }
     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
     return false;
   };
@@ -179,8 +172,8 @@ interface FullCalendarStatic {
       )
         console.error("FullCalendar unavailable");
     } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+      console.error(`[calendar] Error:`, _);
+    }
     schedulePointerupError(
       getMsg(document.body, "calendar_initialization_failed"),
     );
@@ -211,45 +204,45 @@ interface FullCalendarStatic {
       try {
         el._fcInstance.destroy();
       } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+        console.error(`[calendar] Error:`, _);
+      }
       el._fcInstance = null;
     }
     try {
-      const FC = window.FullCalendar as FullCalendarStatic;
-      const calendar = new FC.Calendar(el, {
-        headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        },
-        buttonText: {
-          timeGridDay: "{{ __('Day') }}",
-          timeGridWeek: "{{ __('Week') }}",
-          dayGridMonth: "{{ __('Month') }}",
-        },
-        themeSystem: "bootstrap",
-        slotDuration: "00:10:00",
-        navLinks: true,
-        droppable: true,
-        selectable: true,
-        selectMirror: true,
-        editable: false,
-        dayMaxEvents: true,
-        handleWindowResize: true,
-        events: events ?? [],
-      });
+      const FC = window.FullCalendar as FullCalendarStatic,
+        calendar = new FC.Calendar(el, {
+          headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
+          },
+          buttonText: {
+            timeGridDay: "{{ __('Day') }}",
+            timeGridWeek: "{{ __('Week') }}",
+            dayGridMonth: "{{ __('Month') }}",
+          },
+          themeSystem: "bootstrap",
+          slotDuration: "00:10:00",
+          navLinks: true,
+          droppable: true,
+          selectable: true,
+          selectMirror: true,
+          editable: false,
+          dayMaxEvents: true,
+          handleWindowResize: true,
+          events: events ?? [],
+        });
       calendar.render();
       el._fcInstance = calendar;
       if (el.getAttribute(dataCalGuard) !== "true") {
         el.setAttribute(dataCalGuard, "true");
-        const mo = new MutationObserver((m, o) => {
+        const mo = new MutationObserver((_m, o) => {
           if (!document.body.contains(el)) {
             try {
               calendar.destroy();
             } catch (_) {
-    console.error(`[calendar] Error:`, _);
-  }
+              console.error(`[calendar] Error:`, _);
+            }
             o.disconnect();
           }
         });
@@ -296,18 +289,14 @@ interface FullCalendarStatic {
     if (document.body.getAttribute(dataCalGuard) === "true") return;
     document.body.setAttribute(dataCalGuard, "true");
     getData();
-    const mo = new MutationObserver((m, o) => {
-      if (!qs("#calendar")) {
-        o.disconnect();
-      }
+    const mo = new MutationObserver((_m, o) => {
+      if (!qs("#calendar")) o.disconnect();
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bind, { once: true });
-  } else {
-    bind();
-  }
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", bind, { once: true })
+    : bind();
   window.get_data = getData;
   document.getElementById("calendar_type")?.addEventListener("change", getData);
 })();

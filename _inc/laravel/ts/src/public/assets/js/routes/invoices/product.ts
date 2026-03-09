@@ -8,24 +8,18 @@
   try {
     const selects = Array.from(
       document.querySelectorAll(
-        "select.invoice-product-select[data-url][data-guard-msg]"
-      )
+        "select.invoice-product-select[data-url][data-guard-msg]",
+      ),
     );
-    if (selects.length === 0) {
-      return;
-    }
+    if (selects.length === 0) return;
     selects.forEach(sel => {
       try {
-        if (sel.getAttribute("data-change-guarded") === "true") {
-          return;
-        }
+        if (sel.getAttribute("data-change-guarded") === "true") return;
         sel.setAttribute("data-change-guarded", "true");
         sel.addEventListener("change", (e: Event) => {
           try {
             const url = (sel.getAttribute("data-url") ?? "#").trim();
-            if (url !== "#") {
-              return;
-            }
+            if (url !== "#") return;
             e.preventDefault();
             const msg =
               sel.getAttribute("data-guard-msg") ??
@@ -47,11 +41,11 @@
               const t = document.createElement("div");
               t.className = "toast";
               for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+              }))
+                t.setAttribute(k, v);
               const b = document.createElement("div");
               b.className = "toast-body";
               b.textContent = msg;
@@ -63,12 +57,12 @@
             }
             sel.setAttribute("data-failed-route", "true");
           } catch (err) {
-    console.error(`[product] Error:`, err);
-  }
+            console.error(`[product] Error:`, err);
+          }
         });
       } catch (err) {
-    console.error(`[product] Error:`, err);
-  }
+        console.error(`[product] Error:`, err);
+      }
     });
   } catch (err) {
     console.error(`[product] Error:`, err);

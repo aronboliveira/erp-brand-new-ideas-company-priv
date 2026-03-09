@@ -86,7 +86,7 @@ class TrainingController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = ViewsConstants::TNR . '.create';
-        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, 'create training', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -222,7 +222,7 @@ class TrainingController extends Controller
         $base   = class_basename($class);
         $req    = $request;
         $viewPath = ViewsConstants::TNR . '.' . $action;
-        return $this->measureProfile($action, function () use ($req, $training, $action, $method, $class, $base, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $training, $action, $method, $base, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, 'edit training', self::REDIRECT_INDEX)) !== true) return $redirect;

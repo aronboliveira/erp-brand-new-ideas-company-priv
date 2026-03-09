@@ -23,6 +23,9 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string|null $role
+ */
 final class UserLead extends Model
 {
     use HasFactory;

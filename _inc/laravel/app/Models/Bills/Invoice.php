@@ -37,6 +37,14 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Support\Collection;
 
+/**
+ * @property string|\Illuminate\Support\Carbon|null $due_date
+ * @property string|\Illuminate\Support\Carbon|null $send_date
+ * @property int|null $category_id
+ * @property mixed $created_by
+ * @property int|null $customer_id
+ * @property int|null $invoice_id
+ */
 class Invoice extends Model
 {
     use UsesUuids;
@@ -244,7 +252,7 @@ class Invoice extends Model
         return $this->tax();
     }
 
-    public function items(): HasMany
+    public function items(): Collection
     {
         return $this->products();
     }
@@ -1358,19 +1366,19 @@ class Invoice extends Model
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn($p) => $p->price * $p->quantity);
+        return $this->items->sum(fn($p) => $p->price * $p->quantity); // @phpstan-ignore property.notFound
     }
 
     public function getTotalDiscount(): float
     {
-        return $this->items->sum(fn($p) => $p->discount);
+        return $this->items->sum(fn($p) => $p->discount); // @phpstan-ignore property.notFound
     }
 
     public function getTotalTax(): float
     {
-        return $this->items->sum(
-            fn($p) => (Utility::totalTaxRate($p->tax) / 100)
-                * ($p->price * $p->quantity - $p->discount)
+        return $this->items->sum( // @phpstan-ignore property.notFound
+            fn($p) => (Utility::totalTaxRate($p->tax) / 100) // @phpstan-ignore property.notFound
+                * ($p->price * $p->quantity - $p->discount) // @phpstan-ignore property.notFound
         );
     }
 

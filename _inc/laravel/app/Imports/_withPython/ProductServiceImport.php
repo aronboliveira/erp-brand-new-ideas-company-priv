@@ -13,6 +13,7 @@ final class ProductServiceImport implements ToModel
 
     private const ENDPOINT = '/api/python/product_service_import';
 
+    /** @phpstan-return \App\Models\ProductService|null */
     public function model(array $row): ?ProductService
     {
         try {

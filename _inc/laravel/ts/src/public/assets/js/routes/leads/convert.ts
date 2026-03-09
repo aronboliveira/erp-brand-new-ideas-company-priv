@@ -9,11 +9,11 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
-  const L1 = "data-client-toggle-listener";
-  const L2 = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
+  const L1 = "data-client-toggle-listener",
+    L2 = "data-guard-listener",
+    DCL = "data-client-localized",
+    DGM = "data-guard-msg",
+    DSL = "data-sv-localized";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ERR = "# ERROR";
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -26,7 +26,7 @@
       return false;
     }
   }
-  function toast(msg: string): void{
+  function toast(msg: string): void {
     try {
       if (hasBootstrapCss() && window.bootstrap.Toast) {
         let c = document.getElementById("toast-container");
@@ -38,11 +38,11 @@
         const t = document.createElement("div");
         t.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  t.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          t.setAttribute(k, v);
         const b = document.createElement("div");
         b.className = "toast-body";
         b.textContent = msg;
@@ -54,7 +54,7 @@
       }
     } catch (_) {
       alert(msg);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
   }
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -87,7 +87,7 @@
       return ERR;
     }
   }
-  function toggleBlocks(isExist: boolean): void{
+  function toggleBlocks(isExist: boolean): void {
     try {
       const $ = window.jQuery;
       if (!$) return;
@@ -103,10 +103,10 @@
         $new.find("input").attr("required", "required");
       }
     } catch (_) {
-    console.error(`[convert] Error:`, _);
+      console.error(`[convert] Error:`, _);
+    }
   }
-  }
-  function bindToggle(): void{
+  function bindToggle(): void {
     try {
       const $ = window.jQuery;
       if (!$) return;
@@ -115,34 +115,33 @@
       const el = $radios.get(0);
       if (el.getAttribute(L1) === "true") return;
       el.setAttribute(L1, "true");
-      const initVal = $radios.filter(":checked").val();
-      toggleBlocks(initVal === "exist");
+      toggleBlocks($radios.filter(":checked").val() === "exist");
       $radios
         .off("click.convertDeal")
-        .on("click.convertDeal", function (): void {
+        .on("click.convertDeal", function (this: HTMLInputElement): void {
           try {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             toggleBlocks(this.value === "exist");
           } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+            console.error(`[convert] Error:`, _);
+          }
         });
       const obs = new MutationObserver(function (): void {
         if (!document.body.contains(el)) {
           try {
             $radios.off("click.convertDeal");
           } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+            console.error(`[convert] Error:`, _);
+          }
           obs.disconnect();
         }
       });
       obs.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[convert] Error:`, _);
+      console.error(`[convert] Error:`, _);
+    }
   }
-  }
-  function bindSubmitGuard(): void{
+  function bindSubmitGuard(): void {
     try {
       const $ = window.jQuery;
       if (!$) {
@@ -153,14 +152,14 @@
           )
             console.error("jQuery not found for convertDeal");
         } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+          console.error(`[convert] Error:`, _);
+        }
         return;
       }
       const form = document.getElementById(
-        "lead-convert-form",
-      ) as HTMLFormElement | null;
-      const btn = document.getElementById("lead-convert-submit");
+          "lead-convert-form",
+        ) as HTMLFormElement | null,
+        btn = document.getElementById("lead-convert-submit");
       if (!form || !btn) return;
       if (form.getAttribute(L2) === "true") return;
       form.setAttribute(L2, "true");
@@ -168,8 +167,8 @@
         .off("click.convertDealGuard")
         .on("click.convertDealGuard", function (e: Event) {
           try {
-            const url = form.getAttribute("data-url");
-            const href = form.action;
+            const url = form.getAttribute("data-url"),
+              href = form.action;
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
               toast(getMsg(form as HTMLElement, "action_unavailable"));
@@ -184,15 +183,15 @@
           try {
             $(btn).off("click.convertDealGuard");
           } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+            console.error(`[convert] Error:`, _);
+          }
           obs2.disconnect();
         }
       });
       obs2.observe(document.body, { childList: true, subtree: true });
     } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+      console.error(`[convert] Error:`, _);
+    }
   }
   try {
     const $ = window.jQuery;
@@ -204,8 +203,8 @@
         )
           console.error("Failed to initialize convertDeal: jQuery missing");
       } catch (_) {
-    console.error(`[convert] Error:`, _);
-  }
+        console.error(`[convert] Error:`, _);
+      }
       return;
     }
     $(function (): void {
@@ -220,8 +219,8 @@
       )
         console.error("Failed to initialize convertDeal");
     } catch (__) {
-    console.error(`[convert] Error:`, __);
-  }
+      console.error(`[convert] Error:`, __);
+    }
   }
 })();
 

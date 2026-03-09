@@ -7,12 +7,12 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-  const ERR_FB = "# ERROR";
-  const CLIENT_FLAG = "data-client-localized";
-  const GUARD_MSG = "data-guard-msg";
-  const LANG_KEY = "erp-np-lang";
+  const ERR_FB = "# ERROR",
+    CLIENT_FLAG = "data-client-localized",
+    GUARD_MSG = "data-guard-msg",
+    LANG_KEY = "erp-np-lang";
   let errorMessage = "";
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   function getLocalizedMessage(key: string, el: HTMLElement) {
@@ -40,7 +40,7 @@
     return msg;
   }
 
-  function showError(message: string): void{
+  function showError(message: string): void {
     try {
       let container = document.getElementById("toast-container");
       if (!container) {
@@ -57,11 +57,11 @@
         const toast = document.createElement("div");
         toast.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toast.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          toast.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = message;
@@ -111,11 +111,10 @@
           "address",
         ];
         fields.forEach(key => {
-          const bill = $(`[name='billing_${key}']`);
-          const ship = $(`[name='shipping_${key}']`);
-          if (!bill.length || !ship.length) {
+          const bill = $(`[name='billing_${key}']`),
+            ship = $(`[name='shipping_${key}']`);
+          if (!bill.length || !ship.length)
             throw new Error("shipping_copy_failed");
-          }
           ship.val(bill.val() as string);
         });
       } catch (err) {
@@ -123,7 +122,10 @@
       }
     };
 
-    btn.addEventListener("click", handler);
+    if (!btn.getAttribute("data-listener-bound-click")) {
+      btn.setAttribute("data-listener-bound-click", "1");
+      btn.addEventListener("click", handler);
+    }
     new MutationObserver((muts, obs) => {
       muts.forEach(m => {
         Array.from(m.removedNodes).forEach(n => {

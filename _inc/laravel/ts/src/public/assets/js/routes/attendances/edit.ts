@@ -15,8 +15,8 @@
             el.setAttribute(alias, "true");
             el.addEventListener("click", event => {
               try {
-                const url = el.getAttribute("data-url");
-                const href = el.getAttribute("href") ?? "";
+                const url = el.getAttribute("data-url"),
+                  href = el.getAttribute("href") ?? "";
                 if ((url && url !== "#") ?? (href && href !== "#")) return;
                 event.preventDefault();
                 const msg =
@@ -43,11 +43,11 @@
                   toastEl.className =
                     "toast align-items-center text-bg-danger border-0";
                   for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  toastEl.setAttribute(k, v);
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                  }))
+                    toastEl.setAttribute(k, v);
                   toastEl.innerHTML =
                     '<div class="d-flex"><div class="toast-body">' +
                     msg +
@@ -58,13 +58,13 @@
                   alert(msg);
                 }
               } catch (__err) {
-    console.error(`[edit] Error:`, __err);
-  }
+                console.error(`[edit] Error:`, __err);
+              }
             });
           }
         } catch (__err) {
-    console.error(`[edit] Error:`, __err);
-  }
+          console.error(`[edit] Error:`, __err);
+        }
       });
   } catch (__err) {
     console.error(`[edit] Error:`, __err);

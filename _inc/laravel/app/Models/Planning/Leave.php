@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\{
     Relations\BelongsTo
 };
 use Illuminate\Support\Facades\Log;
+/**
+ * @property array|string|null $employees
+ */
 
 class Leave extends Model
 {

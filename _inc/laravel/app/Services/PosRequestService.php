@@ -52,7 +52,7 @@ class PosRequestService
 			->where(DC::COL_TABLE_CREATOR, $user->creatorId())
 			->orderBy('created_at')
 			->get()
-			->groupBy(fn($v) => Carbon::parse($v->created_at)->format('dm'));
+			->groupBy(fn(Pos $v) => Carbon::parse($v->created_at)->format('dm'));
 
 		$posesArray = [
 			'label' => [],

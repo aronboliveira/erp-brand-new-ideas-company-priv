@@ -48,7 +48,7 @@ class ProposalController extends Controller
     use ChecksLogin, ChecksPermissions;
 
 
-    private const INDEX_ROUTE = ViewsConstants::PPS . '.index';
+    protected const INDEX_ROUTE = ViewsConstants::PPS . '.index';
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -196,7 +196,7 @@ class ProposalController extends Controller
             $this->logExecutionTime($stepStart, 'findProduct', 'completed');
 
             $stepStart = microtime(true);
-            $unit = $product->unit?->name ?? '';
+            $unit = $product->unit?->name ?? ''; /** @phpstan-ignore property.nonObject */
             $this->logExecutionTime($stepStart, 'fetchUnit', 'completed');
 
             $stepStart = microtime(true);
@@ -273,7 +273,7 @@ class ProposalController extends Controller
                     ]);
                 }
 
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 $customer = Customer::find($proposal->customer_id);
                 $notif = [
                     'proposal_number'     => $user?->proposalNumberFormat($proposal->proposal_id),
@@ -450,7 +450,7 @@ class ProposalController extends Controller
         $function = __FUNCTION__;
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user' => Auth::id(), 'encId' => $encId]);
-        return $this->measureProfile($method, function () use ($encId, $method, $function) {
+        return $this->measureProfile($method, function () use ($encId, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse)
                 return $user;
@@ -611,7 +611,7 @@ class ProposalController extends Controller
         $function = __FUNCTION__;
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user' => Auth::id(), 'encId' => $encId]);
-        return $this->measureProfile($method, function () use ($encId, $method, $function) {
+        return $this->measureProfile($method, function () use ($encId, $method) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse)
                 return $user;
@@ -674,7 +674,7 @@ class ProposalController extends Controller
                     'proposal_number' => $user?->proposalNumberFormat($proposal->proposal_id),
                     'proposal_url' => $url,
                 ];
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 $msg = __('Proposal successfully sent.');
                 if ($settings['proposal_sent'] ?? false) {
                     $startEmail = microtime(true);
@@ -722,7 +722,7 @@ class ProposalController extends Controller
                     'proposal_number' => $user?->proposalNumberFormat($proposal->proposal_id),
                     'proposal_url' => $url,
                 ];
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 if ($settings['proposal_sent'] ?? false)
                     Utility::sendEmailTemplate('proposal_sent', [$customer->id => $customer->email], $payload);
                 $this->logExecutionTime($stepStart, 'send proposal', 'completed');
@@ -748,7 +748,7 @@ class ProposalController extends Controller
             try {
                 if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
                 $proposal = Proposal::findOrFail($id);
-                $proposal->shipping_display = $request->is_display === 'true' ? 1 : 0;
+                $proposal->shipping_display = $request->is_display === 'true' ? '1' : '0';
                 $proposal->save();
                 $this->logExecutionTime($stepStart, 'update shipping display', 'completed');
                 Log::info("$action updated", ['proposal' => $id, 'shipping_display' => $proposal->shipping_display]);
@@ -883,7 +883,7 @@ class ProposalController extends Controller
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user' => Auth::id(), 'proposal' => $id, 'status' => $request->status]);
-        return $this->measureProfile($method, function () use ($request, $id, $method) {
+        return $this->measureProfile(function () use ($request, $id) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
@@ -910,7 +910,8 @@ class ProposalController extends Controller
             }
             $user = $userOrRedirect;
             $this->logExecutionTime($startAction, $function . '::login', 'completed');
-            $settings = Utility::settings($user?->creatorId());
+            $settings = Utility::settingsById($user?->creatorId());
+            $preview = true;
             $proposal = new Proposal();
             $proposal->proposal_id = 1;
             $proposal->issue_date = now()->toDateTimeString();
@@ -986,7 +987,7 @@ class ProposalController extends Controller
                 return view(ViewsConstants::PPS . '.customer_proposal', [
                     'proposal' => $proposal,
                     'customer' => $proposal->customer,
-                    'items' => $proposal->items,
+                    'items' => $proposal->items, /** @phpstan-ignore property.protected */
                     'customFields' => CustomField::where('module', 'proposal')->get(),
                     'status' => Proposal::$statuses,
                     'user' => User::find($proposal->created_by),
@@ -1079,7 +1080,7 @@ class ProposalController extends Controller
                 }
 
                 $settingsStart = microtime(true);
-                $settings = Utility::settings($proposal->created_by);
+                $settings = Utility::settingsById($proposal->created_by);
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
 
                 $itemsStart = microtime(true);
@@ -1231,7 +1232,7 @@ class ProposalController extends Controller
                     ]);
                     return defaultPermissionDenial($request, null, $method);
                 }
-                $settings = Utility::settings($user?->creatorId());
+                $settings = Utility::settingsById($user?->creatorId());
                 $img = Utility::getFile('proposal_logo/') . ($settings['proposal_logo'] ?? '');
                 $status = Proposal::$statuses;
                 $customFields = CustomField::where('module', 'proposal')->get();

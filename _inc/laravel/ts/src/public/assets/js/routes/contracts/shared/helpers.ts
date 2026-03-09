@@ -18,7 +18,6 @@
 
   // Avoid re-initialization
   if (global.ContractHelpers) return;
-
   const ERPBootstrap = global.ERPBootstrap as
     | { require?: (...args: string[]) => Record<string, unknown> }
     | undefined;
@@ -37,11 +36,10 @@
       })
     : { guard: null };
 
-  const ERR_FALLBACK = "# ERROR";
-  const DATA_CLIENT_LOCALIZED = "data-client-localized";
-  const DATA_GUARD_MSG = "data-guard-msg";
-  const DATA_SV_LOCALIZED = "data-sv-localized";
-
+  const ERR_FALLBACK = "# ERROR",
+    DATA_CLIENT_LOCALIZED = "data-client-localized",
+    DATA_GUARD_MSG = "data-guard-msg",
+    DATA_SV_LOCALIZED = "data-sv-localized";
   /** @param {string} s @param {Element|Document} r @returns {Element|null} */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const qs = (s: string, r = document) => r.querySelector(s);
@@ -76,7 +74,7 @@
   };
 
   /** Delegates to guard.error() */
-  const showError = (message: string): void=> {
+  const showError = (message: string): void => {
     if (guard) {
       guard.error(message ?? ERR_FALLBACK);
     } else {
@@ -85,7 +83,7 @@
   };
 
   /** Delegates to guard.showToast() */
-  const svToastOrAlert = (msg: string): void=> {
+  const svToastOrAlert = (msg: string): void => {
     if (guard) {
       guard.showToast(msg, "danger");
     } else {
@@ -94,7 +92,7 @@
   };
 
   /** Delegates to guard.scheduleInteractiveError() */
-  const scheduleErrorOnEvent = (msg: string): void=> {
+  const scheduleErrorOnEvent = (msg: string): void => {
     if (guard) {
       guard.scheduleInteractiveError(msg);
     } else {
@@ -109,14 +107,14 @@
     if (guard) return guard.getMsg(key) || ERR_FALLBACK;
     return ERR_FALLBACK;
   };
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 
   /** Resolves URL from element data-url/href. Delegates to guard.resolveUrl() */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const verifyRouteFromElement = (el: HTMLElement | null) => {
     if (guard) return guard.resolveUrl(el) ?? "";
-    const url = el?.getAttribute("data-url");
-    const href = el?.getAttribute("href");
+    const url = el?.getAttribute("data-url"),
+      href = el?.getAttribute("href");
     if ((!url || url === "#") && (!href || href === "#")) return "";
     return url && url !== "#" ? url : href && href !== "#" ? href : "";
   };
@@ -148,8 +146,8 @@
       try {
         if (isLocalhost()) console.error("jQuery unavailable");
       } catch (_) {
-    console.error(`[helpers] Error:`, _);
-  }
+        console.error(`[helpers] Error:`, _);
+      }
       if (typeof onError === "function") onError();
       return false;
     }
@@ -168,8 +166,8 @@
       try {
         if (isLocalhost()) console.error("Dropzone unavailable");
       } catch (_) {
-    console.error(`[helpers] Error:`, _);
-  }
+        console.error(`[helpers] Error:`, _);
+      }
       if (typeof onError === "function") onError();
       return false;
     }
@@ -190,20 +188,23 @@
    * @param {Element} anchor - Anchor element
    * @param {boolean} useDataUrl - Check data-url instead of href
    */
-  const guardAnchor = (anchor: HTMLElement | null, useDataUrl = false): void=> {
+  const guardAnchor = (
+    anchor: HTMLElement | null,
+    useDataUrl = false,
+  ): void => {
     if (!anchor) return;
-
     const msg =
       anchor.getAttribute("data-guard-msg") ?? "This action is unavailable.";
-    const attr = useDataUrl ? "data-url" : "href";
-    const value = (anchor.getAttribute(attr) ?? "").trim();
-
-    if (!value || value === "#") {
-      anchor.addEventListener("click", (e: Event) => {
-        e.preventDefault();
-        svToastOrAlert(msg);
-      });
-    }
+    const attr = useDataUrl ? "data-url" : "href",
+      value = (anchor.getAttribute(attr) ?? "").trim();
+    if (!value || value === "#")
+      if (!anchor.getAttribute("data-listener-bound-click")) {
+        anchor.setAttribute("data-listener-bound-click", "1");
+        anchor.addEventListener("click", (e: Event) => {
+          e.preventDefault();
+          svToastOrAlert(msg);
+        });
+      }
   };
 
   /**
@@ -211,21 +212,26 @@
    * @param {string} formSelector - Form CSS selector
    * @param {string} anchorSelector - Anchor inside form selector
    */
-  const guardFormAction = (formSelector: string, anchorSelector: string): void=> {
+  const guardFormAction = (
+    formSelector: string,
+    anchorSelector: string,
+  ): void => {
     const forms = document.querySelectorAll(formSelector);
     Array.prototype.forEach.call(forms, (form: Element) => {
       const action = (form.getAttribute("action") ?? "").trim();
       if (!action || action === "#") {
         const anchor = form.querySelector(anchorSelector);
         if (!anchor) return;
-
         const msg =
           anchor.getAttribute("data-guard-msg") ??
           "This action is unavailable.";
-        anchor.addEventListener("click", (e: Event) => {
-          e.preventDefault();
-          svToastOrAlert(msg);
-        });
+        if (!anchor.getAttribute("data-listener-bound-click")) {
+          anchor.setAttribute("data-listener-bound-click", "1");
+          anchor.addEventListener("click", (e: Event) => {
+            e.preventDefault();
+            svToastOrAlert(msg);
+          });
+        }
       }
     });
   };
@@ -240,7 +246,7 @@
     bindAttr: string,
     setup: () => void,
     cleanup: () => boolean,
-  ): void=> {
+  ): void => {
     const host = document.body;
     if (host.getAttribute(bindAttr) === "true") return;
     host.setAttribute(bindAttr, "true");
@@ -248,9 +254,7 @@
     setup();
 
     const mo = new MutationObserver((): void => {
-      if (cleanup()) {
-        host.removeAttribute(bindAttr);
-      }
+      if (cleanup()) host.removeAttribute(bindAttr);
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   };
@@ -297,7 +301,5 @@
   };
 
   // Also expose svToastOrAlert globally for backward compatibility
-  if (!global.svToastOrAlert) {
-    global.svToastOrAlert = svToastOrAlert;
-  }
+  if (!global.svToastOrAlert) global.svToastOrAlert = svToastOrAlert;
 })(typeof window !== "undefined" ? window : this);

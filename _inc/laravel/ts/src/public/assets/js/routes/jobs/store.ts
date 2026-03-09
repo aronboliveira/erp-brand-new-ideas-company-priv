@@ -7,7 +7,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 ((): void => {
-  const show = (msg: string): void=> {
+  const show = (msg: string): void => {
     try {
       const hasBs = !!window.bootstrap.Toast;
       if (hasBs) {
@@ -22,11 +22,11 @@
         const el = document.createElement("div");
         el.className = "toast";
         for (const [k, v] of Object.entries({
-  "role": "alert",
-  "aria-live": "assertive",
-  "aria-atomic": "true",
-}))
-  el.setAttribute(k, v);
+          role: "alert",
+          "aria-live": "assertive",
+          "aria-atomic": "true",
+        }))
+          el.setAttribute(k, v);
         const body = document.createElement("div");
         body.className = "toast-body";
         body.textContent = msg;
@@ -52,10 +52,9 @@
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const guard = (el: Element | null) =>
-    el?.getAttribute("data-guard-msg") ??
-    "Route is unavailable. Please contact technical support or your domain administrator.";
-
-  const form = document.getElementById("job-create-form");
+      el?.getAttribute("data-guard-msg") ??
+      "Route is unavailable. Please contact technical support or your domain administrator.",
+    form = document.getElementById("job-create-form");
   if (form) {
     form.addEventListener(
       "submit",
@@ -85,21 +84,27 @@
 
   if (window.jQuery) {
     const $ = window.jQuery;
-    $(".summernote-simple").each(function (): void {
+    $(".summernote-simple").each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (!$(this).data("summernote")) $(this).summernote({ height: 200 });
     });
-    $(".summernote-simple-2").each(function (): void {
+    $(".summernote-simple-2").each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (!$(this).data("summernote")) $(this).summernote({ height: 300 });
     });
-    $('input[data-toggle="tags"]').each(function (): void {
+    $('input[data-toggle="tags"]').each(function (this: HTMLElement): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      if (typeof $(this).tagsinput === "function")
+      if (
+        typeof (
+          $(this) as JQuery<HTMLElement> & {
+            tagsinput?: (arg: unknown) => void;
+          }
+        ).tagsinput === "function"
+      )
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        ($(this)).tagsinput(
-          "items" as unknown as Record<string, unknown>,
-        );
+        (
+          $(this) as JQuery<HTMLElement> & { tagsinput: (arg: unknown) => void }
+        ).tagsinput("items" as unknown as Record<string, unknown>);
     });
   }
 })();
